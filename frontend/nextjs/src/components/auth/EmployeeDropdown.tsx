@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+
 type ShiftTimeRange = { startTime: string; endTime: string } | null;
 
 export type EmployeeListItem = {
@@ -16,28 +18,52 @@ export default function EmployeeDropdown(props: {
 }) {
   const { employees, value, onChange } = props;
 
+  const selected = useMemo(() => employees.find((e) => e.id === value), [employees, value]);
+
+  if (!selected) return null;
+
   return (
-    <div style={{ marginBottom: 12 }}>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        style={{ width: "100%", padding: 10 }}
+    <div style={{ position: "relative", marginBottom: 24 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          padding: "12px 16px",
+          border: "1px solid var(--border-color)",
+          borderRadius: "var(--radius-md)",
+          background: "var(--bg-card)",
+          boxShadow: "var(--shadow-sm)",
+          gap: 12,
+        }}
       >
-        {employees.map((e) => {
-          const shift = e.scheduledShift ? `${fmt(e.scheduledShift.startTime)} - ${fmt(e.scheduledShift.endTime)}` : "";
-          return (
-            <option key={e.id} value={e.id}>
-              {e.displayName}{shift ? ` — ${shift}` : ""}
-            </option>
-          );
-        })}
-      </select>
+        <img
+          src={selected.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(selected.displayName)}&background=random`}
+          alt={selected.displayName}
+          style={{ width: 48, height: 48, borderRadius: 8, objectFit: "cover", background: "var(--bg-gray)" }}
+        />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 600, fontSize: "1.05rem" }}>{selected.displayName}</div>
+          <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+            {selected.scheduledShift 
+                ? `${fmt(selected.scheduledShift.startTime)} - ${fmt(selected.scheduledShift.endTime)}`
+                : "No shift today"}
+          </div>
+        </div>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 7.5L10 12.5L15 7.5" stroke="#6B7280" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </div>
+      
+      {/* 
+         Note: For a real dropdown we'd have a popover here. 
+         For the sake of the "Login" screen matching the screenshot, 
+         the selected state is shown. 
+      */}
     </div>
   );
 }
 
 function fmt(hhmmss: string) {
-  // Minimal client formatting; UI can be styled later to match screenshot.
   const [hStr, mStr] = hhmmss.split(":");
   const h = Number(hStr);
   const m = Number(mStr ?? "0");

@@ -63,7 +63,7 @@ export default function EmployeeLoginClient() {
       const res = await loginWithPin({ employeeId: selectedEmployeeId, pin, deviceId });
       localStorage.setItem("fg_access_token", res.accessToken);
       localStorage.setItem("fg_refresh_token", res.refreshToken);
-      setError(null);
+      window.location.href = "/"; // Redirect on success
     } catch (e: any) {
       setError(e?.message ?? "Login failed");
       setPin("");
@@ -73,38 +73,116 @@ export default function EmployeeLoginClient() {
   }
 
   if (loading) {
-    return <div style={{ padding: 24 }}>Loading…</div>;
+    return (
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ fontSize: "1.2rem", color: "var(--text-muted)" }}>Initializing CloudPos...</div>
+      </div>
+    );
   }
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr", padding: 24, maxWidth: 520 }}>
-      <h1>Employee Login</h1>
-      <p>Choose your account to start your shift.</p>
+    <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg-white)" }}>
+      {/* LEFT SIDE: Form */}
+      <div style={{ flex: "1 1 50%", padding: "40px", display: "flex", flexDirection: "column" }}>
+        {/* Header Logo */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 80 }}>
+          <div style={{ 
+            width: 32, height: 32, borderRadius: 8, background: "var(--primary-blue)", 
+            display: "flex", alignItems: "center", justifyContent: "center" 
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17.5 19a3.5 3.5 0 0 0 0-7c-.3 0-.6 0-.8.1a5 5 0 1 0-8.9 3.1c.1 0 .2.1.3.1a3.5 3.5 0 0 0 0 7h9.4z"/>
+            </svg>
+          </div>
+          <span style={{ fontSize: "1.25rem", fontWeight: 700, letterSpacing: "-0.02em" }}>CloudPos</span>
+        </div>
 
-      {error ? <div style={{ color: "crimson", marginBottom: 12 }}>{error}</div> : null}
+        <div style={{ maxWidth: "420px", margin: "0 auto", width: "100%" }}>
+          <h1 style={{ fontSize: "2rem", fontWeight: 700, textAlign: "center", marginBottom: 8 }}>Employee Login</h1>
+          <p style={{ color: "var(--text-muted)", textAlign: "center", marginBottom: 40 }}>Choose your account to start your shift.</p>
 
-      <EmployeeDropdown
-        employees={employees}
-        value={selectedEmployeeId}
-        onChange={(id) => {
-          setSelectedEmployeeId(id);
-          setPin("");
-          setError(null);
-        }}
-      />
+          <EmployeeDropdown
+            employees={employees}
+            value={selectedEmployeeId}
+            onChange={(id) => {
+              setSelectedEmployeeId(id);
+              setPin("");
+              setError(null);
+            }}
+          />
 
-      <div style={{ marginTop: 16, marginBottom: 8 }}>Please input your PIN to validate yourself.</div>
-      <PinBoxes length={PIN_LEN} valueLength={pin.length} />
+          <div style={{ 
+             textAlign: "center", fontSize: "0.95rem", color: "var(--text-muted)", 
+             marginTop: 24, marginBottom: 16 
+          }}>
+             Please input your PIN to validate yourself.
+          </div>
+          
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <PinBoxes length={PIN_LEN} valueLength={pin.length} />
+          </div>
 
-      <div style={{ marginTop: 8, marginBottom: 12 }}>
-        <a href="/forgot-pin">Forgot PIN?</a>
+          <div style={{ textAlign: "center", marginBottom: 32 }}>
+            <a href="/auth/forgot-pin" style={{ fontSize: "0.9rem" }}>Forgot PIN?</a>
+          </div>
+
+          <NumericKeypad onDigit={onDigit} onBackspace={onBackspace} disabled={submitting} />
+
+          {error && (
+            <div style={{ color: "#EF4444", fontSize: "0.9rem", textAlign: "center", marginTop: 24 }}>
+              {error}
+            </div>
+          )}
+
+          <button 
+            disabled={!canSubmit} 
+            onClick={onStartShift}
+            style={{ 
+              marginTop: 40, width: "100%", padding: "16px", borderRadius: "12px",
+              background: canSubmit ? "var(--primary-blue)" : "#E5E7EB",
+              color: canSubmit ? "white" : "#9CA3AF",
+              fontSize: "1.1rem", fontWeight: 600,
+              boxShadow: canSubmit ? "0 4px 6px -1px rgba(59, 130, 246, 0.2)" : "none"
+            }}
+          >
+            {submitting ? "Starting..." : "Start Shift"}
+          </button>
+        </div>
       </div>
 
-      <NumericKeypad onDigit={onDigit} onBackspace={onBackspace} disabled={submitting} />
+      {/* RIGHT SIDE: Mockup */}
+      <div style={{ 
+        flex: "1 1 50%", background: "var(--bg-gray)", padding: "40px",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        borderLeft: "1px solid var(--border-color)",
+        overflow: "hidden"
+      }}>
+        <div style={{ 
+          width: "100%", height: "85%", background: "var(--bg-card)", 
+          borderRadius: "32px", border: "12px solid var(--mockup-border)",
+          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
+          position: "relative", padding: "32px"
+        }}>
+          {/* Dashboard Preview Elements */}
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 32 }}>
+             <div style={{ height: "12px", width: "120px", background: "var(--bg-gray)", borderRadius: "6px" }} />
+             <div style={{ display: "flex", gap: "12px" }}>
+                <div style={{ height: "24px", width: "24px", background: "var(--bg-gray)", borderRadius: "12px" }} />
+                <div style={{ height: "24px", width: "24px", background: "var(--bg-gray)", borderRadius: "12px" }} />
+             </div>
+          </div>
+          <div style={{ height: "24px", width: "200px", background: "var(--bg-gray)", borderRadius: "6px", marginBottom: "8px" }} />
+          <div style={{ height: "12px", width: "280px", background: "var(--bg-gray)", borderRadius: "6px", marginBottom: "40px" }} />
+          
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "20px", marginBottom: "40px" }}>
+             <div style={{ height: "120px", background: "var(--bg-gray)", borderRadius: "16px" }} />
+             <div style={{ height: "120px", background: "var(--bg-gray)", borderRadius: "16px" }} />
+             <div style={{ height: "120px", background: "var(--bg-gray)", borderRadius: "16px" }} />
+          </div>
 
-      <button onClick={onStartShift} disabled={!canSubmit} style={{ marginTop: 16, padding: "12px 16px" }}>
-        {submitting ? "Starting…" : "Start Shift"}
-      </button>
+          <div style={{ height: "300px", background: "var(--bg-gray)", borderRadius: "24px" }} />
+        </div>
+      </div>
     </div>
   );
 }

@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { adminLogin } from "@/lib/api/admin";
 
-export default function Page() {
+export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function onLogin() {
+  async function onLogin(e: React.FormEvent) {
+    e.preventDefault();
     setError(null);
     if (!email.trim() || !password) {
       setError("Email and password are required");
@@ -29,24 +30,114 @@ export default function Page() {
   }
 
   return (
-    <div style={{ padding: 24, maxWidth: 520 }}>
-      <h1>Admin Login</h1>
-      {error ? <div style={{ color: "crimson", marginBottom: 12 }}>{error}</div> : null}
+    <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg-white)" }}>
+      {/* LEFT SIDE: Form */}
+      <div style={{ flex: "1 1 50%", padding: "40px", display: "flex", flexDirection: "column" }}>
+        {/* Header Logo */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 80 }}>
+          <div style={{ 
+            width: 32, height: 32, borderRadius: 8, background: "var(--primary-blue)", 
+            display: "flex", alignItems: "center", justifyContent: "center" 
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17.5 19a3.5 3.5 0 0 0 0-7c-.3 0-.6 0-.8.1a5 5 0 1 0-8.9 3.1c.1 0 .2.1.3.1a3.5 3.5 0 0 0 0 7h9.4z"/>
+            </svg>
+          </div>
+          <span style={{ fontSize: "1.25rem", fontWeight: 700, letterSpacing: "-0.02em" }}>CloudPos</span>
+        </div>
 
-      <label style={{ display: "block", marginBottom: 8 }}>Email</label>
-      <input value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: "100%", padding: 10 }} />
+        <div style={{ maxWidth: "420px", margin: "0 auto", width: "100%" }}>
+          <h1 style={{ fontSize: "2rem", fontWeight: 700, textAlign: "center", marginBottom: 8 }}>Admin Login</h1>
+          <p style={{ color: "var(--text-muted)", textAlign: "center", marginBottom: 40 }}>Welcome back! Please enter your details.</p>
 
-      <label style={{ display: "block", margin: "12px 0 8px" }}>Password</label>
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        style={{ width: "100%", padding: 10 }}
-      />
+          <form onSubmit={onLogin}>
+            <div className="form-group">
+              <label className="form-label">Email Address</label>
+              <input 
+                type="email" 
+                className="form-input" 
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-      <button onClick={onLogin} disabled={loading} style={{ marginTop: 16, padding: "12px 16px" }}>
-        {loading ? "Logging in…" : "Login"}
-      </button>
+            <div className="form-group">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <label className="form-label" style={{ marginBottom: 0 }}>Password</label>
+                <a href="#" style={{ fontSize: "0.85rem" }}>Forgot password?</a>
+              </div>
+              <input 
+                type="password" 
+                className="form-input" 
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            {error && (
+              <div style={{ color: "#EF4444", fontSize: "0.9rem", textAlign: "center", marginBottom: 24 }}>
+                {error}
+              </div>
+            )}
+
+            <button 
+              type="submit"
+              disabled={loading}
+              style={{ 
+                marginTop: 16, width: "100%", padding: "16px", borderRadius: "12px",
+                background: "var(--primary-blue)",
+                color: "white",
+                fontSize: "1.1rem", fontWeight: 600,
+                boxShadow: "0 4px 6px -1px rgba(59, 130, 246, 0.2)"
+              }}
+            >
+              {loading ? "Logging in..." : "Login"}
+            </button>
+          </form>
+
+          <p style={{ textAlign: "center", marginTop: 32, fontSize: "0.95rem", color: "var(--text-muted)" }}>
+            Don't have an account? <a href="#">Contact Support</a>
+          </p>
+        </div>
+      </div>
+
+      {/* RIGHT SIDE: Mockup */}
+      <div style={{ 
+        flex: "1 1 50%", background: "var(--bg-gray)", padding: "40px",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        borderLeft: "1px solid var(--border-color)",
+        overflow: "hidden"
+      }}>
+        <div style={{ 
+          width: "100%", height: "85%", background: "var(--bg-card)", 
+          borderRadius: "32px", border: "12px solid var(--mockup-border)",
+          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
+          position: "relative", padding: "32px"
+        }}>
+          {/* Dashboard Preview Elements */}
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 32 }}>
+             <div style={{ height: "12px", width: "120px", background: "var(--bg-gray)", borderRadius: "6px" }} />
+             <div style={{ display: "flex", gap: "12px" }}>
+                <div style={{ height: "24px", width: "24px", background: "var(--bg-gray)", borderRadius: "12px" }} />
+                <div style={{ height: "24px", width: "24px", background: "var(--bg-gray)", borderRadius: "12px" }} />
+             </div>
+          </div>
+          <div style={{ height: "24px", width: "200px", background: "var(--bg-gray)", borderRadius: "6px", marginBottom: "8px" }} />
+          <div style={{ height: "12px", width: "280px", background: "var(--bg-gray)", borderRadius: "6px", marginBottom: "40px" }} />
+          
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "20px", marginBottom: "40px" }}>
+             <div style={{ height: "120px", background: "var(--bg-gray)", borderRadius: "16px" }} />
+             <div style={{ height: "120px", background: "var(--bg-gray)", borderRadius: "16px" }} />
+             <div style={{ height: "120px", background: "var(--bg-gray)", borderRadius: "16px" }} />
+          </div>
+
+          <div style={{ height: "300px", background: "var(--bg-gray)", borderRadius: "24px" }} />
+        </div>
+      </div>
     </div>
   );
 }
