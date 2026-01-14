@@ -4,7 +4,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 
 export const metadata = {
   title: "FoodGrid POS",
-  description: "Restaurant POS"
+  description: "Advanced Restaurant POS System"
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

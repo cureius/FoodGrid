@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { adminLogin } from "@/lib/api/admin";
+import Logo from "@/components/Logo";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
@@ -34,16 +35,8 @@ export default function AdminLoginPage() {
       {/* LEFT SIDE: Form */}
       <div style={{ flex: "1 1 50%", padding: "40px", display: "flex", flexDirection: "column" }}>
         {/* Header Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 80 }}>
-          <div style={{ 
-            width: 32, height: 32, borderRadius: 8, background: "var(--primary-blue)", 
-            display: "flex", alignItems: "center", justifyContent: "center" 
-          }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17.5 19a3.5 3.5 0 0 0 0-7c-.3 0-.6 0-.8.1a5 5 0 1 0-8.9 3.1c.1 0 .2.1.3.1a3.5 3.5 0 0 0 0 7h9.4z"/>
-            </svg>
-          </div>
-          <span style={{ fontSize: "1.25rem", fontWeight: 700, letterSpacing: "-0.02em" }}>CloudPos</span>
+        <div style={{ marginBottom: 80 }}>
+          <Logo />
         </div>
 
         <div style={{ maxWidth: "420px", margin: "0 auto", width: "100%" }}>
