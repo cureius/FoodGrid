@@ -87,3 +87,46 @@ export function deleteEmployee(outletId: string, employeeId: string) {
     }
   );
 }
+
+export type OutletUpsertInput = {
+  name: string;
+  timezone: string;
+};
+
+export function listOutlets() {
+  return http<any[]>(`/api/v1/admin/outlets`, {
+    method: "GET",
+    headers: {
+      ...adminAuthHeader()
+    }
+  });
+}
+
+export function createOutlet(input: OutletUpsertInput) {
+  return http<any>(`/api/v1/admin/outlets`, {
+    method: "POST",
+    headers: {
+      ...adminAuthHeader()
+    },
+    body: JSON.stringify(input)
+  });
+}
+
+export function updateOutlet(outletId: string, input: OutletUpsertInput) {
+  return http<any>(`/api/v1/admin/outlets/${encodeURIComponent(outletId)}`, {
+    method: "PUT",
+    headers: {
+      ...adminAuthHeader()
+    },
+    body: JSON.stringify(input)
+  });
+}
+
+export function deleteOutlet(outletId: string) {
+  return http<void>(`/api/v1/admin/outlets/${encodeURIComponent(outletId)}`, {
+    method: "DELETE",
+    headers: {
+      ...adminAuthHeader()
+    }
+  });
+}

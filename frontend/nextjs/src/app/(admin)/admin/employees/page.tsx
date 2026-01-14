@@ -112,6 +112,11 @@ export default function Page() {
     <div style={{ padding: 24 }}>
       <h1>Employees</h1>
 
+      <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+        <a href="/admin/employees">Employees</a>
+        <a href="/admin/outlets">Outlets</a>
+      </div>
+
       {error ? <div style={{ color: "crimson", marginBottom: 12 }}>{error}</div> : null}
 
       <div style={{ border: "1px solid #ddd", padding: 12, borderRadius: 8, maxWidth: 720 }}>
