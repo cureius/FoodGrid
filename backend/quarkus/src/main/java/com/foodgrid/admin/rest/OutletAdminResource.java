@@ -25,19 +25,19 @@ public class OutletAdminResource {
   }
 
   @POST
-  public OutletResponse create(@Valid final OutletUpsertRequest request) {
+  public OutletResponse create(@Valid OutletUpsertRequest request) {
     return outletAdminService.create(request);
   }
 
   @PUT
   @Path("/{outletId}")
-  public OutletResponse update(@PathParam("outletId") final String outletId, @Valid final OutletUpsertRequest request) {
+  public OutletResponse update(@PathParam("outletId") String outletId, @Valid OutletUpsertRequest request) {
     return outletAdminService.update(outletId, request);
   }
 
   @DELETE
   @Path("/{outletId}")
-  public void delete(@PathParam("outletId") final String outletId) {
+  public void delete(@PathParam("outletId") String outletId) {
     outletAdminService.delete(outletId);
   }
 }
