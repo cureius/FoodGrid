@@ -17,7 +17,7 @@ export default function Logo({ size = 32 }: { size?: number }) {
           gridTemplateRows: "1fr 1fr", 
           gap: size * 0.1,
           padding: size * 0.1,
-          background: "var(--primary-blue)",
+          background: "var(--primary)",
           borderRadius: size * 0.25,
           boxShadow: "0 4px 6px -1px rgba(59, 130, 246, 0.3)"
         }}
