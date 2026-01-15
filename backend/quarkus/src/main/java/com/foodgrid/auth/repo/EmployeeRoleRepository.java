@@ -14,4 +14,33 @@ public class EmployeeRoleRepository {
       .setParameter(1, employeeId)
       .getResultList();
   }
+
+  public void addRole(String employeeId, String role) {
+    Panache.getEntityManager()
+      .createNativeQuery("insert ignore into employee_roles (employee_id, role) values (?1, ?2)")
+      .setParameter(1, employeeId)
+      .setParameter(2, role)
+      .executeUpdate();
+  }
+
+  public void removeRole(String employeeId, String role) {
+    Panache.getEntityManager()
+      .createNativeQuery("delete from employee_roles where employee_id = ?1 and role = ?2")
+      .setParameter(1, employeeId)
+      .setParameter(2, role)
+      .executeUpdate();
+  }
+
+  public void replaceRoles(String employeeId, List<String> roles) {
+    Panache.getEntityManager()
+      .createNativeQuery("delete from employee_roles where employee_id = ?1")
+      .setParameter(1, employeeId)
+      .executeUpdate();
+
+    if (roles == null) return;
+    for (String r : roles) {
+      if (r == null || r.isBlank()) continue;
+      addRole(employeeId, r);
+    }
+  }
 }

@@ -18,6 +18,9 @@ public class Shift extends PanacheEntityBase {
   @Column(name = "employee_id", nullable = false, length = 36)
   public String employeeId;
 
+  @Column(name = "device_id", nullable = false, length = 36)
+  public String deviceId;
+
   @Temporal(TemporalType.TIMESTAMP)
   @Column(name = "started_at", nullable = false)
   public Date startedAt;

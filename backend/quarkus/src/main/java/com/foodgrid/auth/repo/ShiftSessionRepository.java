@@ -7,6 +7,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 
 @ApplicationScoped
 public class ShiftSessionRepository implements PanacheRepositoryBase<ShiftSession, String> {
@@ -18,5 +19,21 @@ public class ShiftSessionRepository implements PanacheRepositoryBase<ShiftSessio
     ss.createdAt = Date.from(Instant.now());
     persist(ss);
     return ss;
+  }
+
+  public Optional<ShiftSession> findActiveById(String sessionId) {
+    return find("id = ?1 and revokedAt is null", sessionId).firstResultOptional();
+  }
+
+  public void revoke(String sessionId) {
+    ShiftSession ss = findByIdOptional(sessionId).orElse(null);
+    if (ss == null) return;
+    if (ss.revokedAt != null) return;
+    ss.revokedAt = Date.from(Instant.now());
+    persist(ss);
+  }
+
+  public int revokeByShiftId(String shiftId) {
+    return update("revokedAt = ?1 where shiftId = ?2 and revokedAt is null", Date.from(Instant.now()), shiftId);
   }
 }

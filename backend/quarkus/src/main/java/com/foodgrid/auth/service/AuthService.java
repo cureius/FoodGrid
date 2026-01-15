@@ -36,9 +36,26 @@ public class AuthService {
   @Inject OtpService otpService;
   @Inject JwtIssuer jwtIssuer;
 
-  public LoginContextResponse getLoginContext(String deviceCode) {
+  @Transactional
+  public LoginContextResponse getLoginContext(String deviceCode, String outletId) {
     PosDevice device = deviceRepository.findByDeviceCode(deviceCode)
-      .orElseThrow(() -> new NotFoundException("Unknown device"));
+      .orElseGet(() -> {
+        if (outletId == null || outletId.isBlank()) {
+          throw new NotFoundException("Unknown device");
+        }
+
+        // Validate outlet exists, then auto-register device
+        outletRepository.findByIdOptional(outletId)
+          .orElseThrow(() -> new NotFoundException("Outlet not found"));
+
+        PosDevice d = new PosDevice();
+        d.id = com.foodgrid.common.util.Ids.uuid();
+        d.outletId = outletId;
+        d.deviceCode = deviceCode;
+        d.name = null;
+        deviceRepository.persist(d);
+        return d;
+      });
 
     Outlet outlet = outletRepository.findByIdOptional(device.outletId)
       .orElseThrow(() -> new NotFoundException("Outlet not found"));
@@ -92,8 +109,8 @@ public class AuthService {
 
     credentialRepository.resetFailedAttempts(employee.id);
 
-    Shift shift = shiftRepository.findActive(device.outletId, employee.id)
-      .orElseGet(() -> shiftRepository.createActive(device.outletId, employee.id));
+    Shift shift = shiftRepository.findActive(device.outletId, employee.id, device.id)
+      .orElseGet(() -> shiftRepository.createActive(device.outletId, employee.id, device.id));
 
     ShiftSession session = sessionRepository.create(shift.id, device.id);
 
@@ -187,8 +204,8 @@ public class AuthService {
     Employee employee = employeeRepository.findByIdOptional(ch.employeeId)
       .orElseThrow(() -> new NotFoundException("Employee not found"));
 
-    Shift shift = shiftRepository.findActive(device.outletId, employee.id)
-      .orElseGet(() -> shiftRepository.createActive(device.outletId, employee.id));
+    Shift shift = shiftRepository.findActive(device.outletId, employee.id, device.id)
+      .orElseGet(() -> shiftRepository.createActive(device.outletId, employee.id, device.id));
 
     ShiftSession session = sessionRepository.create(shift.id, device.id);
 
