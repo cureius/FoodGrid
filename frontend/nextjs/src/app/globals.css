@@ -2,6 +2,8 @@
 
 :root {
   /* CloudPos Color Palette - Exact from Screenshots */
+  --primary: #4B70F5;
+  --primary-hover: #3B5FE5;
   --primary-blue: #4B70F5;
   --primary-blue-hover: #3B5FE5;
   --accent-orange: #F69B42;

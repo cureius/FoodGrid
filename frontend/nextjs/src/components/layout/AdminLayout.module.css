@@ -1,0 +1,18 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-app);
+}
+
+.mainContent {
+  flex: 1;
+  margin-left: 280px; /* Width of sidebar */
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pageBody {
+  padding: 0 40px 40px 40px;
+  flex: 1;
+}

@@ -1,0 +1,134 @@
+.topNav {
+  height: 80px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-xl);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-card);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.logoIcon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-hover));
+  border-radius: var(--radius-button);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.navCenter {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.navItem {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-button);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.navItem:hover {
+  background: var(--bg-app);
+  color: var(--text-primary);
+}
+
+.navItemActive {
+  background: var(--primary-blue);
+  color: var(--text-on-blue);
+}
+
+.navItemActive:hover {
+  background: var(--primary-blue-hover);
+  color: var(--text-on-blue);
+}
+
+.navRight {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.iconButton {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-button);
+  background: var(--bg-app);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: var(--transition-fast);
+  position: relative;
+}
+
+.iconButton:hover {
+  background: var(--border-light);
+  color: var(--text-primary);
+}
+
+.notificationBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background: var(--status-red);
+  border-radius: 50%;
+  border: 2px solid var(--bg-card);
+}
+
+.profileButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 6px 12px 6px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-app);
+  transition: var(--transition-fast);
+}
+
+.profileButton:hover {
+  background: var(--border-light);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-blue);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.profileName {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}

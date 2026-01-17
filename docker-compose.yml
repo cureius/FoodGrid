@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: foodgrid-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: foodgrid
+      MYSQL_DATABASE: foodgrid_db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: foodgrid
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - foodgrid-network
+
+volumes:
+  mysql_data:
+
+networks:
+  foodgrid-network:
+    driver: bridge

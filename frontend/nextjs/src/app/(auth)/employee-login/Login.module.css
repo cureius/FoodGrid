@@ -1,0 +1,174 @@
+.pageContainer {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-app);
+}
+
+.loginSide {
+  flex: 1;
+  padding: 60px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-sidebar);
+  position: relative;
+  z-index: 10;
+}
+
+.previewSide {
+  flex: 1.2;
+  background: var(--bg-app);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.previewSide::before {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(255, 171, 46, 0.1) 0%, transparent 70%);
+  top: -200px;
+  right: -200px;
+}
+
+.logoWrapper {
+  margin-bottom: 60px;
+}
+
+.contentWrapper {
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.employeeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.employeeCard {
+  background: var(--bg-app);
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.employeeCard:hover {
+  background: var(--bg-sidebar);
+  box-shadow: var(--shadow-premium);
+  transform: translateY(-4px);
+}
+
+.selectedEmployee {
+  border-color: var(--primary);
+  background: var(--bg-sidebar);
+  box-shadow: var(--shadow-premium);
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 8px 16px rgba(255, 171, 46, 0.2);
+}
+
+.employeeName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  text-align: center;
+}
+
+.pinSection {
+  text-align: center;
+  margin-top: 32px;
+}
+
+.pinLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.forgotPin {
+  display: block;
+  margin-top: 24px;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.keypadWrapper {
+  margin-top: 40px;
+}
+
+.actionBtn {
+  width: 100%;
+  height: 56px;
+  background: var(--primary);
+  color: white;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 40px;
+  box-shadow: 0 12px 24px rgba(255, 171, 46, 0.3);
+  transition: var(--transition);
+}
+
+.actionBtn:disabled {
+  background: var(--border-color);
+  box-shadow: none;
+  color: var(--text-muted);
+}
+
+.actionBtn:not(:disabled):hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+.mockupContainer {
+  width: 100%;
+  max-width: 800px;
+  height: 80%;
+  background: var(--bg-sidebar);
+  border-radius: 40px;
+  border: 16px solid #1B1B33;
+  box-shadow: 0 50px 100px -20px rgba(0,0,0,0.25);
+  position: relative;
+  overflow: hidden;
+  padding: 40px;
+}

@@ -1,0 +1,31 @@
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-lg);
+  transition: var(--transition-normal);
+}
+
+.premium {
+  box-shadow: var(--shadow-card);
+}
+
+.premium:hover {
+  box-shadow: var(--shadow-modal);
+  transform: translateY(-2px);
+}
+
+.outline {
+  border: 1px solid var(--border-light);
+}
+
+.flat {
+  background: var(--bg-app);
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:active {
+  transform: scale(0.98);
+}
