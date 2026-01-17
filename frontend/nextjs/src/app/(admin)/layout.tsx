@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import StyledComponentsRegistry from "@/lib/registry"; // Adjust path if needed
+import { Navbar } from "@/components/ui/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,7 +18,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className} style={{ margin: 0 }}>
-        <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
+        <StyledComponentsRegistry>
+          <Navbar />
+          {children}
+        </StyledComponentsRegistry>
       </body>
     </html>
   );

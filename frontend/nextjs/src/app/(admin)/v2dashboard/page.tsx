@@ -1,6 +1,5 @@
 "use client";
 import styled from "styled-components";
-import { Navbar } from "@/components/ui/Navbar";
 import { OrderCard } from "@/components/ui/OrderCard";
 import { Plus, CreditCard, Clock, CheckCircle, FileText, ChevronRight } from "lucide-react";
 import { COLORS } from "@/lib/constants";
@@ -285,7 +284,6 @@ const Select = styled.select`
 export default function Dashboard() {
   return (
     <Main>
-      <Navbar />
       <ContentShell>
         <PageMax>
           <ContentGrid>
