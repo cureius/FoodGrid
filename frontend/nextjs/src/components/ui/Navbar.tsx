@@ -2,13 +2,21 @@
 import styled from "styled-components";
 import { LayoutDashboard, ShoppingCart, Tablet, Calendar, History, Box, Bell, ChevronDown } from "lucide-react";
 import { COLORS } from "@/lib/constants";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const Nav = styled.nav`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 16px 0;
-  margin-bottom: 24px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 1000;
 `;
 
 const Tabs = styled.div`
@@ -44,30 +52,45 @@ const ProfilePill = styled.div`
   border: 1px solid ${COLORS.border};
 `;
 
-export const Navbar = () => (
-  <Nav>
-    <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <div style={{ color: COLORS.primary }}><Box size={28} fill="currentColor" /></div>
-        <span style={{ fontWeight: 800, fontSize: '20px' }}>CloudPos</span>
+export const Navbar = () => {
+  const pathname = usePathname();
+  return (
+    <Nav>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ color: COLORS.primary }}><Box size={28} fill="currentColor" /></div>
+          <span style={{ fontWeight: 800, fontSize: '20px' }}>CloudPos</span>
+        </div>
+        <Tabs>
+          <Link href="/v2dashboard" passHref>
+            <TabItem active={pathname === "/v2dashboard"}><LayoutDashboard size={18} /> Dashboard</TabItem>
+          </Link>
+          <Link href="/orders" passHref>
+            <TabItem active={pathname === "/orders"}><ShoppingCart size={18} /> Order</TabItem>
+          </Link>
+          <Link href="/tables" passHref>
+            <TabItem active={pathname === "/tables"}><Tablet size={18} /> Table</TabItem>
+          </Link>
+          <Link href="/reservations" passHref>
+            <TabItem active={pathname === "/reservations"}><Calendar size={18} /> Reservation</TabItem>
+          </Link>
+          <Link href="/history" passHref>
+            <TabItem active={pathname === "/history"}><History size={18} /> History</TabItem>
+          </Link>
+          <Link href="/inventory" passHref>
+            <TabItem active={pathname === "/inventory"}><Box size={18} /> Inventory</TabItem>
+          </Link>
+        </Tabs>
       </div>
-      <Tabs>
-        <TabItem active><LayoutDashboard size={18} /> Dashboard</TabItem>
-        <TabItem><ShoppingCart size={18} /> Order</TabItem>
-        <TabItem><Tablet size={18} /> Table</TabItem>
-        <TabItem><Calendar size={18} /> Reservation</TabItem>
-        <TabItem><History size={18} /> History</TabItem>
-        <TabItem><Box size={18} /> Inventory</TabItem>
-      </Tabs>
-    </div>
-    <div style={{ display: 'flex', gap: '12px' }}>
-      <div style={{ padding: '10px', background: 'white', borderRadius: '50%', border: `1px solid ${COLORS.border}` }}>
-        <Bell size={20} />
+      <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ padding: '10px', background: 'white', borderRadius: '50%', border: `1px solid ${COLORS.border}` }}>
+          <Bell size={20} />
+        </div>
+        <ProfilePill>
+          <img src="https://i.pravatar.cc/150?u=richardo" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+          <div style={{ fontSize: '13px' }}><b>Richardo</b> <span style={{ color: COLORS.textMuted }}>/ Waiter</span></div>
+        </ProfilePill>
       </div>
-      <ProfilePill>
-        <img src="https://i.pravatar.cc/150?u=richardo" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
-        <div style={{ fontSize: '13px' }}><b>Richardo</b> <span style={{ color: COLORS.textMuted }}>/ Waiter</span></div>
-      </ProfilePill>
-    </div>
-  </Nav>
-);
+    </Nav>
+  );
+};

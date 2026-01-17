@@ -8,7 +8,7 @@ import { COLORS } from "@/lib/constants";
 const Main = styled.main`
   background: ${COLORS.bg};
   min-height: 100vh;
-  padding: 0 40px 40px;
+  padding: 80px 40px 40px; /* top padding for fixed navbar */
 `;
 
 const StatGrid = styled.div`
