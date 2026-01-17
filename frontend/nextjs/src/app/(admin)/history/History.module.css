@@ -1,0 +1,378 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 100px 16px 24px 16px;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.titlePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-button);
+  border: 1px solid var(--border-light);
+  background: rgba(255, 255, 255, 0.7);
+  font-weight: 900;
+}
+
+.searchWrap {
+  flex: 1;
+  max-width: 560px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-button);
+  border: 1px solid var(--border-light);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.searchWrap svg {
+  color: var(--text-muted);
+}
+
+.searchWrap input {
+  border: none;
+  outline: none;
+  width: 100%;
+  background: transparent;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(340px, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.left {
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-light);
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: var(--shadow-card);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 640px;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  padding: 6px 6px 10px;
+}
+
+.filterBtn {
+  padding: 8px 12px;
+  border-radius: var(--radius-button);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.85);
+  color: rgba(109, 120, 139, 0.95);
+  font-weight: 900;
+}
+
+.filterBtnActive {
+  background: rgba(75, 112, 245, 0.12);
+  border-color: rgba(75, 112, 245, 0.22);
+  color: var(--primary-blue);
+}
+
+.list {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius-card);
+  overflow: auto;
+  flex: 1;
+}
+
+.orderCard {
+  all: unset;
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.orderCard:last-child {
+  border-bottom: none;
+}
+
+.orderCardSelected {
+  box-shadow: inset 0 0 0 2px rgba(75, 112, 245, 0.65);
+}
+
+.orderCardSelected .orderCardHeader {
+  background: rgba(75, 112, 245, 0.04);
+}
+
+.orderCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(243, 244, 246, 0.7);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.orderId {
+  font-size: 13px;
+  color: rgba(109, 120, 139, 0.95);
+}
+
+.orderId b {
+  color: rgba(17, 24, 39, 0.9);
+}
+
+.orderWhen {
+  font-size: 12px;
+  color: rgba(109, 120, 139, 0.9);
+  white-space: nowrap;
+}
+
+.orderCardBody {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px;
+}
+
+.kv {
+  padding-right: 10px;
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.kv:last-child {
+  border-right: none;
+}
+
+.kLabel {
+  font-size: 12px;
+  color: rgba(109, 120, 139, 0.9);
+  font-weight: 800;
+}
+
+.kValue {
+  margin-top: 2px;
+  font-weight: 900;
+  color: rgba(17, 24, 39, 0.9);
+}
+
+.right {
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-light);
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: var(--shadow-card);
+  min-height: 640px;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 12px;
+}
+
+.billCard {
+  width: 100%;
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.billHeaderTitle {
+  font-weight: 900;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  color: rgba(17, 24, 39, 0.92);
+}
+
+.billHeader {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.tableBadge {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(75, 112, 245, 1);
+  color: white;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.billCustomer {
+  font-weight: 900;
+}
+
+.billMeta {
+  margin-top: 2px;
+  font-size: 12px;
+  color: rgba(109, 120, 139, 0.9);
+}
+
+.billWhen {
+  font-size: 12px;
+  color: rgba(109, 120, 139, 0.9);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.billSectionTitle {
+  font-weight: 900;
+  padding: 12px 14px;
+  color: rgba(17, 24, 39, 0.9);
+}
+
+.billLines {
+  padding: 0 14px;
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.billLine {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.billLine:last-child {
+  border-bottom: none;
+}
+
+.billLineName {
+  font-weight: 900;
+}
+
+.billLineUnit {
+  font-size: 12px;
+  color: rgba(109, 120, 139, 0.9);
+  margin-top: 2px;
+}
+
+.billLineRight {
+  text-align: right;
+}
+
+.billLineQty {
+  font-size: 12px;
+  color: rgba(109, 120, 139, 0.9);
+}
+
+.billLineTotal {
+  font-weight: 900;
+  margin-top: 2px;
+}
+
+.billTotalsWrap {
+  margin-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(243, 244, 246, 0.6);
+  padding: 12px 14px;
+}
+
+.billTotalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-weight: 800;
+  color: rgba(109, 120, 139, 0.92);
+}
+
+.billDivider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  margin: 10px 0;
+}
+
+.billTotalPayment {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 900;
+  color: rgba(17, 24, 39, 0.92);
+  font-size: 16px;
+}
+
+.printBtn {
+  margin: 12px 14px 14px;
+  height: 48px;
+  border-radius: var(--radius-button);
+  background: rgba(75, 112, 245, 1);
+  color: white;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: var(--shadow-button);
+}
+
+.emptyState {
+  text-align: center;
+  max-width: 320px;
+  padding: 18px;
+  margin: auto;
+}
+
+.emptyIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  color: rgba(109, 120, 139, 0.9);
+}
+
+.emptyTitle {
+  margin-top: 12px;
+  font-weight: 900;
+  font-size: 18px;
+}
+
+.emptySub {
+  margin-top: 10px;
+  font-size: 12px;
+  color: rgba(109, 120, 139, 0.9);
+}
+
+@media (max-width: 980px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .right {
+    min-height: 340px;
+  }
+
+  .orderCardBody {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .kv:nth-child(2n) {
+    border-right: none;
+  }
+}
