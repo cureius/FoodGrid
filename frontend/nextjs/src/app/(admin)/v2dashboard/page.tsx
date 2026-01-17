@@ -118,7 +118,7 @@ const StatGrid = styled.div`
 const StatCard = styled.div`
   background: white;
   padding: 14px;
-  border-radius: 20px;
+  border-radius: var(--radius-card);
   display: flex;
   justify-content: space-between;
   border: 1px solid ${COLORS.border};
@@ -143,7 +143,7 @@ const IconBox = styled.div`
   height: 40px;
   background: ${COLORS.iconBg};
   color: ${COLORS.primary};
-  border-radius: 10px;
+  border-radius: var(--radius-button);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -181,7 +181,7 @@ const TwoColSections = styled.div`
 
 const Section = styled.div`
   background: white;
-  border-radius: 24px;
+  border-radius: var(--radius-card);
   padding: 24px;
   border: 1px solid ${COLORS.border};
   min-height: 100%;
@@ -191,7 +191,7 @@ const Section = styled.div`
 
   @media (max-width: 640px) {
     padding: 16px;
-    border-radius: 18px;
+    border-radius: var(--radius-card);
   }
 `;
 
@@ -246,7 +246,7 @@ const CreateBtn = styled.button`
   color: white;
   width: 100%;
   padding: 16px;
-  border-radius: 12px;
+  border-radius: var(--radius-button);
   border: none;
   font-weight: 700;
   display: flex;
@@ -277,7 +277,7 @@ const Select = styled.select`
   background: none;
   border: 1px solid ${COLORS.border};
   padding: 6px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-button);
   font-size: 12px;
 `;
 

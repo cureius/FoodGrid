@@ -25,10 +25,13 @@
   --border-light: #E5E7EB;
   --border-medium: #D1D5DB;
   
-  /* Border Radii */
-  --radius-card: 12px;
-  --radius-modal: 12px;
-  --radius-button: 12px;
+  /* Border Radii (single source of truth) */
+  --radius-base: 8px;
+  --radius-card: var(--radius-base);
+  --radius-modal: var(--radius-base);
+  --radius-button: var(--radius-base);
+  --radius-md: var(--radius-base);
+  --radius-xl: var(--radius-base);
   --radius-badge: 8px;
   --radius-pill: 9999px;
   
