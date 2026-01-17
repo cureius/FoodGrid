@@ -26,7 +26,7 @@ const Main = styled.main`
 const ContentShell = styled.div`
   /* Keep all content in the visible viewport under the fixed navbar */
   height: calc(100dvh - ${NAV_HEIGHT_DESKTOP}px);
-  padding-top: ${NAV_HEIGHT_DESKTOP}px;
+  padding-top: ${NAV_HEIGHT_DESKTOP + 30}px;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -38,7 +38,7 @@ const ContentShell = styled.div`
 `;
 
 const PageMax = styled.div`
-  max-width: 1680px;
+  max-width: 100%;
   margin: 0 auto;
   min-height: 0;
   flex: 1;
