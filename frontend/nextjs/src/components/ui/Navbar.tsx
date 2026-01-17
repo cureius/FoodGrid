@@ -1,9 +1,9 @@
 "use client";
 import styled from "styled-components";
 import { LayoutDashboard, ShoppingCart, Tablet, Calendar, History, Box, Bell, ChevronDown } from "lucide-react";
-import { COLORS } from "@/lib/constants";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { COLORS } from "@/lib/constants";
 
 const Nav = styled.nav`
   position: fixed;
@@ -56,7 +56,7 @@ export const Navbar = () => {
   const pathname = usePathname();
   return (
     <Nav>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '32px', padding: '0 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ color: COLORS.primary }}><Box size={28} fill="currentColor" /></div>
           <span style={{ fontWeight: 800, fontSize: '20px' }}>CloudPos</span>

@@ -29,9 +29,15 @@ const StatCard = styled.div`
 
 const ContentGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr 340px;
+  grid-template-columns: 3fr 1fr; /* 75% left, 25% right */
   gap: 24px;
   align-items: start;
+`;
+
+const LeftColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 `;
 
 const Section = styled.div`
@@ -66,59 +72,64 @@ export default function Dashboard() {
     <Main>
       <Navbar />
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <div>
-          <h1 style={{ fontSize: '24px', fontWeight: '800' }}>Good Morning, Richardo</h1>
-          <p style={{ color: COLORS.textMuted, fontSize: '14px' }}>Give your best services for customers, happy working 😌</p>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: '800' }}>09:55:02</h1>
-          <p style={{ color: COLORS.textMuted, fontSize: '14px' }}>Thu, 2 April 2025</p>
-        </div>
-      </div>
-
-      <StatGrid>
-        {[
-          { label: "Total Earning", val: "$ 1,400", icon: CreditCard },
-          { label: "In Progress", val: "11", icon: Clock },
-          { label: "Ready to Served", val: "5", icon: CheckCircle },
-          { label: "Completed", val: "8", icon: FileText },
-        ].map((s, i) => (
-          <StatCard key={i}>
-            <div>
-              <p style={{ color: COLORS.textMuted, fontSize: '14px', marginBottom: '8px' }}>{s.label}</p>
-              <h2 style={{ fontSize: '28px', fontWeight: '800' }}>{s.val}</h2>
-            </div>
-            <div style={{ width: '40px', height: '40px', background: COLORS.iconBg, color: COLORS.primary, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <s.icon size={20} />
-            </div>
-          </StatCard>
-        ))}
-      </StatGrid>
-
       <ContentGrid>
-        {/* Column 1 */}
-        <Section>
-          <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '20px' }}>In Progress</h3>
-          <OrderCard orderId="DI008" type="Dine In" time="Mon, 17 Feb 03:43 PM" name="Daniel" table="A1" items={6} progress={10} />
-          <OrderCard orderId="TA001" type="Take Away" time="Mon, 17 Feb 02:56 PM" name="Vlona" table="V" items={3} progress={60} />
-          <div style={{ marginTop: 'auto', textAlign: 'center', borderTop: `1px solid ${COLORS.border}`, paddingTop: '16px', fontWeight: '700', color: COLORS.textMain, cursor: 'pointer' }}>
-            See All Order <ChevronRight size={16} style={{ verticalAlign: 'middle' }} />
+        {/* Left side (75%) */}
+        <LeftColumn>
+          {/* Greetings & Time */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+            <div>
+              <h1 style={{ fontSize: '24px', fontWeight: '800' }}>Good Morning, Richardo</h1>
+              <p style={{ color: COLORS.textMuted, fontSize: '14px' }}>Give your best services for customers, happy working 😌</p>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <h1 style={{ fontSize: '24px', fontWeight: '800' }}>09:55:02</h1>
+              <p style={{ color: COLORS.textMuted, fontSize: '14px' }}>Thu, 2 April 2025</p>
+            </div>
           </div>
-        </Section>
 
-        {/* Column 2 */}
-        <Section>
-          <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '20px' }}>Waiting for Payments</h3>
-          <OrderCard orderId="DI002" type="Dine In" time="Mon, 17 Feb 10:32 AM" name="Daniel" table="A4" items={6} status="Waiting for Payment" />
-          <OrderCard orderId="DI001" type="Dine In" time="Mon, 17 Feb 10:24 AM" name="Eve" table="B3" items={6} status="Waiting for Payment" />
-          <div style={{ marginTop: 'auto', textAlign: 'center', borderTop: `1px solid ${COLORS.border}`, paddingTop: '16px', fontWeight: '700', color: COLORS.textMain, cursor: 'pointer' }}>
-            See All Order <ChevronRight size={16} style={{ verticalAlign: 'middle' }} />
+          {/* Stats */}
+          <StatGrid>
+            {[
+              { label: "Total Earning", val: "$ 1,400", icon: CreditCard },
+              { label: "In Progress", val: "11", icon: Clock },
+              { label: "Ready to Served", val: "5", icon: CheckCircle },
+              { label: "Completed", val: "8", icon: FileText }
+            ].map((s, i) => (
+              <StatCard key={i}>
+                <div>
+                  <p style={{ color: COLORS.textMuted, fontSize: '14px', marginBottom: '8px' }}>{s.label}</p>
+                  <h2 style={{ fontSize: '28px', fontWeight: '800' }}>{s.val}</h2>
+                </div>
+                <div style={{ width: '40px', height: '40px', background: COLORS.iconBg, color: COLORS.primary, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <s.icon size={20} />
+                </div>
+              </StatCard>
+            ))}
+          </StatGrid>
+
+          {/* In Progress & Waiting for Payments side by side */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            <Section>
+              <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '20px' }}>In Progress</h3>
+              <OrderCard orderId="DI008" type="Dine In" time="Mon, 17 Feb 03:43 PM" name="Daniel" table="A1" items={6} progress={10} />
+              <OrderCard orderId="TA001" type="Take Away" time="Mon, 17 Feb 02:56 PM" name="Vlona" table="V" items={3} progress={60} />
+              <div style={{ marginTop: 'auto', textAlign: 'center', borderTop: `1px solid ${COLORS.border}`, paddingTop: '16px', fontWeight: '700', color: COLORS.textMain, cursor: 'pointer' }}>
+                See All Order <ChevronRight size={16} style={{ verticalAlign: 'middle' }} />
+              </div>
+            </Section>
+            <Section>
+              <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '20px' }}>Waiting for Payments</h3>
+              <OrderCard orderId="DI002" type="Dine In" time="Mon, 17 Feb 10:32 AM" name="Daniel" table="A4" items={6} status="Waiting for Payment" />
+              <OrderCard orderId="DI001" type="Dine In" time="Mon, 17 Feb 10:24 AM" name="Eve" table="B3" items={6} status="Waiting for Payment" />
+              <div style={{ marginTop: 'auto', textAlign: 'center', borderTop: `1px solid ${COLORS.border}`, paddingTop: '16px', fontWeight: '700', color: COLORS.textMain, cursor: 'pointer' }}>
+                See All Order <ChevronRight size={16} style={{ verticalAlign: 'middle' }} />
+              </div>
+            </Section>
           </div>
-        </Section>
+        </LeftColumn>
 
-        {/* Sidebar */}
-        <div>
+        {/* Right side (25%) */}
+        <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 120px)' }}>
           <CreateBtn><Plus size={20} /> Create New Order</CreateBtn>
           
           <Section style={{ minHeight: 'auto', marginBottom: '24px' }}>
@@ -128,7 +139,7 @@ export default function Dashboard() {
                 <option>First Floor</option>
               </select>
             </div>
-            {['A1', 'A7', 'A8', 'A15'].map(t => (
+            {['A1', 'A7', 'A8', 'A15', 'A1', 'A7', 'A8', 'A15', 'A1', 'A7', 'A8', 'A15', 'A1', 'A7', 'A8', 'A15'].map(t => (
               <div key={t} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: `1px solid ${COLORS.border}`, fontSize: '14px' }}>
                 <span style={{ fontWeight: '700' }}>{t}</span>
                 <span style={{ color: COLORS.textMuted }}>{t === 'A15' ? '6' : '4'} Person</span>
@@ -144,13 +155,13 @@ export default function Dashboard() {
               { name: "Veggie Supreme Pizza", time: "04:30 PM" }
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-                 <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#f0f0f0', overflow: 'hidden' }}>
-                    <img src={`https://source.unsplash.com/100x100/?food,${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                 </div>
-                 <div>
-                    <div style={{ fontWeight: '700', fontSize: '14px' }}>{item.name}</div>
-                    <div style={{ color: COLORS.primary, fontSize: '12px', fontWeight: '600' }}>Available: {item.time}</div>
-                 </div>
+                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#f0f0f0', overflow: 'hidden' }}>
+                  <img src={`https://source.unsplash.com/100x100/?food,${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: '700', fontSize: '14px' }}>{item.name}</div>
+                  <div style={{ color: COLORS.primary, fontSize: '12px', fontWeight: '600' }}>Available: {item.time}</div>
+                </div>
               </div>
             ))}
           </Section>
