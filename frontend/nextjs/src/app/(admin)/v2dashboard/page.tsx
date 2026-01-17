@@ -5,34 +5,58 @@ import { OrderCard } from "@/components/ui/OrderCard";
 import { Plus, CreditCard, Clock, CheckCircle, FileText, ChevronRight } from "lucide-react";
 import { COLORS } from "@/lib/constants";
 
+const NAV_HEIGHT_DESKTOP = 72;
+const NAV_HEIGHT_MOBILE = 56;
+
 const Main = styled.main`
   background: ${COLORS.bg};
-  min-height: 100vh;
-  padding: clamp(84px, 7vw, 120px) clamp(14px, 4vw, 56px) clamp(16px, 3vw, 48px);
+  min-height: 100dvh;
+
+  /* Prevent page-level overflow; only inner panels will scroll */
+  overflow: hidden;
+
+  /* top padding no longer used; we create a dedicated content shell below the fixed navbar */
+  padding: 0 clamp(14px, 4vw, 56px) clamp(16px, 3vw, 48px);
 
   @media (min-width: 1600px) {
     padding-left: 72px;
     padding-right: 72px;
   }
+`;
+
+const ContentShell = styled.div`
+  /* Keep all content in the visible viewport under the fixed navbar */
+  height: calc(100dvh - ${NAV_HEIGHT_DESKTOP}px);
+  padding-top: ${NAV_HEIGHT_DESKTOP}px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 
   @media (max-width: 640px) {
-    padding-top: 76px;
+    height: calc(100dvh - ${NAV_HEIGHT_MOBILE}px);
+    padding-top: ${NAV_HEIGHT_MOBILE}px;
   }
 `;
 
 const PageMax = styled.div`
   max-width: 1680px;
   margin: 0 auto;
+  min-height: 0;
+  flex: 1;
+  display: flex;
 `;
 
 const ContentGrid = styled.div`
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(320px, 1fr);
   gap: 24px;
-  align-items: start;
+  align-items: stretch;
+  width: 100%;
+  min-height: 0;
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
+    align-items: start;
   }
 
   @media (min-width: 1600px) {
@@ -130,8 +154,10 @@ const IconBox = styled.div`
 const LeftColumn = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
   height: 100%;
+  min-width: 0;
+  min-height: 0;
 `;
 
 const TwoColSections = styled.div`
@@ -139,8 +165,14 @@ const TwoColSections = styled.div`
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
 
+  /* Let the two panels take remaining height and scroll internally */
+  flex: 1;
+  min-height: 0;
+
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
+    flex: initial;
+    min-height: auto;
   }
 
   @media (max-width: 640px) {
@@ -156,6 +188,7 @@ const Section = styled.div`
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 
   @media (max-width: 640px) {
     padding: 16px;
@@ -179,15 +212,34 @@ const SectionFooter = styled.div`
   cursor: pointer;
 `;
 
+const SectionBody = styled.div`
+  /* This makes the middle content scrollable while header/footer remain visible */
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 6px;
+`;
+
 const RightColumn = styled.aside`
   display: flex;
   flex-direction: column;
   gap: 24px;
   min-width: 0;
+  min-height: 0;
+  height: 100%;
 
   @media (max-width: 1024px) {
     order: 2;
+    height: auto;
   }
+`;
+
+const RightSections = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex: 1;
+  min-height: 0;
 `;
 
 const CreateBtn = styled.button`
@@ -211,26 +263,15 @@ const CreateBtn = styled.button`
 `;
 
 const ScrollSection = styled(Section)`
-  min-height: auto;
+  min-height: 0;
+  flex: 1;
 `;
 
 const ScrollBody = styled.div`
-  overflow-y: auto;
+  overflow: auto;
   flex: 1;
-  min-height: 240px;
-  max-height: clamp(260px, 36vh, 420px);
-
-  @media (max-width: 1024px) {
-    max-height: 340px;
-  }
-
-  @media (max-width: 640px) {
-    max-height: 280px;
-  }
-
-  @media (min-width: 1600px) {
-    max-height: 520px;
-  }
+  min-height: 0;
+  padding-right: 6px;
 `;
 
 const Select = styled.select`
@@ -245,140 +286,160 @@ export default function Dashboard() {
   return (
     <Main>
       <Navbar />
-      <PageMax>
-        <ContentGrid>
-          <LeftColumn>
-            <HeaderRow>
-              <div>
-                <Title>Good Morning, Richardo</Title>
-                <SubTitle>Give your best services for customers, happy working 😌</SubTitle>
-              </div>
-              <TimeBlock>
-                <Title>09:55:02</Title>
-                <SubTitle>Thu, 2 April 2025</SubTitle>
-              </TimeBlock>
-            </HeaderRow>
+      <ContentShell>
+        <PageMax>
+          <ContentGrid>
+            <LeftColumn>
+              <HeaderRow>
+                <div>
+                  <Title>Good Morning, Richardo</Title>
+                  <SubTitle>Give your best services for customers, happy working 😌</SubTitle>
+                </div>
+                <TimeBlock>
+                  <Title>09:55:02</Title>
+                  <SubTitle>Thu, 2 April 2025</SubTitle>
+                </TimeBlock>
+              </HeaderRow>
 
-            <StatGrid>
-              {[
-                { label: "Total Earning", val: "$ 1,400", icon: CreditCard },
-                { label: "In Progress", val: "11", icon: Clock },
-                { label: "Ready to Served", val: "5", icon: CheckCircle },
-                { label: "Completed", val: "8", icon: FileText },
-              ].map((s, i) => (
-                <StatCard key={i}>
-                  <div style={{ minWidth: 0 }}>
-                    <CardLabel>{s.label}</CardLabel>
-                    <CardValue>{s.val}</CardValue>
-                  </div>
-                  <IconBox>
-                    <s.icon size={20} />
-                  </IconBox>
-                </StatCard>
-              ))}
-            </StatGrid>
-
-            <TwoColSections>
-              <Section>
-                <SectionTitle>In Progress</SectionTitle>
-                <OrderCard orderId="DI008" type="Dine In" time="Mon, 17 Feb 03:43 PM" name="Daniel" table="A1" items={6} progress={10} />
-                <OrderCard orderId="TA001" type="Take Away" time="Mon, 17 Feb 02:56 PM" name="Vlona" table="V" items={3} progress={60} />
-                <SectionFooter>
-                  See All Order <ChevronRight size={16} style={{ verticalAlign: "middle" }} />
-                </SectionFooter>
-              </Section>
-              <Section>
-                <SectionTitle>Waiting for Payments</SectionTitle>
-                <OrderCard orderId="DI002" type="Dine In" time="Mon, 17 Feb 10:32 AM" name="Daniel" table="A4" items={6} status="Waiting for Payment" />
-                <OrderCard orderId="DI001" type="Dine In" time="Mon, 17 Feb 10:24 AM" name="Eve" table="B3" items={6} status="Waiting for Payment" />
-                <SectionFooter>
-                  See All Order <ChevronRight size={16} style={{ verticalAlign: "middle" }} />
-                </SectionFooter>
-              </Section>
-            </TwoColSections>
-          </LeftColumn>
-
-          <RightColumn>
-            <CreateBtn>
-              <Plus size={20} /> Create New Order
-            </CreateBtn>
-
-            <ScrollSection>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexShrink: 0, gap: 12 }}>
-                <SectionTitle style={{ marginBottom: 0 }}>Table Available</SectionTitle>
-                <Select>
-                  <option>First Floor</option>
-                </Select>
-              </div>
-              <ScrollBody>
+              <StatGrid>
                 {[
-                  "A1",
-                  "A7",
-                  "A8",
-                  "A15",
-                  "A1",
-                  "A7",
-                  "A8",
-                  "A15",
-                  "A1",
-                  "A7",
-                  "A8",
-                  "A15",
-                  "A1",
-                  "A7",
-                  "A8",
-                  "A15",
-                ].map((t) => (
-                  <div key={t} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: `1px solid ${COLORS.border}`, fontSize: "14px", gap: 12 }}>
-                    <span style={{ fontWeight: 700 }}>{t}</span>
-                    <span style={{ color: COLORS.textMuted }}>{t === "A15" ? "6" : "4"} Person</span>
-                  </div>
-                ))}
-              </ScrollBody>
-            </ScrollSection>
-
-            <ScrollSection>
-              <SectionTitle>Out of Stock</SectionTitle>
-              <ScrollBody>
-                {[
-                  { name: "Hawaiian Chicken Skewers", time: "03:00 PM" },
-                  { name: "BBQ Beef Ribs", time: "04:30 PM" },
-                  { name: "Veggie Supreme Pizza", time: "04:30 PM" },
-                  { name: "Hawaiian Chicken Skewers", time: "03:00 PM" },
-                  { name: "BBQ Beef Ribs", time: "04:30 PM" },
-                  { name: "Veggie Supreme Pizza", time: "04:30 PM" },
-                  { name: "Hawaiian Chicken Skewers", time: "03:00 PM" },
-                  { name: "BBQ Beef Ribs", time: "04:30 PM" },
-                  { name: "Veggie Supreme Pizza", time: "04:30 PM" },
-                  { name: "Hawaiian Chicken Skewers", time: "03:00 PM" },
-                  { name: "BBQ Beef Ribs", time: "04:30 PM" },
-                  { name: "Veggie Supreme Pizza", time: "04:30 PM" },
-                  { name: "Hawaiian Chicken Skewers", time: "03:00 PM" },
-                  { name: "BBQ Beef Ribs", time: "04:30 PM" },
-                  { name: "Veggie Supreme Pizza", time: "04:30 PM" },
-                  { name: "Hawaiian Chicken Skewers", time: "03:00 PM" },
-                  { name: "BBQ Beef Ribs", time: "04:30 PM" },
-                  { name: "Veggie Supreme Pizza", time: "04:30 PM" },
-                ].map((item, i) => (
-                  <div key={i} style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
-                    <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "#f0f0f0", overflow: "hidden", flex: "0 0 auto" }}>
-                      <img
-                        alt={item.name}
-                        src={`https://source.unsplash.com/100x100/?food,${i}`}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      />
-                    </div>
+                  { label: "Total Earning", val: "$ 1,400", icon: CreditCard },
+                  { label: "In Progress", val: "11", icon: Clock },
+                  { label: "Ready to Served", val: "5", icon: CheckCircle },
+                  { label: "Completed", val: "8", icon: FileText },
+                ].map((s, i) => (
+                  <StatCard key={i}>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
-                      <div style={{ color: COLORS.primary, fontSize: "12px", fontWeight: 600 }}>Available: {item.time}</div>
+                      <CardLabel>{s.label}</CardLabel>
+                      <CardValue>{s.val}</CardValue>
                     </div>
-                  </div>
+                    <IconBox>
+                      <s.icon size={20} />
+                    </IconBox>
+                  </StatCard>
                 ))}
-              </ScrollBody>
-            </ScrollSection>
-          </RightColumn>
-        </ContentGrid>
-      </PageMax>
+              </StatGrid>
+
+              <TwoColSections>
+                <Section>
+                  <SectionTitle>In Progress</SectionTitle>
+                  <SectionBody>
+                    <OrderCard orderId="DI008" type="Dine In" time="Mon, 17 Feb 03:43 PM" name="Daniel" table="A1" items={6} progress={10} />
+                    <OrderCard orderId="TA001" type="Take Away" time="Mon, 17 Feb 02:56 PM" name="Vlona" table="V" items={3} progress={60} />
+                    <OrderCard orderId="TA001" type="Take Away" time="Mon, 17 Feb 02:56 PM" name="Vlona" table="V" items={3} progress={60} />
+                    <OrderCard orderId="TA001" type="Take Away" time="Mon, 17 Feb 02:56 PM" name="Vlona" table="V" items={3} progress={60} />
+                    <OrderCard orderId="TA001" type="Take Away" time="Mon, 17 Feb 02:56 PM" name="Vlona" table="V" items={3} progress={60} />
+                    <OrderCard orderId="TA001" type="Take Away" time="Mon, 17 Feb 02:56 PM" name="Vlona" table="V" items={3} progress={60} />
+                    <OrderCard orderId="TA001" type="Take Away" time="Mon, 17 Feb 02:56 PM" name="Vlona" table="V" items={3} progress={60} />
+                  </SectionBody>
+                  <SectionFooter>
+                    See All Order <ChevronRight size={16} style={{ verticalAlign: "middle" }} />
+                  </SectionFooter>
+                </Section>
+                <Section>
+                  <SectionTitle>Waiting for Payments</SectionTitle>
+                  <SectionBody>
+                    <OrderCard orderId="DI002" type="Dine In" time="Mon, 17 Feb 10:32 AM" name="Daniel" table="A4" items={6} status="Waiting for Payment" />
+                    <OrderCard orderId="DI001" type="Dine In" time="Mon, 17 Feb 10:24 AM" name="Eve" table="B3" items={6} status="Waiting for Payment" />
+                    <OrderCard orderId="DI001" type="Dine In" time="Mon, 17 Feb 10:24 AM" name="Eve" table="B3" items={6} status="Waiting for Payment" />
+                    <OrderCard orderId="DI001" type="Dine In" time="Mon, 17 Feb 10:24 AM" name="Eve" table="B3" items={6} status="Waiting for Payment" />
+                    <OrderCard orderId="DI001" type="Dine In" time="Mon, 17 Feb 10:24 AM" name="Eve" table="B3" items={6} status="Waiting for Payment" />
+                    <OrderCard orderId="DI001" type="Dine In" time="Mon, 17 Feb 10:24 AM" name="Eve" table="B3" items={6} status="Waiting for Payment" />
+                    <OrderCard orderId="DI001" type="Dine In" time="Mon, 17 Feb 10:24 AM" name="Eve" table="B3" items={6} status="Waiting for Payment" />
+                    <OrderCard orderId="DI001" type="Dine In" time="Mon, 17 Feb 10:24 AM" name="Eve" table="B3" items={6} status="Waiting for Payment" />
+                    <OrderCard orderId="DI001" type="Dine In" time="Mon, 17 Feb 10:24 AM" name="Eve" table="B3" items={6} status="Waiting for Payment" />
+                  </SectionBody>
+                  <SectionFooter>
+                    See All Order <ChevronRight size={16} style={{ verticalAlign: "middle" }} />
+                  </SectionFooter>
+                </Section>
+              </TwoColSections>
+            </LeftColumn>
+
+            <RightColumn>
+              <CreateBtn>
+                <Plus size={20} /> Create New Order
+              </CreateBtn>
+
+              <RightSections>
+                <ScrollSection>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexShrink: 0, gap: 12 }}>
+                    <SectionTitle style={{ marginBottom: 0 }}>Table Available</SectionTitle>
+                    <Select>
+                      <option>First Floor</option>
+                    </Select>
+                  </div>
+                  <ScrollBody>
+                    {[
+                      "A1",
+                      "A7",
+                      "A8",
+                      "A15",
+                      "A1",
+                      "A7",
+                      "A8",
+                      "A15",
+                      "A1",
+                      "A7",
+                      "A8",
+                      "A15",
+                      "A1",
+                      "A7",
+                      "A8",
+                      "A15",
+                    ].map((t) => (
+                      <div key={t} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: `1px solid ${COLORS.border}`, fontSize: "14px", gap: 12 }}>
+                        <span style={{ fontWeight: 700 }}>{t}</span>
+                        <span style={{ color: COLORS.textMuted }}>{t === "A15" ? "6" : "4"} Person</span>
+                      </div>
+                    ))}
+                  </ScrollBody>
+                </ScrollSection>
+
+                <ScrollSection>
+                  <SectionTitle>Out of Stock</SectionTitle>
+                  <ScrollBody>
+                    {[
+                      { name: "Hawaiian Chicken Skewers", time: "03:00 PM" },
+                      { name: "BBQ Beef Ribs", time: "04:30 PM" },
+                      { name: "Veggie Supreme Pizza", time: "04:30 PM" },
+                      { name: "Hawaiian Chicken Skewers", time: "03:00 PM" },
+                      { name: "BBQ Beef Ribs", time: "04:30 PM" },
+                      { name: "Veggie Supreme Pizza", time: "04:30 PM" },
+                      { name: "Hawaiian Chicken Skewers", time: "03:00 PM" },
+                      { name: "BBQ Beef Ribs", time: "04:30 PM" },
+                      { name: "Veggie Supreme Pizza", time: "04:30 PM" },
+                      { name: "Hawaiian Chicken Skewers", time: "03:00 PM" },
+                      { name: "BBQ Beef Ribs", time: "04:30 PM" },
+                      { name: "Veggie Supreme Pizza", time: "04:30 PM" },
+                      { name: "Hawaiian Chicken Skewers", time: "03:00 PM" },
+                      { name: "BBQ Beef Ribs", time: "04:30 PM" },
+                      { name: "Veggie Supreme Pizza", time: "04:30 PM" },
+                      { name: "Hawaiian Chicken Skewers", time: "03:00 PM" },
+                      { name: "BBQ Beef Ribs", time: "04:30 PM" },
+                      { name: "Veggie Supreme Pizza", time: "04:30 PM" },
+                    ].map((item, i) => (
+                      <div key={i} style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
+                        <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "#f0f0f0", overflow: "hidden", flex: "0 0 auto" }}>
+                          <img
+                            alt={item.name}
+                            src={`https://source.unsplash.com/100x100/?food,${i}`}
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                          />
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
+                          <div style={{ color: COLORS.primary, fontSize: "12px", fontWeight: 600 }}>Available: {item.time}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </ScrollBody>
+                </ScrollSection>
+              </RightSections>
+            </RightColumn>
+          </ContentGrid>
+        </PageMax>
+      </ContentShell>
     </Main>
   );
 }
