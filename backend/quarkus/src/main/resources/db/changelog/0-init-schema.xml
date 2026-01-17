@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+      http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+  <!--
+    This changeset is DISABLED because Hibernate ORM with database.generation=update
+    already creates the base tables. Running schema.sql would cause collation mismatches.
+    We rely on Hibernate for base schema and Liquibase for incremental changes only.
+  -->
+  <!--
+  <changeSet id="0-init-schema" author="dev">
+    <sqlFile path="../schema.sql" relativeToChangelogFile="true" splitStatements="true" stripComments="true" />
+    <sqlFile path="../seed.sql" relativeToChangelogFile="true" splitStatements="true" stripComments="true" />
+  </changeSet>
+  -->
+
+</databaseChangeLog>

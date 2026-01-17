@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+      http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+  <changeSet id="1-create-admin-user-roles" author="dev">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="admin_user_roles"/>
+      </not>
+    </preConditions>
+
+    <createTable tableName="admin_user_roles">
+      <column name="admin_user_id" type="varchar(36)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="role" type="varchar(20)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <addPrimaryKey tableName="admin_user_roles" columnNames="admin_user_id,role" constraintName="pk_admin_user_roles"/>
+
+    <addForeignKeyConstraint baseTableName="admin_user_roles" baseColumnNames="admin_user_id"
+                             referencedTableName="admin_users" referencedColumnNames="id"
+                             constraintName="fk_admin_user_roles_admin_user_id" onDelete="CASCADE"/>
+
+    <rollback>
+      <dropTable tableName="admin_user_roles"/>
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>

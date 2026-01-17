@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+      http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+  <!-- Add tenant_id to employees -->
+  <changeSet id="3a-add-tenant-to-employees" author="dev">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <tableExists tableName="employees"/>
+        <not>
+          <columnExists tableName="employees" columnName="tenant_id"/>
+        </not>
+      </and>
+    </preConditions>
+
+    <addColumn tableName="employees">
+      <column name="tenant_id" type="varchar(36)"/>
+    </addColumn>
+    <createIndex tableName="employees" indexName="idx_employees_tenant_id">
+      <column name="tenant_id"/>
+    </createIndex>
+
+    <rollback>
+      <dropIndex indexName="idx_employees_tenant_id" tableName="employees"/>
+      <dropColumn tableName="employees" columnName="tenant_id"/>
+    </rollback>
+  </changeSet>
+
+  <!-- Add tenant_id to menu_items -->
+  <changeSet id="3b-add-tenant-to-menu-items" author="dev">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <tableExists tableName="menu_items"/>
+        <not>
+          <columnExists tableName="menu_items" columnName="tenant_id"/>
+        </not>
+      </and>
+    </preConditions>
+
+    <addColumn tableName="menu_items">
+      <column name="tenant_id" type="varchar(36)"/>
+    </addColumn>
+    <createIndex tableName="menu_items" indexName="idx_menu_items_tenant_id">
+      <column name="tenant_id"/>
+    </createIndex>
+
+    <rollback>
+      <dropIndex indexName="idx_menu_items_tenant_id" tableName="menu_items"/>
+      <dropColumn tableName="menu_items" columnName="tenant_id"/>
+    </rollback>
+  </changeSet>
+
+  <!-- Add tenant_id to orders -->
+  <changeSet id="3c-add-tenant-to-orders" author="dev">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <tableExists tableName="orders"/>
+        <not>
+          <columnExists tableName="orders" columnName="tenant_id"/>
+        </not>
+      </and>
+    </preConditions>
+
+    <addColumn tableName="orders">
+      <column name="tenant_id" type="varchar(36)"/>
+    </addColumn>
+    <createIndex tableName="orders" indexName="idx_orders_tenant_id">
+      <column name="tenant_id"/>
+    </createIndex>
+
+    <rollback>
+      <dropIndex indexName="idx_orders_tenant_id" tableName="orders"/>
+      <dropColumn tableName="orders" columnName="tenant_id"/>
+    </rollback>
+  </changeSet>
+
+  <!-- Backfill tenant_id from outlets.client_id -->
+  <changeSet id="3d-backfill-tenant-ids" author="dev">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <columnExists tableName="outlets" columnName="client_id"/>
+        <columnExists tableName="employees" columnName="tenant_id"/>
+        <columnExists tableName="menu_items" columnName="tenant_id"/>
+        <columnExists tableName="orders" columnName="tenant_id"/>
+      </and>
+    </preConditions>
+
+    <update tableName="employees">
+      <column name="tenant_id" valueComputed="(SELECT client_id FROM outlets WHERE outlets.id = employees.outlet_id)"/>
+    </update>
+
+    <update tableName="menu_items">
+      <column name="tenant_id" valueComputed="(SELECT client_id FROM outlets WHERE outlets.id = menu_items.outlet_id)"/>
+    </update>
+
+    <update tableName="orders">
+      <column name="tenant_id" valueComputed="(SELECT client_id FROM outlets WHERE outlets.id = orders.outlet_id)"/>
+    </update>
+  </changeSet>
+
+</databaseChangeLog>
+

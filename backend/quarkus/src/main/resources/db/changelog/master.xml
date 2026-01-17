@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+    xsi:schemaLocation="
+      http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd
+      http://www.liquibase.org/xml/ns/pro
+      http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.9.xsd">
+
+  <include file="db/changelog/0-init-schema.xml"/>
+  <include file="db/changelog/1-create-admin-user-roles.xml"/>
+  <include file="db/changelog/1-create-clients.xml"/>
+  <include file="db/changelog/2-add-client-to-outlets.xml"/>
+  <include file="db/changelog/3-add-tenant-to-tables.xml"/>
+
+</databaseChangeLog>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+      http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+  <changeSet id="2-add-client-to-outlets" author="dev">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="outlets" columnName="client_id"/>
+      </not>
+    </preConditions>
+
+    <!-- Add client_id column to outlets -->
+    <addColumn tableName="outlets">
+      <column name="client_id" type="varchar(36)"/>
+    </addColumn>
+
+    <!-- Create index -->
+    <createIndex tableName="outlets" indexName="idx_outlets_client_id">
+      <column name="client_id"/>
+    </createIndex>
+
+    <rollback>
+      <dropIndex indexName="idx_outlets_client_id" tableName="outlets"/>
+      <dropColumn tableName="outlets" columnName="client_id"/>
+    </rollback>
+  </changeSet>
+
+  <changeSet id="2b-backfill-client-id" author="dev">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <columnExists tableName="outlets" columnName="client_id"/>
+        <columnExists tableName="outlets" columnName="owner_id"/>
+      </and>
+    </preConditions>
+
+    <!-- Backfill client_id from owner_id -->
+    <update tableName="outlets">
+      <column name="client_id" valueComputed="owner_id"/>
+    </update>
+  </changeSet>
+
+  <changeSet id="2c-add-fk-outlets-client" author="dev">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <tableExists tableName="clients"/>
+        <columnExists tableName="outlets" columnName="client_id"/>
+        <not>
+          <foreignKeyConstraintExists foreignKeyName="fk_outlets_client"/>
+        </not>
+      </and>
+    </preConditions>
+
+    <addForeignKeyConstraint constraintName="fk_outlets_client"
+                             baseTableName="outlets" baseColumnNames="client_id"
+                             referencedTableName="clients" referencedColumnNames="id"
+                             deferrable="false" initiallyDeferred="false"
+                             onDelete="SET NULL"/>
+
+    <rollback>
+      <dropForeignKeyConstraint baseTableName="outlets" constraintName="fk_outlets_client"/>
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>
+
