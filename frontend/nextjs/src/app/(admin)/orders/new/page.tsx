@@ -18,6 +18,7 @@ import {
   Boxes,
   FileText,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type OrderType = "Dine In" | "Take Away";
 
@@ -129,6 +130,7 @@ const BANANA_WRAP_ADDONS: AddOn[] = [
 ];
 
 export default function NewOrderPage() {
+  const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
   const [orderType, setOrderType] = useState<OrderType>("Take Away");
   const [customerName, setCustomerName] = useState<string>("");
@@ -408,7 +410,11 @@ export default function NewOrderPage() {
               </div>
             </div>
 
-            <button className={styles.continueBtn} disabled={cart.length === 0}>
+            <button
+              className={styles.continueBtn}
+              disabled={cart.length === 0}
+              onClick={() => router.push("/payments")}
+            >
               Continue
             </button>
           </div>
