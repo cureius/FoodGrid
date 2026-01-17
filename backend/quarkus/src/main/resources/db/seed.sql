@@ -1,8 +1,20 @@
 -- Seed data for FoodGrid POS
-USE petpooja_db;
+USE foodgrid_db;
 
 -- 1. Outlets
-INSERT INTO outlets (id, name, timezone) 
+INSERT INTO outlets (id, name, timezone)
+VALUES (UUID(), 'Main Café Hub', 'Asia/Kolkata');
+
+-- 2. Admin Users
+-- Password: Souraj@123
+INSERT INTO admin_users (id, outlet_id, email, password_hash, display_name, status)
+VALUES (UUID(), 'outlet-1', 'paulsouraj99@gmail.com', '$2a$12$DwPxcio1Yil7j9v2ldur4OgFyg0qReIuVN7YH.g3/XRjh2bfcsH8G', 'Souraj Paul', 'ACTIVE');
+
+-- 3. Admin User Roles
+INSERT INTO admin_user_roles (admin_user_id, role)
+VALUES (UUID(), 'ADMIN');
+-- 1. Outlets
+INSERT INTO outlets (id, name, timezone)
 VALUES ('outlet-1', 'Main Café Hub', 'Asia/Kolkata');
 
 -- 2. Admin Users

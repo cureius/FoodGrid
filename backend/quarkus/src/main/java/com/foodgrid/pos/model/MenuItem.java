@@ -16,6 +16,9 @@ public class MenuItem extends PanacheEntityBase {
   @Column(name = "outlet_id", nullable = false, length = 36)
   public String outletId;
 
+  @Column(name = "tenant_id", length = 36)
+  public String tenantId;
+
   @Column(name = "category_id", length = 36)
   public String categoryId;
 

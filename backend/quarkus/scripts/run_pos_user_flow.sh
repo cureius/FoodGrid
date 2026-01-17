@@ -48,13 +48,22 @@ export ADMIN_TOKEN
 log "  ADMIN_TOKEN acquired"
 
 ########################################
-# 1) Outlet setup (admin)
+# 1) Create outlet (admin creates outlet for themselves)
 ########################################
 log "1) Create outlet..."
+
+# Get admin ID from token (this will be used as ownerId)
+ADMIN_ID=$(echo "$ADMIN_LOGIN_RESP" | jq -r '.admin.id' 2>/dev/null || true)
+if [[ -z "${ADMIN_ID:-}" ]]; then
+  echo "[ERROR] Could not extract admin ID from login response" >&2
+  echo "$ADMIN_LOGIN_RESP" >&2
+  exit 1
+fi
+
 OUTLET_RESP=$(curl -s -X POST "$BASE_URL/api/v1/admin/outlets" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"name":"FoodGrid Downtown","timezone":"Asia/Kolkata"}')
+  -d "{\"ownerId\":\"$ADMIN_ID\",\"name\":\"FoodGrid Downtown\",\"timezone\":\"Asia/Kolkata\"}")
 
 print_json "create outlet" "$OUTLET_RESP"
 

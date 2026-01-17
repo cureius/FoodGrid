@@ -33,10 +33,9 @@ public class AdminAuthService {
     }
 
     List<String> roles = roleRepository.listRoles(admin.id);
-    String outletId = admin.outletId;
 
-    String accessToken = jwtIssuer.issueAdminAccessToken(admin, outletId, roles);
-    String refreshToken = jwtIssuer.issueAdminRefreshToken(admin, outletId);
+    String accessToken = jwtIssuer.issueAdminAccessToken(admin, null, roles);
+    String refreshToken = jwtIssuer.issueAdminRefreshToken(admin, null);
 
     return new AdminLoginResponse(
       accessToken,

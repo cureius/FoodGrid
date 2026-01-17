@@ -10,9 +10,6 @@ public class AdminUser extends PanacheEntityBase {
   @Column(length = 36)
   public String id;
 
-  @Column(name = "outlet_id", length = 36)
-  public String outletId;
-
   @Column(nullable = false, length = 190, unique = true)
   public String email;
 

@@ -44,12 +44,32 @@ public class AdminUserAdminService {
   }
 
   @Transactional
-  public AdminUserResponse create(AdminUserCreateRequest req) {
-    String tokenOutletId = claim("outletId");
-    String outletId = req.outletId();
+  public AdminUserResponse bootstrap(AdminUserCreateRequest req) {
+    adminUserRepository.findByEmail(req.email()).ifPresent(u -> {
+      throw new BadRequestException("Email already exists");
+    });
 
-    if (tokenOutletId != null && !tokenOutletId.isBlank()) {
-      outletId = tokenOutletId;
+    AdminUser a = new AdminUser();
+    a.id = Ids.uuid();
+    a.email = req.email();
+    a.passwordHash = pinHasher.hash(req.password());
+    a.displayName = req.displayName();
+    a.status = parseStatus(req.status());
+
+    adminUserRepository.persist(a);
+
+    // Assign ADMIN role for bootstrap user
+    roleRepository.replaceRoles(a.id, List.of("ADMIN"));
+
+    List<String> roles = roleRepository.listRoles(a.id);
+    return toResponse(a, roles);
+  }
+
+  @Transactional
+  public AdminUserResponse create(AdminUserCreateRequest req) {
+    String adminId = claim("sub");
+    if (adminId == null || adminId.isBlank()) {
+      throw new BadRequestException("Only authenticated users can create admins");
     }
 
     adminUserRepository.findByEmail(req.email()).ifPresent(u -> {
@@ -58,7 +78,6 @@ public class AdminUserAdminService {
 
     AdminUser a = new AdminUser();
     a.id = Ids.uuid();
-    a.outletId = (outletId == null || outletId.isBlank()) ? null : outletId;
     a.email = req.email();
     a.passwordHash = pinHasher.hash(req.password());
     a.displayName = req.displayName();
@@ -72,19 +91,8 @@ public class AdminUserAdminService {
 
   @Transactional
   public AdminUserResponse update(String adminUserId, AdminUserUpdateRequest req) {
-    String tokenOutletId = claim("outletId");
-
     AdminUser a = adminUserRepository.findByIdOptional(adminUserId)
       .orElseThrow(() -> new NotFoundException("Admin user not found"));
-
-    if (tokenOutletId != null && !tokenOutletId.isBlank()) {
-      if (a.outletId == null || !a.outletId.equals(tokenOutletId)) {
-        throw new BadRequestException("Not allowed for this outlet");
-      }
-      a.outletId = tokenOutletId;
-    } else {
-      a.outletId = (req.outletId() == null || req.outletId().isBlank()) ? null : req.outletId();
-    }
 
     a.email = req.email();
     a.displayName = req.displayName();
@@ -101,16 +109,8 @@ public class AdminUserAdminService {
 
   @Transactional
   public void delete(String adminUserId) {
-    String tokenOutletId = claim("outletId");
-
     AdminUser a = adminUserRepository.findByIdOptional(adminUserId)
       .orElseThrow(() -> new NotFoundException("Admin user not found"));
-
-    if (tokenOutletId != null && !tokenOutletId.isBlank()) {
-      if (a.outletId == null || !a.outletId.equals(tokenOutletId)) {
-        throw new BadRequestException("Not allowed for this outlet");
-      }
-    }
 
     roleRepository.replaceRoles(adminUserId, List.of());
     adminUserRepository.delete(a);
@@ -118,16 +118,8 @@ public class AdminUserAdminService {
 
   @Transactional
   public AdminUserResponse updateRoles(String adminUserId, AdminUserRolesUpdateRequest req) {
-    String tokenOutletId = claim("outletId");
-
     AdminUser a = adminUserRepository.findByIdOptional(adminUserId)
       .orElseThrow(() -> new NotFoundException("Admin user not found"));
-
-    if (tokenOutletId != null && !tokenOutletId.isBlank()) {
-      if (a.outletId == null || !a.outletId.equals(tokenOutletId)) {
-        throw new BadRequestException("Not allowed for this outlet");
-      }
-    }
 
     for (String r : req.roles()) {
       if (r == null || !ALLOWED_ROLES.contains(r)) {
@@ -155,6 +147,6 @@ public class AdminUserAdminService {
   }
 
   private static AdminUserResponse toResponse(AdminUser a, List<String> roles) {
-    return new AdminUserResponse(a.id, a.outletId, a.email, a.displayName, a.status.name(), roles);
+    return new AdminUserResponse(a.id, null, a.email, a.displayName, a.status.name(), roles);
   }
 }
