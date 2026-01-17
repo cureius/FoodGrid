@@ -13,7 +13,6 @@ const Header = () => {
     if (path.includes('dashboard')) return 'Dashboard Overview';
     if (path.includes('orders')) return 'Order List';
     if (path.includes('tables')) return 'Table Management';
-    if (path.includes('reservations')) return 'Reservations';
     if (path.includes('history')) return 'Order History';
     if (path.includes('inventory')) return 'Inventory Management';
     if (path.includes('payments')) return 'Payments & Billing';

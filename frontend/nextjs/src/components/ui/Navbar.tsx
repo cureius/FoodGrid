@@ -194,11 +194,6 @@ export const Navbar = () => {
               <Tablet size={18} /> <span data-label>Table</span>
             </TabItem>
           </Link>
-          <Link href="/reservations" passHref>
-            <TabItem active={pathname === "/reservations"}>
-              <Calendar size={18} /> <span data-label>Reservation</span>
-            </TabItem>
-          </Link>
           <Link href="/history" passHref>
             <TabItem active={pathname === "/history"}>
               <History size={18} /> <span data-label>History</span>

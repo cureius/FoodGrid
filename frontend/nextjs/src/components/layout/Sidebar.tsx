@@ -20,7 +20,6 @@ const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
   { icon: ShoppingCart, label: 'Order', href: '/orders' },
   { icon: Utensils, label: 'Table', href: '/tables' },
-  { icon: CalendarDays, label: 'Reservation', href: '/reservations' },
   { icon: History, label: 'History', href: '/history' },
   { icon: Package, label: 'Inventory', href: '/inventory' },
   { icon: CreditCard, label: 'Payment', href: '/payments' },

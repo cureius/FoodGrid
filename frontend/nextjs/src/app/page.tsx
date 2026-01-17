@@ -63,7 +63,7 @@ export default function Page() {
         <div>
           <Utensils size={32} color="var(--info)" style={{ marginBottom: '16px' }} />
           <h4 style={{ marginBottom: '8px' }}>Table Management</h4>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Real-time floor plan and reservation tracking.</p>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Real-time floor plan and table tracking.</p>
         </div>
       </div>
     </main>
