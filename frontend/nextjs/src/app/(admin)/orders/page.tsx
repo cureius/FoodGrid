@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from "react";
 import styles from "./Orders.module.css";
 import Card from "@/components/ui/Card";
-import { Clock, Plus, Search, ChevronDown, ArrowRight } from "lucide-react";
+import { Clock, Plus, Search, ChevronDown, ArrowRight, FileText } from "lucide-react";
 import Link from "next/link";
 
 type OrderStatus = "All" | "In Progress" | "Ready to Served" | "Waiting for Payment";
@@ -99,11 +99,9 @@ export default function OrderPage() {
   return (
     <div className={styles.page}>
       <div className={styles.topRow}>
-        <div className={styles.pageTitle}>
-          <div className={styles.pageIcon} aria-hidden>
-            <Clock size={18} />
-          </div>
-          <h2>Order</h2>
+        <div className={styles.pageTitlePill}>
+          <FileText size={18} />
+          <span>Order</span>
         </div>
 
         <div className={styles.topActions}>
