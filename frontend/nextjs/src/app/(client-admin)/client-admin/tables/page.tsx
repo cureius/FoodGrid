@@ -77,7 +77,7 @@ export default function TablesPage() {
     tableCode: "",
     displayName: "",
     capacity: 4,
-    status: "AVAILABLE",
+    status: "ACTIVE",
   });
 
   const showToast = (title: string, description: string, type: "success" | "error") => {
@@ -186,7 +186,7 @@ export default function TablesPage() {
       tableCode: "",
       displayName: "",
       capacity: 4,
-      status: "AVAILABLE",
+      status: "ACTIVE",
     });
   };
 
@@ -267,28 +267,24 @@ export default function TablesPage() {
     }
   };
 
-  const availableCount = tables.filter((t) => t.status === "AVAILABLE").length;
-  const occupiedCount = tables.filter((t) => t.status === "OCCUPIED").length;
-  const reservedCount = tables.filter((t) => t.status === "RESERVED").length;
+  const activeCount = tables.filter((t) => t.status === "ACTIVE").length;
+  const inactiveCount = tables.filter((t) => t.status === "INACTIVE").length;
   const selectedOutlet = outlets.find((o) => o.id === selectedOutletId);
 
   const stats = [
     { title: "Total Tables", value: tables.length, icon: LayoutGrid, color: "#6366f1", bgColor: "rgba(99, 102, 241, 0.1)" },
-    { title: "Available", value: availableCount, icon: CheckCircle2, color: "#10b981", bgColor: "rgba(16, 185, 129, 0.1)" },
-    { title: "Occupied", value: occupiedCount, icon: Users, color: "#f59e0b", bgColor: "rgba(245, 158, 11, 0.1)" },
-    { title: "Reserved", value: reservedCount, icon: Hash, color: "#8b5cf6", bgColor: "rgba(139, 92, 246, 0.1)" },
+    { title: "Active", value: activeCount, icon: CheckCircle2, color: "#10b981", bgColor: "rgba(16, 185, 129, 0.1)" },
+    { title: "Inactive", value: inactiveCount, icon: XCircle, color: "#ef4444", bgColor: "rgba(239, 68, 68, 0.1)" },
   ];
 
   const canSubmit = form.tableCode.trim() && form.displayName.trim();
 
   const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
-      case "AVAILABLE":
+      case "ACTIVE":
         return { bg: "rgba(16, 185, 129, 0.1)", color: "#10b981" };
-      case "OCCUPIED":
-        return { bg: "rgba(245, 158, 11, 0.1)", color: "#f59e0b" };
-      case "RESERVED":
-        return { bg: "rgba(139, 92, 246, 0.1)", color: "#8b5cf6" };
+      case "INACTIVE":
+        return { bg: "rgba(239, 68, 68, 0.1)", color: "#ef4444" };
       default:
         return { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b" };
     }
@@ -526,9 +522,8 @@ export default function TablesPage() {
                     }}
                   >
                     <option value="all">All status</option>
-                    <option value="available">Available</option>
-                    <option value="occupied">Occupied</option>
-                    <option value="reserved">Reserved</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
                   </select>
                 </div>
               </div>
@@ -884,9 +879,8 @@ export default function TablesPage() {
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setForm({ ...form, status: e.target.value })}
                     style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "1px solid #e2e8f0", background: "#f8fafc", fontSize: 14, cursor: "pointer", outline: "none", boxSizing: "border-box" }}
                   >
-                    <option value="AVAILABLE">Available</option>
-                    <option value="OCCUPIED">Occupied</option>
-                    <option value="RESERVED">Reserved</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
                   </select>
                 </div>
               </div>
@@ -982,9 +976,8 @@ export default function TablesPage() {
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setForm({ ...form, status: e.target.value })}
                     style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "1px solid #e2e8f0", background: "#f8fafc", fontSize: 14, cursor: "pointer", outline: "none", boxSizing: "border-box" }}
                   >
-                    <option value="AVAILABLE">Available</option>
-                    <option value="OCCUPIED">Occupied</option>
-                    <option value="RESERVED">Reserved</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
                   </select>
                 </div>
               </div>
