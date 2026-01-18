@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Play, ShieldCheck, Zap, Utensils, Building2, Users } from 'lucide-react';
+import { Play, ShieldCheck, Zap, Utensils, Building2, Users, SquareUserRound } from 'lucide-react';
 
 export default function Page() {
   return (
@@ -149,7 +149,38 @@ export default function Page() {
               e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.05)';
             }}
           >
-            Admin Portal <ShieldCheck size={20} />
+            Admin Portal <SquareUserRound size={20} />
+          </Link>
+
+          <Link 
+            href="/tenant-admin-login" 
+            style={{ 
+              background: 'var(--bg-card)', 
+              color: 'var(--text-primary)', 
+              padding: '18px 40px', 
+              borderRadius: '16px', 
+              fontWeight: 700, 
+              fontSize: '18px',
+              border: '2px solid var(--border-light)',
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px',
+              textDecoration: 'none',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--primary)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border-light)';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.05)';
+            }}
+          >
+            Tenant Admin Portal <ShieldCheck size={20} />
           </Link>
         </div>
 
