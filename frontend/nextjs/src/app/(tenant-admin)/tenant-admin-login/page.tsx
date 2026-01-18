@@ -24,7 +24,7 @@ export default function Page() {
       const res = await adminLogin({ email: email.trim(), password });
       localStorage.setItem("fg_admin_access_token", res.accessToken);
       localStorage.setItem("fg_admin_refresh_token", res.refreshToken);
-      window.location.href = "/admin/outlets";
+      window.location.href = "/tenant-admin";
     } catch (e: any) {
       setError(e?.message ?? "Login failed");
     } finally {
@@ -77,7 +77,7 @@ export default function Page() {
           </div>
           <h1 style={{ margin: "6px 0 0", fontSize: 22, letterSpacing: -0.2 }}>Tenant Admin Login</h1>
           <div style={{ marginTop: 6, color: "rgba(0,0,0,0.6)", fontSize: 13 }}>
-            Sign in to manage outlets and employees.
+            Sign in to manage clients.
           </div>
         </div>
 

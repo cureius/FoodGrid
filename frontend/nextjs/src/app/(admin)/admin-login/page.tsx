@@ -75,7 +75,7 @@ export default function Page() {
           <div style={{ fontSize: 12, color: "rgba(0,0,0,0.55)", fontWeight: 700, letterSpacing: 0.6 }}>
             FOODGRID
           </div>
-          <h1 style={{ margin: "6px 0 0", fontSize: 22, letterSpacing: -0.2 }}>Tenant Admin Login</h1>
+          <h1 style={{ margin: "6px 0 0", fontSize: 22, letterSpacing: -0.2 }}>Admin Login</h1>
           <div style={{ marginTop: 6, color: "rgba(0,0,0,0.6)", fontSize: 13 }}>
             Sign in to manage outlets and employees.
           </div>
