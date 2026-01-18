@@ -34,7 +34,7 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
   }
 }
 
-function clientAdminAuthHeader() {
+function clientAdminAuthHeader(): Record<string, string> {
   const token = typeof window !== "undefined" ? localStorage.getItem("fg_client_admin_access_token") : null;
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
@@ -135,6 +135,61 @@ export function updateEmployee(outletId: string, employeeId: string, input: Empl
 export function deleteEmployee(outletId: string, employeeId: string) {
   return http<void>(
     `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/employees/${encodeURIComponent(employeeId)}`,
+    {
+      method: "DELETE",
+      headers: {
+        ...clientAdminAuthHeader()
+      }
+    }
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Tables (Dining Tables)
+// ─────────────────────────────────────────────────────────────
+
+export type TableUpsertInput = {
+  tableCode: string;
+  displayName: string;
+  capacity?: number;
+  status?: string;
+};
+
+export function listTables(outletId: string) {
+  return http<any[]>(`/api/v1/admin/outlets/${encodeURIComponent(outletId)}/tables`, {
+    method: "GET",
+    headers: {
+      ...clientAdminAuthHeader()
+    }
+  });
+}
+
+export function createTable(outletId: string, input: TableUpsertInput) {
+  return http<any>(`/api/v1/admin/outlets/${encodeURIComponent(outletId)}/tables`, {
+    method: "POST",
+    headers: {
+      ...clientAdminAuthHeader()
+    },
+    body: JSON.stringify(input)
+  });
+}
+
+export function updateTable(outletId: string, tableId: string, input: TableUpsertInput) {
+  return http<any>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/tables/${encodeURIComponent(tableId)}`,
+    {
+      method: "PUT",
+      headers: {
+        ...clientAdminAuthHeader()
+      },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function deleteTable(outletId: string, tableId: string) {
+  return http<void>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/tables/${encodeURIComponent(tableId)}`,
     {
       method: "DELETE",
       headers: {
