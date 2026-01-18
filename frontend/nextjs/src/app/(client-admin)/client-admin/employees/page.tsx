@@ -100,6 +100,21 @@ export default function EmployeesPage() {
     }
   }, [router]);
 
+  // Close dropdown on ESC
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setDropdownOpen(null);
+        setCreateDialogOpen(false);
+        setEditDialogOpen(false);
+        setDeleteDialogOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   // Fetch outlets on mount
   useEffect(() => {
     fetchOutlets();
@@ -313,44 +328,69 @@ export default function EmployeesPage() {
     <div style={{ minHeight: "100vh" }}>
       {/* Toast Notification */}
       {toast && (
-        <div style={{
-          position: "fixed",
-          top: 20,
-          right: 20,
-          zIndex: 1000,
-          padding: "16px 20px",
-          borderRadius: 12,
-          background: toast.type === "success" ? "#10b981" : "#ef4444",
-          color: "white",
-          boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          animation: "slideIn 0.3s ease"
-        }}>
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: "fixed",
+            top: 20,
+            right: 20,
+            zIndex: 1000,
+            padding: "14px 18px",
+            borderRadius: 14,
+            background: toast.type === "success" ? "#10b981" : "#ef4444",
+            color: "white",
+            boxShadow: "0 14px 50px rgba(0,0,0,0.24)",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            animation: "slideIn 0.25s ease",
+            maxWidth: 420,
+          }}
+        >
           {toast.type === "success" ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
-          <div>
-            <div style={{ fontWeight: 600 }}>{toast.title}</div>
-            <div style={{ fontSize: 13, opacity: 0.9 }}>{toast.description}</div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 700, lineHeight: 1.2 }}>{toast.title}</div>
+            <div style={{ fontSize: 13, opacity: 0.92, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis" }}>
+              {toast.description}
+            </div>
           </div>
         </div>
       )}
 
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: 24 }}>
+      <div style={{ maxWidth: 1400, margin: "0 auto", padding: 32 }}>
         {/* Header */}
-        <div style={{ marginBottom: 32 }}>
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <div>
-                <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0, background: "linear-gradient(135deg, #1e293b 0%, #475569 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  Employee Management
-                </h1>
-                <p style={{ margin: "4px 0 0", color: "#64748b", fontSize: 14 }}>
-                  Manage staff members across your outlets
-                </p>
-              </div>
+        <div style={{ marginBottom: 28 }}>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              gap: 16,
+              marginBottom: 18,
+            }}
+          >
+            <div>
+              <h1
+                style={{
+                  fontSize: 32,
+                  fontWeight: 800,
+                  margin: 0,
+                  background: "linear-gradient(135deg, #1e293b 0%, #475569 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  letterSpacing: "-0.5px",
+                }}
+              >
+                Employees
+              </h1>
+              <p style={{ margin: "8px 0 0", color: "#64748b", fontSize: 15 }}>
+                Add, edit, and manage staff for each outlet.
+              </p>
             </div>
-            <div style={{ display: "flex", gap: 12 }}>
+
+            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
               <button
                 onClick={handleRefresh}
                 disabled={refreshing || !selectedOutletId}
@@ -358,20 +398,21 @@ export default function EmployeesPage() {
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
-                  padding: "10px 16px",
-                  borderRadius: 10,
+                  width: 44,
+                  height: 44,
+                  borderRadius: 12,
                   border: "1px solid #e2e8f0",
                   background: "white",
                   cursor: refreshing || !selectedOutletId ? "not-allowed" : "pointer",
                   opacity: refreshing || !selectedOutletId ? 0.6 : 1,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  transition: "all 0.2s"
+                  transition: "transform 0.15s ease, box-shadow 0.15s ease",
                 }}
+                title="Refresh"
+                aria-label="Refresh employee list"
               >
-                <RefreshCw size={16} style={{ animation: refreshing ? "spin 1s linear infinite" : "none" }} />
-                Refresh
+                <RefreshCw size={18} style={{ color: "#64748b", animation: refreshing ? "spin 1s linear infinite" : "none" }} />
               </button>
+
               <button
                 onClick={handleCreateClick}
                 disabled={!selectedOutletId}
@@ -379,17 +420,17 @@ export default function EmployeesPage() {
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
-                  padding: "10px 20px",
-                  borderRadius: 10,
+                  padding: "12px 18px",
+                  borderRadius: 12,
                   border: "none",
                   background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
                   color: "white",
                   cursor: !selectedOutletId ? "not-allowed" : "pointer",
                   opacity: !selectedOutletId ? 0.6 : 1,
                   fontSize: 14,
-                  fontWeight: 600,
-                  boxShadow: "0 4px 20px rgba(139, 92, 246, 0.3)",
-                  transition: "all 0.2s"
+                  fontWeight: 700,
+                  boxShadow: "0 6px 18px rgba(139, 92, 246, 0.28)",
+                  transition: "transform 0.15s ease, box-shadow 0.15s ease",
                 }}
               >
                 <UserPlus size={18} />
@@ -399,27 +440,37 @@ export default function EmployeesPage() {
           </div>
 
           {/* Outlet Selector */}
-          <Card style={{ marginBottom: 24 }}>
+          <Card style={{ marginBottom: 20 }}>
             <div style={{ padding: 20, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-              <div style={{ padding: 12, borderRadius: 12, background: "rgba(249, 115, 22, 0.1)" }}>
+              <div style={{ padding: 12, borderRadius: 14, background: "rgba(249, 115, 22, 0.1)" }}>
                 <Building2 size={24} style={{ color: "#f97316" }} />
               </div>
-              <div style={{ flex: 1, minWidth: 200 }}>
-                <label style={{ fontSize: 12, fontWeight: 500, color: "#64748b", display: "block", marginBottom: 6 }}>
-                  Select Outlet
+              <div style={{ flex: 1, minWidth: 240 }}>
+                <label
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: "#64748b",
+                    display: "block",
+                    marginBottom: 8,
+                    letterSpacing: 0.2,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Outlet
                 </label>
                 <select
                   value={selectedOutletId}
                   onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedOutletId(e.target.value)}
                   style={{
                     width: "100%",
-                    padding: "10px 14px",
-                    borderRadius: 10,
+                    padding: "12px 14px",
+                    borderRadius: 12,
                     border: "1px solid #e2e8f0",
                     background: "#f8fafc",
                     fontSize: 14,
                     cursor: "pointer",
-                    outline: "none"
+                    outline: "none",
                   }}
                 >
                   <option value="">Choose an outlet to manage employees</option>
@@ -429,25 +480,42 @@ export default function EmployeesPage() {
                     </option>
                   ))}
                 </select>
+                <div style={{ marginTop: 8, fontSize: 12, color: "#94a3b8" }}>
+                  Tip: Use the dropdown to switch outlet context.
+                </div>
               </div>
-              {selectedOutlet && (
-                <Badge variant="info">
-                  <Store size={14} style={{ marginRight: 6 }} />
-                  {selectedOutlet.name}
-                </Badge>
-              )}
+
+              {selectedOutlet ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <Badge variant="info">
+                    <Store size={14} style={{ marginRight: 6 }} />
+                    {selectedOutlet.name}
+                  </Badge>
+                  <Badge variant={selectedOutlet.status === "INACTIVE" ? "danger" : "success"}>
+                    {selectedOutlet.status === "INACTIVE" ? <ShieldX size={14} style={{ marginRight: 6 }} /> : <ShieldCheck size={14} style={{ marginRight: 6 }} />}
+                    {selectedOutlet.status ?? "ACTIVE"}
+                  </Badge>
+                </div>
+              ) : null}
             </div>
           </Card>
 
           {/* Stats */}
           {selectedOutletId && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 24 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: 16,
+                marginBottom: 20,
+              }}
+            >
               {stats.map((stat, index) => (
                 <Card key={index} style={{ transition: "transform 0.2s, box-shadow 0.2s" }}>
                   <div style={{ padding: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
-                      <p style={{ margin: 0, fontSize: 13, color: "#64748b", fontWeight: 500 }}>{stat.title}</p>
-                      <p style={{ margin: "8px 0 0", fontSize: 32, fontWeight: 700, color: "#1e293b" }}>{stat.value}</p>
+                      <p style={{ margin: 0, fontSize: 13, color: "#64748b", fontWeight: 600 }}>{stat.title}</p>
+                      <p style={{ margin: "8px 0 0", fontSize: 34, fontWeight: 800, color: "#1e293b" }}>{stat.value}</p>
                     </div>
                     <div style={{ padding: 14, borderRadius: 14, background: stat.bgColor }}>
                       <stat.icon size={26} style={{ color: stat.color }} />
@@ -461,74 +529,78 @@ export default function EmployeesPage() {
 
         {/* Filters */}
         {selectedOutletId && (
-          <Card style={{ marginBottom: 24 }}>
-            <div style={{ padding: 16, display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+          <Card style={{ marginBottom: 20 }}>
+            <div style={{ padding: 16, display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
               <div style={{ display: "flex", gap: 12, flex: 1, flexWrap: "wrap" }}>
-                <div style={{ position: "relative", flex: 1, minWidth: 200, maxWidth: 400 }}>
+                <div style={{ position: "relative", flex: 1, minWidth: 220, maxWidth: 460 }}>
                   <Search size={18} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
                   <input
                     type="text"
-                    placeholder="Search by name or email..."
+                    placeholder="Search employees by name or email..."
                     value={searchQuery}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                     style={{
                       width: "100%",
-                      padding: "10px 14px 10px 42px",
-                      borderRadius: 10,
+                      padding: "12px 14px 12px 42px",
+                      borderRadius: 12,
                       border: "1px solid #e2e8f0",
                       background: "#f8fafc",
                       fontSize: 14,
-                      outline: "none"
+                      outline: "none",
+                      boxSizing: "border-box",
                     }}
                   />
                 </div>
-                <div style={{ position: "relative", minWidth: 160 }}>
+                <div style={{ position: "relative", minWidth: 180 }}>
                   <Filter size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
                   <select
                     value={statusFilter}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
                     style={{
                       width: "100%",
-                      padding: "10px 14px 10px 36px",
-                      borderRadius: 10,
+                      padding: "12px 14px 12px 36px",
+                      borderRadius: 12,
                       border: "1px solid #e2e8f0",
                       background: "#f8fafc",
                       fontSize: 14,
                       cursor: "pointer",
-                      outline: "none"
+                      outline: "none",
+                      boxSizing: "border-box",
                     }}
                   >
-                    <option value="all">All Status</option>
-                    <option value="active">Active Only</option>
-                    <option value="inactive">Inactive Only</option>
+                    <option value="all">All status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
                   </select>
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: 13, color: "#64748b" }}>{filteredEmployees.length} employees</span>
-                <div style={{ display: "flex", background: "#f1f5f9", borderRadius: 8, padding: 4 }}>
+                <span style={{ fontSize: 13, color: "#64748b", fontWeight: 600 }}>{filteredEmployees.length} employees</span>
+                <div style={{ display: "flex", background: "#f1f5f9", borderRadius: 10, padding: 4 }}>
                   <button
                     onClick={() => setViewMode("grid")}
+                    aria-label="Grid view"
                     style={{
                       padding: "8px 12px",
-                      borderRadius: 6,
+                      borderRadius: 8,
                       border: "none",
                       background: viewMode === "grid" ? "white" : "transparent",
                       boxShadow: viewMode === "grid" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     <Grid3X3 size={18} style={{ color: viewMode === "grid" ? "#7c3aed" : "#64748b" }} />
                   </button>
                   <button
                     onClick={() => setViewMode("list")}
+                    aria-label="List view"
                     style={{
                       padding: "8px 12px",
-                      borderRadius: 6,
+                      borderRadius: 8,
                       border: "none",
                       background: viewMode === "list" ? "white" : "transparent",
                       boxShadow: viewMode === "list" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     <List size={18} style={{ color: viewMode === "list" ? "#7c3aed" : "#64748b" }} />
@@ -831,7 +903,8 @@ export default function EmployeesPage() {
         {dropdownOpen && (
           <div
             onClick={() => setDropdownOpen(null)}
-            style={{ position: "fixed", inset: 0, zIndex: 50 }}
+            style={{ position: "fixed", inset: 0, zIndex: 50, cursor: "default" }}
+            aria-hidden="true"
           />
         )}
 
@@ -1112,6 +1185,12 @@ export default function EmployeesPage() {
         @keyframes slideIn {
           from { transform: translateX(100%); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Better focus visibility */
+        input:focus-visible, select:focus-visible, button:focus-visible {
+          outline: 3px solid rgba(139,92,246,0.35) !important;
+          outline-offset: 2px;
         }
       `}</style>
     </div>
