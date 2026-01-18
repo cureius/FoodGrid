@@ -140,7 +140,7 @@ export default function Page() {
           </div>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
-            <Link className={styles.createOrderButton} href="/client-admin/outlets">
+            <Link className={styles.payButton} href="/client-admin/outlets">
               Outlets
             </Link>
             <Link className={styles.payButton} href="/client-admin/employees">
