@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { adminLogin } from "@/lib/api/clientAdmin";
+import { isClientAdminToken } from "@/lib/utils/admin";
 
 export default function Page() {
   const [email, setEmail] = useState("");
@@ -22,6 +23,13 @@ export default function Page() {
     try {
       setLoading(true);
       const res = await adminLogin({ email: email.trim(), password });
+      
+      // Check if user has CLIENT_ADMIN role
+      if (!isClientAdminToken(res.accessToken)) {
+        setError("Access denied. This login is only for client administrators. Tenant admins should use the tenant admin portal.");
+        return;
+      }
+      
       localStorage.setItem("fg_client_admin_access_token", res.accessToken);
       localStorage.setItem("fg_client_admin_refresh_token", res.refreshToken);
       window.location.href = "/client-admin";

@@ -24,22 +24,80 @@ export function decodeJWT(token: string): any | null {
 }
 
 /**
+ * Check if user has a specific role in the token
+ * Roles are stored in the 'groups' claim of the JWT
+ */
+export function hasRole(token: string, role: string): boolean {
+  const decoded = decodeJWT(token);
+  if (!decoded) return false;
+  
+  // Roles are stored in 'groups' claim as an array
+  const groups = decoded.groups || [];
+  return Array.isArray(groups) && groups.includes(role);
+}
+
+/**
+ * Check if user is a tenant admin (super admin)
+ * Tenant admins have the 'TENANT_ADMIN' role
+ */
+export function isTenantAdminToken(token: string): boolean {
+  return hasRole(token, 'TENANT_ADMIN');
+}
+
+/**
+ * Check if user is a client admin
+ * Client admins have the 'CLIENT_ADMIN' role OR 'ADMIN' role (legacy support)
+ */
+export function isClientAdminToken(token: string): boolean {
+  const decoded = decodeJWT(token);
+  if (!decoded) return false;
+  
+  // Check for CLIENT_ADMIN role
+  if (hasRole(token, 'CLIENT_ADMIN')) return true;
+  
+  // Check for ADMIN role (legacy support - existing admin users)
+  // But NOT if they have TENANT_ADMIN role (to prevent tenant admins from accessing client admin)
+  if (hasRole(token, 'ADMIN') && !hasRole(token, 'TENANT_ADMIN')) return true;
+  
+  return false;
+}
+
+/**
  * Get admin role from token
- * - TENANT_ADMIN: Super admin who manages tenants/clients (no outletId in token)
- * - CLIENT_ADMIN: Client admin who manages outlets and employees (has outletId in token)
+ * - TENANT_ADMIN: Super admin who manages tenants/clients (has TENANT_ADMIN role)
+ * - CLIENT_ADMIN: Client admin who manages outlets and employees (has CLIENT_ADMIN or ADMIN role)
+ */
+export function getAdminRoleFromToken(token: string): AdminRole | null {
+  if (isTenantAdminToken(token)) return 'TENANT_ADMIN';
+  if (isClientAdminToken(token)) return 'CLIENT_ADMIN';
+  return null;
+}
+
+/**
+ * Get admin role from stored token
  */
 export function getAdminRole(): AdminRole | null {
   if (typeof window === 'undefined') return null;
   
-  const token = localStorage.getItem('fg_admin_access_token');
-  if (!token) return null;
-
-  const decoded = decodeJWT(token);
-  if (!decoded) return null;
-
-  // If no outletId, it's a tenant admin (super admin)
-  // If outletId exists, it's a client admin
-  return decoded.outletId ? 'CLIENT_ADMIN' : 'TENANT_ADMIN';
+  // Check tenant admin token first
+  const tenantToken = localStorage.getItem('fg_tenant_admin_access_token');
+  if (tenantToken && isTenantAdminToken(tenantToken)) {
+    return 'TENANT_ADMIN';
+  }
+  
+  // Check client admin token
+  const clientToken = localStorage.getItem('fg_client_admin_access_token');
+  if (clientToken && isClientAdminToken(clientToken)) {
+    return 'CLIENT_ADMIN';
+  }
+  
+  // Legacy: check old admin token
+  const adminToken = localStorage.getItem('fg_admin_access_token');
+  if (adminToken) {
+    return getAdminRoleFromToken(adminToken);
+  }
+  
+  return null;
 }
 
 /**

@@ -6,13 +6,24 @@ INSERT INTO outlets (id, name, timezone)
 VALUES ('outlet-1', 'Main Café Hub', 'Asia/Kolkata');
 
 -- 2. Admin Users
--- Password: Souraj@123
+-- Password for all users: Souraj@123
+
+-- Tenant Admin (Super Admin - manages all tenants/clients)
 INSERT INTO admin_users (id, outlet_id, email, password_hash, display_name, status)
-VALUES ('admin-1', 'outlet-1', 'paulsouraj99@gmail.com', '$2a$12$DwPxcio1Yil7j9v2ldur4OgFyg0qReIuVN7YH.g3/XRjh2bfcsH8G', 'Souraj Paul', 'ACTIVE');
+VALUES ('admin-tenant-1', NULL, 'tenant@foodgrid.com', '$2a$12$DwPxcio1Yil7j9v2ldur4OgFyg0qReIuVN7YH.g3/XRjh2bfcsH8G', 'Tenant Admin', 'ACTIVE');
+
+-- Client Admin (manages outlets and employees for a specific client)
+INSERT INTO admin_users (id, outlet_id, email, password_hash, display_name, status)
+VALUES ('admin-client-1', 'outlet-1', 'paulsouraj99@gmail.com', '$2a$12$DwPxcio1Yil7j9v2ldur4OgFyg0qReIuVN7YH.g3/XRjh2bfcsH8G', 'Souraj Paul', 'ACTIVE');
 
 -- 3. Admin User Roles
+-- Tenant Admin role
 INSERT INTO admin_user_roles (admin_user_id, role)
-VALUES ('admin-1', 'ADMIN');
+VALUES ('admin-tenant-1', 'TENANT_ADMIN');
+
+-- Client Admin role
+INSERT INTO admin_user_roles (admin_user_id, role)
+VALUES ('admin-client-1', 'CLIENT_ADMIN');
 
 -- 4. POS Devices
 INSERT INTO pos_devices (id, outlet_id, device_code, name)

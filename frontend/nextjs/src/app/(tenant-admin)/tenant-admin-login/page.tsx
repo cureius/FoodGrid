@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { adminLogin } from "@/lib/api/admin";
+import { isTenantAdminToken } from "@/lib/utils/admin";
 
 // Tenant admin login. Separate from client-admin and staff flows.
 
@@ -24,6 +25,13 @@ export default function Page() {
     try {
       setLoading(true);
       const res = await adminLogin({ email: email.trim(), password });
+      
+      // Check if user has TENANT_ADMIN role
+      if (!isTenantAdminToken(res.accessToken)) {
+        setError("Access denied. This login is only for tenant administrators. Client admins should use the client admin portal.");
+        return;
+      }
+      
       // Tenant-admin session storage (separate from outlet admin)
       localStorage.setItem("fg_tenant_admin_access_token", res.accessToken);
       localStorage.setItem("fg_tenant_admin_refresh_token", res.refreshToken);
