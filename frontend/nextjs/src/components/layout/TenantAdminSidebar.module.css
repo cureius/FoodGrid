@@ -1,0 +1,163 @@
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  margin-bottom: 32px;
+}
+
+.logoIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.logoText {
+  display: flex;
+  flex-direction: column;
+}
+
+.logoMain {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.5px;
+}
+
+.logoSub {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex: 1;
+}
+
+.navSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.navSectionTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0 12px;
+  margin-bottom: 8px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.navItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.activeNavItem {
+  background: rgba(59, 130, 246, 0.25);
+  color: white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.activeNavItem:hover {
+  background: rgba(59, 130, 246, 0.35);
+}
+
+.navIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logoutBtn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fecaca;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 80px;
+    padding: 24px 12px;
+  }
+
+  .logoText,
+  .navSectionTitle,
+  .navItem span,
+  .logoutBtn span {
+    display: none;
+  }
+
+  .logoContainer {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .navItem,
+  .logoutBtn {
+    justify-content: center;
+    padding: 12px;
+  }
+}
