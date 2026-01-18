@@ -25,6 +25,26 @@ log() { echo "[SEED] $*"; }
 print_json(){ local label="$1" json="$2"; log "  $label:"; echo "$json" | jq . || echo "$json"; }
 require_field(){ local json="$1" field="$2" label="$3"; local v; v=$(echo "$json" | jq -er ".$field" 2>/dev/null || true); if [[ -z "${v:-}" ]]; then echo "[ERROR] Missing field $field in $label" >&2; echo "$json" >&2; exit 1; fi; echo "$v"; }
 
+admin_login() {
+  local email="$1" password="$2"
+  local resp
+  resp=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/api/v1/admin/auth/login" \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"$email\",\"password\":\"$password\"}")
+
+  local http_code body
+  http_code=$(echo "$resp" | tail -n1)
+  body=$(echo "$resp" | sed '$d')
+
+  if [[ "$http_code" -lt 200 || "$http_code" -ge 300 ]]; then
+    echo "[ERROR] Admin login failed for $email (HTTP $http_code)" >&2
+    echo "$body" >&2
+    return 1
+  fi
+
+  echo "$body"
+}
+
 # quick health check
 if ! curl --head --silent --fail "$BASE_URL/" >/dev/null 2>&1; then
   echo "[ERROR] Backend not reachable at $BASE_URL. Start the server (mvn quarkus:dev) and retry." >&2
@@ -42,16 +62,16 @@ for i in $(seq 1 $CLIENTS); do
 
   log "Creating client admin: $email"
 
-  # Bootstrap with retry loop to wait for Liquibase/schema to be applied
+  # Bootstrap with retry loop to wait for schema readiness.
+  # If bootstrap fails because the user already exists, we fall back to admin login.
   attempt=0
   BOOTSTRAP_RESP=""
   while true; do
     attempt=$((attempt+1))
-    # Capture body and HTTP status
+
     RESP=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/api/v1/bootstrap/admin" \
       -H "Content-Type: application/json" \
       -d "{\"email\":\"$email\",\"password\":\"$password\",\"displayName\":\"$name\",\"status\":\"ACTIVE\"}")
-
     HTTP_CODE=$(echo "$RESP" | tail -n1)
     BODY=$(echo "$RESP" | sed '$d')
 
@@ -62,9 +82,15 @@ for i in $(seq 1 $CLIENTS); do
       break
     fi
 
-    # If we hit a non-success response, log and retry up to the max attempts
+    # If user already exists, try login and synthesize the bootstrap response
+    if [[ "$HTTP_CODE" == "400" ]] && echo "$BODY" | grep -Eqi "already|exists|duplicate"; then
+      log "Bootstrap indicates user probably exists; trying admin login for $email..."
+      LOGIN_BODY=$(admin_login "$email" "$password")
+      BOOTSTRAP_RESP="$LOGIN_BODY"
+      break
+    fi
+
     log "Bootstrap failed (HTTP $HTTP_CODE) on attempt $attempt/$BOOTSTRAP_MAX_ATTEMPTS. Retrying in ${BOOTSTRAP_RETRY_INTERVAL}s..."
-    # If the response body includes the SQLGrammarException text, show it for debugging
     if echo "$BODY" | grep -qi "SQLGrammarException"; then
       log "  Detected SQLGrammarException in bootstrap response (likely missing table)."
     fi
@@ -80,7 +106,7 @@ for i in $(seq 1 $CLIENTS); do
   ACCESS_TOKEN=$(echo "$BOOTSTRAP_RESP" | jq -r '.accessToken // empty')
   ADMIN_ID=$(echo "$BOOTSTRAP_RESP" | jq -r '.admin.id // empty')
   if [[ -z "${ACCESS_TOKEN}" || -z "${ADMIN_ID}" ]]; then
-    echo "[ERROR] Failed to bootstrap admin for $email" >&2
+    echo "[ERROR] Failed to obtain admin token for $email" >&2
     echo "$BOOTSTRAP_RESP" >&2
     exit 1
   fi
@@ -104,13 +130,11 @@ for i in $(seq 1 $CLIENTS); do
       exit 1
     fi
 
-    # device / login context to auto-register device
     device_code="${DEV_CODE_PREFIX}-${i}-${o}"
     log "  Registering device/login-context: $device_code"
     LOGIN_CTX=$(curl -s "$BASE_URL/api/v1/auth/login-context?deviceId=$device_code&outletId=$OUTLET_ID")
     print_json "login-context" "$LOGIN_CTX"
 
-    # create employees
     emp_ids="[]"
     for e in $(seq 1 $EMPLOYEES_PER_OUTLET); do
       emp_email="emp${i}${o}${e}@example.com"
@@ -125,7 +149,6 @@ for i in $(seq 1 $CLIENTS); do
       EMP_ID=$(echo "$EMP_RESP" | jq -r '.id // empty')
       if [[ -z "$EMP_ID" ]]; then echo "[ERROR] Failed to create employee" >&2; exit 1; fi
 
-      # assign a basic role
       ROLE_RESP=$(curl -s -X PUT "$BASE_URL/api/v1/admin/outlets/$OUTLET_ID/employees/$EMP_ID/roles" \
         -H "Authorization: Bearer $ACCESS_TOKEN" \
         -H "Content-Type: application/json" \
@@ -135,7 +158,6 @@ for i in $(seq 1 $CLIENTS); do
       emp_ids=$(echo "$emp_ids" | jq ". + [\"$EMP_ID\"]")
     done
 
-    # create menu category and items
     log "  Creating menu category and $ITEMS_PER_OUTLET items"
     CAT_RESP=$(curl -s -X POST "$BASE_URL/api/v1/admin/outlets/$OUTLET_ID/menu/categories" \
       -H "Authorization: Bearer $ACCESS_TOKEN" \
@@ -157,7 +179,6 @@ for i in $(seq 1 $CLIENTS); do
       item_ids=$(echo "$item_ids" | jq ". + [\"$ITEM_ID\"]")
     done
 
-    # create a couple of tables
     TABLE_IDS="[]"
     for tnum in 1 2; do
       TABLE_RESP=$(curl -s -X POST "$BASE_URL/api/v1/admin/outlets/$OUTLET_ID/tables" \
@@ -169,7 +190,6 @@ for i in $(seq 1 $CLIENTS); do
       TABLE_IDS=$(echo "$TABLE_IDS" | jq ". + [\"$TID\"]")
     done
 
-    # append outlet summary
     outlet_summary=$(jq -n \
       --arg id "$OUTLET_ID" \
       --arg name "$outlet_name" \
@@ -182,7 +202,6 @@ for i in $(seq 1 $CLIENTS); do
     client_summary=$(echo "$client_summary" | jq ".outlets += [ $outlet_summary ]")
   done
 
-  # persist client summary to file
   echo "$client_summary" | jq . >> "$SUMMARY_FILE"
   echo >> "$SUMMARY_FILE"
 

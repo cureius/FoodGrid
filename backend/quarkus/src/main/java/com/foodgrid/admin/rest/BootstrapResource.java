@@ -1,12 +1,12 @@
 package com.foodgrid.admin.rest;
 
 import com.foodgrid.admin.dto.AdminUserCreateRequest;
-import com.foodgrid.admin.dto.AdminUserResponse;
 import com.foodgrid.admin.service.AdminUserAdminService;
 import com.foodgrid.admin.service.AdminAuthService;
 import com.foodgrid.admin.dto.AdminLoginRequest;
 import com.foodgrid.admin.dto.AdminLoginResponse;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -25,14 +25,20 @@ public class BootstrapResource {
 
   @POST
   @Path("/admin")
-  public Response bootstrapAdmin(@Valid AdminUserCreateRequest request) {
-    // Create admin user for bootstrap (restaurant owner)
-    AdminUserResponse admin = adminUserAdminService.bootstrap(request);
-    
-    // Auto-login to return tokens
-    AdminLoginRequest loginRequest = new AdminLoginRequest(request.email(), request.password(), null);
-    AdminLoginResponse loginResponse = adminAuthService.login(loginRequest);
-    
+  @Transactional
+  public Response bootstrapAdmin(@Valid final AdminUserCreateRequest request) {
+    // 1) Ensure bootstrap admin exists
+    try {
+      adminUserAdminService.bootstrap(request);
+    } catch (final Exception ignored) {
+      // If the email already exists (or any bootstrap precondition), we still try login below.
+      // This keeps the endpoint usable in dev when re-running scripts.
+    }
+
+    // 2) Auto-login to return tokens
+    final AdminLoginRequest loginRequest = new AdminLoginRequest(request.email(), request.password(), null);
+    final AdminLoginResponse loginResponse = adminAuthService.login(loginRequest);
+
     return Response.ok(loginResponse).build();
   }
 }

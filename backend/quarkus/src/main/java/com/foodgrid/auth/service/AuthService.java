@@ -4,6 +4,7 @@ import com.foodgrid.auth.dto.*;
 import com.foodgrid.auth.model.*;
 import com.foodgrid.auth.repo.*;
 import com.foodgrid.common.security.JwtIssuer;
+import com.foodgrid.common.audit.AuditLogService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -35,10 +36,11 @@ public class AuthService {
   @Inject PinHasher pinHasher;
   @Inject OtpService otpService;
   @Inject JwtIssuer jwtIssuer;
+  @Inject AuditLogService audit;
 
   @Transactional
-  public LoginContextResponse getLoginContext(String deviceCode, String outletId) {
-    PosDevice device = deviceRepository.findByDeviceCode(deviceCode)
+  public LoginContextResponse getLoginContext(final String deviceCode, final String outletId) {
+    final PosDevice device = deviceRepository.findByDeviceCode(deviceCode)
       .orElseGet(() -> {
         if (outletId == null || outletId.isBlank()) {
           throw new NotFoundException("Unknown device");
@@ -48,7 +50,7 @@ public class AuthService {
         outletRepository.findByIdOptional(outletId)
           .orElseThrow(() -> new NotFoundException("Outlet not found"));
 
-        PosDevice d = new PosDevice();
+        final PosDevice d = new PosDevice();
         d.id = com.foodgrid.common.util.Ids.uuid();
         d.outletId = outletId;
         d.deviceCode = deviceCode;
@@ -57,18 +59,18 @@ public class AuthService {
         return d;
       });
 
-    Outlet outlet = outletRepository.findByIdOptional(device.outletId)
+    final Outlet outlet = outletRepository.findByIdOptional(device.outletId)
       .orElseThrow(() -> new NotFoundException("Outlet not found"));
 
-    ZoneId zone = ZoneId.of(outlet.timezone);
+    final ZoneId zone = ZoneId.of(outlet.timezone);
 
-    List<EmployeeListItem> employees = employeeRepository.listByOutlet(device.outletId).stream()
+    final List<EmployeeListItem> employees = employeeRepository.listByOutlet(device.outletId).stream()
       .map(e -> {
-        var schedule = scheduleRepository.findTodaySchedule(e.id, device.outletId).orElse(null);
+        final var schedule = scheduleRepository.findTodaySchedule(e.id, device.outletId).orElse(null);
         ShiftTimeRange tr = null;
         if (schedule != null) {
-          String startTime = schedule.startAt.toInstant().atZone(zone).toLocalTime().toString();
-          String endTime = schedule.endAt.toInstant().atZone(zone).toLocalTime().toString();
+          final String startTime = schedule.startAt.toInstant().atZone(zone).toLocalTime().toString();
+          final String endTime = schedule.endAt.toInstant().atZone(zone).toLocalTime().toString();
           tr = new ShiftTimeRange(startTime, endTime);
         }
         return new EmployeeListItem(e.id, e.displayName, e.avatarUrl, tr);
@@ -82,20 +84,23 @@ public class AuthService {
   }
 
   @Transactional
-  public LoginResponse loginWithPin(LoginWithPinRequest request) {
+  public LoginResponse loginWithPin(final LoginWithPinRequest request) {
     validateSixDigit(request.pin());
 
-    PosDevice device = deviceRepository.findByDeviceCode(request.deviceId())
+    final PosDevice device = deviceRepository.findByDeviceCode(request.deviceId())
       .orElseThrow(() -> new NotFoundException("Unknown device"));
 
-    Employee employee = employeeRepository.findByIdOptional(request.employeeId())
+    final Outlet outlet = outletRepository.findByIdOptional(device.outletId)
+      .orElseThrow(() -> new NotFoundException("Outlet not found"));
+
+    final Employee employee = employeeRepository.findByIdOptional(request.employeeId())
       .orElseThrow(() -> new NotFoundException("Employee not found"));
 
     if (!employee.outletId.equals(device.outletId)) {
       throw new ForbiddenException("Employee not in outlet");
     }
 
-    EmployeeCredential cred = credentialRepository.findByEmployeeId(employee.id)
+    final EmployeeCredential cred = credentialRepository.findByEmployeeId(employee.id)
       .orElseThrow(() -> new ForbiddenException("PIN not set"));
 
     if (cred.lockedUntil != null && cred.lockedUntil.toInstant().isAfter(Instant.now())) {
@@ -109,32 +114,35 @@ public class AuthService {
 
     credentialRepository.resetFailedAttempts(employee.id);
 
-    Shift shift = shiftRepository.findActive(device.outletId, employee.id, device.id)
+    final Shift shift = shiftRepository.findActive(device.outletId, employee.id, device.id)
       .orElseGet(() -> shiftRepository.createActive(device.outletId, employee.id, device.id));
 
-    ShiftSession session = sessionRepository.create(shift.id, device.id);
+    final ShiftSession session = sessionRepository.create(shift.id, device.id);
 
-    List<String> roles = roleRepository.listRoles(employee.id);
-    String accessToken = jwtIssuer.issueAccessToken(employee, device.outletId, roles, session.id);
-    String refreshToken = jwtIssuer.issueRefreshToken(employee, device.outletId, session.id);
+    final List<String> roles = roleRepository.listRoles(employee.id);
 
-    Outlet outlet = outletRepository.findByIdOptional(device.outletId)
-      .orElseThrow(() -> new NotFoundException("Outlet not found"));
+    // Prefer outlet.clientId if set. For legacy data, fallback to outlet.ownerId.
+    final String clientId = (outlet.clientId != null && !outlet.clientId.isBlank()) ? outlet.clientId : outlet.ownerId;
+
+    final String accessToken = jwtIssuer.issueAccessToken(employee, device.outletId, clientId, roles, session.id);
+    final String refreshToken = jwtIssuer.issueRefreshToken(employee, device.outletId, clientId, session.id);
+
+    audit.record("EMPLOYEE_LOGIN_PIN", device.outletId, "Employee", employee.id, "deviceId=" + device.id);
 
     return LoginResponse.from(employee, outlet, roles, shift, session, accessToken, refreshToken);
   }
 
   @Transactional
-  public PinOtpRequestResponse requestPinOtp(PinOtpRequest request) {
-    PosDevice device = deviceRepository.findByDeviceCode(request.deviceId())
+  public PinOtpRequestResponse requestPinOtp(final PinOtpRequest request) {
+    final PosDevice device = deviceRepository.findByDeviceCode(request.deviceId())
       .orElseThrow(() -> new NotFoundException("Unknown device"));
 
-    Employee employee = employeeRepository.findByEmailAndOutlet(request.email(), device.outletId)
+    final Employee employee = employeeRepository.findByEmailAndOutlet(request.email(), device.outletId)
       .orElseThrow(() -> new NotFoundException("Employee not found"));
 
-    String otp = otpService.generateOtp(PIN_LENGTH);
+    final String otp = otpService.generateOtp(PIN_LENGTH);
 
-    PinOtpChallenge ch = new PinOtpChallenge();
+    final PinOtpChallenge ch = new PinOtpChallenge();
     ch.id = com.foodgrid.common.util.Ids.uuid();
     ch.employeeId = employee.id;
     ch.outletId = device.outletId;
@@ -149,8 +157,8 @@ public class AuthService {
   }
 
   @Transactional
-  public PinOtpResendResponse resendPinOtp(PinOtpResendRequest request) {
-    PinOtpChallenge ch = otpRepository.findByIdOptional(request.challengeId())
+  public PinOtpResendResponse resendPinOtp(final PinOtpResendRequest request) {
+    final PinOtpChallenge ch = otpRepository.findByIdOptional(request.challengeId())
       .orElseThrow(() -> new NotFoundException("Challenge not found"));
 
     if (ch.consumedAt != null) {
@@ -160,10 +168,10 @@ public class AuthService {
       throw new BadRequestException("Challenge expired");
     }
 
-    Employee employee = employeeRepository.findByIdOptional(ch.employeeId)
+    final Employee employee = employeeRepository.findByIdOptional(ch.employeeId)
       .orElseThrow(() -> new NotFoundException("Employee not found"));
 
-    String otp = otpService.generateOtp(PIN_LENGTH);
+    final String otp = otpService.generateOtp(PIN_LENGTH);
     ch.otpHash = pinHasher.hash(otp);
     ch.resendCount = ch.resendCount + 1;
     otpRepository.persist(ch);
@@ -174,13 +182,16 @@ public class AuthService {
   }
 
   @Transactional
-  public LoginResponse verifyPinOtp(PinOtpVerifyRequest request) {
+  public LoginResponse verifyPinOtp(final PinOtpVerifyRequest request) {
     validateSixDigit(request.otp());
 
-    PosDevice device = deviceRepository.findByDeviceCode(request.deviceId())
+    final PosDevice device = deviceRepository.findByDeviceCode(request.deviceId())
       .orElseThrow(() -> new NotFoundException("Unknown device"));
 
-    PinOtpChallenge ch = otpRepository.findByIdOptional(request.challengeId())
+    final Outlet outlet = outletRepository.findByIdOptional(device.outletId)
+      .orElseThrow(() -> new NotFoundException("Outlet not found"));
+
+    final PinOtpChallenge ch = otpRepository.findByIdOptional(request.challengeId())
       .orElseThrow(() -> new NotFoundException("Challenge not found"));
 
     if (!ch.outletId.equals(device.outletId)) {
@@ -201,25 +212,27 @@ public class AuthService {
     ch.consumedAt = java.util.Date.from(Instant.now());
     otpRepository.persist(ch);
 
-    Employee employee = employeeRepository.findByIdOptional(ch.employeeId)
+    final Employee employee = employeeRepository.findByIdOptional(ch.employeeId)
       .orElseThrow(() -> new NotFoundException("Employee not found"));
 
-    Shift shift = shiftRepository.findActive(device.outletId, employee.id, device.id)
+    final Shift shift = shiftRepository.findActive(device.outletId, employee.id, device.id)
       .orElseGet(() -> shiftRepository.createActive(device.outletId, employee.id, device.id));
 
-    ShiftSession session = sessionRepository.create(shift.id, device.id);
+    final ShiftSession session = sessionRepository.create(shift.id, device.id);
 
-    List<String> roles = roleRepository.listRoles(employee.id);
-    String accessToken = jwtIssuer.issueAccessToken(employee, device.outletId, roles, session.id);
-    String refreshToken = jwtIssuer.issueRefreshToken(employee, device.outletId, session.id);
+    final List<String> roles = roleRepository.listRoles(employee.id);
 
-    Outlet outlet = outletRepository.findByIdOptional(device.outletId)
-      .orElseThrow(() -> new NotFoundException("Outlet not found"));
+    final String clientId = (outlet.clientId != null && !outlet.clientId.isBlank()) ? outlet.clientId : outlet.ownerId;
+
+    final String accessToken = jwtIssuer.issueAccessToken(employee, device.outletId, clientId, roles, session.id);
+    final String refreshToken = jwtIssuer.issueRefreshToken(employee, device.outletId, clientId, session.id);
+
+    audit.record("EMPLOYEE_LOGIN_OTP", device.outletId, "Employee", employee.id, "deviceId=" + device.id);
 
     return LoginResponse.from(employee, outlet, roles, shift, session, accessToken, refreshToken);
   }
 
-  private static void validateSixDigit(String value) {
+  private static void validateSixDigit(final String value) {
     if (value == null || value.length() != PIN_LENGTH || !value.chars().allMatch(Character::isDigit)) {
       throw new BadRequestException("Must be a 6-digit code");
     }

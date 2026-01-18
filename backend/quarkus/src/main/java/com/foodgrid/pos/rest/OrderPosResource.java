@@ -19,42 +19,46 @@ public class OrderPosResource {
   @Inject OrderPosService orderPosService;
 
   @POST
-  public OrderResponse create(@Valid OrderCreateRequest request) {
+  public OrderResponse create(@Valid final OrderCreateRequest request) {
     return orderPosService.create(request);
   }
 
   @GET
   @Path("/{orderId}")
-  public OrderResponse get(@PathParam("orderId") String orderId) {
+  public OrderResponse get(@PathParam("orderId") final String orderId) {
     return orderPosService.get(orderId);
   }
 
   @GET
-  public List<OrderResponse> list(@QueryParam("limit") Integer limit) {
+  public List<OrderResponse> list(@QueryParam("limit") final Integer limit) {
     return orderPosService.listRecent(limit);
   }
 
   @POST
   @Path("/{orderId}/items")
-  public OrderResponse addItem(@PathParam("orderId") String orderId, @Valid OrderAddItemRequest request) {
+  public OrderResponse addItem(@PathParam("orderId") final String orderId, @Valid final OrderAddItemRequest request) {
     return orderPosService.addItem(orderId, request);
   }
 
   @DELETE
   @Path("/{orderId}/items/{orderItemId}")
-  public OrderResponse cancelItem(@PathParam("orderId") String orderId, @PathParam("orderItemId") String orderItemId) {
+  public OrderResponse cancelItem(@PathParam("orderId") final String orderId, @PathParam("orderItemId") final String orderItemId) {
     return orderPosService.cancelItem(orderId, orderItemId);
   }
 
   @POST
   @Path("/{orderId}/bill")
-  public OrderResponse bill(@PathParam("orderId") String orderId) {
+  public OrderResponse bill(@PathParam("orderId") final String orderId) {
     return orderPosService.bill(orderId);
   }
 
   @POST
   @Path("/{orderId}/payments")
-  public PaymentResponse pay(@PathParam("orderId") String orderId, @Valid PaymentCreateRequest request) {
-    return orderPosService.pay(orderId, request);
+  public PaymentResponse pay(
+    @PathParam("orderId") final String orderId,
+    @HeaderParam("Idempotency-Key") final String idempotencyKey,
+    @Valid final PaymentCreateRequest request
+  ) {
+    return orderPosService.payWithIdempotency(orderId, request, idempotencyKey);
   }
 }

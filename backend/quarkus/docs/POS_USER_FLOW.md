@@ -39,14 +39,18 @@ curl -s -X POST "$BASE_URL/api/v1/admin/auth/login" \
   }'
 ```
 
-Extract token:
+Extract token + admin id:
 
 ```bash
-export ADMIN_TOKEN="$(curl -s -X POST "$BASE_URL/api/v1/admin/auth/login" \
+export ADMIN_LOGIN_JSON="$(curl -s -X POST "$BASE_URL/api/v1/admin/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@foodgrid.com","password":"123456"}' | jq -r '.accessToken')"
+  -d '{"email":"admin@foodgrid.com","password":"123456"}')"
+
+export ADMIN_TOKEN="$(echo "$ADMIN_LOGIN_JSON" | jq -r '.accessToken')"
+export ADMIN_ID="$(echo "$ADMIN_LOGIN_JSON" | jq -r '.admin.id')"
 
 echo "$ADMIN_TOKEN"
+echo "ADMIN_ID=$ADMIN_ID"
 ```
 
 ---
@@ -58,14 +62,18 @@ echo "$ADMIN_TOKEN"
 **API**
 `POST /api/v1/admin/outlets`
 
+NOTE: `ownerId` is required by the backend.
+
 ```bash
 curl -s -X POST "$BASE_URL/api/v1/admin/outlets" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "FoodGrid Downtown",
-    "timezone": "Asia/Kolkata"
-  }'
+  -d "{
+    \"ownerId\": \"$ADMIN_ID\",
+    \"name\": \"FoodGrid Downtown\",
+    \"timezone\": \"Asia/Kolkata\",
+    \"status\": \"ACTIVE\"
+  }"
 ```
 
 Extract `OUTLET_ID`:
@@ -74,7 +82,7 @@ Extract `OUTLET_ID`:
 export OUTLET_ID="$(curl -s -X POST "$BASE_URL/api/v1/admin/outlets" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"name":"FoodGrid Downtown","timezone":"Asia/Kolkata"}' | jq -r '.id')"
+  -d "{\"ownerId\":\"$ADMIN_ID\",\"name\":\"FoodGrid Downtown\",\"timezone\":\"Asia/Kolkata\",\"status\":\"ACTIVE\"}" | jq -r '.id')"
 
 echo "$OUTLET_ID"
 ```
@@ -334,24 +342,32 @@ curl -s -X POST "$BASE_URL/api/v1/pos/orders/$ORDER_ID/bill" \
 **API**
 `POST /api/v1/pos/orders/{orderId}/payments`
 
+Example with idempotency (recommended):
+
 ```bash
+export IDEM_KEY="pay-$ORDER_ID-1"
+
 curl -s -X POST "$BASE_URL/api/v1/pos/orders/$ORDER_ID/payments" \
   -H "Authorization: Bearer $POS_TOKEN" \
   -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $IDEM_KEY" \
   -d '{
     "method": "CASH",
     "amount": 198.00
   }'
 ```
 
-## 6.7 List recent orders
-
-**API**
-`GET /api/v1/pos/orders?limit=50`
+Replay the same request safely:
 
 ```bash
-curl -s "$BASE_URL/api/v1/pos/orders?limit=50" \
-  -H "Authorization: Bearer $POS_TOKEN"
+curl -s -X POST "$BASE_URL/api/v1/pos/orders/$ORDER_ID/payments" \
+  -H "Authorization: Bearer $POS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $IDEM_KEY" \
+  -d '{
+    "method": "CASH",
+    "amount": 198.00
+  }'
 ```
 
 ---

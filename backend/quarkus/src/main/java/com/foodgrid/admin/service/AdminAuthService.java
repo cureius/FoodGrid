@@ -5,6 +5,7 @@ import com.foodgrid.admin.model.AdminUser;
 import com.foodgrid.admin.repo.AdminUserRepository;
 import com.foodgrid.admin.repo.AdminUserRoleRepository;
 import com.foodgrid.auth.service.PinHasher;
+import com.foodgrid.common.audit.AuditLogService;
 import com.foodgrid.common.security.JwtIssuer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -19,9 +20,10 @@ public class AdminAuthService {
   @Inject AdminUserRoleRepository roleRepository;
   @Inject PinHasher pinHasher;
   @Inject JwtIssuer jwtIssuer;
+  @Inject AuditLogService audit;
 
-  public AdminLoginResponse login(AdminLoginRequest request) {
-    AdminUser admin = adminUserRepository.findByEmail(request.email())
+  public AdminLoginResponse login(final AdminLoginRequest request) {
+    final AdminUser admin = adminUserRepository.findByEmail(request.email())
       .orElseThrow(() -> new ForbiddenException("Invalid credentials"));
 
     if (admin.status != AdminUser.Status.ACTIVE) {
@@ -32,10 +34,15 @@ public class AdminAuthService {
       throw new ForbiddenException("Invalid credentials");
     }
 
-    List<String> roles = roleRepository.listRoles(admin.id);
+    final List<String> roles = roleRepository.listRoles(admin.id);
 
-    String accessToken = jwtIssuer.issueAdminAccessToken(admin, null, roles);
-    String refreshToken = jwtIssuer.issueAdminRefreshToken(admin, null);
+    // NOTE: AdminUser currently isn't linked to a Client. Until it is, admin tokens remain non-tenant-scoped.
+    final String clientId = null;
+
+    final String accessToken = jwtIssuer.issueAdminAccessToken(admin, null, clientId, roles);
+    final String refreshToken = jwtIssuer.issueAdminRefreshToken(admin, null, clientId);
+
+    audit.record("ADMIN_LOGIN", null, "AdminUser", admin.id, "email=" + admin.email);
 
     return new AdminLoginResponse(
       accessToken,

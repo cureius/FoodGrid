@@ -11,6 +11,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 
 @ApplicationScoped
 public class PosOpsService {
@@ -18,10 +19,11 @@ public class PosOpsService {
   @Inject ShiftSessionRepository sessionRepository;
   @Inject ShiftRepository shiftRepository;
   @Inject SecurityIdentity identity;
+  @Inject JsonWebToken jwt;
 
   @Transactional
   public LogoutResponse logout() {
-    String sessionId = claim("sessionId");
+    final String sessionId = claim("sessionId");
     if (sessionId == null || sessionId.isBlank()) {
       throw new BadRequestException("Missing sessionId");
     }
@@ -31,12 +33,12 @@ public class PosOpsService {
 
   @Transactional
   public ShiftCloseResponse closeShift() {
-    String sessionId = claim("sessionId");
+    final String sessionId = claim("sessionId");
     if (sessionId == null || sessionId.isBlank()) {
       throw new BadRequestException("Missing sessionId");
     }
 
-    ShiftSession ss = sessionRepository.findActiveById(sessionId)
+    final ShiftSession ss = sessionRepository.findActiveById(sessionId)
       .orElseThrow(() -> new NotFoundException("Session not found"));
 
     shiftRepository.closeShift(ss.shiftId);
@@ -45,8 +47,22 @@ public class PosOpsService {
     return new ShiftCloseResponse("CLOSED", ss.shiftId);
   }
 
-  private String claim(String name) {
-    Object v = identity.getAttributes().get(name);
+  private String claim(final String name) {
+    // Prefer JWT claims
+    if (jwt != null) {
+      try {
+        final Object c = jwt.getClaim(name);
+        if (c != null) {
+          final String s = c.toString();
+          if (!s.isBlank()) return s;
+        }
+      } catch (final Exception ignored) {
+        // fall through
+      }
+    }
+
+    // Fallback
+    final Object v = identity.getAttributes().get(name);
     return v == null ? null : v.toString();
   }
 }

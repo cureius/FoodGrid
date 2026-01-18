@@ -21,7 +21,7 @@ public class OutletAdminService {
   @Inject SecurityIdentity identity;
 
   public List<OutletResponse> list() {
-    String adminId = claim("sub"); // Admin user ID from JWT
+    final String adminId = subject();
     if (adminId != null && !adminId.isBlank()) {
       // Restaurant owners can only see their own outlets
       return outletRepository.list("ownerId", adminId).stream().map(OutletAdminService::toResponse).toList();
@@ -32,8 +32,8 @@ public class OutletAdminService {
   }
 
   @Transactional
-  public OutletResponse create(OutletUpsertRequest req) {
-    String adminId = claim("sub");
+  public OutletResponse create(final OutletUpsertRequest req) {
+    final String adminId = subject();
     if (adminId == null || adminId.isBlank()) {
       throw new BadRequestException("Only authenticated users can create outlets");
     }
@@ -43,7 +43,7 @@ public class OutletAdminService {
       throw new BadRequestException("Can only create outlets for yourself");
     }
 
-    Outlet o = new Outlet();
+    final Outlet o = new Outlet();
     o.id = Ids.uuid();
     o.ownerId = req.ownerId();
     o.name = req.name();
@@ -54,13 +54,13 @@ public class OutletAdminService {
   }
 
   @Transactional
-  public OutletResponse update(String outletId, OutletUpsertRequest req) {
-    String adminId = claim("sub");
+  public OutletResponse update(final String outletId, final OutletUpsertRequest req) {
+    final String adminId = subject();
     if (adminId == null || adminId.isBlank()) {
       throw new BadRequestException("Only authenticated users can update outlets");
     }
 
-    Outlet o = outletRepository.findByIdOptional(outletId)
+    final Outlet o = outletRepository.findByIdOptional(outletId)
       .orElseThrow(() -> new NotFoundException("Outlet not found"));
 
     // Restaurant owners can only update their own outlets
@@ -78,13 +78,13 @@ public class OutletAdminService {
   }
 
   @Transactional
-  public void delete(String outletId) {
-    String adminId = claim("sub");
+  public void delete(final String outletId) {
+    final String adminId = subject();
     if (adminId == null || adminId.isBlank()) {
       throw new BadRequestException("Only authenticated users can delete outlets");
     }
 
-    Outlet o = outletRepository.findByIdOptional(outletId)
+    final Outlet o = outletRepository.findByIdOptional(outletId)
       .orElseThrow(() -> new NotFoundException("Outlet not found"));
 
     // Restaurant owners can only delete their own outlets
@@ -95,12 +95,18 @@ public class OutletAdminService {
     outletRepository.delete(o);
   }
 
-  private String claim(String name) {
-    Object v = identity.getAttributes().get(name);
+  private String subject() {
+    // Quarkus populates principal name with JWT subject.
+    if (identity.getPrincipal() != null && identity.getPrincipal().getName() != null && !identity.getPrincipal().getName().isBlank()) {
+      return identity.getPrincipal().getName();
+    }
+
+    // Fallback to attribute if present.
+    final Object v = identity.getAttributes().get("sub");
     return v == null ? null : v.toString();
   }
 
-  private static OutletResponse toResponse(Outlet o) {
+  private static OutletResponse toResponse(final Outlet o) {
     return new OutletResponse(o.id, o.ownerId, o.name, o.timezone, o.status.name());
   }
 }

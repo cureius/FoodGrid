@@ -13,11 +13,13 @@ import java.util.Set;
 @ApplicationScoped
 public class JwtIssuer {
 
-  public String issueAccessToken(Employee employee, String outletId, List<String> roles, String sessionId) {
-    Instant now = Instant.now();
+  public String issueAccessToken(final Employee employee, final String outletId, final String clientId, final List<String> roles, final String sessionId) {
+    final Instant now = Instant.now();
     return Jwt.issuer("foodgrid")
       .subject(employee.id)
+      .claim("principalType", "EMPLOYEE")
       .claim("outletId", outletId)
+      .claim("clientId", clientId)
       .claim("displayName", employee.displayName)
       .claim("sessionId", sessionId)
       .groups(Set.copyOf(roles))
@@ -26,19 +28,21 @@ public class JwtIssuer {
       .sign();
   }
 
-  public String issueRefreshToken(Employee employee, String outletId, String sessionId) {
-    Instant now = Instant.now();
+  public String issueRefreshToken(final Employee employee, final String outletId, final String clientId, final String sessionId) {
+    final Instant now = Instant.now();
     return Jwt.issuer("foodgrid")
       .subject(employee.id)
+      .claim("principalType", "EMPLOYEE")
       .claim("outletId", outletId)
+      .claim("clientId", clientId)
       .claim("sessionId", sessionId)
       .issuedAt(now)
       .expiresAt(now.plus(Duration.ofDays(7)))
       .sign();
   }
 
-  public String issueAdminAccessToken(AdminUser admin, String outletId, List<String> roles) {
-    Instant now = Instant.now();
+  public String issueAdminAccessToken(final AdminUser admin, final String outletId, final String clientId, final List<String> roles) {
+    final Instant now = Instant.now();
     var jwt = Jwt.issuer("foodgrid")
       .subject(admin.id)
       .claim("principalType", "ADMIN")
@@ -51,12 +55,15 @@ public class JwtIssuer {
     if (outletId != null) {
       jwt = jwt.claim("outletId", outletId);
     }
+    if (clientId != null) {
+      jwt = jwt.claim("clientId", clientId);
+    }
 
     return jwt.sign();
   }
 
-  public String issueAdminRefreshToken(AdminUser admin, String outletId) {
-    Instant now = Instant.now();
+  public String issueAdminRefreshToken(final AdminUser admin, final String outletId, final String clientId) {
+    final Instant now = Instant.now();
     var jwt = Jwt.issuer("foodgrid")
       .subject(admin.id)
       .claim("principalType", "ADMIN")
@@ -65,6 +72,9 @@ public class JwtIssuer {
 
     if (outletId != null) {
       jwt = jwt.claim("outletId", outletId);
+    }
+    if (clientId != null) {
+      jwt = jwt.claim("clientId", clientId);
     }
 
     return jwt.sign();
