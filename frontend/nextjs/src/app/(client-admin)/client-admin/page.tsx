@@ -2,7 +2,20 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import styles from "./dashboard/Dashboard.module.css";
+import { 
+  Store, 
+  Users, 
+  UserCheck, 
+  UserX, 
+  RefreshCw, 
+  TrendingUp, 
+  Clock, 
+  ArrowRight,
+  Building2,
+  Activity,
+  ChevronRight,
+  MapPin
+} from "lucide-react";
 import { listEmployees, listOutlets } from "@/lib/api/clientAdmin";
 
 function formatTime(d: Date) {
@@ -13,50 +26,85 @@ function formatDate(d: Date) {
   return d.toLocaleDateString([], { weekday: "long", year: "numeric", month: "short", day: "numeric" });
 }
 
-function Icon({ name }: { name: "store" | "users" | "check" | "ban" }) {
-  const common = {
-    width: 44,
-    height: 44,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    xmlns: "http://www.w3.org/2000/svg"
-  } as const;
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  subtitle: string;
+  icon: React.ReactNode;
+  color: string;
+  bgColor: string;
+  trend?: string;
+  loading?: boolean;
+}
 
-  const stroke = "currentColor";
-  const s = { stroke, strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
-
-  switch (name) {
-    case "store":
-      return (
-        <svg {...common}>
-          <path {...s} d="M3 10.5V21h18V10.5" />
-          <path {...s} d="M3 10.5l2-7.5h14l2 7.5" />
-          <path {...s} d="M7 21v-7h10v7" />
-        </svg>
-      );
-    case "users":
-      return (
-        <svg {...common}>
-          <path {...s} d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-          <path {...s} d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
-          <path {...s} d="M22 21v-2a3.5 3.5 0 0 0-2.5-3.36" />
-          <path {...s} d="M16.5 3.14a4 4 0 0 1 0 7.72" />
-        </svg>
-      );
-    case "check":
-      return (
-        <svg {...common}>
-          <path {...s} d="M20 6 9 17l-5-5" />
-        </svg>
-      );
-    case "ban":
-      return (
-        <svg {...common}>
-          <path {...s} d="M18.36 18.36A9 9 0 1 1 5.64 5.64" />
-          <path {...s} d="M5.64 18.36 18.36 5.64" />
-        </svg>
-      );
-  }
+function StatCard({ title, value, subtitle, icon, color, bgColor, trend, loading }: StatCardProps) {
+  return (
+    <div style={{
+      background: "white",
+      borderRadius: 20,
+      padding: 24,
+      boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
+      border: "1px solid rgba(0,0,0,0.04)",
+      display: "flex",
+      flexDirection: "column",
+      gap: 16,
+      transition: "all 0.2s ease",
+      cursor: "default",
+    }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+        <div style={{
+          width: 52,
+          height: 52,
+          borderRadius: 14,
+          background: bgColor,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: color,
+        }}>
+          {icon}
+        </div>
+        {trend && (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            padding: "4px 10px",
+            borderRadius: 20,
+            background: "rgba(16, 185, 129, 0.1)",
+            color: "#10b981",
+            fontSize: 12,
+            fontWeight: 600,
+          }}>
+            <TrendingUp size={14} />
+            {trend}
+          </div>
+        )}
+      </div>
+      <div>
+        <div style={{
+          fontSize: 32,
+          fontWeight: 700,
+          color: "#1e293b",
+          marginBottom: 4,
+          fontFeatureSettings: "'tnum' on, 'lnum' on",
+        }}>
+          {loading ? (
+            <div style={{
+              width: 60,
+              height: 32,
+              background: "linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)",
+              backgroundSize: "200% 100%",
+              animation: "shimmer 1.5s infinite",
+              borderRadius: 6,
+            }} />
+          ) : value}
+        </div>
+        <div style={{ fontSize: 14, fontWeight: 500, color: "#64748b" }}>{title}</div>
+        <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>{subtitle}</div>
+      </div>
+    </div>
+  );
 }
 
 export default function Page() {
@@ -65,258 +113,560 @@ export default function Page() {
     if (!t) window.location.href = "/client-admin/login";
   }, []);
 
-  const outletId = process.env.NEXT_PUBLIC_OUTLET_ID ?? "";
-
   const [now, setNow] = useState(() => new Date());
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [outlets, setOutlets] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [allEmployees, setAllEmployees] = useState<any[]>([]);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
 
-  async function load() {
+  async function load(isRefresh = false) {
     try {
-      setLoading(true);
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
       setError(null);
 
-      const [oRes, eRes] = await Promise.all([
-        listOutlets(),
-        outletId ? listEmployees(outletId) : Promise.resolve([])
-      ]);
+      const outletsRes = await listOutlets();
+      setOutlets(outletsRes ?? []);
 
-      setOutlets(oRes ?? []);
-      setEmployees(eRes ?? []);
+      // Load employees for all outlets
+      const allEmps: any[] = [];
+      for (const outlet of (outletsRes ?? [])) {
+        try {
+          const emps = await listEmployees(outlet.id);
+          if (emps) {
+            allEmps.push(...emps.map((e: any) => ({ ...e, outletId: outlet.id, outletName: outlet.name })));
+          }
+        } catch {
+          // Skip outlets we can't access
+        }
+      }
+      setAllEmployees(allEmps);
     } catch (e: any) {
-      setError(e?.message ?? "Failed to load dashboard");
+      setError(e?.message ?? "Failed to load dashboard data");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [outletId]);
+  }, []);
 
   const stats = useMemo(() => {
-    const activeEmployees = employees.filter((e) => (e.status ?? "ACTIVE") === "ACTIVE").length;
-    const inactiveEmployees = employees.length - activeEmployees;
+    const activeOutlets = outlets.filter((o) => o.status === "ACTIVE").length;
+    const activeEmployees = allEmployees.filter((e) => (e.status ?? "ACTIVE") === "ACTIVE").length;
+    const inactiveEmployees = allEmployees.length - activeEmployees;
 
     return {
       outletsCount: outlets.length,
-      employeesCount: employees.length,
+      activeOutlets,
+      employeesCount: allEmployees.length,
       activeEmployees,
       inactiveEmployees
     };
-  }, [outlets, employees]);
+  }, [outlets, allEmployees]);
 
-  const muted: React.CSSProperties = { color: "rgba(26, 28, 30, 0.6)" };
+  const recentOutlets = outlets.slice(0, 4);
+  const recentEmployees = allEmployees.slice(0, 5);
 
   return (
-    <div className={styles.container} style={{ padding: 32, maxWidth: 1200, margin: "0 auto" }}>
-      <div className={styles.greetingSection}>
+    <div style={{ padding: "32px", maxWidth: 1400, margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 20,
+        marginBottom: 32,
+      }}>
         <div>
-          <div className={styles.greeting}>Dashboard</div>
-          <div className={styles.subGreeting}>
-            Welcome to Client Admin{outletId ? ` • Outlet: ${outletId}` : ""}
-          </div>
+          <h1 style={{
+            fontSize: 32,
+            fontWeight: 800,
+            margin: 0,
+            background: "linear-gradient(135deg, #1e293b 0%, #475569 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            letterSpacing: "-0.5px",
+          }}>
+            Dashboard
+          </h1>
+          <p style={{ margin: "8px 0 0", color: "#64748b", fontSize: 15 }}>
+            Welcome back! Here's an overview of your business.
+          </p>
         </div>
 
-        <div className={styles.headerRight}>
-          <div className={styles.dateTime}>
-            <div className={styles.time}>{formatTime(now)}</div>
-            <div className={styles.date}>{formatDate(now)}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{
+            background: "white",
+            padding: "14px 20px",
+            borderRadius: 14,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+            border: "1px solid rgba(0,0,0,0.04)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <Clock size={18} style={{ color: "#8b5cf6" }} />
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "#1e293b" }}>{formatTime(now)}</div>
+                <div style={{ fontSize: 12, color: "#64748b" }}>{formatDate(now)}</div>
+              </div>
+            </div>
           </div>
 
           <button
-            type="button"
-            onClick={load}
-            disabled={loading}
-            className={styles.payButton}
+            onClick={() => load(true)}
+            disabled={refreshing}
             style={{
-              border: 0,
-              cursor: loading ? "not-allowed" : "pointer",
-              background: loading ? "rgba(57, 111, 255, 0.6)" : undefined
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "14px 20px",
+              borderRadius: 14,
+              border: "none",
+              background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+              color: "white",
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: refreshing ? "not-allowed" : "pointer",
+              opacity: refreshing ? 0.7 : 1,
+              boxShadow: "0 4px 14px rgba(139, 92, 246, 0.35)",
+              transition: "all 0.2s ease",
             }}
           >
-            {loading ? "Refreshing..." : "Refresh"}
+            <RefreshCw size={16} style={{ animation: refreshing ? "spin 1s linear infinite" : "none" }} />
+            {refreshing ? "Refreshing..." : "Refresh"}
           </button>
         </div>
       </div>
 
-      {error ? (
-        <div
-          role="alert"
-          style={{
-            padding: "12px 14px",
-            borderRadius: 12,
-            background: "rgba(220, 38, 38, 0.08)",
-            border: "1px solid rgba(220, 38, 38, 0.22)",
-            color: "rgb(185, 28, 28)"
-          }}
-        >
+      {/* Error Alert */}
+      {error && (
+        <div style={{
+          padding: "14px 18px",
+          borderRadius: 12,
+          background: "rgba(239, 68, 68, 0.08)",
+          border: "1px solid rgba(239, 68, 68, 0.2)",
+          color: "#dc2626",
+          marginBottom: 24,
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+        }}>
+          <Activity size={18} />
           {error}
         </div>
-      ) : null}
+      )}
 
-      <div className={styles.statsGrid} style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-        <div className={styles.statCard}>
-          <div className={styles.statContent}>
-            <div className={styles.statLabel}>Total Outlets</div>
-            <div className={styles.statValue}>{loading ? "—" : stats.outletsCount}</div>
-            <div className={styles.statChange}>Configured in this account</div>
-          </div>
-          <div className={styles.statIconWrapper}>
-            <Icon name="store" />
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statContent}>
-            <div className={styles.statLabel}>Total Employees</div>
-            <div className={styles.statValue}>{loading ? "—" : stats.employeesCount}</div>
-            <div className={styles.statChange}>{outletId ? "For selected outlet" : "Select an outlet"}</div>
-          </div>
-          <div className={styles.statIconWrapper}>
-            <Icon name="users" />
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statContent}>
-            <div className={styles.statLabel}>Active Employees</div>
-            <div className={styles.statValue}>{loading ? "—" : stats.activeEmployees}</div>
-            <div className={styles.statChange}>Enabled accounts</div>
-          </div>
-          <div className={styles.statIconWrapper}>
-            <Icon name="check" />
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statContent}>
-            <div className={styles.statLabel}>Inactive Employees</div>
-            <div className={styles.statValue}>{loading ? "—" : stats.inactiveEmployees}</div>
-            <div className={styles.statChange}>Disabled accounts</div>
-          </div>
-          <div className={styles.statIconWrapper}>
-            <Icon name="ban" />
-          </div>
-        </div>
+      {/* Stats Grid */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+        gap: 20,
+        marginBottom: 32,
+      }}>
+        <StatCard
+          title="Total Outlets"
+          value={stats.outletsCount}
+          subtitle={`${stats.activeOutlets} active`}
+          icon={<Store size={26} />}
+          color="#8b5cf6"
+          bgColor="rgba(139, 92, 246, 0.1)"
+          loading={loading}
+        />
+        <StatCard
+          title="Total Employees"
+          value={stats.employeesCount}
+          subtitle="Across all outlets"
+          icon={<Users size={26} />}
+          color="#3b82f6"
+          bgColor="rgba(59, 130, 246, 0.1)"
+          loading={loading}
+        />
+        <StatCard
+          title="Active Employees"
+          value={stats.activeEmployees}
+          subtitle="Currently enabled"
+          icon={<UserCheck size={26} />}
+          color="#10b981"
+          bgColor="rgba(16, 185, 129, 0.1)"
+          loading={loading}
+        />
+        <StatCard
+          title="Inactive Employees"
+          value={stats.inactiveEmployees}
+          subtitle="Disabled accounts"
+          icon={<UserX size={26} />}
+          color="#f59e0b"
+          bgColor="rgba(245, 158, 11, 0.1)"
+          loading={loading}
+        />
       </div>
 
-      <div className={styles.orderSections} style={{ gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
-        <div className={styles.orderColumn}>
-          <div className={styles.sectionHeader}>
-            <h3>Outlets</h3>
-            <span className={styles.badge}>{loading ? "…" : outlets.length}</span>
+      {/* Main Content Grid */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
+        gap: 24,
+      }}>
+        {/* Outlets Section */}
+        <div style={{
+          background: "white",
+          borderRadius: 20,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
+          border: "1px solid rgba(0,0,0,0.04)",
+          overflow: "hidden",
+        }}>
+          <div style={{
+            padding: "20px 24px",
+            borderBottom: "1px solid #f1f5f9",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{
+                width: 40,
+                height: 40,
+                borderRadius: 10,
+                background: "rgba(139, 92, 246, 0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
+                <Building2 size={20} style={{ color: "#8b5cf6" }} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Outlets</h3>
+                <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>{outlets.length} total</p>
+              </div>
+            </div>
+            <Link href="/client-admin/outlets" style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              color: "#8b5cf6",
+              fontSize: 13,
+              fontWeight: 600,
+              textDecoration: "none",
+            }}>
+              View All <ChevronRight size={16} />
+            </Link>
           </div>
 
-          <div className={styles.orderList}>
+          <div style={{ padding: 16 }}>
             {loading ? (
-              <div className={styles.orderCard} style={muted}>
-                Loading outlets…
-              </div>
-            ) : outlets.length === 0 ? (
-              <div className={styles.orderCard} style={muted}>
-                No outlets found.
+              <div style={{ padding: 20, textAlign: "center", color: "#64748b" }}>Loading outlets...</div>
+            ) : recentOutlets.length === 0 ? (
+              <div style={{ padding: 40, textAlign: "center" }}>
+                <Store size={40} style={{ color: "#cbd5e1", marginBottom: 12 }} />
+                <p style={{ color: "#64748b", margin: 0 }}>No outlets found</p>
+                <Link href="/client-admin/outlets" style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  marginTop: 12,
+                  padding: "10px 18px",
+                  borderRadius: 10,
+                  background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                  color: "white",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textDecoration: "none",
+                }}>
+                  Add Outlet <ArrowRight size={14} />
+                </Link>
               </div>
             ) : (
-              outlets.slice(0, 6).map((o) => (
-                <div key={o.id} className={styles.orderCard}>
-                  <div className={styles.orderHeader}>
-                    <div className={styles.tableCircle} style={{ background: "var(--primary)" }}>
-                      {(o.name ?? "Outlet").slice(0, 2).toUpperCase()}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {recentOutlets.map((outlet) => (
+                  <div key={outlet.id} style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 14,
+                    padding: "14px 16px",
+                    borderRadius: 12,
+                    background: "#f8fafc",
+                    transition: "all 0.15s ease",
+                  }}>
+                    <div style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 12,
+                      background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "white",
+                      fontWeight: 700,
+                      fontSize: 14,
+                    }}>
+                      {(outlet.name ?? "O").slice(0, 2).toUpperCase()}
                     </div>
-                    <div className={styles.orderInfo}>
-                      <div className={styles.orderId}>{o.name ?? "Unnamed outlet"}</div>
-                      <div className={styles.orderTime}>{o.address ?? o.timezone ?? "—"}</div>
-                    </div>
-                  </div>
-
-                  <div className={styles.orderItems}>
-                    <div className={styles.orderItem}>
-                      <span>Outlet ID</span>
-                      <span style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
-                        {o.id}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className={styles.orderFooter}>
-                    <div style={muted}>Open to manage details</div>
-                    <Link className={styles.payButton} href="/client-admin/outlets">
-                      Manage
-                    </Link>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        <div className={styles.orderColumn}>
-          <div className={styles.sectionHeader}>
-            <h3>Employees</h3>
-            <span className={styles.badge}>{loading ? "…" : employees.length}</span>
-          </div>
-
-          <div className={styles.orderList}>
-            {loading ? (
-              <div className={styles.orderCard} style={muted}>
-                Loading employees…
-              </div>
-            ) : !outletId ? (
-              <div className={styles.orderCard} style={muted}>
-                Set <code>NEXT_PUBLIC_OUTLET_ID</code> to view employees for a specific outlet.
-              </div>
-            ) : employees.length === 0 ? (
-              <div className={styles.orderCard} style={muted}>
-                No employees found.
-              </div>
-            ) : (
-              employees.slice(0, 6).map((e) => (
-                <div key={e.id} className={styles.orderCard}>
-                  <div className={styles.orderHeader}>
-                    <div className={styles.tableCircle} style={{ background: "var(--primary-blue)" }}>
-                      {(e.displayName ?? e.email ?? "Emp").slice(0, 2).toUpperCase()}
-                    </div>
-                    <div className={styles.orderInfo}>
-                      <div className={styles.orderId}>{e.displayName ?? "Employee"}</div>
-                      <div className={styles.orderTime}>{e.email ?? "—"}</div>
-                    </div>
-                  </div>
-
-                  <div className={styles.orderItems}>
-                    <div className={styles.orderItem}>
-                      <span>Status</span>
-                      <span className={styles.itemQty}>{e.status ?? "ACTIVE"}</span>
-                    </div>
-                    {e.role ? (
-                      <div className={styles.orderItem}>
-                        <span>Role</span>
-                        <span className={styles.itemQty}>{e.role}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "#1e293b", marginBottom: 2 }}>
+                        {outlet.name ?? "Unnamed Outlet"}
                       </div>
-                    ) : null}
+                      <div style={{ fontSize: 12, color: "#64748b", display: "flex", alignItems: "center", gap: 4 }}>
+                        <MapPin size={12} />
+                        {outlet.timezone ?? "No timezone"}
+                      </div>
+                    </div>
+                    <div style={{
+                      padding: "4px 10px",
+                      borderRadius: 20,
+                      background: outlet.status === "ACTIVE" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                      color: outlet.status === "ACTIVE" ? "#10b981" : "#ef4444",
+                      fontSize: 11,
+                      fontWeight: 600,
+                    }}>
+                      {outlet.status ?? "ACTIVE"}
+                    </div>
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
-                  <div className={styles.orderFooter}>
-                    <div style={muted}>Manage access & roles</div>
-                    <Link className={styles.payButton} href="/client-admin/employees">
-                      Manage
-                    </Link>
+        {/* Employees Section */}
+        <div style={{
+          background: "white",
+          borderRadius: 20,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
+          border: "1px solid rgba(0,0,0,0.04)",
+          overflow: "hidden",
+        }}>
+          <div style={{
+            padding: "20px 24px",
+            borderBottom: "1px solid #f1f5f9",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{
+                width: 40,
+                height: 40,
+                borderRadius: 10,
+                background: "rgba(59, 130, 246, 0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
+                <Users size={20} style={{ color: "#3b82f6" }} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Employees</h3>
+                <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>{allEmployees.length} total</p>
+              </div>
+            </div>
+            <Link href="/client-admin/employees" style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              color: "#3b82f6",
+              fontSize: 13,
+              fontWeight: 600,
+              textDecoration: "none",
+            }}>
+              View All <ChevronRight size={16} />
+            </Link>
+          </div>
+
+          <div style={{ padding: 16 }}>
+            {loading ? (
+              <div style={{ padding: 20, textAlign: "center", color: "#64748b" }}>Loading employees...</div>
+            ) : recentEmployees.length === 0 ? (
+              <div style={{ padding: 40, textAlign: "center" }}>
+                <Users size={40} style={{ color: "#cbd5e1", marginBottom: 12 }} />
+                <p style={{ color: "#64748b", margin: 0 }}>No employees found</p>
+                <Link href="/client-admin/employees" style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  marginTop: 12,
+                  padding: "10px 18px",
+                  borderRadius: 10,
+                  background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                  color: "white",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textDecoration: "none",
+                }}>
+                  Add Employee <ArrowRight size={14} />
+                </Link>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {recentEmployees.map((emp) => (
+                  <div key={emp.id} style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 14,
+                    padding: "14px 16px",
+                    borderRadius: 12,
+                    background: "#f8fafc",
+                    transition: "all 0.15s ease",
+                  }}>
+                    <div style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: "50%",
+                      background: emp.avatarUrl 
+                        ? `url(${emp.avatarUrl}) center/cover`
+                        : "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "white",
+                      fontWeight: 700,
+                      fontSize: 14,
+                    }}>
+                      {!emp.avatarUrl && (emp.displayName ?? emp.email ?? "E").slice(0, 2).toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "#1e293b", marginBottom: 2 }}>
+                        {emp.displayName ?? "Employee"}
+                      </div>
+                      <div style={{ fontSize: 12, color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {emp.email ?? "No email"} • {emp.outletName ?? "Unknown outlet"}
+                      </div>
+                    </div>
+                    <div style={{
+                      padding: "4px 10px",
+                      borderRadius: 20,
+                      background: (emp.status ?? "ACTIVE") === "ACTIVE" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                      color: (emp.status ?? "ACTIVE") === "ACTIVE" ? "#10b981" : "#ef4444",
+                      fontSize: 11,
+                      fontWeight: 600,
+                    }}>
+                      {emp.status ?? "ACTIVE"}
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Quick Actions */}
+      <div style={{ marginTop: 32 }}>
+        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16, color: "#1e293b" }}>Quick Actions</h3>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: 16,
+        }}>
+          <Link href="/client-admin/outlets" style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            padding: 20,
+            borderRadius: 16,
+            background: "white",
+            border: "1px solid rgba(0,0,0,0.04)",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+            textDecoration: "none",
+            transition: "all 0.2s ease",
+          }}>
+            <div style={{
+              width: 48,
+              height: 48,
+              borderRadius: 12,
+              background: "rgba(139, 92, 246, 0.1)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              <Store size={24} style={{ color: "#8b5cf6" }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "#1e293b" }}>Manage Outlets</div>
+              <div style={{ fontSize: 12, color: "#64748b" }}>Add or edit outlets</div>
+            </div>
+          </Link>
+
+          <Link href="/client-admin/employees" style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            padding: 20,
+            borderRadius: 16,
+            background: "white",
+            border: "1px solid rgba(0,0,0,0.04)",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+            textDecoration: "none",
+            transition: "all 0.2s ease",
+          }}>
+            <div style={{
+              width: 48,
+              height: 48,
+              borderRadius: 12,
+              background: "rgba(59, 130, 246, 0.1)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              <Users size={24} style={{ color: "#3b82f6" }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "#1e293b" }}>Manage Employees</div>
+              <div style={{ fontSize: 12, color: "#64748b" }}>Add or edit staff</div>
+            </div>
+          </Link>
+
+          <Link href="/client-admin/orders" style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            padding: 20,
+            borderRadius: 16,
+            background: "white",
+            border: "1px solid rgba(0,0,0,0.04)",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+            textDecoration: "none",
+            transition: "all 0.2s ease",
+          }}>
+            <div style={{
+              width: 48,
+              height: 48,
+              borderRadius: 12,
+              background: "rgba(16, 185, 129, 0.1)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              <Activity size={24} style={{ color: "#10b981" }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "#1e293b" }}>View Orders</div>
+              <div style={{ fontSize: 12, color: "#64748b" }}>Track all orders</div>
+            </div>
+          </Link>
+        </div>
+      </div>
+
+      {/* Global Styles */}
+      <style jsx global>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+      `}</style>
     </div>
   );
 }
