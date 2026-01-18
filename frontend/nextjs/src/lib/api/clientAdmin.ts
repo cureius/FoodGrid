@@ -50,6 +50,8 @@ export function adminLogin(input: { email: string; password: string }) {
 export type OutletUpsertInput = {
   name: string;
   timezone: string;
+  ownerId: string;
+  status?: string;
 };
 
 export function listOutlets() {
