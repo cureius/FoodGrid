@@ -10,6 +10,23 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper function to decode JWT token
+  function decodeJWT(token: string) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch {
+      return null;
+    }
+  }
+
   async function onLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -22,7 +39,19 @@ export default function AdminLoginPage() {
       const res = await adminLogin({ email: email.trim(), password });
       localStorage.setItem("fg_admin_access_token", res.accessToken);
       localStorage.setItem("fg_admin_refresh_token", res.refreshToken);
-      window.location.href = "/admin/employees";
+      
+      // Decode token to check role
+      const decoded = decodeJWT(res.accessToken);
+      const isSuperAdmin = !decoded?.outletId; // Super admin has no outletId
+      
+      // Route based on role
+      if (isSuperAdmin) {
+        // Super admin can manage tenants
+        window.location.href = "/admin/tenants";
+      } else {
+        // Tenant admin goes to employees/outlets management
+        window.location.href = "/admin/employees";
+      }
     } catch (e: any) {
       setError(e?.message ?? "Login failed");
     } finally {
@@ -31,7 +60,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg-white)" }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg-card)" }}>
       {/* LEFT SIDE: Form */}
       <div style={{ flex: "1 1 50%", padding: "40px", display: "flex", flexDirection: "column" }}>
         {/* Header Logo */}
@@ -41,7 +70,9 @@ export default function AdminLoginPage() {
 
         <div style={{ maxWidth: "420px", margin: "0 auto", width: "100%" }}>
           <h1 style={{ fontSize: "2rem", fontWeight: 700, textAlign: "center", marginBottom: 8 }}>Admin Login</h1>
-          <p style={{ color: "var(--text-muted)", textAlign: "center", marginBottom: 40 }}>Welcome back! Please enter your details.</p>
+          <p style={{ color: "var(--text-muted)", textAlign: "center", marginBottom: 40 }}>
+            Login as Tenant Admin or Super Admin to manage your system.
+          </p>
 
           <form onSubmit={onLogin}>
             <div className="form-group">
@@ -100,35 +131,35 @@ export default function AdminLoginPage() {
 
       {/* RIGHT SIDE: Mockup */}
       <div style={{ 
-        flex: "1 1 50%", background: "var(--bg-gray)", padding: "40px",
+        flex: "1 1 50%", background: "var(--bg-app)", padding: "40px",
         display: "flex", alignItems: "center", justifyContent: "center",
-        borderLeft: "1px solid var(--border-color)",
+        borderLeft: "1px solid var(--border-light)",
         overflow: "hidden"
       }}>
         <div style={{ 
           width: "100%", height: "85%", background: "var(--bg-card)", 
-          borderRadius: "32px", border: "12px solid var(--mockup-border)",
+          borderRadius: "32px", border: "12px solid var(--border-light)",
           boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
           position: "relative", padding: "32px"
         }}>
           {/* Dashboard Preview Elements */}
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 32 }}>
-             <div style={{ height: "12px", width: "120px", background: "var(--bg-gray)", borderRadius: "6px" }} />
+             <div style={{ height: "12px", width: "120px", background: "var(--bg-app)", borderRadius: "6px" }} />
              <div style={{ display: "flex", gap: "12px" }}>
-                <div style={{ height: "24px", width: "24px", background: "var(--bg-gray)", borderRadius: "12px" }} />
-                <div style={{ height: "24px", width: "24px", background: "var(--bg-gray)", borderRadius: "12px" }} />
+                <div style={{ height: "24px", width: "24px", background: "var(--bg-app)", borderRadius: "12px" }} />
+                <div style={{ height: "24px", width: "24px", background: "var(--bg-app)", borderRadius: "12px" }} />
              </div>
           </div>
-          <div style={{ height: "24px", width: "200px", background: "var(--bg-gray)", borderRadius: "6px", marginBottom: "8px" }} />
-          <div style={{ height: "12px", width: "280px", background: "var(--bg-gray)", borderRadius: "6px", marginBottom: "40px" }} />
+          <div style={{ height: "24px", width: "200px", background: "var(--bg-app)", borderRadius: "6px", marginBottom: "8px" }} />
+          <div style={{ height: "12px", width: "280px", background: "var(--bg-app)", borderRadius: "6px", marginBottom: "40px" }} />
           
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "20px", marginBottom: "40px" }}>
-             <div style={{ height: "120px", background: "var(--bg-gray)", borderRadius: "16px" }} />
-             <div style={{ height: "120px", background: "var(--bg-gray)", borderRadius: "16px" }} />
-             <div style={{ height: "120px", background: "var(--bg-gray)", borderRadius: "16px" }} />
+             <div style={{ height: "120px", background: "var(--bg-app)", borderRadius: "16px" }} />
+             <div style={{ height: "120px", background: "var(--bg-app)", borderRadius: "16px" }} />
+             <div style={{ height: "120px", background: "var(--bg-app)", borderRadius: "16px" }} />
           </div>
 
-          <div style={{ height: "300px", background: "var(--bg-gray)", borderRadius: "24px" }} />
+          <div style={{ height: "300px", background: "var(--bg-app)", borderRadius: "24px" }} />
         </div>
       </div>
     </div>
