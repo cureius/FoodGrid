@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { adminLogin } from "@/lib/api/admin";
+import { adminLogin } from "@/lib/api/clientAdmin";
 
 export default function Page() {
   const [email, setEmail] = useState("");
@@ -22,9 +22,9 @@ export default function Page() {
     try {
       setLoading(true);
       const res = await adminLogin({ email: email.trim(), password });
-      localStorage.setItem("fg_admin_access_token", res.accessToken);
-      localStorage.setItem("fg_admin_refresh_token", res.refreshToken);
-      window.location.href = "/admin/outlets";
+      localStorage.setItem("fg_client_admin_access_token", res.accessToken);
+      localStorage.setItem("fg_client_admin_refresh_token", res.refreshToken);
+      window.location.href = "/client-admin";
     } catch (e: any) {
       setError(e?.message ?? "Login failed");
     } finally {
@@ -75,9 +75,9 @@ export default function Page() {
           <div style={{ fontSize: 12, color: "rgba(0,0,0,0.55)", fontWeight: 700, letterSpacing: 0.6 }}>
             FOODGRID
           </div>
-          <h1 style={{ margin: "6px 0 0", fontSize: 22, letterSpacing: -0.2 }}>Admin Login</h1>
+          <h1 style={{ margin: "6px 0 0", fontSize: 22, letterSpacing: -0.2 }}>Client Admin Login</h1>
           <div style={{ marginTop: 6, color: "rgba(0,0,0,0.6)", fontSize: 13 }}>
-            Sign in to manage outlets and employees.
+            Sign in to manage outlets and staff.
           </div>
         </div>
 
@@ -158,11 +158,11 @@ export default function Page() {
               cursor: loading || !canSubmit ? "not-allowed" : "pointer"
             }}
           >
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? "Signing in..." : "Sign in"}
           </button>
 
           <div style={{ marginTop: 6, fontSize: 12, color: "rgba(0,0,0,0.55)" }}>
-            This login is only for tenant administrators.
+            This login is only for client administrators.
           </div>
         </div>
       </div>

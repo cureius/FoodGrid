@@ -45,6 +45,11 @@ function adminAuthHeader() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+function tenantAdminAuthHeader() {
+  const token = typeof window !== "undefined" ? localStorage.getItem("fg_tenant_admin_access_token") : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export function adminLogin(input: { email: string; password: string }) {
   return http<any>(`/api/v1/admin/auth/login`, {
     method: "POST",

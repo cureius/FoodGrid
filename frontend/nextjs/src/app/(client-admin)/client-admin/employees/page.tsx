@@ -7,14 +7,14 @@ import {
   listEmployees,
   updateEmployee,
   type EmployeeUpsertInput
-} from "@/lib/api/admin";
+} from "@/lib/api/clientAdmin";
 
 export default function Page() {
   const outletId = process.env.NEXT_PUBLIC_OUTLET_ID ?? "";
 
   useEffect(() => {
-    const t = localStorage.getItem("fg_admin_access_token");
-    if (!t) window.location.href = "/admin-login";
+    const t = localStorage.getItem("fg_client_admin_access_token");
+    if (!t) window.location.href = "/client-admin/login";
   }, []);
 
   const [loading, setLoading] = useState(true);
@@ -31,9 +31,7 @@ export default function Page() {
     pin: ""
   });
 
-  const canSubmit = useMemo(() => {
-    return !!outletId && !!form.displayName.trim() && !!form.email.trim();
-  }, [outletId, form.displayName, form.email]);
+  const canSubmit = useMemo(() => !!outletId && !!form.displayName.trim() && !!form.email.trim(), [outletId, form.displayName, form.email]);
 
   async function refresh() {
     if (!outletId) {
@@ -41,6 +39,7 @@ export default function Page() {
       setLoading(false);
       return;
     }
+
     try {
       setLoading(true);
       const res = await listEmployees(outletId);
@@ -84,25 +83,24 @@ export default function Page() {
     }
   }
 
-  async function onQuickUpdate(e: any) {
-    const displayName = prompt("Display name", e.displayName);
+  async function onQuickUpdate(emp: any) {
+    const displayName = prompt("Display name", emp.displayName);
     if (displayName == null) return;
-
-    const status = prompt("Status (ACTIVE/INACTIVE)", e.status);
+    const status = prompt("Status (ACTIVE/INACTIVE)", emp.status);
     if (status == null) return;
 
     try {
       setSaving(true);
-      await updateEmployee(outletId, e.id, {
+      await updateEmployee(outletId, emp.id, {
         displayName,
-        email: e.email,
-        avatarUrl: e.avatarUrl ?? "",
+        email: emp.email,
+        avatarUrl: emp.avatarUrl ?? "",
         status,
         pin: ""
       });
       await refresh();
-    } catch (err: any) {
-      setError(err?.message ?? "Failed to update");
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to update");
     } finally {
       setSaving(false);
     }
@@ -111,48 +109,32 @@ export default function Page() {
   return (
     <div style={{ padding: 24 }}>
       <h1>Employees</h1>
-
+      <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+        <a href="/client-admin">Dashboard</a>
+        <a href="/client-admin/outlets">Outlets</a>
+        <a href="/client-admin/employees">Employees</a>
+      </div>
 
       {error ? <div style={{ color: "crimson", marginBottom: 12 }}>{error}</div> : null}
 
       <div style={{ border: "1px solid #ddd", padding: 12, borderRadius: 8, maxWidth: 720 }}>
         <h3>Create Employee</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <input
-            placeholder="Display name"
-            value={form.displayName}
-            onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
-          />
-          <input
-            placeholder="Email"
-            value={form.email}
-            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-          />
-          <input
-            placeholder="Avatar URL"
-            value={form.avatarUrl}
-            onChange={(e) => setForm((f) => ({ ...f, avatarUrl: e.target.value }))}
-          />
-          <input
-            placeholder="Status (ACTIVE/INACTIVE)"
-            value={form.status}
-            onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-          />
-          <input
-            placeholder="PIN (6 digits, optional)"
-            value={form.pin}
-            onChange={(e) => setForm((f) => ({ ...f, pin: e.target.value }))}
-          />
+          <input placeholder="Display name" value={form.displayName} onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))} />
+          <input placeholder="Email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+          <input placeholder="Avatar URL" value={form.avatarUrl} onChange={(e) => setForm((f) => ({ ...f, avatarUrl: e.target.value }))} />
+          <input placeholder="Status (ACTIVE/INACTIVE)" value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))} />
+          <input placeholder="PIN (6 digits, optional)" value={form.pin} onChange={(e) => setForm((f) => ({ ...f, pin: e.target.value }))} />
         </div>
         <button onClick={onCreate} disabled={!canSubmit || saving} style={{ marginTop: 12 }}>
-          {saving ? "Saving…" : "Create"}
+          {saving ? "Saving" : "Create"}
         </button>
       </div>
 
       <div style={{ marginTop: 24 }}>
         <h3>Employee List</h3>
         {loading ? (
-          <div>Loading…</div>
+          <div>Loading</div>
         ) : (
           <table style={{ borderCollapse: "collapse", width: "100%" }}>
             <thead>
@@ -170,12 +152,8 @@ export default function Page() {
                   <td style={{ borderBottom: "1px solid #eee", padding: 8 }}>{e.email}</td>
                   <td style={{ borderBottom: "1px solid #eee", padding: 8 }}>{e.status}</td>
                   <td style={{ borderBottom: "1px solid #eee", padding: 8, textAlign: "right" }}>
-                    <button onClick={() => onQuickUpdate(e)} disabled={saving}>
-                      Edit
-                    </button>
-                    <button onClick={() => onDelete(e.id)} disabled={saving} style={{ marginLeft: 8 }}>
-                      Delete
-                    </button>
+                    <button onClick={() => onQuickUpdate(e)} disabled={saving}>Edit</button>
+                    <button onClick={() => onDelete(e.id)} disabled={saving} style={{ marginLeft: 8 }}>Delete</button>
                   </td>
                 </tr>
               ))}

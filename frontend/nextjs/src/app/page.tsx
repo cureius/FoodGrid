@@ -93,7 +93,7 @@ export default function Page() {
           marginBottom: '120px'
         }}>
           <Link 
-            href="/employee-login" 
+            href="/staff-login" 
             style={{ 
               background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
               color: 'white', 
@@ -122,7 +122,7 @@ export default function Page() {
           </Link>
           
           <Link 
-            href="/admin-login" 
+            href="/client-admin/login" 
             style={{ 
               background: 'var(--bg-card)', 
               color: 'var(--text-primary)', 
