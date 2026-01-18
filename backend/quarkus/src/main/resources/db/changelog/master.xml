@@ -14,5 +14,7 @@
   <include file="db/changelog/1-create-clients.xml"/>
   <include file="db/changelog/2-add-client-to-outlets.xml"/>
   <include file="db/changelog/3-add-tenant-to-tables.xml"/>
+  <include file="db/changelog/4-create-payment-gateway-tables.xml"/>
+  <include file="db/changelog/5-add-gateway-transaction-to-payments.xml"/>
 
 </databaseChangeLog>

@@ -27,6 +27,10 @@ public class Payment extends PanacheEntityBase {
   @Column(nullable = false)
   public Status status;
 
+  /** Reference to gateway_transactions.id for GATEWAY payments */
+  @Column(name = "gateway_transaction_id", length = 36)
+  public String gatewayTransactionId;
+
   @Temporal(TemporalType.TIMESTAMP)
   @Column(name = "created_at")
   public Date createdAt;
@@ -34,11 +38,13 @@ public class Payment extends PanacheEntityBase {
   public enum Method {
     CASH,
     CARD,
-    UPI
+    UPI,
+    GATEWAY // Online payment via payment gateway
   }
 
   public enum Status {
     CAPTURED,
-    VOID
+    VOID,
+    PENDING // For gateway payments awaiting confirmation
   }
 }
