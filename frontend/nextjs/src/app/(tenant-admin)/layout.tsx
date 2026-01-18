@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import StyledComponentsRegistry from "@/lib/registry"; // Adjust path if needed
-import { AdminNavbar } from "@/components/ui/AdminNavbar";
+import StyledComponentsRegistry from "@/lib/registry";
+import { TenantAdminNavbar } from "@/components/ui/TenantAdminNavbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "CloudPos Dashboard",
-  description: "FoodGrid POS System",
+  title: "Tenant Admin Dashboard",
+  description: "FoodGrid Tenant Management System",
 };
 
-export default function RootLayout({
+export default function TenantAdminLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -19,7 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className} style={{ margin: 0 }}>
         <StyledComponentsRegistry>
-          <AdminNavbar />
+          <TenantAdminNavbar />
           {children}
         </StyledComponentsRegistry>
       </body>

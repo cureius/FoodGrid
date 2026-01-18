@@ -21,7 +21,23 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error(msg);
   }
 
-  return (await res.json()) as T;
+  // Handle empty responses (e.g., DELETE requests that return void)
+  const contentType = res.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) {
+    return null as T;
+  }
+
+  // Check if response has content
+  const text = await res.text();
+  if (!text || text.trim().length === 0) {
+    return null as T;
+  }
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return null as T;
+  }
 }
 
 function adminAuthHeader() {
@@ -125,6 +141,77 @@ export function updateOutlet(outletId: string, input: OutletUpsertInput) {
 export function deleteOutlet(outletId: string) {
   return http<void>(`/api/v1/admin/outlets/${encodeURIComponent(outletId)}`, {
     method: "DELETE",
+    headers: {
+      ...adminAuthHeader()
+    }
+  });
+}
+
+export type TenantUpsertInput = {
+  name: string;
+  contactEmail?: string;
+  status?: string;
+};
+
+export function listTenants() {
+  return http<any[]>(`/api/v1/admin/tenants`, {
+    method: "GET",
+    headers: {
+      ...adminAuthHeader()
+    }
+  });
+}
+
+export function getTenant(tenantId: string) {
+  return http<any>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}`, {
+    method: "GET",
+    headers: {
+      ...adminAuthHeader()
+    }
+  });
+}
+
+export function createTenant(input: TenantUpsertInput) {
+  return http<any>(`/api/v1/admin/tenants`, {
+    method: "POST",
+    headers: {
+      ...adminAuthHeader()
+    },
+    body: JSON.stringify(input)
+  });
+}
+
+export function updateTenant(tenantId: string, input: TenantUpsertInput) {
+  return http<any>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}`, {
+    method: "PUT",
+    headers: {
+      ...adminAuthHeader()
+    },
+    body: JSON.stringify(input)
+  });
+}
+
+export function deleteTenant(tenantId: string) {
+  return http<any>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}`, {
+    method: "DELETE",
+    headers: {
+      ...adminAuthHeader()
+    }
+  });
+}
+
+export function activateTenant(tenantId: string) {
+  return http<any>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/activate`, {
+    method: "PUT",
+    headers: {
+      ...adminAuthHeader()
+    }
+  });
+}
+
+export function deactivateTenant(tenantId: string) {
+  return http<any>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/deactivate`, {
+    method: "PUT",
     headers: {
       ...adminAuthHeader()
     }

@@ -23,6 +23,9 @@ public class AdminUser extends PanacheEntityBase {
   @Column(nullable = false)
   public Status status;
 
+  @Column(name = "client_id", length = 36)
+  public String clientId;
+
   public enum Status {
     ACTIVE,
     INACTIVE

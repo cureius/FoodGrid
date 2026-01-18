@@ -17,20 +17,24 @@ export default function TenantsPage() {
   useEffect(() => {
     const t = localStorage.getItem("fg_admin_access_token");
     if (!t) {
-      window.location.href = "/admin-login";
+      if (typeof globalThis !== 'undefined' && globalThis.location) {
+        globalThis.location.href = "/admin-login";
+      }
       return;
     }
     
     // Only tenant admin can access this page
     if (!isTenantAdmin()) {
-      window.location.href = "/admin/employees";
+      if (typeof globalThis !== 'undefined' && globalThis.location) {
+        globalThis.location.href = "/admin-login";
+      }
     }
   }, []);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [createdTenant, setCreatedTenant] = useState<any | null>(null);
+  const [success, setSuccess] = useState<{ message: string; adminEmail?: string; adminPassword?: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   const [tenants, setTenants] = useState<any[]>([]);
@@ -79,13 +83,33 @@ export default function TenantsPage() {
     if (!canSubmit) return;
     try {
       setSaving(true);
-      const newTenant = await createTenant(form);
-      setCreatedTenant(newTenant);
+      setError(null);
+      setSuccess(null);
+      const result = await createTenant(form);
+      console.log("🚀 ~ onCreate ~ result:", result)
       setForm({ name: "", contactEmail: "", status: "ACTIVE" });
       setShowForm(false);
+      
+      // Show success message with admin user info
+      if (result.adminEmail) {
+        setSuccess({
+          message: `Tenant "${result.name}" created successfully!`,
+          adminEmail: result.adminEmail,
+          adminPassword: result.adminPassword ?? "Check backend logs for generated password"
+        });
+      } else {
+        setSuccess({
+          message: `Tenant "${result.name}" created successfully!`
+        });
+      }
+      
       await refresh();
+      
+      // Clear success message after 10 seconds
+      setTimeout(() => setSuccess(null), 10000);
     } catch (e: any) {
       setError(e?.message ?? "Failed to create tenant");
+      setSuccess(null);
     } finally {
       setSaving(false);
     }
@@ -122,15 +146,24 @@ export default function TenantsPage() {
   }
 
   async function onDelete(id: string) {
-    if (!confirm(`Are you sure you want to delete this tenant? This will mark it as inactive.`)) {
+    const tenant = tenants.find(t => t.id === id);
+    const tenantName = tenant?.name || "this tenant";
+    
+    if (!confirm(`Are you sure you want to permanently delete "${tenantName}"? This action cannot be undone and will also delete the associated admin user.`)) {
       return;
     }
     try {
       setSaving(true);
+      setError(null);
+      setSuccess(null);
       await deleteTenant(id);
+      setSuccess({ message: `Tenant "${tenantName}" has been permanently deleted` });
       await refresh();
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccess(null), 5000);
     } catch (e: any) {
       setError(e?.message ?? "Failed to delete tenant");
+      setSuccess(null);
     } finally {
       setSaving(false);
     }
@@ -171,53 +204,6 @@ export default function TenantsPage() {
       background: 'var(--bg-app)',
       minHeight: '100vh'
     }}>
-      {createdTenant && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          background: 'var(--bg-card)',
-          color: 'var(--text-primary)',
-          padding: '20px',
-          borderRadius: '12px',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-          zIndex: 1000,
-          maxWidth: '400px',
-          border: '1px solid var(--border-light)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h4 style={{ fontWeight: 700, fontSize: '16px' }}>Tenant Created Successfully!</h4>
-            <button
-              onClick={() => setCreatedTenant(null)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-muted)',
-                cursor: 'pointer',
-                fontSize: '20px'
-              }}
-            >
-              &times;
-            </button>
-          </div>
-          <p style={{ fontSize: '14px', marginBottom: '12px', color: 'var(--text-muted)' }}>
-            The admin user for <strong>{createdTenant.name}</strong> has been created with the following credentials.
-            Please save this password securely, it will not be shown again.
-          </p>
-          <div style={{
-            background: 'var(--bg-app)',
-            padding: '12px',
-            borderRadius: '8px',
-            fontSize: '14px',
-            fontFamily: 'monospace',
-            wordWrap: 'break-word'
-          }}>
-            <div><strong>Email:</strong> {createdTenant.adminEmail}</div>
-            <div><strong>Password:</strong> {createdTenant.adminPassword}</div>
-          </div>
-        </div>
-      )}
-
       {/* Header */}
       <div style={{ 
         display: 'flex', 
@@ -245,7 +231,6 @@ export default function TenantsPage() {
             onClick={() => {
               setShowForm(!showForm);
               cancelEdit();
-              setCreatedTenant(null);
             }}
             style={{
               background: 'var(--primary)',
@@ -288,6 +273,36 @@ export default function TenantsPage() {
           border: '1px solid rgba(239, 68, 68, 0.2)'
         }}>
           {error}
+        </div>
+      )}
+
+      {success && (
+        <div style={{ 
+          color: 'rgb(34, 197, 94)', 
+          background: 'rgba(34, 197, 94, 0.1)',
+          padding: '16px',
+          borderRadius: '12px',
+          marginBottom: '24px',
+          fontSize: '14px',
+          border: '1px solid rgba(34, 197, 94, 0.2)'
+        }}>
+          <div style={{ fontWeight: 600, marginBottom: success.adminEmail ? '8px' : '0' }}>
+            {success.message}
+          </div>
+          {success.adminEmail && (
+            <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(34, 197, 94, 0.05)', borderRadius: '8px', fontSize: '13px' }}>
+              <div style={{ marginBottom: '8px', fontWeight: 600 }}>Client Admin User Created:</div>
+              <div style={{ marginBottom: '4px' }}>
+                <strong>Email:</strong> {success.adminEmail}
+              </div>
+              <div style={{ marginBottom: '4px' }}>
+                <strong>Password:</strong> {success.adminPassword}
+              </div>
+              <div style={{ color: 'var(--text-muted)', fontSize: '12px', marginTop: '8px' }}>
+                Note: A default password was generated. The client admin should reset their password on first login.
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -581,6 +596,17 @@ export default function TenantsPage() {
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
                   }}>
+                    Admin User
+                  </th>
+                  <th style={{ 
+                    textAlign: 'left', 
+                    padding: '16px 20px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: 'var(--text-muted)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>
                     Tenant ID
                   </th>
                   <th style={{ 
@@ -655,6 +681,20 @@ export default function TenantsPage() {
                       }}>
                         {tenant.status || 'ACTIVE'}
                       </span>
+                    </td>
+                    <td style={{ 
+                      padding: '20px',
+                      fontSize: '14px',
+                      color: 'var(--text-primary)'
+                    }}>
+                      {tenant.adminEmail ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span style={{ fontWeight: 600 }}>{tenant.adminDisplayName || 'N/A'}</span>
+                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{tenant.adminEmail}</span>
+                        </div>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>No admin user</span>
+                      )}
                     </td>
                     <td style={{ 
                       padding: '20px',

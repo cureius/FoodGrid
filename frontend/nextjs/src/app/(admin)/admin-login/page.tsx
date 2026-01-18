@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { adminLogin } from "@/lib/api/admin";
 import Logo from "@/components/Logo";
+import { Building2, Users } from "lucide-react";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loginType, setLoginType] = useState<"tenant-admin" | "client-admin" | null>(null);
 
   // Helper function to decode JWT token
   function decodeJWT(token: string) {
@@ -30,6 +32,10 @@ export default function AdminLoginPage() {
   async function onLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!loginType) {
+      setError("Please select an admin type");
+      return;
+    }
     if (!email.trim() || !password) {
       setError("Email and password are required");
       return;
@@ -42,14 +48,14 @@ export default function AdminLoginPage() {
       
       // Decode token to check role
       const decoded = decodeJWT(res.accessToken);
-      const isSuperAdmin = !decoded?.outletId; // Super admin has no outletId
+      const isTenantAdmin = !decoded?.outletId; // Tenant admin (super admin) has no outletId
       
       // Route based on role
-      if (isSuperAdmin) {
-        // Super admin can manage tenants
-        window.location.href = "/admin/tenants";
+      if (isTenantAdmin) {
+        // Tenant admin manages tenants/clients - redirect to tenant-admin routes
+        window.location.href = "/tenant-admin/tenants";
       } else {
-        // Tenant admin goes to employees/outlets management
+        // Client admin manages outlets and employees - redirect to admin routes
         window.location.href = "/admin/employees";
       }
     } catch (e: any) {
@@ -71,8 +77,106 @@ export default function AdminLoginPage() {
         <div style={{ maxWidth: "420px", margin: "0 auto", width: "100%" }}>
           <h1 style={{ fontSize: "2rem", fontWeight: 700, textAlign: "center", marginBottom: 8 }}>Admin Login</h1>
           <p style={{ color: "var(--text-muted)", textAlign: "center", marginBottom: 40 }}>
-            Login as Tenant Admin or Super Admin to manage your system.
+            Choose your admin type to continue
           </p>
+
+          {/* Admin Type Selection */}
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "1fr 1fr", 
+            gap: "12px", 
+            marginBottom: "32px" 
+          }}>
+            <button
+              type="button"
+              onClick={() => setLoginType("tenant-admin")}
+              style={{
+                padding: "16px",
+                borderRadius: "12px",
+                border: `2px solid ${loginType === "tenant-admin" ? "var(--primary)" : "var(--border-light)"}`,
+                background: loginType === "tenant-admin" ? "rgba(75, 112, 245, 0.1)" : "transparent",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "8px"
+              }}
+              onMouseEnter={(e) => {
+                if (loginType !== "tenant-admin") {
+                  e.currentTarget.style.borderColor = "var(--primary)";
+                  e.currentTarget.style.background = "rgba(75, 112, 245, 0.05)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (loginType !== "tenant-admin") {
+                  e.currentTarget.style.borderColor = "var(--border-light)";
+                  e.currentTarget.style.background = "transparent";
+                }
+              }}
+            >
+              <Building2 size={24} color={loginType === "tenant-admin" ? "var(--primary)" : "var(--text-muted)"} />
+              <span style={{ 
+                fontSize: "0.9rem", 
+                fontWeight: 600,
+                color: loginType === "tenant-admin" ? "var(--primary)" : "var(--text-muted)"
+              }}>
+                Tenant Admin
+              </span>
+              <span style={{ 
+                fontSize: "0.75rem", 
+                color: "var(--text-muted)",
+                textAlign: "center"
+              }}>
+                Manage tenants/clients
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setLoginType("client-admin")}
+              style={{
+                padding: "16px",
+                borderRadius: "12px",
+                border: `2px solid ${loginType === "client-admin" ? "var(--primary)" : "var(--border-light)"}`,
+                background: loginType === "client-admin" ? "rgba(75, 112, 245, 0.1)" : "transparent",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "8px"
+              }}
+              onMouseEnter={(e) => {
+                if (loginType !== "client-admin") {
+                  e.currentTarget.style.borderColor = "var(--primary)";
+                  e.currentTarget.style.background = "rgba(75, 112, 245, 0.05)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (loginType !== "client-admin") {
+                  e.currentTarget.style.borderColor = "var(--border-light)";
+                  e.currentTarget.style.background = "transparent";
+                }
+              }}
+            >
+              <Users size={24} color={loginType === "client-admin" ? "var(--primary)" : "var(--text-muted)"} />
+              <span style={{ 
+                fontSize: "0.9rem", 
+                fontWeight: 600,
+                color: loginType === "client-admin" ? "var(--primary)" : "var(--text-muted)"
+              }}>
+                Client Admin
+              </span>
+              <span style={{ 
+                fontSize: "0.75rem", 
+                color: "var(--text-muted)",
+                textAlign: "center"
+              }}>
+                Manage outlets/employees
+              </span>
+            </button>
+          </div>
 
           <form onSubmit={onLogin}>
             <div className="form-group">
@@ -110,16 +214,22 @@ export default function AdminLoginPage() {
 
             <button 
               type="submit"
-              disabled={loading}
+              disabled={loading || !loginType}
               style={{ 
-                marginTop: 16, width: "100%", padding: "16px", borderRadius: "12px",
-                background: "var(--primary-blue)",
-                color: "white",
-                fontSize: "1.1rem", fontWeight: 600,
-                boxShadow: "0 4px 6px -1px rgba(59, 130, 246, 0.2)"
+                marginTop: 16, 
+                width: "100%", 
+                padding: "16px", 
+                borderRadius: "12px",
+                background: loginType ? "var(--primary-blue)" : "var(--border-light)",
+                color: loginType ? "white" : "var(--text-muted)",
+                fontSize: "1.1rem", 
+                fontWeight: 600,
+                boxShadow: loginType ? "0 4px 6px -1px rgba(59, 130, 246, 0.2)" : "none",
+                cursor: loginType ? "pointer" : "not-allowed",
+                transition: "all 0.2s ease"
               }}
             >
-              {loading ? "Logging in..." : "Login"}
+              {loading ? "Logging in..." : loginType === "tenant-admin" ? "Login as Tenant Admin" : loginType === "client-admin" ? "Login as Client Admin" : "Select Admin Type"}
             </button>
           </form>
 
