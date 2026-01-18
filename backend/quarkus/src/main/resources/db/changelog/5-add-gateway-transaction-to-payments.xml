@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+      http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+  <!-- Add gateway_transaction_id column to payments table -->
+  <changeSet id="5-add-gateway-transaction-to-payments" author="dev">
+    <addColumn tableName="payments">
+      <column name="gateway_transaction_id" type="varchar(36)"/>
+    </addColumn>
+
+    <addForeignKeyConstraint
+        baseTableName="payments"
+        baseColumnNames="gateway_transaction_id"
+        referencedTableName="gateway_transactions"
+        referencedColumnNames="id"
+        constraintName="fk_payment_gateway_transaction"/>
+
+    <createIndex tableName="payments" indexName="idx_payment_gateway_tx">
+      <column name="gateway_transaction_id"/>
+    </createIndex>
+  </changeSet>
+
+</databaseChangeLog>

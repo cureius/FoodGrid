@@ -1,0 +1,117 @@
+package com.foodgrid.payment.rest;
+
+import com.foodgrid.payment.model.PaymentGatewayType;
+import com.foodgrid.payment.service.PaymentService;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.logging.Logger;
+
+/**
+ * REST resource for receiving payment gateway webhooks.
+ * These endpoints are publicly accessible (no auth) as they're called by payment gateways.
+ */
+@Path("/api/v1/webhooks/payment")
+@Tag(name = "Payment Webhooks", description = "Payment gateway webhook endpoints")
+public class PaymentWebhookResource {
+
+    private static final Logger LOG = Logger.getLogger(PaymentWebhookResource.class);
+
+    @Inject
+    PaymentService paymentService;
+
+    @POST
+    @Path("/razorpay")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Razorpay webhook", description = "Receive webhooks from Razorpay")
+    public Response razorpayWebhook(
+            @HeaderParam("X-Razorpay-Signature") final String signature,
+            final String payload) {
+        LOG.infof("Received Razorpay webhook, signature present: %s", signature != null);
+        try {
+            paymentService.processWebhook(PaymentGatewayType.RAZORPAY, payload, signature);
+            return Response.ok().build();
+        } catch (final Exception e) {
+            LOG.errorf(e, "Error processing Razorpay webhook");
+            // Return 200 to prevent retries - we've logged and stored the event
+            return Response.ok().build();
+        }
+    }
+
+    @POST
+    @Path("/stripe")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Stripe webhook", description = "Receive webhooks from Stripe")
+    public Response stripeWebhook(
+            @HeaderParam("Stripe-Signature") final String signature,
+            final String payload) {
+        LOG.infof("Received Stripe webhook, signature present: %s", signature != null);
+        try {
+            paymentService.processWebhook(PaymentGatewayType.STRIPE, payload, signature);
+            return Response.ok().build();
+        } catch (final Exception e) {
+            LOG.errorf(e, "Error processing Stripe webhook");
+            return Response.ok().build();
+        }
+    }
+
+    @POST
+    @Path("/payu")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "PayU webhook/callback", description = "Receive callbacks from PayU")
+    public Response payuWebhook(final String payload) {
+        LOG.infof("Received PayU callback");
+        try {
+            paymentService.processWebhook(PaymentGatewayType.PAYU, payload, null);
+            return Response.ok().build();
+        } catch (final Exception e) {
+            LOG.errorf(e, "Error processing PayU webhook");
+            return Response.ok().build();
+        }
+    }
+
+    @POST
+    @Path("/phonepe")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "PhonePe webhook", description = "Receive webhooks from PhonePe")
+    public Response phonePeWebhook(
+            @HeaderParam("X-VERIFY") final String signature,
+            final String payload) {
+        LOG.infof("Received PhonePe webhook");
+        try {
+            paymentService.processWebhook(PaymentGatewayType.PHONEPE, payload, signature);
+            return Response.ok().build();
+        } catch (final Exception e) {
+            LOG.errorf(e, "Error processing PhonePe webhook");
+            return Response.ok().build();
+        }
+    }
+
+    @POST
+    @Path("/cashfree")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Cashfree webhook", description = "Receive webhooks from Cashfree")
+    public Response cashfreeWebhook(
+            @HeaderParam("x-webhook-signature") final String signature,
+            @HeaderParam("x-webhook-timestamp") final String timestamp,
+            final String payload) {
+        LOG.infof("Received Cashfree webhook");
+        try {
+            // Include timestamp in signature verification
+            final String fullSignature = timestamp + ":" + signature;
+            paymentService.processWebhook(PaymentGatewayType.CASHFREE, payload, fullSignature);
+            return Response.ok().build();
+        } catch (final Exception e) {
+            LOG.errorf(e, "Error processing Cashfree webhook");
+            return Response.ok().build();
+        }
+    }
+}
