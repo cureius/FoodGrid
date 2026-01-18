@@ -98,12 +98,6 @@ export default function Page() {
     }
   }
 
-  function logout() {
-    localStorage.removeItem("fg_client_admin_access_token");
-    localStorage.removeItem("fg_client_admin_refresh_token");
-    window.location.href = "/client-admin/login";
-  }
-
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -127,9 +121,9 @@ export default function Page() {
     <div className={styles.container} style={{ padding: 32, maxWidth: 1200, margin: "0 auto" }}>
       <div className={styles.greetingSection}>
         <div>
-          <div className={styles.greeting}>Client Admin</div>
+          <div className={styles.greeting}>Dashboard</div>
           <div className={styles.subGreeting}>
-            Manage outlets and employees{outletId ? ` • Outlet: ${outletId}` : ""}
+            Welcome to Client Admin{outletId ? ` • Outlet: ${outletId}` : ""}
           </div>
         </div>
 
@@ -139,35 +133,19 @@ export default function Page() {
             <div className={styles.date}>{formatDate(now)}</div>
           </div>
 
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
-            <Link className={styles.payButton} href="/client-admin/outlets">
-              Outlets
-            </Link>
-            <Link className={styles.payButton} href="/client-admin/employees">
-              Employees
-            </Link>
-            <button
-              type="button"
-              onClick={load}
-              disabled={loading}
-              className={styles.payButton}
-              style={{
-                border: 0,
-                cursor: loading ? "not-allowed" : "pointer",
-                background: loading ? "rgba(57, 111, 255, 0.6)" : undefined
-              }}
-            >
-              {loading ? "Refreshing..." : "Refresh"}
-            </button>
-            <button
-              type="button"
-              onClick={logout}
-              className={styles.payButton}
-              style={{ border: 0, cursor: "pointer", background: "rgba(26, 28, 30, 0.85)" }}
-            >
-              Logout
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={load}
+            disabled={loading}
+            className={styles.payButton}
+            style={{
+              border: 0,
+              cursor: loading ? "not-allowed" : "pointer",
+              background: loading ? "rgba(57, 111, 255, 0.6)" : undefined
+            }}
+          >
+            {loading ? "Refreshing..." : "Refresh"}
+          </button>
         </div>
       </div>
 
@@ -288,7 +266,7 @@ export default function Page() {
             <span className={styles.badge}>{loading ? "…" : employees.length}</span>
           </div>
 
-          <div className={styles.orderList}></div>
+          <div className={styles.orderList}>
             {loading ? (
               <div className={styles.orderCard} style={muted}>
                 Loading employees…
@@ -339,5 +317,6 @@ export default function Page() {
           </div>
         </div>
       </div>
+    </div>
   );
 }

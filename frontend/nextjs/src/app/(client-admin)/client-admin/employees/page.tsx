@@ -310,7 +310,7 @@ export default function EmployeesPage() {
   const canSubmit = form.displayName.trim() && form.email.trim();
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%)" }}>
+    <div style={{ minHeight: "100vh" }}>
       {/* Toast Notification */}
       {toast && (
         <div style={{
@@ -341,15 +341,6 @@ export default function EmployeesPage() {
         <div style={{ marginBottom: 32 }}>
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 24 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <div style={{
-                padding: 14,
-                borderRadius: 16,
-                background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                color: "white",
-                boxShadow: "0 10px 30px rgba(139, 92, 246, 0.3)"
-              }}>
-                <Users size={28} />
-              </div>
               <div>
                 <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0, background: "linear-gradient(135deg, #1e293b 0%, #475569 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                   Employee Management

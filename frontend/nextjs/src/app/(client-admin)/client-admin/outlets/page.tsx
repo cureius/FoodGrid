@@ -134,11 +134,6 @@ export default function Page() {
 
   return (
     <div className={styles.container}>
-        <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
-            <Link href="/client-admin">Dashboard</Link>
-            <Link href="/client-admin/outlets" style={{fontWeight: 'bold'}}>Outlets</Link>
-            <Link href="/client-admin/employees">Employees</Link>
-        </div>
       <div className={styles.header}>
         <h1 className={styles.title}>Outlets</h1>
         <button
