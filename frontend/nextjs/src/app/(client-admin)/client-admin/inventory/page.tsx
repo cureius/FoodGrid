@@ -598,7 +598,7 @@ export default function InventoryPage() {
 
         <div className={styles.headerMid}>
           <div className={styles.tabs}>
-            {(['Menu', 'Ingredients', 'Categories', 'Units', 'Request List'] as const).map((t) => (
+            {(['Menu', 'Ingredients', 'Categories', 'Request List', 'Units'] as const).map((t) => (
               <button
                 key={t}
                 type="button"
