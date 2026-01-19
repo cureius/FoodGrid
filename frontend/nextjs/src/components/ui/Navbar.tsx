@@ -179,8 +179,8 @@ export const Navbar = () => {
         </Brand>
 
         <Tabs aria-label="Primary navigation">
-          <Link href="/v2dashboard" passHref>
-            <TabItem active={pathname === "/v2dashboard"}>
+          <Link href="/dashboard" passHref>
+            <TabItem active={pathname === "/dashboard"}>
               <LayoutDashboard size={18} /> <span data-label>Dashboard</span>
             </TabItem>
           </Link>

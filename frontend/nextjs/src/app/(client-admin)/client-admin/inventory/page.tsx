@@ -260,6 +260,36 @@ export default function InventoryPage() {
   // Ingredient modal step state
   const [ingredientStep, setIngredientStep] = useState<1 | 2 | 3>(1);
 
+  // Extended ingredient form state for all fields
+  const [ingredientExtendedForm, setIngredientExtendedForm] = useState<{
+    name: string;
+    unitId: string;
+    costPrice: number;
+    trackInventory: boolean;
+    currentStock: number;
+    description?: string | null;
+    imageUrl?: string | null;
+    categoryId?: string | null;
+    sku?: string | null;
+    isSellable: boolean | null;
+    sellingPrice?: number | null;
+    reorderLevel?: number | null;
+    reorderQuantity?: number | null;
+    maxStockLevel?: number | null;
+    shelfLifeDays?: number | null;
+    storageInstructions?: string | null;
+    defaultSupplierId?: string | null;
+    status: 'ACTIVE' | 'INACTIVE';
+  }>({
+    name: '',
+    unitId: '',
+    costPrice: 0,
+    trackInventory: true,
+    currentStock: 0,
+    isSellable: false,
+    status: 'ACTIVE',
+  });
+
   const dishes = useMemo(() => dishesSeed, []);
 
   // Fetch outlet ID on mount
@@ -419,6 +449,16 @@ export default function InventoryPage() {
       trackInventory: true,
       currentStock: 0,
     });
+    setIngredientExtendedForm({
+      name: '',
+      unitId: '',
+      costPrice: 0,
+      trackInventory: true,
+      currentStock: 0,
+      isSellable: false,
+      status: 'ACTIVE',
+    });
+    setIngredientStep(1);
     setIsIngredientModalOpen(true);
   };
 
@@ -431,17 +471,38 @@ export default function InventoryPage() {
       trackInventory: ing.trackInventory,
       currentStock: ing.currentStock,
     });
+    setIngredientExtendedForm({
+      name: ing.name,
+      unitId: ing.unitId,
+      costPrice: ing.costPrice,
+      trackInventory: ing.trackInventory,
+      currentStock: ing.currentStock,
+      description: ing.description ?? undefined,
+      imageUrl: ing.imageUrl,
+      categoryId: ing.categoryId,
+      sku: ing.sku,
+      isSellable: ing.isSellable,
+      sellingPrice: ing.sellingPrice,
+      reorderLevel: ing.reorderLevel,
+      reorderQuantity: ing.reorderQuantity,
+      maxStockLevel: ing.maxStockLevel,
+      shelfLifeDays: ing.shelfLifeDays,
+      storageInstructions: ing.storageInstructions,
+      defaultSupplierId: ing.defaultSupplierId,
+      status: ing.status,
+    });
+    setIngredientStep(1);
     setIsIngredientModalOpen(true);
   };
 
   const handleIngredientSubmit = async () => {
-    if (!outletId || !ingredientForm.name.trim() || !ingredientForm.unitId) return;
+    if (!outletId || !ingredientExtendedForm.name.trim() || !ingredientExtendedForm.unitId) return;
     setIngredientSubmitting(true);
     try {
       if (editingIngredient) {
-        await updateIngredient(outletId, editingIngredient.id, ingredientForm);
+        await updateIngredient(outletId, editingIngredient.id, ingredientExtendedForm);
       } else {
-        await createIngredient(outletId, ingredientForm);
+        await createIngredient(outletId, ingredientExtendedForm);
       }
       setIsIngredientModalOpen(false);
       fetchIngredients();
@@ -971,68 +1032,171 @@ export default function InventoryPage() {
             </div>
             <div className={styles.modalBody}>
               <div className={styles.modalSidebar}>
-                <div className={`${styles.stepRow} ${styles.stepRowActive}`}>
-                  <span className={`${styles.stepDot} ${styles.stepDotActive}`}>1</span>
+                <div className={`${styles.stepRow} ${ingredientStep === 1 ? styles.stepRowActive : ''}`}>
+                  <span className={`${styles.stepDot} ${ingredientStep === 1 ? styles.stepDotActive : styles.stepDotDone}`}>1</span>
                   <span className={styles.stepText}>Basic Info</span>
                 </div>
-                <div className={styles.stepRow}>
-                  <span className={styles.stepDot}>2</span>
+                <div className={`${styles.stepRow} ${ingredientStep === 2 ? styles.stepRowActive : ''}`}>
+                  <span className={`${styles.stepDot} ${ingredientStep === 2 ? styles.stepDotActive : ''}`}>2</span>
                   <span className={styles.stepText}>Inventory</span>
                 </div>
-                <div className={styles.stepRow}>
-                  <span className={styles.stepDot}>3</span>
+                <div className={`${styles.stepRow} ${ingredientStep === 3 ? styles.stepRowActive : ''}`}>
+                  <span className={`${styles.stepDot} ${ingredientStep === 3 ? styles.stepDotActive : ''}`}>3</span>
                   <span className={styles.stepText}>Pricing</span>
                 </div>
               </div>
               <div className={styles.modalContent}>
-                <div className={styles.panelTitle}>Ingredient Information</div>
-                <div className={styles.formStack}>
-                  <div className={styles.field}>
-                    <div className={styles.label}>Name *</div>
-                    <input className={styles.input} placeholder="Enter ingredient name" value={ingredientForm.name} onChange={(e) => setIngredientForm((f) => ({ ...f, name: e.target.value }))} />
-                  </div>
-                  <div className={styles.field}>
-                    <div className={styles.label}>Unit *</div>
-                    <select className={styles.input} value={ingredientForm.unitId} onChange={(e) => setIngredientForm((f) => ({ ...f, unitId: e.target.value }))}>
-                      <option value="">-- Select Unit --</option>
-                      {unitsLoading ? (
-                        <option disabled>Loading...</option>
-                      ) : (
-                        units.filter((u) => u.status === 'ACTIVE').map((u) => (
-                          <option key={u.id} value={u.id}>{u.name} ({u.abbreviation})</option>
-                        ))
-                      )}
-                    </select>
-                  </div>
-                  <div className={styles.field}>
-                    <div className={styles.label}>Cost Price *</div>
-                    <div className={styles.priceWrap}>
-                      <div className={styles.pricePrefix}>$</div>
-                      <input className={styles.priceInput} type="number" step="0.01" value={ingredientForm.costPrice} onChange={(e) => setIngredientForm((f) => ({ ...f, costPrice: parseFloat(e.target.value) || 0 }))} />
+                {ingredientStep === 1 && (
+                  <>
+                    <div className={styles.panelTitle}>Ingredient Information</div>
+                    <div className={styles.formStack}>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Name *</div>
+                        <input className={styles.input} placeholder="Enter ingredient name" value={ingredientExtendedForm.name} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, name: e.target.value }))} />
+                      </div>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Unit *</div>
+                        <select className={styles.input} value={ingredientExtendedForm.unitId} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, unitId: e.target.value }))}>
+                          <option value="">-- Select Unit --</option>
+                          {unitsLoading ? (
+                            <option disabled>Loading...</option>
+                          ) : (
+                            units.filter((u) => u.status === 'ACTIVE').map((u) => (
+                              <option key={u.id} value={u.id}>{u.name} ({u.abbreviation})</option>
+                            ))
+                          )}
+                        </select>
+                      </div>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Description</div>
+                        <textarea className={styles.textarea} placeholder="Enter description" value={ingredientExtendedForm.description || ''} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, description: e.target.value }))} />
+                      </div>
+                      <div className={styles.field}>
+                        <div className={styles.label}>SKU</div>
+                        <input className={styles.input} placeholder="Enter SKU" value={ingredientExtendedForm.sku || ''} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, sku: e.target.value }))} />
+                      </div>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Category</div>
+                        <select className={styles.input} value={ingredientExtendedForm.categoryId || ''} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, categoryId: e.target.value }))}>
+                          <option value="">-- Select Category --</option>
+                          {ingredientCategoriesLoading ? (
+                            <option disabled>Loading...</option>
+                          ) : (
+                            activeIngredientCategories.map((cat) => (
+                              <option key={cat.id} value={cat.id}>{cat.name}</option>
+                            ))
+                          )}
+                        </select>
+                      </div>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Image URL</div>
+                        <input className={styles.input} placeholder="Enter image URL" value={ingredientExtendedForm.imageUrl || ''} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, imageUrl: e.target.value }))} />
+                      </div>
                     </div>
-                  </div>
-                  <div className={styles.field}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <input type="checkbox" checked={ingredientForm.trackInventory !== false} onChange={(e) => setIngredientForm((f) => ({ ...f, trackInventory: e.target.checked }))} />
-                      <span className={styles.label} style={{ marginBottom: 0 }}>Track Inventory</span>
-                    </label>
-                  </div>
-                  {ingredientForm.trackInventory !== false && (
-                    <>
-                      {!editingIngredient && (
+                    <div className={styles.modalFooter}>
+                      <button type="button" className={styles.primaryBtn} onClick={() => setIngredientStep(2)}>Next</button>
+                    </div>
+                  </>
+                )}
+                {ingredientStep === 2 && (
+                  <>
+                    <div className={styles.panelTitle}>Inventory Information</div>
+                    <div className={styles.formStack}>
+                      <div className={styles.field}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input type="checkbox" checked={ingredientExtendedForm.trackInventory !== false} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, trackInventory: e.target.checked }))} />
+                          <span className={styles.label} style={{ marginBottom: 0 }}>Track Inventory</span>
+                        </label>
+                      </div>
+                      {ingredientExtendedForm.trackInventory !== false && (
+                        <>
+                          <div className={styles.field}>
+                            <div className={styles.label}>Initial Stock</div>
+                            <input className={styles.input} type="number" step="0.01" value={ingredientExtendedForm.currentStock || ''} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, currentStock: parseFloat(e.target.value) || 0 }))} />
+                          </div>
+                          <div className={styles.field}>
+                            <div className={styles.label}>Reorder Level</div>
+                            <input className={styles.input} type="number" step="0.01" value={ingredientExtendedForm.reorderLevel || ''} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, reorderLevel: parseFloat(e.target.value) || undefined }))} />
+                          </div>
+                          <div className={styles.field}>
+                            <div className={styles.label}>Reorder Quantity</div>
+                            <input className={styles.input} type="number" step="0.01" value={ingredientExtendedForm.reorderQuantity || ''} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, reorderQuantity: parseFloat(e.target.value) || undefined }))} />
+                          </div>
+                          <div className={styles.field}>
+                            <div className={styles.label}>Max Stock Level</div>
+                            <input className={styles.input} type="number" step="0.01" value={ingredientExtendedForm.maxStockLevel || ''} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, maxStockLevel: parseFloat(e.target.value) || undefined }))} />
+                          </div>
+                          <div className={styles.field}>
+                            <div className={styles.label}>Shelf Life (days)</div>
+                            <input className={styles.input} type="number" step="1" value={ingredientExtendedForm.shelfLifeDays || ''} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, shelfLifeDays: parseInt(e.target.value, 10) || undefined }))} />
+                          </div>
+                          <div className={styles.field}>
+                            <div className={styles.label}>Storage Instructions</div>
+                            <textarea className={styles.textarea} placeholder="Enter storage instructions" value={ingredientExtendedForm.storageInstructions || ''} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, storageInstructions: e.target.value }))} />
+                          </div>
+                          <div className={styles.field}>
+                            <div className={styles.label}>Default Supplier</div>
+                            <select className={styles.input} value={ingredientExtendedForm.defaultSupplierId || ''} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, defaultSupplierId: e.target.value }))}>
+                              <option value="">-- Select Supplier --</option>
+                              {suppliersLoading ? (
+                                <option disabled>Loading...</option>
+                              ) : (
+                                suppliers.map((s) => (
+                                  <option key={s.id} value={s.id}>{s.name}</option>
+                                ))
+                              )}
+                            </select>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <div className={styles.modalFooter}>
+                      <button type="button" className={styles.primaryBtn} onClick={() => setIngredientStep(3)}>Next</button>
+                    </div>
+                  </>
+                )}
+                {ingredientStep === 3 && (
+                  <>
+                    <div className={styles.panelTitle}>Pricing Information</div>
+                    <div className={styles.formStack}>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Cost Price *</div>
+                        <div className={styles.priceWrap}>
+                          <div className={styles.pricePrefix}>$</div>
+                          <input className={styles.priceInput} type="number" step="0.01" value={ingredientExtendedForm.costPrice} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, costPrice: parseFloat(e.target.value) || 0 }))} />
+                        </div>
+                      </div>
+                      <div className={styles.field}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input type="checkbox" checked={ingredientExtendedForm.isSellable} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, isSellable: e.target.checked }))} />
+                          <span className={styles.label} style={{ marginBottom: 0 }}>Sellable</span>
+                        </label>
+                      </div>
+                      {ingredientExtendedForm.isSellable && (
                         <div className={styles.field}>
-                          <div className={styles.label}>Initial Stock</div>
-                          <input className={styles.input} type="number" step="0.01" value={ingredientForm.currentStock || ''} onChange={(e) => setIngredientForm((f) => ({ ...f, currentStock: parseFloat(e.target.value) || 0 }))} />
+                          <div className={styles.label}>Selling Price</div>
+                          <div className={styles.priceWrap}>
+                            <div className={styles.pricePrefix}>$</div>
+                            <input className={styles.priceInput} type="number" step="0.01" value={ingredientExtendedForm.sellingPrice || ''} onChange={(e) => setIngredientExtendedForm((f) => ({ ...f, sellingPrice: parseFloat(e.target.value) || undefined }))} />
+                          </div>
                         </div>
                       )}
-                    </>
-                  )}
-                </div>
-                <div className={styles.modalFooter}>
-                  <button type="button" className={styles.primaryBtn} onClick={handleIngredientSubmit} disabled={ingredientSubmitting || !ingredientForm.name.trim() || !ingredientForm.unitId}>
-                    {ingredientSubmitting ? 'Saving...' : editingIngredient ? 'Update Ingredient' : 'Create Ingredient'}
-                  </button>
-                </div>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Status</div>
+                        <div className={styles.pillsRow}>
+                          {(['ACTIVE', 'INACTIVE'] as const).map((s) => (
+                            <button key={s} type="button" className={`${styles.categoryPill} ${ingredientExtendedForm.status === s ? styles.categoryPillActive : ''}`} onClick={() => setIngredientExtendedForm((f) => ({ ...f, status: s }))}>{s}</button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.modalFooter}>
+                      <button type="button" className={styles.primaryBtn} onClick={handleIngredientSubmit} disabled={ingredientSubmitting || !ingredientExtendedForm.name.trim() || !ingredientExtendedForm.unitId}>
+                        {ingredientSubmitting ? 'Saving...' : editingIngredient ? 'Update Ingredient' : 'Create Ingredient'}
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -1116,202 +1280,31 @@ export default function InventoryPage() {
           </div>
         </div>
       )}
-
-      {/* Unit of Measure Modal */}
-      {isUnitModalOpen && (
-        <div className={styles.modalOverlay} role="dialog" aria-modal="true" onMouseDown={(e) => { if (e.target === e.currentTarget) setIsUnitModalOpen(false); }}>
-          <div className={styles.categoryModal}>
-            <div className={styles.modalTop}>
-              <div className={styles.modalTitle}>{editingUnit ? 'Edit Unit' : 'Add New Unit'}</div>
-              <button type="button" className={styles.iconClose} onClick={() => setIsUnitModalOpen(false)} aria-label="Close"><XIcon /></button>
-            </div>
-            <div className={styles.categoryModalBody}>
-              <div className={styles.field}>
-                <div className={styles.label}>Unit Name *</div>
-                <input className={styles.input} placeholder="e.g. Kilogram, Liter, Piece" value={unitForm.name} onChange={(e) => setUnitForm((f) => ({ ...f, name: e.target.value }))} />
-              </div>
-              <div className={styles.field}>
-                <div className={styles.label}>Abbreviation *</div>
-                <input className={styles.input} placeholder="e.g. kg, L, pcs" value={unitForm.abbreviation} onChange={(e) => setUnitForm((f) => ({ ...f, abbreviation: e.target.value }))} />
-              </div>
-              <div className={styles.field}>
-                <div className={styles.label}>Unit Type *</div>
-                <select className={styles.input} value={unitForm.unitType} onChange={(e) => setUnitForm((f) => ({ ...f, unitType: e.target.value as any }))}>
-                  <option value="COUNT">Count (pieces, units)</option>
-                  <option value="WEIGHT">Weight (kg, g, lb)</option>
-                  <option value="VOLUME">Volume (L, mL, gal)</option>
-                  <option value="LENGTH">Length (m, cm, in)</option>
-                </select>
-              </div>
-              <div className={styles.field}>
-                <div className={styles.label}>Base Unit (Optional)</div>
-                <select className={styles.input} value={unitForm.baseUnitId || ''} onChange={(e) => setUnitForm((f) => ({ ...f, baseUnitId: e.target.value || undefined }))}>
-                  <option value="">-- None (This is a base unit) --</option>
-                  {units.filter((u) => u.status === 'ACTIVE' && u.unitType === unitForm.unitType && u.id !== editingUnit?.id).map((u) => (
-                    <option key={u.id} value={u.id}>{u.name} ({u.abbreviation})</option>
-                  ))}
-                </select>
-              </div>
-              {unitForm.baseUnitId && (
-                <div className={styles.field}>
-                  <div className={styles.label}>Conversion Factor</div>
-                  <input className={styles.input} type="number" step="0.0001" placeholder="e.g. 1000 (if 1 kg = 1000 g)" value={unitForm.conversionFactor || ''} onChange={(e) => setUnitForm((f) => ({ ...f, conversionFactor: parseFloat(e.target.value) || undefined }))} />
-                  <div style={{ fontSize: 11, color: 'rgba(109,120,139,0.95)', marginTop: 4 }}>
-                    How many of the base unit equals 1 of this unit
-                  </div>
-                </div>
-              )}
-              <div className={styles.field}>
-                <div className={styles.label}>Status</div>
-                <div className={styles.pillsRow}>
-                  {(['ACTIVE', 'INACTIVE'] as const).map((s) => (
-                    <button key={s} type="button" className={`${styles.categoryPill} ${unitForm.status === s ? styles.categoryPillActive : ''}`} onClick={() => setUnitForm((f) => ({ ...f, status: s }))}>{s}</button>
-                  ))}
-                </div>
-              </div>
-              <div className={styles.modalFooter}>
-                <button type="button" className={styles.primaryBtn} onClick={handleUnitSubmit} disabled={unitSubmitting || !unitForm.name.trim() || !unitForm.abbreviation.trim()}>
-                  {unitSubmitting ? 'Saving...' : editingUnit ? 'Update Unit' : 'Create Unit'}
-                </button>
-              </div>
-            </div>
-          </div>
+      <div className={styles.panelTitle}>Ingredients</div>
+      <div className={styles.ingredientsGrid}>
+        <div className={styles.field}>
+          <div className={styles.label}>Ingredient</div>
+          <select className={styles.input}>
+            <option value="">-- Select --</option>
+            {ingredients.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
+          </select>
         </div>
-      )}
-
-      {/* Dish Detail Modal */}
-      {detailDish && (
-        <div className={styles.modalOverlay} role="dialog" aria-modal="true" onMouseDown={(e) => { if (e.target === e.currentTarget) setDetailDish(null); }}>
-          <div className={styles.detailModal}>
-            <div className={styles.modalTop}>
-              <div className={styles.modalTitle}>Dish Details</div>
-              <button type="button" className={styles.iconClose} onClick={() => setDetailDish(null)} aria-label="Close"><XIcon /></button>
-            </div>
-            <Image className={styles.detailImg} src={detailDish.image} alt={detailDish.name} fill sizes="400px" />
-          </div>
-          <div className={styles.detailInfo}>
-            <div className={styles.detailName}>{detailDish.name}</div>
-            <div className={styles.detailCategory}>{detailDish.category}</div>
-            <div className={styles.detailMeta}>
-              <span>Can be served {detailDish.canBeServed}</span>
-              <span>·</span>
-              <span className={levelTextClass(detailDish.stockLevel)}>{levelText[detailDish.stockLevel]}</span>
-            </div>
-          </div>
-          <div style={{ height: 16 }} />
-          <div className={styles.detailSectionTitle}>Ingredients</div>
-          <div className={styles.detailGrid}>
-            {detailDish.ingredients.map((ing) => (
-              <div key={ing.name} className={styles.detailIngCard}>
-                <div className={styles.detailIngLeft}>
-                  <div className={styles.detailIngAvatar} aria-hidden="true" />
-                  <div style={{ minWidth: 0 }}>
-                    <div className={styles.detailIngName}>{ing.name}</div>
-                    <div className={styles.detailIngAmt}>{ing.amount}</div>
-                  </div>
-                </div>
-                <div className={styles.detailIngLevel}>
-                  <span className={`${styles.dot} ${levelDotClass(ing.stockLevel)}`} aria-hidden="true" />
-                  <span className={`${styles.stockText} ${levelTextClass(ing.stockLevel)}`}>{levelText[ing.stockLevel]}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div >
-      )}
-
-      {/* Add Dish Modal */}
-      {isAddOpen && (
-          <div className={styles.modalOverlay} role="dialog" aria-modal="true" onMouseDown={(e) => { if (e.target === e.currentTarget) setIsAddOpen(false); }}>
-            <div className={styles.modal}>
-              <div className={styles.modalTop}>
-                <div className={styles.modalTitle}>Add New Dish</div>
-                <button type="button" className={styles.iconClose} onClick={() => setIsAddOpen(false)} aria-label="Close"><XIcon /></button>
-              </div>
-              <div className={styles.modalBody}>
-                <div className={styles.modalSidebar}>
-                  <div className={`${styles.stepRow} ${addStep === 1 ? styles.stepRowActive : ''}`}>
-                    <span className={`${styles.stepDot} ${addStep === 1 ? styles.stepDotActive : styles.stepDotDone}`}>1</span>
-                    <span className={styles.stepText}>Dish Info</span>
-                  </div>
-                  <div className={`${styles.stepRow} ${addStep === 2 ? styles.stepRowActive : ''}`}>
-                    <span className={`${styles.stepDot} ${addStep === 2 ? styles.stepDotActive : ''}`}>2</span>
-                    <span className={styles.stepText}>Ingredients</span>
-                  </div>
-                </div>
-                <div className={styles.modalContent}>
-                  {addStep === 1 ? (
-                    <>
-                      <div className={styles.panelTitle}>Dish Information</div>
-                      <div className={styles.formStack}>
-                        <div className={styles.field}>
-                          <div className={styles.label}>Dish Name</div>
-                          <input className={styles.input} placeholder="Enter Dish Name" />
-                        </div>
-                        <div className={styles.field}>
-                          <div className={styles.label}>Dish Category</div>
-                          <div className={styles.pillsRow}>
-                            {menuCategoriesLoading ? (
-                              <span style={{ fontSize: 12, opacity: 0.7 }}>Loading...</span>
-                            ) : activeMenuCategories.length === 0 ? (
-                              <span style={{ fontSize: 12, opacity: 0.7 }}>No categories. Add one first.</span>
-                            ) : (
-                              activeMenuCategories.map((cat) => (
-                                <button key={cat.id} type="button" className={`${styles.categoryPill} ${selectedDishCategory === cat.name ? styles.categoryPillActive : ''}`} onClick={() => setSelectedDishCategory(cat.name)}>{cat.name}</button>
-                              ))
-                            )}
-                          </div>
-                        </div>
-                        <div className={styles.field}>
-                          <div className={styles.label}>Description</div>
-                          <textarea className={styles.textarea} placeholder="Enter description" />
-                        </div>
-                        <div className={styles.field}>
-                          <div className={styles.label}>Price</div>
-                          <div className={styles.priceWrap}>
-                            <div className={styles.pricePrefix}>$</div>
-                            <input className={styles.priceInput} placeholder="" inputMode="decimal" />
-                          </div>
-                        </div>
-                      </div>
-                      <div className={styles.modalFooter}>
-                        <button type="button" className={styles.primaryBtn} onClick={() => setAddStep(2)}>Save and Next</button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className={styles.panelTitle}>Ingredients</div>
-                      <div className={styles.ingredientsGrid}>
-                        <div className={styles.field}>
-                          <div className={styles.label}>Ingredient</div>
-                          <select className={styles.input}>
-                            <option value="">-- Select --</option>
-                            {ingredients.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
-                          </select>
-                        </div>
-                        <div className={styles.field}>
-                          <div className={styles.label}>Quantity</div>
-                          <input className={styles.input} type="number" />
-                        </div>
-                        <div className={styles.field}>
-                          <div className={styles.label}>Unit</div>
-                          <select className={styles.input}>
-                            <option value="">-- Select --</option>
-                          </select>
-                        </div>
-                      </div>
-                      <button type="button" className={styles.outlineBtn}><PlusIcon /> Add Ingredient</button>
-                      <div className={styles.modalFooter}>
-                        <button type="button" className={styles.primaryBtn} onClick={() => setIsAddOpen(false)}>Save and Submit</button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-      )}
-    </div >
+        <div className={styles.field}>
+          <div className={styles.label}>Quantity</div>
+          <input className={styles.input} type="number" />
+        </div>
+        <div className={styles.field}>
+          <div className={styles.label}>Unit</div>
+          <select className={styles.input}>
+            <option value="">-- Select --</option>
+          </select>
+        </div>
+      </div>
+      <button type="button" className={styles.outlineBtn}><PlusIcon /> Add Ingredient</button>
+      <div className={styles.modalFooter}>
+        <button type="button" className={styles.primaryBtn} onClick={() => setIsAddOpen(false)}>Save and Submit</button>
+      </div>
+    </div>
   );
 }
 
@@ -1341,7 +1334,7 @@ function TrashIcon() {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M3 6H5H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       <path
-        d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z"
+        d="M8 6V4C8 3.46957 8 2.96086 8 2.58579C8 2.21071 8 2.46957 8 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
