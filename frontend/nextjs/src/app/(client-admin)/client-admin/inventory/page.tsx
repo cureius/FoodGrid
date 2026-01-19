@@ -19,7 +19,7 @@ type DishStatus = 'available' | 'not-available';
 type Dish = {
   id: string;
   name: string;
-  category: 'Soup' | 'Noodle' | 'Rice' | 'Dessert' | 'Drink';
+  category: string;
   canBeServed: number;
   stockLevel: StockLevel;
   status: DishStatus;
@@ -126,8 +126,6 @@ function XIcon() {
     </svg>
   );
 }
-
-const dishCategories: Dish['category'][] = ['Soup', 'Noodle', 'Rice', 'Dessert', 'Drink'];
 
 const dishesSeed: Dish[] = [
   {
@@ -318,10 +316,11 @@ export default function InventoryPage() {
 
   const [dishStatusFilter, setDishStatusFilter] = useState<'All' | 'Available' | 'Not Available'>('All');
   const [stockFilter, setStockFilter] = useState<'All' | 'Low' | 'Medium' | 'High' | 'Empty'>('All');
-  const [categoryFilter, setCategoryFilter] = useState<'All' | Dish['category'] | IngredientItem['category']>('All');
+  const [categoryFilter, setCategoryFilter] = useState<string>('All');
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [addStep, setAddStep] = useState<1 | 2>(1);
+  const [selectedDishCategory, setSelectedDishCategory] = useState<string>('');
 
   const [detailDish, setDetailDish] = useState<Dish | null>(null);
 
@@ -352,7 +351,7 @@ export default function InventoryPage() {
       });
   }, []);
 
-  // Fetch categories when outlet changes or tab is Categories
+  // Fetch categories when outlet changes
   const fetchCategories = useCallback(async () => {
     if (!outletId) return;
     setCategoriesLoading(true);
@@ -367,11 +366,17 @@ export default function InventoryPage() {
     }
   }, [outletId]);
 
+  // Fetch categories on mount when outlet is available (not just for Categories tab)
   useEffect(() => {
-    if (activeTab === 'Categories' && outletId) {
+    if (outletId) {
       fetchCategories();
     }
-  }, [activeTab, outletId, fetchCategories]);
+  }, [outletId, fetchCategories]);
+
+  // Get active categories for Menu tab filter
+  const activeCategories = useMemo(() => {
+    return categories.filter((c) => c.status === 'ACTIVE');
+  }, [categories]);
 
   const openAddCategory = () => {
     setEditingCategory(null);
@@ -432,7 +437,7 @@ export default function InventoryPage() {
     const high = countByStockLevel('high', [...ingredients, ...dishes]);
     const empty = countByStockLevel('empty', [...ingredients, ...dishes]);
 
-    const catCounts = {
+    const catCounts: Record<string, number> = {
       All: ingredients.length,
       'Fresh Produce': ingredients.filter((i) => i.category === 'Fresh Produce').length,
       'Meat & Poultry': ingredients.filter((i) => i.category === 'Meat & Poultry').length,
@@ -441,17 +446,15 @@ export default function InventoryPage() {
       'Dry Goods & Grains': ingredients.filter((i) => i.category === 'Dry Goods & Grains').length,
     };
 
-    const dishCatCounts = {
+    const dishCatCounts: Record<string, number> = {
       All: dishes.length,
-      Soup: dishes.filter((d) => d.category === 'Soup').length,
-      Noodle: dishes.filter((d) => d.category === 'Noodle').length,
-      Rice: dishes.filter((d) => d.category === 'Rice').length,
-      Dessert: dishes.filter((d) => d.category === 'Dessert').length,
-      Drink: dishes.filter((d) => d.category === 'Drink').length,
     };
+    activeCategories.forEach((cat) => {
+      dishCatCounts[cat.name] = dishes.filter((d) => d.category === cat.name).length;
+    });
 
     return { totalStockAll, low, medium, high, empty, catCounts, dishCatCounts };
-  }, [dishes, ingredients]);
+  }, [dishes, ingredients, activeCategories]);
 
   const filteredDishes = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -554,133 +557,139 @@ export default function InventoryPage() {
       </div>
 
       <div className={styles.shell}>
-        <aside className={styles.filterCard}>
-          <div className={styles.filterTitle}>Filter</div>
+        {activeTab !== 'Categories' && (
+          <aside className={styles.filterCard}>
+            <div className={styles.filterTitle}>Filter</div>
 
-          {activeTab === 'Menu' && (
-            <div className={styles.filterSection}>
-              <div className={styles.filterLabel}>DISHES STATUS</div>
-              <div className={styles.chipsWrap}>
-                <button
-                  type="button"
-                  className={`${styles.chip} ${dishStatusFilter === 'All' ? styles.chipActive : ''}`}
-                  onClick={() => setDishStatusFilter('All')}
-                >
-                  All <span className={styles.badgeCount}>{dishes.length}</span>
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.chip} ${dishStatusFilter === 'Available' ? styles.chipActive : ''}`}
-                  onClick={() => setDishStatusFilter('Available')}
-                >
-                  Available <span className={styles.badgeCount}>{dishes.filter((d) => d.status === 'available').length}</span>
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.chip} ${dishStatusFilter === 'Not Available' ? styles.chipActive : ''}`}
-                  onClick={() => setDishStatusFilter('Not Available')}
-                >
-                  Not Available <span className={styles.badgeCount}>{dishes.filter((d) => d.status === 'not-available').length}</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className={styles.filterSection}>
-            <div className={styles.filterLabel}>STOCK LEVEL</div>
-            <div className={styles.chipsWrap}>
-              {(
-                [
-                  { label: 'All', count: counts.totalStockAll },
-                  { label: 'Low', count: counts.low },
-                  { label: 'Medium', count: counts.medium },
-                  { label: 'High', count: counts.high },
-                  { label: 'Empty', count: counts.empty },
-                ] as const
-              ).map((x) => (
-                <button
-                  key={x.label}
-                  type="button"
-                  className={`${styles.chip} ${stockFilter === x.label ? styles.chipActive : ''}`}
-                  onClick={() => setStockFilter(x.label)}
-                >
-                  {x.label} <span className={styles.badgeCount}>{x.count}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.filterSection}>
-            <div className={styles.filterLabel}>CATEGORY</div>
-
-            {activeTab === 'Menu' ? (
-              <div className={styles.chipsWrap}>
-                <button
-                  type="button"
-                  className={`${styles.chip} ${categoryFilter === 'All' ? styles.chipActive : ''}`}
-                  onClick={() => setCategoryFilter('All')}
-                >
-                  All <span className={styles.badgeCount}>{counts.dishCatCounts.All}</span>
-                </button>
-                {dishCategories.map((c) => (
+            {activeTab === 'Menu' && (
+              <div className={styles.filterSection}>
+                <div className={styles.filterLabel}>DISHES STATUS</div>
+                <div className={styles.chipsWrap}>
                   <button
-                    key={c}
                     type="button"
-                    className={`${styles.chip} ${categoryFilter === c ? styles.chipActive : ''}`}
-                    onClick={() => setCategoryFilter(c)}
+                    className={`${styles.chip} ${dishStatusFilter === 'All' ? styles.chipActive : ''}`}
+                    onClick={() => setDishStatusFilter('All')}
                   >
-                    {c} <span className={styles.badgeCount}>{counts.dishCatCounts[c]}</span>
+                    All <span className={styles.badgeCount}>{dishes.length}</span>
                   </button>
-                ))}
-              </div>
-            ) : (
-              <div className={styles.categoryList}>
-                {(
-                  [
-                    { label: 'All', icon: '🧾' },
-                    { label: 'Fresh Produce', icon: '🥬' },
-                    { label: 'Meat & Poultry', icon: '🍗' },
-                    { label: 'Seafood', icon: '🐟' },
-                    { label: 'Dairy & Eggs', icon: '🥚' },
-                    { label: 'Dry Goods & Grains', icon: '🍚' },
-                  ] as const
-                ).map((c) => {
-                  const isActive = categoryFilter === c.label;
-                  const count = counts.catCounts[c.label];
-                  return (
-                    <button
-                      key={c.label}
-                      type="button"
-                      className={`${styles.categoryBtn} ${isActive ? styles.categoryBtnActive : ''}`}
-                      onClick={() => setCategoryFilter(c.label)}
-                    >
-                      <span className={styles.categoryText}>
-                        <span aria-hidden="true">{c.icon}</span>
-                        <span>{c.label}</span>
-                      </span>
-                      <span className={styles.categoryCount}>{count}</span>
-                    </button>
-                  );
-                })}
+                  <button
+                    type="button"
+                    className={`${styles.chip} ${dishStatusFilter === 'Available' ? styles.chipActive : ''}`}
+                    onClick={() => setDishStatusFilter('Available')}
+                  >
+                    Available <span className={styles.badgeCount}>{dishes.filter((d) => d.status === 'available').length}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.chip} ${dishStatusFilter === 'Not Available' ? styles.chipActive : ''}`}
+                    onClick={() => setDishStatusFilter('Not Available')}
+                  >
+                    Not Available <span className={styles.badgeCount}>{dishes.filter((d) => d.status === 'not-available').length}</span>
+                  </button>
+                </div>
               </div>
             )}
 
-            <button
-              type="button"
-              className={styles.resetBtn}
-              onClick={() => {
-                setDishStatusFilter('All');
-                setStockFilter('All');
-                setCategoryFilter('All');
-                setQuery('');
-              }}
-            >
-              ↻ Reset Filter
-            </button>
-          </div>
-        </aside>
+            <div className={styles.filterSection}>
+              <div className={styles.filterLabel}>STOCK LEVEL</div>
+              <div className={styles.chipsWrap}>
+                {(
+                  [
+                    { label: 'All', count: counts.totalStockAll },
+                    { label: 'Low', count: counts.low },
+                    { label: 'Medium', count: counts.medium },
+                    { label: 'High', count: counts.high },
+                    { label: 'Empty', count: counts.empty },
+                  ] as const
+                ).map((x) => (
+                  <button
+                    key={x.label}
+                    type="button"
+                    className={`${styles.chip} ${stockFilter === x.label ? styles.chipActive : ''}`}
+                    onClick={() => setStockFilter(x.label)}
+                  >
+                    {x.label} <span className={styles.badgeCount}>{x.count}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        <section className={styles.contentCard}>
+            <div className={styles.filterSection}>
+              <div className={styles.filterLabel}>CATEGORY</div>
+
+              {activeTab === 'Menu' ? (
+                <div className={styles.chipsWrap}>
+                  <button
+                    type="button"
+                    className={`${styles.chip} ${categoryFilter === 'All' ? styles.chipActive : ''}`}
+                    onClick={() => setCategoryFilter('All')}
+                  >
+                    All <span className={styles.badgeCount}>{counts.dishCatCounts.All}</span>
+                  </button>
+                  {categoriesLoading ? (
+                    <span style={{ fontSize: 12, opacity: 0.7 }}>Loading...</span>
+                  ) : (
+                    activeCategories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        className={`${styles.chip} ${categoryFilter === cat.name ? styles.chipActive : ''}`}
+                        onClick={() => setCategoryFilter(cat.name)}
+                      >
+                        {cat.name} <span className={styles.badgeCount}>{counts.dishCatCounts[cat.name] || 0}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              ) : (
+                <div className={styles.categoryList}>
+                  {(
+                    [
+                      { label: 'All', icon: '🧾' },
+                      { label: 'Fresh Produce', icon: '🥬' },
+                      { label: 'Meat & Poultry', icon: '🍗' },
+                      { label: 'Seafood', icon: '🐟' },
+                      { label: 'Dairy & Eggs', icon: '🥚' },
+                      { label: 'Dry Goods & Grains', icon: '🍚' },
+                    ] as const
+                  ).map((c) => {
+                    const isActive = categoryFilter === c.label;
+                    const count = counts.catCounts[c.label];
+                    return (
+                      <button
+                        key={c.label}
+                        type="button"
+                        className={`${styles.categoryBtn} ${isActive ? styles.categoryBtnActive : ''}`}
+                        onClick={() => setCategoryFilter(c.label)}
+                      >
+                        <span className={styles.categoryText}>
+                          <span aria-hidden="true">{c.icon}</span>
+                          <span>{c.label}</span>
+                        </span>
+                        <span className={styles.categoryCount}>{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              <button
+                type="button"
+                className={styles.resetBtn}
+                onClick={() => {
+                  setDishStatusFilter('All');
+                  setStockFilter('All');
+                  setCategoryFilter('All');
+                  setQuery('');
+                }}
+              >
+                ↻ Reset Filter
+              </button>
+            </div>
+          </aside>
+        )}
+
+        <section className={activeTab === 'Categories' ? styles.contentCardFull : styles.contentCard}>
           <div className={styles.contentHeader}>
             <div className={styles.contentTitle}>
               {activeTab === 'Menu'
@@ -850,11 +859,22 @@ export default function InventoryPage() {
                       <div className={styles.field}>
                         <div className={styles.label}>Dish Category</div>
                         <div className={styles.pillsRow}>
-                          {dishCategories.map((c) => (
-                            <button key={c} type="button" className={styles.categoryPill}>
-                              {c}
-                            </button>
-                          ))}
+                          {categoriesLoading ? (
+                            <span style={{ fontSize: 12, opacity: 0.7 }}>Loading categories...</span>
+                          ) : activeCategories.length === 0 ? (
+                            <span style={{ fontSize: 12, opacity: 0.7 }}>No categories available. Add categories first.</span>
+                          ) : (
+                            activeCategories.map((cat) => (
+                              <button
+                                key={cat.id}
+                                type="button"
+                                className={`${styles.categoryPill} ${selectedDishCategory === cat.name ? styles.categoryPillActive : ''}`}
+                                onClick={() => setSelectedDishCategory(cat.name)}
+                              >
+                                {cat.name}
+                              </button>
+                            ))
+                          )}
                         </div>
                       </div>
                       <div className={styles.field}>
