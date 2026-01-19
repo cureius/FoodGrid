@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 100px 16px 24px 16px;
+  padding: 12px 16px 24px 16px;
 }
 
 .topRow {
@@ -96,9 +96,15 @@
 .orderCard {
   all: unset;
   display: block;
-  width: 100%;
   cursor: pointer;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  width: 100%;
+  border-radius: var(--radius-card);
+  border: 2px solid rgba(0, 0, 0, 0.185);
+  background: white;
+  overflow: hidden;
+  cursor: pointer;
+  margin: 12px;
+  border-radius: 12px;
 }
 
 .orderCard:last-child {
@@ -110,6 +116,8 @@
 }
 
 .orderCardSelected .orderCardHeader {
+  border-radius: 12px 12px 0 0;
+  border: ;
   background: rgba(75, 112, 245, 0.04);
 }
 
@@ -117,8 +125,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 8px;
+  padding: 4px 4px;
   background: rgba(243, 244, 246, 0.7);
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
@@ -142,11 +150,11 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  padding: 14px;
+  padding: 8px;
 }
 
 .kv {
-  padding-right: 10px;
+  padding-right: 8px;
   border-right: 1px solid rgba(0, 0, 0, 0.06);
 }
 
@@ -175,7 +183,7 @@
   display: flex;
   align-items: stretch;
   justify-content: stretch;
-  padding: 12px;
+  padding: 8px;
 }
 
 .billCard {
@@ -190,7 +198,7 @@
 
 .billHeaderTitle {
   font-weight: 900;
-  padding: 12px 14px;
+  padding: 8px 8px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   color: rgba(17, 24, 39, 0.92);
 }
