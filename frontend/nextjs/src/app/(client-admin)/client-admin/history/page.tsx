@@ -40,11 +40,9 @@ const ORDERS: HistoryRow[] = [
   { id: "DE001", when: "Mon, 17 Feb 12:32 PM", orderType: "Dine In", table: "C1", customer: "Ava", total: 126.4 },
   { id: "TA003", when: "Mon, 17 Feb 05:12 PM", orderType: "Take Away", customer: "David", total: 88.0 },
   { id: "DI056", when: "Mon, 17 Feb 06:10 PM", orderType: "Dine In", table: "B1", customer: "Noah", total: 310.25 },
-  { id: "TA002", when: "Mon, 17 Feb 02:31 PM", orderType: "Take Away", customer: "Rachel", total: 495.0 },
-  { id: "TA001", when: "Mon, 17 Feb 03:43 PM", orderType: "Take Away", customer: "Daniel", total: 274.0 },
-  { id: "DE001", when: "Mon, 17 Feb 12:32 PM", orderType: "Dine In", table: "C1", customer: "Ava", total: 126.4 },
-  { id: "TA003", when: "Mon, 17 Feb 05:12 PM", orderType: "Take Away", customer: "David", total: 88.0 },
-  { id: "DI056", when: "Mon, 17 Feb 06:10 PM", orderType: "Dine In", table: "B1", customer: "Noah", total: 310.25 },
+  { id: "DI002", when: "Mon, 17 Feb 06:45 PM", orderType: "Dine In", table: "A4", customer: "Olivia", total: 150.75 },  
+  { id: "DI003", when: "Mon, 17 Feb 07:15 PM", orderType: "Dine In", table: "C2", customer: "Liam", total: 220.0 },
+  { id: "TA004", when: "Mon, 17 Feb 07:30 PM", orderType: "Take Away", customer: "Sophia", total: 175.5 },
 ];
 
 const BILLS: Record<string, BillDetails> = {
