@@ -329,234 +329,332 @@ log "=============================================="
 log "Seeding ${#CLIENT_NAMES[@]} restaurant brands with multiple outlets..."
 log ""
 
-#for client_idx in $(seq 0 $((${#CLIENT_NAMES[@]} - 1))); do
-#  if [[ $client_idx -ge $NUM_CLIENTS ]]; then
-#    break
-#  fi
-#
-#  CLIENT_NAME="${CLIENT_NAMES[$client_idx]}"
-#  CLIENT_EMAIL="${CLIENT_EMAILS[$client_idx]}"
-#  PASSWORD="Admin@123"
-#
-#  log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-#  log "Creating Client: $CLIENT_NAME"
-#  log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-#
-#  # Bootstrap admin with retry
-#  attempt=0
-#  BOOTSTRAP_RESP=""
-#  while true; do
-#    attempt=$((attempt+1))
-#    RESP=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/api/v1/bootstrap/admin" \
-#      -H "Content-Type: application/json" \
-#      -d "{\"email\":\"$CLIENT_EMAIL\",\"password\":\"$PASSWORD\",\"displayName\":\"$CLIENT_NAME Admin\",\"status\":\"ACTIVE\"}")
-#    HTTP_CODE=$(echo "$RESP" | tail -n1)
-#    BODY=$(echo "$RESP" | sed '$d')
-#
-#    if [[ "$HTTP_CODE" -ge 200 && "$HTTP_CODE" -lt 300 ]]; then
-#      BOOTSTRAP_RESP="$BODY"
-#      break
-#    fi
-#
-#    if [[ "$HTTP_CODE" == "400" ]] && echo "$BODY" | grep -Eqi "already|exists|duplicate"; then
-#      log "  Admin exists, logging in..."
-#      LOGIN_BODY=$(admin_login "$CLIENT_EMAIL" "$PASSWORD")
-#      BOOTSTRAP_RESP="$LOGIN_BODY"
-#      break
-#    fi
-#
-#    if [[ $attempt -ge $BOOTSTRAP_MAX_ATTEMPTS ]]; then
-#      echo "[ERROR] Bootstrap failed after $attempt attempts" >&2
-#      exit 1
-#    fi
-#    sleep "$BOOTSTRAP_RETRY_INTERVAL"
-#  done
-#
-#  ACCESS_TOKEN=$(echo "$BOOTSTRAP_RESP" | jq -r '.accessToken // empty')
-#  ADMIN_ID=$(echo "$BOOTSTRAP_RESP" | jq -r '.admin.id // empty')
-#
-#  if [[ -z "${ACCESS_TOKEN}" || -z "${ADMIN_ID}" ]]; then
-#    echo "[ERROR] Failed to obtain admin token for $CLIENT_EMAIL" >&2
-#    exit 1
-#  fi
-#
-#  log "  ✓ Admin authenticated (ID: ${ADMIN_ID:0:8}...)"
-#
-#  # Determine outlets for this client (avoiding declare -n for zsh compatibility)
-#  case $client_idx in
-#    0) OUTLETS_LIST=("${SPICE_GARDEN_OUTLETS[@]}") ;;
-#    1) OUTLETS_LIST=("${CHAI_WALA_OUTLETS[@]}") ;;
-#    2) OUTLETS_LIST=("${MUMBAI_STREET_OUTLETS[@]}") ;;
-#  esac
-#
-#  client_summary="{\"name\":\"$CLIENT_NAME\",\"email\":\"$CLIENT_EMAIL\",\"adminId\":\"$ADMIN_ID\",\"outlets\":[]}"
-#
-#  for outlet_idx in "${!OUTLETS_LIST[@]}"; do
-#    IFS='|' read -r OUTLET_SUFFIX TIMEZONE <<< "${OUTLETS_LIST[$outlet_idx]}"
-#    OUTLET_NAME="$CLIENT_NAME - $OUTLET_SUFFIX"
-#
-#    log ""
-#    log "  📍 Creating Outlet: $OUTLET_NAME"
-#
-#    # Create outlet
-#    OUTLET_RESP=$(api_post "/api/v1/admin/outlets" "$ACCESS_TOKEN" \
-#      "{\"ownerId\":\"$ADMIN_ID\",\"name\":\"$OUTLET_NAME\",\"timezone\":\"$TIMEZONE\"}")
-#    OUTLET_ID=$(echo "$OUTLET_RESP" | jq -r '.id // empty')
-#
-#    if [[ -z "$OUTLET_ID" || "$OUTLET_ID" == "null" ]]; then
-#      echo "[ERROR] Failed to create outlet: $OUTLET_NAME" >&2
-#      continue
-#    fi
-#    log "     ✓ Outlet created (ID: ${OUTLET_ID:0:8}...)"
-#
-#    # Register POS device
-#    DEVICE_CODE="${DEV_CODE_PREFIX}-${client_idx}-${outlet_idx}"
-#    curl -s "$BASE_URL/api/v1/auth/login-context?deviceId=$DEVICE_CODE&outletId=$OUTLET_ID" > /dev/null
-#    log "     ✓ POS Device registered: $DEVICE_CODE"
-#
-#    # Create employees
-#    log "     👥 Creating employees..."
-#    emp_ids="[]"
-#    for emp_template in "${EMPLOYEE_TEMPLATES[@]}"; do
-#      IFS='|' read -r EMP_NAME EMP_SUFFIX EMP_ROLE EMP_PIN <<< "$emp_template"
-#      EMP_EMAIL="${EMP_SUFFIX}.${outlet_idx}@${CLIENT_EMAIL#*@}"
-#
-#      EMP_RESP=$(api_post "/api/v1/admin/outlets/$OUTLET_ID/employees" "$ACCESS_TOKEN" \
-#        "{\"displayName\":\"$EMP_NAME\",\"email\":\"$EMP_EMAIL\",\"avatarUrl\":null,\"pin\":\"$EMP_PIN\",\"status\":\"ACTIVE\"}")
-#      EMP_ID=$(echo "$EMP_RESP" | jq -r '.id // empty')
-#
-#      if [[ -n "$EMP_ID" && "$EMP_ID" != "null" ]]; then
-#        # Assign role
-#        api_put "/api/v1/admin/outlets/$OUTLET_ID/employees/$EMP_ID/roles" "$ACCESS_TOKEN" \
-#          "{\"roles\":[\"$EMP_ROLE\"]}" > /dev/null 2>&1 || true
-#        emp_ids=$(echo "$emp_ids" | jq ". + [\"$EMP_ID\"]")
-#        debug "       Created employee: $EMP_NAME ($EMP_ROLE)"
-#      fi
-#    done
-#    log "     ✓ ${#EMPLOYEE_TEMPLATES[@]} employees created"
-#
-#    # Create menu categories and items
-#    log "     🍽️  Creating menu..."
-#    cat_ids=()
-#    for cat_template in "${MENU_CATEGORIES[@]}"; do
-#      IFS='|' read -r CAT_NAME SORT_ORDER <<< "$cat_template"
-#      CAT_RESP=$(api_post "/api/v1/admin/outlets/$OUTLET_ID/menu/categories" "$ACCESS_TOKEN" \
-#        "{\"name\":\"$CAT_NAME\",\"sortOrder\":$SORT_ORDER,\"status\":\"ACTIVE\"}")
-#      CAT_ID=$(echo "$CAT_RESP" | jq -r '.id // empty')
-#      cat_ids+=("$CAT_ID")
-#      debug "       Category: $CAT_NAME"
-#    done
-#
-#    # Create menu items
-#    item_ids="[]"
-#    declare -a ALL_MENU_ITEMS=()
-#    ALL_MENU_ITEMS+=("${MENU_ITEMS_STARTERS[@]}")
-#    ALL_MENU_ITEMS+=("${MENU_ITEMS_MAIN_VEG[@]}")
-#    ALL_MENU_ITEMS+=("${MENU_ITEMS_MAIN_NONVEG[@]}")
-#    ALL_MENU_ITEMS+=("${MENU_ITEMS_BREADS[@]}")
-#    ALL_MENU_ITEMS+=("${MENU_ITEMS_RICE[@]}")
-#    ALL_MENU_ITEMS+=("${MENU_ITEMS_BEVERAGES[@]}")
-#    ALL_MENU_ITEMS+=("${MENU_ITEMS_DESSERTS[@]}")
-#
-#    for item_template in "${ALL_MENU_ITEMS[@]}"; do
-#      IFS='|' read -r ITEM_NAME ITEM_DESC IS_VEG PRICE CAT_IDX <<< "$item_template"
-#      CAT_ID="${cat_ids[$CAT_IDX]:-}"
-#
-#      if [[ -n "$CAT_ID" && "$CAT_ID" != "null" ]]; then
-#        ITEM_RESP=$(api_post "/api/v1/admin/outlets/$OUTLET_ID/menu/items" "$ACCESS_TOKEN" \
-#          "{\"categoryId\":\"$CAT_ID\",\"name\":\"$ITEM_NAME\",\"description\":\"$ITEM_DESC\",\"isVeg\":$IS_VEG,\"basePrice\":$PRICE,\"status\":\"ACTIVE\"}")
-#        ITEM_ID=$(echo "$ITEM_RESP" | jq -r '.id // empty')
-#        if [[ -n "$ITEM_ID" && "$ITEM_ID" != "null" ]]; then
-#          item_ids=$(echo "$item_ids" | jq ". + [\"$ITEM_ID\"]")
-#        fi
-#      fi
-#    done
-#    log "     ✓ ${#MENU_CATEGORIES[@]} categories, ${#ALL_MENU_ITEMS[@]} items created"
-#
-#    # Create dining tables
-#    log "     🪑 Creating dining tables..."
-#    table_ids="[]"
-#    for table_template in "${TABLE_CONFIGS[@]}"; do
-#      IFS='|' read -r TABLE_CODE DISPLAY_NAME CAPACITY <<< "$table_template"
-#      TABLE_RESP=$(api_post "/api/v1/admin/outlets/$OUTLET_ID/tables" "$ACCESS_TOKEN" \
-#        "{\"tableCode\":\"$TABLE_CODE\",\"displayName\":\"$DISPLAY_NAME\",\"capacity\":$CAPACITY,\"status\":\"ACTIVE\"}")
-#      TABLE_ID=$(echo "$TABLE_RESP" | jq -r '.id // empty')
-#      if [[ -n "$TABLE_ID" && "$TABLE_ID" != "null" ]]; then
-#        table_ids=$(echo "$table_ids" | jq ". + [\"$TABLE_ID\"]")
-#      fi
-#    done
-#    log "     ✓ ${#TABLE_CONFIGS[@]} tables created"
-#
-#    # Create units of measure
-#    log "     📏 Creating units of measure..."
-#    unit_ids=()
-#    for unit_template in "${UNITS_OF_MEASURE[@]}"; do
-#      IFS='|' read -r UNIT_NAME ABBREV UNIT_TYPE <<< "$unit_template"
-#      UNIT_RESP=$(api_post "/api/v1/admin/outlets/$OUTLET_ID/inventory/units" "$ACCESS_TOKEN" \
-#        "{\"name\":\"$UNIT_NAME\",\"abbreviation\":\"$ABBREV\",\"unitType\":\"$UNIT_TYPE\",\"status\":\"ACTIVE\"}" 2>/dev/null || echo "{}")
-#      UNIT_ID=$(echo "$UNIT_RESP" | jq -r '.id // empty' 2>/dev/null || echo "")
-#      unit_ids+=("$UNIT_ID")
-#    done
-#    log "     ✓ Units of measure created"
-#
-#    # Create ingredient categories
-#    log "     📦 Creating ingredient categories..."
-#    ing_cat_ids=()
-#    for ing_cat_template in "${INGREDIENT_CATEGORIES[@]}"; do
-#      IFS='|' read -r ING_CAT_NAME ING_CAT_DESC ING_CAT_ICON <<< "$ing_cat_template"
-#      ING_CAT_RESP=$(api_post "/api/v1/admin/outlets/$OUTLET_ID/inventory/categories" "$ACCESS_TOKEN" \
-#        "{\"name\":\"$ING_CAT_NAME\",\"description\":\"$ING_CAT_DESC\",\"icon\":\"$ING_CAT_ICON\",\"sortOrder\":0,\"status\":\"ACTIVE\"}" 2>/dev/null || echo "{}")
-#      ING_CAT_ID=$(echo "$ING_CAT_RESP" | jq -r '.id // empty' 2>/dev/null || echo "")
-#      ing_cat_ids+=("$ING_CAT_ID")
-#    done
-#    log "     ✓ Ingredient categories created"
-#
-#    # Create suppliers
-#    log "     🚚 Creating suppliers..."
-#    supplier_ids=()
-#    for supplier_template in "${SUPPLIERS[@]}"; do
-#      IFS='|' read -r SUP_NAME SUP_CONTACT SUP_EMAIL SUP_PHONE SUP_ADDR <<< "$supplier_template"
-#      SUP_RESP=$(api_post "/api/v1/admin/outlets/$OUTLET_ID/inventory/suppliers" "$ACCESS_TOKEN" \
-#        "{\"name\":\"$SUP_NAME\",\"contactPerson\":\"$SUP_CONTACT\",\"email\":\"$SUP_EMAIL\",\"phone\":\"$SUP_PHONE\",\"address\":\"$SUP_ADDR\",\"status\":\"ACTIVE\"}" 2>/dev/null || echo "{}")
-#      SUP_ID=$(echo "$SUP_RESP" | jq -r '.id // empty' 2>/dev/null || echo "")
-#      supplier_ids+=("$SUP_ID")
-#    done
-#    log "     ✓ ${#SUPPLIERS[@]} suppliers created"
-#
-#    # Create ingredients
-#    log "     🥘 Creating ingredients..."
-#    for ing_template in "${INGREDIENTS[@]}"; do
-#      IFS='|' read -r ING_NAME ING_SKU ING_CAT_IDX ING_COST ING_STOCK ING_REORDER UNIT_IDX <<< "$ing_template"
-#      ING_CAT_ID="${ing_cat_ids[$ING_CAT_IDX]:-}"
-#      UNIT_ID="${unit_ids[$UNIT_IDX]:-${unit_ids[0]:-}}"
-#
-#      if [[ -n "$UNIT_ID" && "$UNIT_ID" != "null" ]]; then
-#        api_post "/api/v1/admin/outlets/$OUTLET_ID/inventory/ingredients" "$ACCESS_TOKEN" \
-#          "{\"name\":\"$ING_NAME\",\"sku\":\"$ING_SKU\",\"categoryId\":\"$ING_CAT_ID\",\"unitId\":\"$UNIT_ID\",\"costPrice\":$ING_COST,\"currentStock\":$ING_STOCK,\"reorderLevel\":$ING_REORDER,\"trackInventory\":true,\"status\":\"ACTIVE\"}" > /dev/null 2>&1 || true
-#      fi
-#    done
-#    log "     ✓ ${#INGREDIENTS[@]} ingredients created"
-#
-#    # Build outlet summary
-#    outlet_summary=$(jq -n \
-#      --arg id "$OUTLET_ID" \
-#      --arg name "$OUTLET_NAME" \
-#      --arg device "$DEVICE_CODE" \
-#      --argjson employees "$emp_ids" \
-#      --argjson items "$item_ids" \
-#      --argjson tables "$table_ids" \
-#      '{id:$id,name:$name,device:$device,employees:$employees,tables:$tables,itemCount:($items|length),tableCount:($tables|length)}')
-#
-#    client_summary=$(echo "$client_summary" | jq ".outlets += [$outlet_summary]")
-#  done
-#
-#  echo "$client_summary" | jq . >> "$SUMMARY_FILE"
-#  echo >> "$SUMMARY_FILE"
-#
-#  log ""
-#  log "  ✅ Client '$CLIENT_NAME' seeded successfully"
-#  sleep 1
-#done
+###############################################################################
+# STEP 1: Bootstrap Super Admin
+###############################################################################
+
+SUPER_ADMIN_EMAIL="superadmin@foodgrid.com"
+SUPER_ADMIN_PASSWORD="SuperAdmin@123"
+SUPER_ADMIN_NAME="FoodGrid Super Admin"
+
+log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+log "Step 1: Bootstrapping Super Admin"
+log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+attempt=0
+SUPER_ADMIN_RESP=""
+while true; do
+  attempt=$((attempt+1))
+  RESP=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/api/v1/bootstrap/admin" \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"$SUPER_ADMIN_EMAIL\",\"password\":\"$SUPER_ADMIN_PASSWORD\",\"displayName\":\"$SUPER_ADMIN_NAME\",\"status\":\"ACTIVE\"}")
+  HTTP_CODE=$(echo "$RESP" | tail -n1)
+  BODY=$(echo "$RESP" | sed '$d')
+
+  if [[ "$HTTP_CODE" -ge 200 && "$HTTP_CODE" -lt 300 ]]; then
+    SUPER_ADMIN_RESP="$BODY"
+    break
+  fi
+
+  if [[ "$HTTP_CODE" == "400" ]] && echo "$BODY" | grep -Eqi "already|exists|duplicate"; then
+    log "  Super Admin exists, logging in..."
+    LOGIN_BODY=$(admin_login "$SUPER_ADMIN_EMAIL" "$SUPER_ADMIN_PASSWORD")
+    SUPER_ADMIN_RESP="$LOGIN_BODY"
+    break
+  fi
+
+  if [[ $attempt -ge $BOOTSTRAP_MAX_ATTEMPTS ]]; then
+    echo "[ERROR] Bootstrap failed after $attempt attempts" >&2
+    exit 1
+  fi
+  sleep "$BOOTSTRAP_RETRY_INTERVAL"
+done
+
+SUPER_ADMIN_TOKEN=$(echo "$SUPER_ADMIN_RESP" | jq -r '.accessToken // empty')
+SUPER_ADMIN_ID=$(echo "$SUPER_ADMIN_RESP" | jq -r '.admin.id // empty')
+
+if [[ -z "${SUPER_ADMIN_TOKEN}" || -z "${SUPER_ADMIN_ID}" ]]; then
+  echo "[ERROR] Failed to obtain super admin token" >&2
+  exit 1
+fi
+
+log "  ✓ Super Admin authenticated (ID: ${SUPER_ADMIN_ID:0:8}...)"
+log "    Email: $SUPER_ADMIN_EMAIL"
+log "    Password: $SUPER_ADMIN_PASSWORD"
+log ""
+
+###############################################################################
+# STEP 2: Create Clients (Restaurant Brands) via Super Admin
+###############################################################################
+
+log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+log "Step 2: Creating Restaurant Clients"
+log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# Arrays to store client data for later use
+CLIENT_IDS=()
+CLIENT_ADMIN_EMAILS=()
+CLIENT_ADMIN_PASSWORDS=()
+
+for client_idx in $(seq 0 $((${#CLIENT_NAMES[@]} - 1))); do
+  if [[ $client_idx -ge $NUM_CLIENTS ]]; then
+    break
+  fi
+
+  CLIENT_NAME="${CLIENT_NAMES[$client_idx]}"
+  CLIENT_CONTACT_EMAIL="${CLIENT_EMAILS[$client_idx]}"
+  CLIENT_ADMIN_PASSWORD="Admin@123"
+
+  log ""
+  log "  🏢 Creating Client: $CLIENT_NAME"
+
+  # Create client via tenant API (this auto-creates client admin)
+  CLIENT_RESP=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/api/v1/admin/tenants" \
+    -H "Authorization: Bearer $SUPER_ADMIN_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"name\":\"$CLIENT_NAME\",\"contactEmail\":\"$CLIENT_CONTACT_EMAIL\",\"status\":\"ACTIVE\",\"adminEmail\":\"$CLIENT_CONTACT_EMAIL\",\"adminPassword\":\"$CLIENT_ADMIN_PASSWORD\",\"adminDisplayName\":\"$CLIENT_NAME Admin\"}")
+
+  HTTP_CODE=$(echo "$CLIENT_RESP" | tail -n1)
+  BODY=$(echo "$CLIENT_RESP" | sed '$d')
+
+  if [[ "$HTTP_CODE" -ge 200 && "$HTTP_CODE" -lt 300 ]]; then
+    CLIENT_ID=$(echo "$BODY" | jq -r '.id // empty')
+    CLIENT_ADMIN_EMAIL=$(echo "$BODY" | jq -r '.adminEmail // empty')
+    log "     ✓ Client created (ID: ${CLIENT_ID:0:8}...)"
+    log "       Admin Email: $CLIENT_ADMIN_EMAIL"
+    log "       Admin Password: $CLIENT_ADMIN_PASSWORD"
+  elif echo "$BODY" | grep -Eqi "already|exists|duplicate"; then
+    log "     Client already exists, fetching..."
+    # Try to get the client list and find this one
+    CLIENTS_LIST=$(curl -s -H "Authorization: Bearer $SUPER_ADMIN_TOKEN" "$BASE_URL/api/v1/admin/tenants")
+    CLIENT_ID=$(echo "$CLIENTS_LIST" | jq -r ".[] | select(.name == \"$CLIENT_NAME\") | .id" 2>/dev/null)
+    CLIENT_ADMIN_EMAIL="$CLIENT_CONTACT_EMAIL"
+    if [[ -z "$CLIENT_ID" || "$CLIENT_ID" == "null" ]]; then
+      echo "[WARN] Could not find existing client: $CLIENT_NAME" >&2
+      continue
+    fi
+    log "     ✓ Found existing client (ID: ${CLIENT_ID:0:8}...)"
+  else
+    echo "[ERROR] Failed to create client: $CLIENT_NAME (HTTP $HTTP_CODE)" >&2
+    echo "$BODY" >&2
+    continue
+  fi
+
+  CLIENT_IDS+=("$CLIENT_ID")
+  CLIENT_ADMIN_EMAILS+=("$CLIENT_ADMIN_EMAIL")
+  CLIENT_ADMIN_PASSWORDS+=("$CLIENT_ADMIN_PASSWORD")
+done
+
+log ""
+log "  ✓ Created ${#CLIENT_IDS[@]} clients"
+
+###############################################################################
+# STEP 3: Each Client Admin Creates Their Outlets, Employees, Menu, etc.
+###############################################################################
+
+log ""
+log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+log "Step 3: Setting Up Each Client's Data"
+log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+for client_idx in $(seq 0 $((${#CLIENT_IDS[@]} - 1))); do
+  CLIENT_ID="${CLIENT_IDS[$client_idx]}"
+  CLIENT_EMAIL="${CLIENT_ADMIN_EMAILS[$client_idx]}"
+  PASSWORD="${CLIENT_ADMIN_PASSWORDS[$client_idx]}"
+  CLIENT_NAME="${CLIENT_NAMES[$client_idx]}"
+
+  log ""
+  log "┌─────────────────────────────────────────────"
+  log "│ Client: $CLIENT_NAME"
+  log "└─────────────────────────────────────────────"
+
+  # Login as client admin
+  LOGIN_RESP=$(admin_login "$CLIENT_EMAIL" "$PASSWORD")
+  ACCESS_TOKEN=$(echo "$LOGIN_RESP" | jq -r '.accessToken // empty')
+  ADMIN_ID=$(echo "$LOGIN_RESP" | jq -r '.admin.id // empty')
+
+  if [[ -z "${ACCESS_TOKEN}" || -z "${ADMIN_ID}" ]]; then
+    echo "[ERROR] Failed to login as client admin: $CLIENT_EMAIL" >&2
+    continue
+  fi
+
+  log "  ✓ Client Admin logged in (ID: ${ADMIN_ID:0:8}...)"
+
+  # Determine outlets for this client (avoiding declare -n for zsh compatibility)
+  case $client_idx in
+    0) OUTLETS_LIST=("${SPICE_GARDEN_OUTLETS[@]}") ;;
+    1) OUTLETS_LIST=("${CHAI_WALA_OUTLETS[@]}") ;;
+    2) OUTLETS_LIST=("${MUMBAI_STREET_OUTLETS[@]}") ;;
+  esac
+
+  client_summary="{\"name\":\"$CLIENT_NAME\",\"email\":\"$CLIENT_EMAIL\",\"clientId\":\"$CLIENT_ID\",\"adminId\":\"$ADMIN_ID\",\"outlets\":[]}"
+
+  for outlet_idx in "${!OUTLETS_LIST[@]}"; do
+    IFS='|' read -r OUTLET_SUFFIX TIMEZONE <<< "${OUTLETS_LIST[$outlet_idx]}"
+    OUTLET_NAME="$CLIENT_NAME - $OUTLET_SUFFIX"
+
+    log ""
+    log "  📍 Creating Outlet: $OUTLET_NAME"
+
+    # Create outlet
+    OUTLET_RESP=$(api_post "/api/v1/admin/outlets" "$ACCESS_TOKEN" \
+      "{\"ownerId\":\"$ADMIN_ID\",\"name\":\"$OUTLET_NAME\",\"timezone\":\"$TIMEZONE\"}")
+    OUTLET_ID=$(echo "$OUTLET_RESP" | jq -r '.id // empty')
+
+    if [[ -z "$OUTLET_ID" || "$OUTLET_ID" == "null" ]]; then
+      echo "[ERROR] Failed to create outlet: $OUTLET_NAME" >&2
+      continue
+    fi
+    log "     ✓ Outlet created (ID: ${OUTLET_ID:0:8}...)"
+
+    # Register POS device
+    DEVICE_CODE="${DEV_CODE_PREFIX}-${client_idx}-${outlet_idx}"
+    curl -s "$BASE_URL/api/v1/auth/login-context?deviceId=$DEVICE_CODE&outletId=$OUTLET_ID" > /dev/null
+    log "     ✓ POS Device registered: $DEVICE_CODE"
+
+    # Create employees
+    log "     👥 Creating employees..."
+    emp_ids="[]"
+    for emp_template in "${EMPLOYEE_TEMPLATES[@]}"; do
+      IFS='|' read -r EMP_NAME EMP_SUFFIX EMP_ROLE EMP_PIN <<< "$emp_template"
+      EMP_EMAIL="${EMP_SUFFIX}.${outlet_idx}@${CLIENT_EMAIL#*@}"
+
+      EMP_RESP=$(api_post "/api/v1/admin/outlets/$OUTLET_ID/employees" "$ACCESS_TOKEN" \
+        "{\"displayName\":\"$EMP_NAME\",\"email\":\"$EMP_EMAIL\",\"avatarUrl\":null,\"pin\":\"$EMP_PIN\",\"status\":\"ACTIVE\"}")
+      EMP_ID=$(echo "$EMP_RESP" | jq -r '.id // empty')
+
+      if [[ -n "$EMP_ID" && "$EMP_ID" != "null" ]]; then
+        # Assign role
+        api_put "/api/v1/admin/outlets/$OUTLET_ID/employees/$EMP_ID/roles" "$ACCESS_TOKEN" \
+          "{\"roles\":[\"$EMP_ROLE\"]}" > /dev/null 2>&1 || true
+        emp_ids=$(echo "$emp_ids" | jq ". + [\"$EMP_ID\"]")
+        debug "       Created employee: $EMP_NAME ($EMP_ROLE)"
+      fi
+    done
+    log "     ✓ ${#EMPLOYEE_TEMPLATES[@]} employees created"
+
+    # Create menu categories and items
+    log "     🍽️  Creating menu..."
+    cat_ids=()
+    for cat_template in "${MENU_CATEGORIES[@]}"; do
+      IFS='|' read -r CAT_NAME SORT_ORDER <<< "$cat_template"
+      CAT_RESP=$(api_post "/api/v1/admin/outlets/$OUTLET_ID/menu/categories" "$ACCESS_TOKEN" \
+        "{\"name\":\"$CAT_NAME\",\"sortOrder\":$SORT_ORDER,\"status\":\"ACTIVE\"}")
+      CAT_ID=$(echo "$CAT_RESP" | jq -r '.id // empty')
+      cat_ids+=("$CAT_ID")
+      debug "       Category: $CAT_NAME"
+    done
+
+    # Create menu items
+    item_ids="[]"
+    declare -a ALL_MENU_ITEMS=()
+    ALL_MENU_ITEMS+=("${MENU_ITEMS_STARTERS[@]}")
+    ALL_MENU_ITEMS+=("${MENU_ITEMS_MAIN_VEG[@]}")
+    ALL_MENU_ITEMS+=("${MENU_ITEMS_MAIN_NONVEG[@]}")
+    ALL_MENU_ITEMS+=("${MENU_ITEMS_BREADS[@]}")
+    ALL_MENU_ITEMS+=("${MENU_ITEMS_RICE[@]}")
+    ALL_MENU_ITEMS+=("${MENU_ITEMS_BEVERAGES[@]}")
+    ALL_MENU_ITEMS+=("${MENU_ITEMS_DESSERTS[@]}")
+
+    for item_template in "${ALL_MENU_ITEMS[@]}"; do
+      IFS='|' read -r ITEM_NAME ITEM_DESC IS_VEG PRICE CAT_IDX <<< "$item_template"
+      CAT_ID="${cat_ids[$CAT_IDX]:-}"
+
+      if [[ -n "$CAT_ID" && "$CAT_ID" != "null" ]]; then
+        ITEM_RESP=$(api_post "/api/v1/admin/outlets/$OUTLET_ID/menu/items" "$ACCESS_TOKEN" \
+          "{\"categoryId\":\"$CAT_ID\",\"name\":\"$ITEM_NAME\",\"description\":\"$ITEM_DESC\",\"isVeg\":$IS_VEG,\"basePrice\":$PRICE,\"status\":\"ACTIVE\"}")
+        ITEM_ID=$(echo "$ITEM_RESP" | jq -r '.id // empty')
+        if [[ -n "$ITEM_ID" && "$ITEM_ID" != "null" ]]; then
+          item_ids=$(echo "$item_ids" | jq ". + [\"$ITEM_ID\"]")
+        fi
+      fi
+    done
+    log "     ✓ ${#MENU_CATEGORIES[@]} categories, ${#ALL_MENU_ITEMS[@]} items created"
+
+    # Create dining tables
+    log "     🪑 Creating dining tables..."
+    table_ids="[]"
+    for table_template in "${TABLE_CONFIGS[@]}"; do
+      IFS='|' read -r TABLE_CODE DISPLAY_NAME CAPACITY <<< "$table_template"
+      TABLE_RESP=$(api_post "/api/v1/admin/outlets/$OUTLET_ID/tables" "$ACCESS_TOKEN" \
+        "{\"tableCode\":\"$TABLE_CODE\",\"displayName\":\"$DISPLAY_NAME\",\"capacity\":$CAPACITY,\"status\":\"ACTIVE\"}")
+      TABLE_ID=$(echo "$TABLE_RESP" | jq -r '.id // empty')
+      if [[ -n "$TABLE_ID" && "$TABLE_ID" != "null" ]]; then
+        table_ids=$(echo "$table_ids" | jq ". + [\"$TABLE_ID\"]")
+      fi
+    done
+    log "     ✓ ${#TABLE_CONFIGS[@]} tables created"
+
+    # Create units of measure
+    log "     📏 Creating units of measure..."
+    unit_ids=()
+    for unit_template in "${UNITS_OF_MEASURE[@]}"; do
+      IFS='|' read -r UNIT_NAME ABBREV UNIT_TYPE <<< "$unit_template"
+      UNIT_RESP=$(api_post "/api/v1/admin/outlets/$OUTLET_ID/inventory/units" "$ACCESS_TOKEN" \
+        "{\"name\":\"$UNIT_NAME\",\"abbreviation\":\"$ABBREV\",\"unitType\":\"$UNIT_TYPE\",\"status\":\"ACTIVE\"}" 2>/dev/null || echo "{}")
+      UNIT_ID=$(echo "$UNIT_RESP" | jq -r '.id // empty' 2>/dev/null || echo "")
+      unit_ids+=("$UNIT_ID")
+    done
+    log "     ✓ Units of measure created"
+
+    # Create ingredient categories
+    log "     📦 Creating ingredient categories..."
+    ing_cat_ids=()
+    for ing_cat_template in "${INGREDIENT_CATEGORIES[@]}"; do
+      IFS='|' read -r ING_CAT_NAME ING_CAT_DESC ING_CAT_ICON <<< "$ing_cat_template"
+      ING_CAT_RESP=$(api_post "/api/v1/admin/outlets/$OUTLET_ID/inventory/categories" "$ACCESS_TOKEN" \
+        "{\"name\":\"$ING_CAT_NAME\",\"description\":\"$ING_CAT_DESC\",\"icon\":\"$ING_CAT_ICON\",\"sortOrder\":0,\"status\":\"ACTIVE\"}" 2>/dev/null || echo "{}")
+      ING_CAT_ID=$(echo "$ING_CAT_RESP" | jq -r '.id // empty' 2>/dev/null || echo "")
+      ing_cat_ids+=("$ING_CAT_ID")
+    done
+    log "     ✓ Ingredient categories created"
+
+    # Create suppliers
+    log "     🚚 Creating suppliers..."
+    supplier_ids=()
+    for supplier_template in "${SUPPLIERS[@]}"; do
+      IFS='|' read -r SUP_NAME SUP_CONTACT SUP_EMAIL SUP_PHONE SUP_ADDR <<< "$supplier_template"
+      SUP_RESP=$(api_post "/api/v1/admin/outlets/$OUTLET_ID/inventory/suppliers" "$ACCESS_TOKEN" \
+        "{\"name\":\"$SUP_NAME\",\"contactPerson\":\"$SUP_CONTACT\",\"email\":\"$SUP_EMAIL\",\"phone\":\"$SUP_PHONE\",\"address\":\"$SUP_ADDR\",\"status\":\"ACTIVE\"}" 2>/dev/null || echo "{}")
+      SUP_ID=$(echo "$SUP_RESP" | jq -r '.id // empty' 2>/dev/null || echo "")
+      supplier_ids+=("$SUP_ID")
+    done
+    log "     ✓ ${#SUPPLIERS[@]} suppliers created"
+
+    # Create ingredients
+    log "     🥘 Creating ingredients..."
+    for ing_template in "${INGREDIENTS[@]}"; do
+      IFS='|' read -r ING_NAME ING_SKU ING_CAT_IDX ING_COST ING_STOCK ING_REORDER UNIT_IDX <<< "$ing_template"
+      ING_CAT_ID="${ing_cat_ids[$ING_CAT_IDX]:-}"
+      UNIT_ID="${unit_ids[$UNIT_IDX]:-${unit_ids[0]:-}}"
+
+      if [[ -n "$UNIT_ID" && "$UNIT_ID" != "null" ]]; then
+        api_post "/api/v1/admin/outlets/$OUTLET_ID/inventory/ingredients" "$ACCESS_TOKEN" \
+          "{\"name\":\"$ING_NAME\",\"sku\":\"$ING_SKU\",\"categoryId\":\"$ING_CAT_ID\",\"unitId\":\"$UNIT_ID\",\"costPrice\":$ING_COST,\"currentStock\":$ING_STOCK,\"reorderLevel\":$ING_REORDER,\"trackInventory\":true,\"status\":\"ACTIVE\"}" > /dev/null 2>&1 || true
+      fi
+    done
+    log "     ✓ ${#INGREDIENTS[@]} ingredients created"
+
+    # Build outlet summary
+    outlet_summary=$(jq -n \
+      --arg id "$OUTLET_ID" \
+      --arg name "$OUTLET_NAME" \
+      --arg device "$DEVICE_CODE" \
+      --argjson employees "$emp_ids" \
+      --argjson items "$item_ids" \
+      --argjson tables "$table_ids" \
+      '{id:$id,name:$name,device:$device,employees:$employees,tables:$tables,itemCount:($items|length),tableCount:($tables|length)}')
+
+    client_summary=$(echo "$client_summary" | jq ".outlets += [$outlet_summary]")
+  done
+
+  echo "$client_summary" | jq . >> "$SUMMARY_FILE"
+  echo >> "$SUMMARY_FILE"
+
+  log ""
+  log "  ✅ Client '$CLIENT_NAME' seeded successfully"
+  sleep 1
+done
 
 ###############################################################################
 # OPTIONAL: Create sample orders (requires POS login)
@@ -688,10 +786,17 @@ log "═════════════════════════
 log "📋 SEEDED DATA SUMMARY"
 log "═══════════════════════════════════════════════"
 log ""
-log "🏢 CLIENTS (Restaurant Brands):"
-log "   • admin@spicegarden.com (Password: Admin@123)"
-log "   • admin@chaiwala.com (Password: Admin@123)"
-log "   • admin@mumbaistreet.com (Password: Admin@123)"
+log "👑 SUPER ADMIN:"
+log "   • Email: $SUPER_ADMIN_EMAIL"
+log "   • Password: $SUPER_ADMIN_PASSWORD"
+log ""
+log "🏢 CLIENTS (Restaurant Brands) & Their Admins:"
+log "   • Spice Garden Restaurant"
+log "     Admin: admin@spicegarden.com (Password: Admin@123)"
+log "   • Chai Wala Cafe"
+log "     Admin: admin@chaiwala.com (Password: Admin@123)"
+log "   • Mumbai Street Kitchen"
+log "     Admin: admin@mumbaistreet.com (Password: Admin@123)"
 log ""
 log "📍 OUTLETS:"
 log "   • Spice Garden: Koramangala, Indiranagar, Whitefield"
@@ -724,9 +829,10 @@ log ""
 log "═══════════════════════════════════════════════"
 log ""
 log "🚀 Test the seeded data:"
-log "   1. Admin Panel: Login with client admin email"
-log "   2. POS Device: Use login-context API with device code"
-log "   3. Employee Login: Use PIN authentication"
+log "   1. Super Admin Panel: Login with $SUPER_ADMIN_EMAIL"
+log "   2. Client Admin Panel: Login with client admin email"
+log "   3. POS Device: Use login-context API with device code"
+log "   4. Employee Login: Use PIN authentication"
 log ""
 
 exit 0
