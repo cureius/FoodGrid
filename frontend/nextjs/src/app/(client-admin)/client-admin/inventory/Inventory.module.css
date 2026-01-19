@@ -27,7 +27,10 @@
 .headerMid {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .segmented {
@@ -102,23 +105,41 @@
 }
 
 .tabs {
-  display: flex;
-  gap: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background: rgba(243, 244, 246, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .tab {
-  padding: 8px 16px;
-  border-radius: 999px;
-  font-weight: 800;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
   color: rgba(109, 120, 139, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  background: rgba(255, 255, 255, 0.45);
+  background: transparent;
+  border: none;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: rgba(57, 107, 251, 1);
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .tabActive {
   background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 10px 26px rgba(16, 24, 40, 0.08);
-  color: rgba(17, 24, 39, 0.92);
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.08);
+  color: rgba(57, 107, 251, 1);
+}
+
+.tabActive:hover {
+  background: rgba(255, 255, 255, 0.95);
 }
 
 .shell {
@@ -1006,6 +1027,23 @@
   .headerRow {
     grid-template-columns: 1fr;
     justify-items: start;
+    gap: 12px;
+  }
+
+  .headerMid {
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tabs {
+    flex-shrink: 0;
+  }
+
+  .tab {
+    padding: 8px 12px;
+    font-size: 12px;
   }
 
   .headerRight {
