@@ -15,12 +15,18 @@ import {
   deleteIngredient,
   listIngredientCategories,
   createStockMovement,
+  listUnitsOfMeasure,
+  createUnitOfMeasure,
+  updateUnitOfMeasure,
+  deleteUnitOfMeasure,
   type MenuCategoryResponse,
   type MenuCategoryUpsertInput,
   type IngredientResponse,
   type IngredientUpsertInput,
   type IngredientCategoryResponse,
   type StockMovementCreateInput,
+  type UnitOfMeasureResponse,
+  type UnitOfMeasureUpsertInput,
 } from '@/lib/api/clientAdmin';
 
 type StockLevel = 'high' | 'medium' | 'low' | 'empty';
@@ -173,7 +179,7 @@ const dishesSeed: Dish[] = [
 ];
 
 export default function InventoryPage() {
-  const [activeTab, setActiveTab] = useState<'Menu' | 'Ingredients' | 'Categories' | 'Request List'>('Ingredients');
+  const [activeTab, setActiveTab] = useState<'Menu' | 'Ingredients' | 'Categories' | 'Units' | 'Request List'>('Ingredients');
   const [query, setQuery] = useState('');
 
   const [dishStatusFilter, setDishStatusFilter] = useState<'All' | 'Available' | 'Not Available'>('All');
@@ -219,6 +225,21 @@ export default function InventoryPage() {
   // Ingredient Categories state
   const [ingredientCategories, setIngredientCategories] = useState<IngredientCategoryResponse[]>([]);
   const [ingredientCategoriesLoading, setIngredientCategoriesLoading] = useState(false);
+
+  // Units of Measure state
+  const [units, setUnits] = useState<UnitOfMeasureResponse[]>([]);
+  const [unitsLoading, setUnitsLoading] = useState(false);
+  const [unitsError, setUnitsError] = useState<string | null>(null);
+  const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
+  const [editingUnit, setEditingUnit] = useState<UnitOfMeasureResponse | null>(null);
+  const [unitForm, setUnitForm] = useState<UnitOfMeasureUpsertInput>({
+    name: '',
+    abbreviation: '',
+    unitType: 'COUNT',
+    status: 'ACTIVE',
+  });
+  const [unitSubmitting, setUnitSubmitting] = useState(false);
+  const [deletingUnitId, setDeletingUnitId] = useState<string | null>(null);
 
   // Stock Movement Modal
   const [isStockMovementModalOpen, setIsStockMovementModalOpen] = useState(false);
@@ -287,14 +308,29 @@ export default function InventoryPage() {
     }
   }, [outletId]);
 
+  // Fetch units of measure
+  const fetchUnits = useCallback(async () => {
+    if (!outletId) return;
+    setUnitsLoading(true);
+    try {
+      const data = await listUnitsOfMeasure(outletId);
+      setUnits(data || []);
+    } catch (err: any) {
+      console.error('Failed to load units', err);
+    } finally {
+      setUnitsLoading(false);
+    }
+  }, [outletId]);
+
   // Fetch all data on mount
   useEffect(() => {
     if (outletId) {
       fetchMenuCategories();
       fetchIngredients();
       fetchIngredientCategories();
+      fetchUnits();
     }
-  }, [outletId, fetchMenuCategories, fetchIngredients, fetchIngredientCategories]);
+  }, [outletId, fetchMenuCategories, fetchIngredients, fetchIngredientCategories, fetchUnits]);
 
   const activeMenuCategories = useMemo(() => {
     return menuCategories.filter((c) => c.status === 'ACTIVE');
@@ -432,6 +468,63 @@ export default function InventoryPage() {
     }
   };
 
+  // Unit of Measure handlers
+  const openAddUnit = () => {
+    setEditingUnit(null);
+    setUnitForm({
+      name: '',
+      abbreviation: '',
+      unitType: 'COUNT',
+      status: 'ACTIVE',
+    });
+    setIsUnitModalOpen(true);
+  };
+
+  const openEditUnit = (unit: UnitOfMeasureResponse) => {
+    setEditingUnit(unit);
+    setUnitForm({
+      name: unit.name,
+      abbreviation: unit.abbreviation,
+      unitType: unit.unitType,
+      baseUnitId: unit.baseUnitId || undefined,
+      conversionFactor: unit.conversionFactor || undefined,
+      status: unit.status,
+    });
+    setIsUnitModalOpen(true);
+  };
+
+  const handleUnitSubmit = async () => {
+    if (!outletId || !unitForm.name.trim() || !unitForm.abbreviation.trim()) return;
+    setUnitSubmitting(true);
+    try {
+      if (editingUnit) {
+        await updateUnitOfMeasure(outletId, editingUnit.id, unitForm);
+      } else {
+        await createUnitOfMeasure(outletId, unitForm);
+      }
+      setIsUnitModalOpen(false);
+      fetchUnits();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to save unit');
+    } finally {
+      setUnitSubmitting(false);
+    }
+  };
+
+  const handleDeleteUnit = async (unitId: string) => {
+    if (!outletId) return;
+    if (!confirm('Are you sure you want to delete this unit? This may affect ingredients using this unit.')) return;
+    setDeletingUnitId(unitId);
+    try {
+      await deleteUnitOfMeasure(outletId, unitId);
+      fetchUnits();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to delete unit');
+    } finally {
+      setDeletingUnitId(null);
+    }
+  };
+
   const filteredMenuCategories = useMemo(() => {
     const q = query.trim().toLowerCase();
     return menuCategories.filter((c) => !q || c.name.toLowerCase().includes(q));
@@ -505,7 +598,7 @@ export default function InventoryPage() {
 
         <div className={styles.headerMid}>
           <div className={styles.tabs}>
-            {(['Menu', 'Ingredients', 'Categories', 'Request List'] as const).map((t) => (
+            {(['Menu', 'Ingredients', 'Categories', 'Units', 'Request List'] as const).map((t) => (
               <button
                 key={t}
                 type="button"
@@ -521,7 +614,7 @@ export default function InventoryPage() {
         <div className={styles.headerRight}>
           <div className={styles.searchWrap}>
             <SearchIcon />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={headerTitle} />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={activeTab === 'Units' ? 'Search Unit Name Here' : headerTitle} />
           </div>
           <button
             type="button"
@@ -536,13 +629,17 @@ export default function InventoryPage() {
                 openAddIngredient();
                 return;
               }
+              if (activeTab === 'Units') {
+                openAddUnit();
+                return;
+              }
               setIsAddOpen(true);
               setAddStep(1);
             }}
             disabled={activeTab === 'Request List'}
           >
             <PlusIcon />
-            {addLabel}
+            {activeTab === 'Units' ? 'Add New Unit' : addLabel}
           </button>
         </div>
       </div>
@@ -668,10 +765,10 @@ export default function InventoryPage() {
           </aside>
         )}
 
-        <section className={activeTab === 'Categories' ? styles.contentCardFull : styles.contentCard}>
+        <section className={activeTab === 'Categories' || activeTab === 'Units' ? styles.contentCardFull : styles.contentCard}>
           <div className={styles.contentHeader}>
             <div className={styles.contentTitle}>
-              {activeTab === 'Menu' ? 'Menu List' : activeTab === 'Ingredients' ? 'Ingredients List' : activeTab === 'Categories' ? 'Categories List' : 'Request List'}
+              {activeTab === 'Menu' ? 'Menu List' : activeTab === 'Ingredients' ? 'Ingredients List' : activeTab === 'Categories' ? 'Categories List' : activeTab === 'Units' ? 'Units of Measure' : 'Request List'}
             </div>
           </div>
 
@@ -796,6 +893,42 @@ export default function InventoryPage() {
             </div>
           )}
 
+          {activeTab === 'Units' && (
+            <div className={styles.categoryMgmtList}>
+              {unitsLoading && <div className={styles.loadingText}>Loading units...</div>}
+              {unitsError && <div className={styles.errorText}>{unitsError}</div>}
+              {!unitsLoading && !unitsError && units.filter((u) => !query || u.name.toLowerCase().includes(query.toLowerCase()) || u.abbreviation.toLowerCase().includes(query.toLowerCase())).length === 0 && (
+                <div className={styles.emptyText}>No units found. Add one to get started.</div>
+              )}
+              {!unitsLoading && !unitsError && units
+                .filter((u) => !query || u.name.toLowerCase().includes(query.toLowerCase()) || u.abbreviation.toLowerCase().includes(query.toLowerCase()))
+                .map((unit) => (
+                <div key={unit.id} className={styles.categoryMgmtRow}>
+                  <div className={styles.categoryMgmtLeft}>
+                    <div className={styles.categoryMgmtIcon}>📏</div>
+                    <div>
+                      <div className={styles.categoryMgmtName}>{unit.name} <span style={{ fontWeight: 400, color: 'rgba(109,120,139,0.95)' }}>({unit.abbreviation})</span></div>
+                      <div className={styles.categoryMgmtMeta}>
+                        Type: <span style={{ fontWeight: 500 }}>{unit.unitType}</span> · Status: <span className={unit.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}>{unit.status}</span>
+                        {unit.baseUnitId && unit.conversionFactor && (
+                          <span> · Conversion: {unit.conversionFactor}x base</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles.categoryMgmtActions}>
+                    <button type="button" className={styles.editBtn} onClick={() => openEditUnit(unit)} aria-label="Edit">
+                      <EditIcon />
+                    </button>
+                    <button type="button" className={styles.deleteBtn} onClick={() => handleDeleteUnit(unit.id)} disabled={deletingUnitId === unit.id} aria-label="Delete">
+                      {deletingUnitId === unit.id ? '...' : <TrashIcon />}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {activeTab === 'Request List' && (
             <div style={{ padding: 16, color: 'rgba(109,120,139,0.95)' }}>
               Request List UI not implemented yet.
@@ -836,7 +969,16 @@ export default function InventoryPage() {
                   </div>
                   <div className={styles.field}>
                     <div className={styles.label}>Unit *</div>
-                    <input className={styles.input} placeholder="Enter unit" value={ingredientForm.unitId} onChange={(e) => setIngredientForm((f) => ({ ...f, unitId: e.target.value }))} />
+                    <select className={styles.input} value={ingredientForm.unitId} onChange={(e) => setIngredientForm((f) => ({ ...f, unitId: e.target.value }))}>
+                      <option value="">-- Select Unit --</option>
+                      {unitsLoading ? (
+                        <option disabled>Loading...</option>
+                      ) : (
+                        units.filter((u) => u.status === 'ACTIVE').map((u) => (
+                          <option key={u.id} value={u.id}>{u.name} ({u.abbreviation})</option>
+                        ))
+                      )}
+                    </select>
                   </div>
                   <div className={styles.field}>
                     <div className={styles.label}>Cost Price *</div>
@@ -951,27 +1093,87 @@ export default function InventoryPage() {
         </div>
       )}
 
+      {/* Unit of Measure Modal */}
+      {isUnitModalOpen && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true" onMouseDown={(e) => { if (e.target === e.currentTarget) setIsUnitModalOpen(false); }}>
+          <div className={styles.categoryModal}>
+            <div className={styles.modalTop}>
+              <div className={styles.modalTitle}>{editingUnit ? 'Edit Unit' : 'Add New Unit'}</div>
+              <button type="button" className={styles.iconClose} onClick={() => setIsUnitModalOpen(false)} aria-label="Close"><XIcon /></button>
+            </div>
+            <div className={styles.categoryModalBody}>
+              <div className={styles.field}>
+                <div className={styles.label}>Unit Name *</div>
+                <input className={styles.input} placeholder="e.g. Kilogram, Liter, Piece" value={unitForm.name} onChange={(e) => setUnitForm((f) => ({ ...f, name: e.target.value }))} />
+              </div>
+              <div className={styles.field}>
+                <div className={styles.label}>Abbreviation *</div>
+                <input className={styles.input} placeholder="e.g. kg, L, pcs" value={unitForm.abbreviation} onChange={(e) => setUnitForm((f) => ({ ...f, abbreviation: e.target.value }))} />
+              </div>
+              <div className={styles.field}>
+                <div className={styles.label}>Unit Type *</div>
+                <select className={styles.input} value={unitForm.unitType} onChange={(e) => setUnitForm((f) => ({ ...f, unitType: e.target.value as any }))}>
+                  <option value="COUNT">Count (pieces, units)</option>
+                  <option value="WEIGHT">Weight (kg, g, lb)</option>
+                  <option value="VOLUME">Volume (L, mL, gal)</option>
+                  <option value="LENGTH">Length (m, cm, in)</option>
+                </select>
+              </div>
+              <div className={styles.field}>
+                <div className={styles.label}>Base Unit (Optional)</div>
+                <select className={styles.input} value={unitForm.baseUnitId || ''} onChange={(e) => setUnitForm((f) => ({ ...f, baseUnitId: e.target.value || undefined }))}>
+                  <option value="">-- None (This is a base unit) --</option>
+                  {units.filter((u) => u.status === 'ACTIVE' && u.unitType === unitForm.unitType && u.id !== editingUnit?.id).map((u) => (
+                    <option key={u.id} value={u.id}>{u.name} ({u.abbreviation})</option>
+                  ))}
+                </select>
+              </div>
+              {unitForm.baseUnitId && (
+                <div className={styles.field}>
+                  <div className={styles.label}>Conversion Factor</div>
+                  <input className={styles.input} type="number" step="0.0001" placeholder="e.g. 1000 (if 1 kg = 1000 g)" value={unitForm.conversionFactor || ''} onChange={(e) => setUnitForm((f) => ({ ...f, conversionFactor: parseFloat(e.target.value) || undefined }))} />
+                  <div style={{ fontSize: 11, color: 'rgba(109,120,139,0.95)', marginTop: 4 }}>
+                    How many of the base unit equals 1 of this unit
+                  </div>
+                </div>
+              )}
+              <div className={styles.field}>
+                <div className={styles.label}>Status</div>
+                <div className={styles.pillsRow}>
+                  {(['ACTIVE', 'INACTIVE'] as const).map((s) => (
+                    <button key={s} type="button" className={`${styles.categoryPill} ${unitForm.status === s ? styles.categoryPillActive : ''}`} onClick={() => setUnitForm((f) => ({ ...f, status: s }))}>{s}</button>
+                  ))}
+                </div>
+              </div>
+              <div className={styles.modalFooter}>
+                <button type="button" className={styles.primaryBtn} onClick={handleUnitSubmit} disabled={unitSubmitting || !unitForm.name.trim() || !unitForm.abbreviation.trim()}>
+                  {unitSubmitting ? 'Saving...' : editingUnit ? 'Update Unit' : 'Create Unit'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Dish Detail Modal */}
       {detailDish && (
         <div className={styles.modalOverlay} role="dialog" aria-modal="true" onMouseDown={(e) => { if (e.target === e.currentTarget) setDetailDish(null); }}>
           <div className={styles.detailModal}>
             <div className={styles.modalTop}>
-              <div className={styles.modalTitle}>Detail Dish</div>
-              <button type="button" className={styles.iconCloseDark} onClick={() => setDetailDish(null)} aria-label="Close"><XIcon /></button>
+              <div className={styles.modalTitle}>Dish Details</div>
+              <button type="button" className={styles.iconClose} onClick={() => setDetailDish(null)} aria-label="Close"><XIcon /></button>
             </div>
-            <div className={styles.detailBody}>
-              <div className={styles.detailSectionTitle}>Dish</div>
-              <div className={styles.detailDishRow}>
-                <img className={styles.detailDishImg} src={detailDish.image} alt={detailDish.name} />
-                <div>
-                  <div className={styles.detailDishName}>{detailDish.name}</div>
-                  <div className={styles.detailDishMeta}>
-                    <span>{detailDish.category}</span>
-                    <span>·</span>
-                    <span>Can be served {detailDish.canBeServed}</span>
-                    <span>·</span>
-                    <span className={levelTextClass(detailDish.stockLevel)}>{levelText[detailDish.stockLevel]}</span>
-                  </div>
+            <div className={styles.detailModalBody}>
+              <div className={styles.detailImageWrap}>
+                <Image className={styles.detailImg} src={detailDish.image} alt={detailDish.name} fill sizes="400px" />
+              </div>
+              <div className={styles.detailInfo}>
+                <div className={styles.detailName}>{detailDish.name}</div>
+                <div className={styles.detailCategory}>{detailDish.category}</div>
+                <div className={styles.detailMeta}>
+                  <span>Can be served {detailDish.canBeServed}</span>
+                  <span>·</span>
+                  <span className={levelTextClass(detailDish.stockLevel)}>{levelText[detailDish.stockLevel]}</span>
                 </div>
               </div>
               <div style={{ height: 16 }} />
