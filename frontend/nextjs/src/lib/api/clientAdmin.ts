@@ -266,3 +266,375 @@ export function deleteMenuCategory(outletId: string, categoryId: string) {
     }
   );
 }
+
+// ─────────────────────────────────────────────────────────────
+// Ingredient Categories
+// ─────────────────────────────────────────────────────────────
+
+export type IngredientCategoryResponse = {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  sortOrder: number;
+  status: 'ACTIVE' | 'INACTIVE';
+};
+
+export type IngredientCategoryUpsertInput = {
+  name: string;
+  description?: string;
+  icon?: string;
+  sortOrder?: number;
+  status?: 'ACTIVE' | 'INACTIVE';
+};
+
+export function listIngredientCategories(outletId: string) {
+  return http<IngredientCategoryResponse[]>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/categories`,
+    {
+      method: "GET",
+      headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+export function createIngredientCategory(outletId: string, input: IngredientCategoryUpsertInput) {
+  return http<IngredientCategoryResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/categories`,
+    {
+      method: "POST",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function updateIngredientCategory(outletId: string, categoryId: string, input: IngredientCategoryUpsertInput) {
+  return http<IngredientCategoryResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/categories/${encodeURIComponent(categoryId)}`,
+    {
+      method: "PUT",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function deleteIngredientCategory(outletId: string, categoryId: string) {
+  return http<void>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/categories/${encodeURIComponent(categoryId)}`,
+    {
+      method: "DELETE",
+      headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Units of Measure
+// ─────────────────────────────────────────────────────────────
+
+export type UnitOfMeasureResponse = {
+  id: string;
+  name: string;
+  abbreviation: string;
+  unitType: 'WEIGHT' | 'VOLUME' | 'COUNT' | 'LENGTH';
+  baseUnitId: string | null;
+  conversionFactor: number | null;
+  status: 'ACTIVE' | 'INACTIVE';
+};
+
+export type UnitOfMeasureUpsertInput = {
+  name: string;
+  abbreviation: string;
+  unitType: 'WEIGHT' | 'VOLUME' | 'COUNT' | 'LENGTH';
+  baseUnitId?: string;
+  conversionFactor?: number;
+  status?: 'ACTIVE' | 'INACTIVE';
+};
+
+export function listUnitsOfMeasure(outletId: string) {
+  return http<UnitOfMeasureResponse[]>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/units`,
+    {
+      method: "GET",
+      headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+export function createUnitOfMeasure(outletId: string, input: UnitOfMeasureUpsertInput) {
+  return http<UnitOfMeasureResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/units`,
+    {
+      method: "POST",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function updateUnitOfMeasure(outletId: string, unitId: string, input: UnitOfMeasureUpsertInput) {
+  return http<UnitOfMeasureResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/units/${encodeURIComponent(unitId)}`,
+    {
+      method: "PUT",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function deleteUnitOfMeasure(outletId: string, unitId: string) {
+  return http<void>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/units/${encodeURIComponent(unitId)}`,
+    {
+      method: "DELETE",
+      headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Suppliers
+// ─────────────────────────────────────────────────────────────
+
+export type SupplierResponse = {
+  id: string;
+  name: string;
+  contactPerson: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  notes: string | null;
+  status: 'ACTIVE' | 'INACTIVE';
+};
+
+export type SupplierUpsertInput = {
+  name: string;
+  contactPerson?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  notes?: string;
+  status?: 'ACTIVE' | 'INACTIVE';
+};
+
+export function listSuppliers(outletId: string) {
+  return http<SupplierResponse[]>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/suppliers`,
+    {
+      method: "GET",
+      headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+export function createSupplier(outletId: string, input: SupplierUpsertInput) {
+  return http<SupplierResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/suppliers`,
+    {
+      method: "POST",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function updateSupplier(outletId: string, supplierId: string, input: SupplierUpsertInput) {
+  return http<SupplierResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/suppliers/${encodeURIComponent(supplierId)}`,
+    {
+      method: "PUT",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function deleteSupplier(outletId: string, supplierId: string) {
+  return http<void>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/suppliers/${encodeURIComponent(supplierId)}`,
+    {
+      method: "DELETE",
+      headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Ingredients
+// ─────────────────────────────────────────────────────────────
+
+export type IngredientResponse = {
+  id: string;
+  categoryId: string | null;
+  categoryName: string | null;
+  sku: string | null;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  unitId: string;
+  unitName: string | null;
+  unitAbbreviation: string | null;
+  costPrice: number;
+  isSellable: boolean;
+  sellingPrice: number | null;
+  linkedMenuItemId: string | null;
+  trackInventory: boolean;
+  currentStock: number;
+  reorderLevel: number | null;
+  reorderQuantity: number | null;
+  maxStockLevel: number | null;
+  shelfLifeDays: number | null;
+  storageInstructions: string | null;
+  defaultSupplierId: string | null;
+  defaultSupplierName: string | null;
+  status: 'ACTIVE' | 'INACTIVE';
+  stockStatus: 'HIGH' | 'MEDIUM' | 'LOW' | 'OUT_OF_STOCK' | 'OVERSTOCKED' | 'NOT_TRACKED';
+};
+
+export type IngredientUpsertInput = {
+  categoryId?: string;
+  sku?: string;
+  name: string;
+  description?: string;
+  imageUrl?: string;
+  unitId: string;
+  costPrice: number;
+  isSellable?: boolean;
+  sellingPrice?: number;
+  linkedMenuItemId?: string;
+  trackInventory?: boolean;
+  currentStock?: number;
+  reorderLevel?: number;
+  reorderQuantity?: number;
+  maxStockLevel?: number;
+  shelfLifeDays?: number;
+  storageInstructions?: string;
+  defaultSupplierId?: string;
+  status?: 'ACTIVE' | 'INACTIVE';
+};
+
+export function listIngredients(outletId: string, params?: { categoryId?: string; lowStock?: boolean }) {
+  const searchParams = new URLSearchParams();
+  if (params?.categoryId) searchParams.set('categoryId', params.categoryId);
+  if (params?.lowStock) searchParams.set('lowStock', 'true');
+  const query = searchParams.toString();
+  
+  return http<IngredientResponse[]>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/ingredients${query ? `?${query}` : ''}`,
+    {
+      method: "GET",
+      headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+export function getIngredient(outletId: string, ingredientId: string) {
+  return http<IngredientResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/ingredients/${encodeURIComponent(ingredientId)}`,
+    {
+      method: "GET",
+      headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+export function createIngredient(outletId: string, input: IngredientUpsertInput) {
+  return http<IngredientResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/ingredients`,
+    {
+      method: "POST",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function updateIngredient(outletId: string, ingredientId: string, input: IngredientUpsertInput) {
+  return http<IngredientResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/ingredients/${encodeURIComponent(ingredientId)}`,
+    {
+      method: "PUT",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function deleteIngredient(outletId: string, ingredientId: string) {
+  return http<void>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/ingredients/${encodeURIComponent(ingredientId)}`,
+    {
+      method: "DELETE",
+      headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Stock Movements
+// ─────────────────────────────────────────────────────────────
+
+export type StockMovementType = 'PURCHASE' | 'USAGE' | 'WASTAGE' | 'ADJUSTMENT' | 'TRANSFER_IN' | 'TRANSFER_OUT' | 'RETURN' | 'OPENING_STOCK';
+
+export type StockMovementResponse = {
+  id: string;
+  ingredientId: string;
+  ingredientName: string | null;
+  movementType: StockMovementType;
+  quantity: number;
+  unitId: string;
+  unitAbbreviation: string | null;
+  unitCost: number | null;
+  totalCost: number | null;
+  referenceType: string | null;
+  referenceId: string | null;
+  supplierId: string | null;
+  supplierName: string | null;
+  purchaseOrderNumber: string | null;
+  invoiceNumber: string | null;
+  wastageReason: string | null;
+  stockBefore: number;
+  stockAfter: number;
+  notes: string | null;
+  recordedByEmployeeId: string | null;
+  recordedByEmployeeName: string | null;
+  recordedAt: string;
+};
+
+export type StockMovementCreateInput = {
+  ingredientId: string;
+  movementType: StockMovementType;
+  quantity: number;
+  unitId: string;
+  unitCost?: number;
+  supplierId?: string;
+  purchaseOrderNumber?: string;
+  invoiceNumber?: string;
+  wastageReason?: string;
+  notes?: string;
+};
+
+export function listStockMovements(outletId: string, ingredientId?: string) {
+  const query = ingredientId ? `?ingredientId=${encodeURIComponent(ingredientId)}` : '';
+  return http<StockMovementResponse[]>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/stock-movements${query}`,
+    {
+      method: "GET",
+      headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+export function createStockMovement(outletId: string, input: StockMovementCreateInput) {
+  return http<StockMovementResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/stock-movements`,
+    {
+      method: "POST",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(input)
+    }
+  );
+}

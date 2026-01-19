@@ -9,8 +9,18 @@ import {
   updateMenuCategory,
   deleteMenuCategory,
   listOutlets,
+  listIngredients,
+  createIngredient,
+  updateIngredient,
+  deleteIngredient,
+  listIngredientCategories,
+  createStockMovement,
   type MenuCategoryResponse,
   type MenuCategoryUpsertInput,
+  type IngredientResponse,
+  type IngredientUpsertInput,
+  type IngredientCategoryResponse,
+  type StockMovementCreateInput,
 } from '@/lib/api/clientAdmin';
 
 type StockLevel = 'high' | 'medium' | 'low' | 'empty';
@@ -29,17 +39,6 @@ type Dish = {
     amount: string;
     stockLevel: StockLevel;
   }[];
-};
-
-type IngredientItem = {
-  id: string;
-  name: string;
-  category: 'Fresh Produce' | 'Meat & Poultry' | 'Seafood' | 'Dairy & Eggs' | 'Dry Goods & Grains';
-  stockText: string;
-  stockLevel: StockLevel;
-  supplier: string;
-  status: 'Need Request' | 'Normal' | 'Good';
-  image: string;
 };
 
 const levelText: Record<StockLevel, string> = {
@@ -63,7 +62,36 @@ function levelTextClass(level: StockLevel) {
   return styles.levelEmpty;
 }
 
-function statusPillClass(status: IngredientItem['status']) {
+function stockStatusToLevel(stockStatus: string): StockLevel {
+  switch (stockStatus) {
+    case 'HIGH':
+      return 'high';
+    case 'MEDIUM':
+      return 'medium';
+    case 'LOW':
+      return 'low';
+    case 'OUT_OF_STOCK':
+      return 'empty';
+    default:
+      return 'medium';
+  }
+}
+
+function stockStatusToDisplay(stockStatus: string): 'Need Request' | 'Normal' | 'Good' {
+  switch (stockStatus) {
+    case 'HIGH':
+      return 'Good';
+    case 'MEDIUM':
+      return 'Normal';
+    case 'LOW':
+    case 'OUT_OF_STOCK':
+      return 'Need Request';
+    default:
+      return 'Normal';
+  }
+}
+
+function statusPillClass(status: 'Need Request' | 'Normal' | 'Good') {
   if (status === 'Need Request') return `${styles.statusPill} ${styles.statusNeed}`;
   if (status === 'Normal') return `${styles.statusPill} ${styles.statusNormal}`;
   return `${styles.statusPill} ${styles.statusGood}`;
@@ -140,178 +168,12 @@ const dishesSeed: Dish[] = [
     ingredients: [
       { name: 'Snapper fillet', amount: '500gr', stockLevel: 'high' },
       { name: 'Garlic', amount: '3 cloves (minced)', stockLevel: 'high' },
-      { name: 'Ginger', amount: '1 inch (julienned)', stockLevel: 'low' },
-      { name: 'Sweet chili sauce', amount: '2 tablespoons', stockLevel: 'medium' },
-    ],
-  },
-  {
-    id: 'd2',
-    name: 'Seafood Fried Noodles',
-    category: 'Noodle',
-    canBeServed: 30,
-    stockLevel: 'high',
-    status: 'available',
-    image:
-      'https://images.unsplash.com/photo-1604908812509-a72653a4c678?auto=format&fit=crop&w=1200&q=60',
-    ingredients: [
-      { name: 'Noodles', amount: '200gr', stockLevel: 'high' },
-      { name: 'Shrimp', amount: '120gr', stockLevel: 'medium' },
-      { name: 'Soy sauce', amount: '1 tbsp', stockLevel: 'high' },
-      { name: 'Garlic', amount: '2 cloves', stockLevel: 'high' },
-    ],
-  },
-  {
-    id: 'd3',
-    name: 'Sour Meat Soup',
-    category: 'Soup',
-    canBeServed: 4,
-    stockLevel: 'low',
-    status: 'available',
-    image:
-      'https://images.unsplash.com/photo-1543353071-087092ec393a?auto=format&fit=crop&w=1200&q=60',
-    ingredients: [
-      { name: 'Beef', amount: '250gr', stockLevel: 'medium' },
-      { name: 'Tomato', amount: '2 pcs', stockLevel: 'low' },
-      { name: 'Chili', amount: '1 pc', stockLevel: 'low' },
-      { name: 'Salt', amount: '1 tsp', stockLevel: 'high' },
-    ],
-  },
-  {
-    id: 'd4',
-    name: 'Chicken Fried Rice',
-    category: 'Rice',
-    canBeServed: 1,
-    stockLevel: 'low',
-    status: 'available',
-    image:
-      'https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=1200&q=60',
-    ingredients: [
-      { name: 'Rice', amount: '250gr', stockLevel: 'high' },
-      { name: 'Chicken', amount: '120gr', stockLevel: 'high' },
-      { name: 'Egg', amount: '1 pc', stockLevel: 'medium' },
-      { name: 'Green onion', amount: '1 stalk', stockLevel: 'low' },
-    ],
-  },
-  {
-    id: 'd5',
-    name: 'Seafood Fried Rice',
-    category: 'Rice',
-    canBeServed: 4,
-    stockLevel: 'low',
-    status: 'available',
-    image:
-      'https://images.unsplash.com/photo-1604908177225-7b3928b9745e?auto=format&fit=crop&w=1200&q=60',
-    ingredients: [
-      { name: 'Rice', amount: '250gr', stockLevel: 'high' },
-      { name: 'Shrimp', amount: '80gr', stockLevel: 'low' },
-      { name: 'Squid', amount: '60gr', stockLevel: 'medium' },
-      { name: 'Garlic', amount: '2 cloves', stockLevel: 'high' },
-    ],
-  },
-  {
-    id: 'd6',
-    name: 'Soto Mie Bogor',
-    category: 'Soup',
-    canBeServed: 15,
-    stockLevel: 'medium',
-    status: 'available',
-    image:
-      'https://images.unsplash.com/photo-1604908554171-2a673e7eac03?auto=format&fit=crop&w=1200&q=60',
-    ingredients: [
-      { name: 'Noodles', amount: '200gr', stockLevel: 'high' },
-      { name: 'Chicken', amount: '120gr', stockLevel: 'medium' },
-      { name: 'Cabbage', amount: '60gr', stockLevel: 'low' },
-      { name: 'Broth', amount: '300ml', stockLevel: 'high' },
     ],
   },
 ];
-
-const ingredientsSeed: IngredientItem[] = [
-  {
-    id: 'i1',
-    name: 'Bok Choy',
-    category: 'Fresh Produce',
-    stockText: 'Stock: 1.5kg',
-    stockLevel: 'low',
-    supplier: 'GastroSupplies',
-    status: 'Need Request',
-    image:
-      'https://images.unsplash.com/photo-1542587210-7b0b97f1b2c8?auto=format&fit=crop&w=400&q=60',
-  },
-  {
-    id: 'i2',
-    name: 'Romaine Lettuce',
-    category: 'Fresh Produce',
-    stockText: 'Stock: 4.2kg',
-    stockLevel: 'medium',
-    supplier: 'Culinary Depot',
-    status: 'Normal',
-    image:
-      'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=400&q=60',
-  },
-  {
-    id: 'i3',
-    name: 'Chicken Breast',
-    category: 'Meat & Poultry',
-    stockText: 'Stock: 10kg',
-    stockLevel: 'high',
-    supplier: 'GastroSupplies',
-    status: 'Good',
-    image:
-      'https://images.unsplash.com/photo-1604908554005-4a4d8b5b0b48?auto=format&fit=crop&w=400&q=60',
-  },
-  {
-    id: 'i4',
-    name: 'Ground Beef',
-    category: 'Meat & Poultry',
-    stockText: 'Stock: 7kg',
-    stockLevel: 'medium',
-    supplier: 'Elite Ingredient Co.',
-    status: 'Normal',
-    image:
-      'https://images.unsplash.com/photo-1603048297172-c92544798dff?auto=format&fit=crop&w=400&q=60',
-  },
-  {
-    id: 'i5',
-    name: 'Salmon Fillet',
-    category: 'Seafood',
-    stockText: 'Stock: 1.8kg',
-    stockLevel: 'low',
-    supplier: 'Elite Ingredient Co.',
-    status: 'Need Request',
-    image:
-      'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?auto=format&fit=crop&w=400&q=60',
-  },
-  {
-    id: 'i6',
-    name: 'Black Tiger Shrimp',
-    category: 'Seafood',
-    stockText: 'Stock: 900g',
-    stockLevel: 'low',
-    supplier: 'Culinary Depot',
-    status: 'Need Request',
-    image:
-      'https://images.unsplash.com/photo-1553621042-f6e147245754?auto=format&fit=crop&w=400&q=60',
-  },
-  {
-    id: 'i7',
-    name: 'Large Brown Eggs',
-    category: 'Dairy & Eggs',
-    stockText: 'Stock: 8.4kg',
-    stockLevel: 'high',
-    supplier: 'Elite Ingredient Co.',
-    status: 'Good',
-    image:
-      'https://images.unsplash.com/photo-1589927986089-35812386c631?auto=format&fit=crop&w=400&q=60',
-  },
-];
-
-function countByStockLevel(level: StockLevel, items: { stockLevel: StockLevel }[]) {
-  return items.filter((x) => x.stockLevel === level).length;
-}
 
 export default function InventoryPage() {
-  const [activeTab, setActiveTab] = useState<'Menu' | 'Ingredients' | 'Categories' | 'Request List'>('Menu');
+  const [activeTab, setActiveTab] = useState<'Menu' | 'Ingredients' | 'Categories' | 'Request List'>('Ingredients');
   const [query, setQuery] = useState('');
 
   const [dishStatusFilter, setDishStatusFilter] = useState<'All' | 'Available' | 'Not Available'>('All');
@@ -324,19 +186,51 @@ export default function InventoryPage() {
 
   const [detailDish, setDetailDish] = useState<Dish | null>(null);
 
-  // Category management state
+  // Outlet state
   const [outletId, setOutletId] = useState<string | null>(null);
-  const [categories, setCategories] = useState<MenuCategoryResponse[]>([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(false);
-  const [categoryError, setCategoryError] = useState<string | null>(null);
+
+  // Menu Category management state
+  const [menuCategories, setMenuCategories] = useState<MenuCategoryResponse[]>([]);
+  const [menuCategoriesLoading, setMenuCategoriesLoading] = useState(false);
+  const [menuCategoryError, setMenuCategoryError] = useState<string | null>(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<MenuCategoryResponse | null>(null);
   const [categoryForm, setCategoryForm] = useState<MenuCategoryUpsertInput>({ name: '', sortOrder: 0, status: 'ACTIVE' });
   const [categorySubmitting, setCategorySubmitting] = useState(false);
   const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
 
+  // Ingredient management state
+  const [ingredients, setIngredients] = useState<IngredientResponse[]>([]);
+  const [ingredientsLoading, setIngredientsLoading] = useState(false);
+  const [ingredientError, setIngredientError] = useState<string | null>(null);
+  const [isIngredientModalOpen, setIsIngredientModalOpen] = useState(false);
+  const [editingIngredient, setEditingIngredient] = useState<IngredientResponse | null>(null);
+  const [ingredientForm, setIngredientForm] = useState<IngredientUpsertInput>({
+    name: '',
+    unitId: '',
+    costPrice: 0,
+    trackInventory: true,
+    currentStock: 0,
+  });
+  const [ingredientSubmitting, setIngredientSubmitting] = useState(false);
+  const [deletingIngredientId, setDeletingIngredientId] = useState<string | null>(null);
+  const [selectedIngredient, setSelectedIngredient] = useState<IngredientResponse | null>(null);
+
+  // Ingredient Categories state
+  const [ingredientCategories, setIngredientCategories] = useState<IngredientCategoryResponse[]>([]);
+  const [ingredientCategoriesLoading, setIngredientCategoriesLoading] = useState(false);
+
+  // Stock Movement Modal
+  const [isStockMovementModalOpen, setIsStockMovementModalOpen] = useState(false);
+  const [stockMovementForm, setStockMovementForm] = useState<StockMovementCreateInput>({
+    ingredientId: '',
+    movementType: 'PURCHASE',
+    quantity: 0,
+    unitId: '',
+  });
+  const [stockMovementSubmitting, setStockMovementSubmitting] = useState(false);
+
   const dishes = useMemo(() => dishesSeed, []);
-  const ingredients = useMemo(() => ingredientsSeed, []);
 
   // Fetch outlet ID on mount
   useEffect(() => {
@@ -346,51 +240,84 @@ export default function InventoryPage() {
           setOutletId(outlets[0].id);
         }
       })
-      .catch(() => {
-        // ignore
-      });
+      .catch(() => {});
   }, []);
 
-  // Fetch categories when outlet changes
-  const fetchCategories = useCallback(async () => {
+  // Fetch menu categories
+  const fetchMenuCategories = useCallback(async () => {
     if (!outletId) return;
-    setCategoriesLoading(true);
-    setCategoryError(null);
+    setMenuCategoriesLoading(true);
+    setMenuCategoryError(null);
     try {
       const data = await listMenuCategories(outletId);
-      setCategories(data || []);
+      setMenuCategories(data || []);
     } catch (err: any) {
-      setCategoryError(err?.message || 'Failed to load categories');
+      setMenuCategoryError(err?.message || 'Failed to load categories');
     } finally {
-      setCategoriesLoading(false);
+      setMenuCategoriesLoading(false);
     }
   }, [outletId]);
 
-  // Fetch categories on mount when outlet is available (not just for Categories tab)
+  // Fetch ingredients
+  const fetchIngredients = useCallback(async () => {
+    if (!outletId) return;
+    setIngredientsLoading(true);
+    setIngredientError(null);
+    try {
+      const data = await listIngredients(outletId);
+      setIngredients(data || []);
+    } catch (err: any) {
+      setIngredientError(err?.message || 'Failed to load ingredients');
+    } finally {
+      setIngredientsLoading(false);
+    }
+  }, [outletId]);
+
+  // Fetch ingredient categories
+  const fetchIngredientCategories = useCallback(async () => {
+    if (!outletId) return;
+    setIngredientCategoriesLoading(true);
+    try {
+      const data = await listIngredientCategories(outletId);
+      setIngredientCategories(data || []);
+    } catch (err: any) {
+      console.error('Failed to load ingredient categories', err);
+    } finally {
+      setIngredientCategoriesLoading(false);
+    }
+  }, [outletId]);
+
+  // Fetch all data on mount
   useEffect(() => {
     if (outletId) {
-      fetchCategories();
+      fetchMenuCategories();
+      fetchIngredients();
+      fetchIngredientCategories();
     }
-  }, [outletId, fetchCategories]);
+  }, [outletId, fetchMenuCategories, fetchIngredients, fetchIngredientCategories]);
 
-  // Get active categories for Menu tab filter
-  const activeCategories = useMemo(() => {
-    return categories.filter((c) => c.status === 'ACTIVE');
-  }, [categories]);
+  const activeMenuCategories = useMemo(() => {
+    return menuCategories.filter((c) => c.status === 'ACTIVE');
+  }, [menuCategories]);
 
-  const openAddCategory = () => {
+  const activeIngredientCategories = useMemo(() => {
+    return ingredientCategories.filter((c) => c.status === 'ACTIVE');
+  }, [ingredientCategories]);
+
+  // Menu Category handlers
+  const openAddMenuCategory = () => {
     setEditingCategory(null);
-    setCategoryForm({ name: '', sortOrder: categories.length, status: 'ACTIVE' });
+    setCategoryForm({ name: '', sortOrder: menuCategories.length, status: 'ACTIVE' });
     setIsCategoryModalOpen(true);
   };
 
-  const openEditCategory = (cat: MenuCategoryResponse) => {
+  const openEditMenuCategory = (cat: MenuCategoryResponse) => {
     setEditingCategory(cat);
     setCategoryForm({ name: cat.name, sortOrder: cat.sortOrder, status: cat.status });
     setIsCategoryModalOpen(true);
   };
 
-  const handleCategorySubmit = async () => {
+  const handleMenuCategorySubmit = async () => {
     if (!outletId || !categoryForm.name.trim()) return;
     setCategorySubmitting(true);
     try {
@@ -400,7 +327,7 @@ export default function InventoryPage() {
         await createMenuCategory(outletId, categoryForm);
       }
       setIsCategoryModalOpen(false);
-      fetchCategories();
+      fetchMenuCategories();
     } catch (err: any) {
       alert(err?.message || 'Failed to save category');
     } finally {
@@ -408,13 +335,13 @@ export default function InventoryPage() {
     }
   };
 
-  const handleDeleteCategory = async (categoryId: string) => {
+  const handleDeleteMenuCategory = async (categoryId: string) => {
     if (!outletId) return;
     if (!confirm('Are you sure you want to delete this category?')) return;
     setDeletingCategoryId(categoryId);
     try {
       await deleteMenuCategory(outletId, categoryId);
-      fetchCategories();
+      fetchMenuCategories();
     } catch (err: any) {
       alert(err?.message || 'Failed to delete category');
     } finally {
@@ -422,78 +349,138 @@ export default function InventoryPage() {
     }
   };
 
-  const filteredCategories = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return categories.filter((c) => {
-      if (!q) return true;
-      return c.name.toLowerCase().includes(q);
+  // Ingredient handlers
+  const openAddIngredient = () => {
+    setEditingIngredient(null);
+    setIngredientForm({
+      name: '',
+      unitId: '',
+      costPrice: 0,
+      trackInventory: true,
+      currentStock: 0,
     });
-  }, [categories, query]);
+    setIsIngredientModalOpen(true);
+  };
+
+  const openEditIngredient = (ing: IngredientResponse) => {
+    setEditingIngredient(ing);
+    setIngredientForm({
+      name: ing.name,
+      unitId: ing.unitId,
+      costPrice: ing.costPrice,
+      trackInventory: ing.trackInventory,
+      currentStock: ing.currentStock,
+    });
+    setIsIngredientModalOpen(true);
+  };
+
+  const handleIngredientSubmit = async () => {
+    if (!outletId || !ingredientForm.name.trim() || !ingredientForm.unitId) return;
+    setIngredientSubmitting(true);
+    try {
+      if (editingIngredient) {
+        await updateIngredient(outletId, editingIngredient.id, ingredientForm);
+      } else {
+        await createIngredient(outletId, ingredientForm);
+      }
+      setIsIngredientModalOpen(false);
+      fetchIngredients();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to save ingredient');
+    } finally {
+      setIngredientSubmitting(false);
+    }
+  };
+
+  const handleDeleteIngredient = async (ingredientId: string) => {
+    if (!outletId) return;
+    if (!confirm('Are you sure you want to delete this ingredient?')) return;
+    setDeletingIngredientId(ingredientId);
+    try {
+      await deleteIngredient(outletId, ingredientId);
+      fetchIngredients();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to delete ingredient');
+    } finally {
+      setDeletingIngredientId(null);
+    }
+  };
+
+  // Stock Movement handlers
+  const openStockMovement = (ing: IngredientResponse) => {
+    setStockMovementForm({
+      ingredientId: ing.id,
+      movementType: 'PURCHASE',
+      quantity: 0,
+      unitId: ing.unitId,
+    });
+    setSelectedIngredient(ing);
+    setIsStockMovementModalOpen(true);
+  };
+
+  const handleStockMovementSubmit = async () => {
+    if (!outletId || !stockMovementForm.ingredientId || stockMovementForm.quantity <= 0) return;
+    setStockMovementSubmitting(true);
+    try {
+      await createStockMovement(outletId, stockMovementForm);
+      setIsStockMovementModalOpen(false);
+      fetchIngredients();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to record stock movement');
+    } finally {
+      setStockMovementSubmitting(false);
+    }
+  };
+
+  const filteredMenuCategories = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return menuCategories.filter((c) => !q || c.name.toLowerCase().includes(q));
+  }, [menuCategories, query]);
 
   const counts = useMemo(() => {
     const totalStockAll = ingredients.length + dishes.length;
-    const low = countByStockLevel('low', [...ingredients, ...dishes]);
-    const medium = countByStockLevel('medium', [...ingredients, ...dishes]);
-    const high = countByStockLevel('high', [...ingredients, ...dishes]);
-    const empty = countByStockLevel('empty', [...ingredients, ...dishes]);
+    const low = ingredients.filter((i) => i.stockStatus === 'LOW').length;
+    const medium = ingredients.filter((i) => i.stockStatus === 'MEDIUM').length;
+    const high = ingredients.filter((i) => i.stockStatus === 'HIGH').length;
+    const empty = ingredients.filter((i) => i.stockStatus === 'OUT_OF_STOCK').length;
 
-    const catCounts: Record<string, number> = {
-      All: ingredients.length,
-      'Fresh Produce': ingredients.filter((i) => i.category === 'Fresh Produce').length,
-      'Meat & Poultry': ingredients.filter((i) => i.category === 'Meat & Poultry').length,
-      Seafood: ingredients.filter((i) => i.category === 'Seafood').length,
-      'Dairy & Eggs': ingredients.filter((i) => i.category === 'Dairy & Eggs').length,
-      'Dry Goods & Grains': ingredients.filter((i) => i.category === 'Dry Goods & Grains').length,
-    };
+    const catCounts: Record<string, number> = { All: ingredients.length };
+    activeIngredientCategories.forEach((cat) => {
+      catCounts[cat.name] = ingredients.filter((i) => i.categoryId === cat.id).length;
+    });
 
-    const dishCatCounts: Record<string, number> = {
-      All: dishes.length,
-    };
-    activeCategories.forEach((cat) => {
+    const dishCatCounts: Record<string, number> = { All: dishes.length };
+    activeMenuCategories.forEach((cat) => {
       dishCatCounts[cat.name] = dishes.filter((d) => d.category === cat.name).length;
     });
 
     return { totalStockAll, low, medium, high, empty, catCounts, dishCatCounts };
-  }, [dishes, ingredients, activeCategories]);
+  }, [dishes, ingredients, activeMenuCategories, activeIngredientCategories]);
 
   const filteredDishes = useMemo(() => {
     const q = query.trim().toLowerCase();
     return dishes
-      .filter((d) => {
-        if (!q) return true;
-        return d.name.toLowerCase().includes(q);
-      })
-      .filter((d) => {
-        if (dishStatusFilter === 'All') return true;
-        if (dishStatusFilter === 'Available') return d.status === 'available';
-        return d.status === 'not-available';
-      })
-      .filter((d) => {
-        if (categoryFilter === 'All') return true;
-        return d.category === categoryFilter;
-      })
-      .filter((d) => {
-        if (stockFilter === 'All') return true;
-        return d.stockLevel === stockFilter.toLowerCase();
-      });
+      .filter((d) => !q || d.name.toLowerCase().includes(q))
+      .filter((d) => dishStatusFilter === 'All' || (dishStatusFilter === 'Available' ? d.status === 'available' : d.status === 'not-available'))
+      .filter((d) => categoryFilter === 'All' || d.category === categoryFilter)
+      .filter((d) => stockFilter === 'All' || d.stockLevel === stockFilter.toLowerCase());
   }, [categoryFilter, dishStatusFilter, dishes, query, stockFilter]);
 
   const filteredIngredients = useMemo(() => {
     const q = query.trim().toLowerCase();
     return ingredients
-      .filter((i) => {
-        if (!q) return true;
-        return i.name.toLowerCase().includes(q);
-      })
+      .filter((i) => !q || i.name.toLowerCase().includes(q))
       .filter((i) => {
         if (categoryFilter === 'All') return true;
-        return i.category === categoryFilter;
+        const cat = activeIngredientCategories.find((c) => c.name === categoryFilter);
+        return cat ? i.categoryId === cat.id : true;
       })
       .filter((i) => {
         if (stockFilter === 'All') return true;
-        return i.stockLevel === stockFilter.toLowerCase();
+        const level = stockStatusToLevel(i.stockStatus);
+        return level === stockFilter.toLowerCase();
       });
-  }, [categoryFilter, ingredients, query, stockFilter]);
+  }, [categoryFilter, ingredients, query, stockFilter, activeIngredientCategories]);
 
   const headerTitle =
     activeTab === 'Ingredients'
@@ -503,7 +490,7 @@ export default function InventoryPage() {
       : 'Search Dish Name Here';
   const addLabel =
     activeTab === 'Ingredients'
-      ? 'Add New Ingredients'
+      ? 'Add New Ingredient'
       : activeTab === 'Categories'
       ? 'Add New Category'
       : 'Add New Dish';
@@ -542,7 +529,11 @@ export default function InventoryPage() {
             onClick={() => {
               if (activeTab === 'Request List') return;
               if (activeTab === 'Categories') {
-                openAddCategory();
+                openAddMenuCategory();
+                return;
+              }
+              if (activeTab === 'Ingredients') {
+                openAddIngredient();
                 return;
               }
               setIsAddOpen(true);
@@ -565,27 +556,16 @@ export default function InventoryPage() {
               <div className={styles.filterSection}>
                 <div className={styles.filterLabel}>DISHES STATUS</div>
                 <div className={styles.chipsWrap}>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${dishStatusFilter === 'All' ? styles.chipActive : ''}`}
-                    onClick={() => setDishStatusFilter('All')}
-                  >
-                    All <span className={styles.badgeCount}>{dishes.length}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${dishStatusFilter === 'Available' ? styles.chipActive : ''}`}
-                    onClick={() => setDishStatusFilter('Available')}
-                  >
-                    Available <span className={styles.badgeCount}>{dishes.filter((d) => d.status === 'available').length}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${dishStatusFilter === 'Not Available' ? styles.chipActive : ''}`}
-                    onClick={() => setDishStatusFilter('Not Available')}
-                  >
-                    Not Available <span className={styles.badgeCount}>{dishes.filter((d) => d.status === 'not-available').length}</span>
-                  </button>
+                  {(['All', 'Available', 'Not Available'] as const).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      className={`${styles.chip} ${dishStatusFilter === s ? styles.chipActive : ''}`}
+                      onClick={() => setDishStatusFilter(s)}
+                    >
+                      {s}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
@@ -593,15 +573,13 @@ export default function InventoryPage() {
             <div className={styles.filterSection}>
               <div className={styles.filterLabel}>STOCK LEVEL</div>
               <div className={styles.chipsWrap}>
-                {(
-                  [
-                    { label: 'All', count: counts.totalStockAll },
-                    { label: 'Low', count: counts.low },
-                    { label: 'Medium', count: counts.medium },
-                    { label: 'High', count: counts.high },
-                    { label: 'Empty', count: counts.empty },
-                  ] as const
-                ).map((x) => (
+                {([
+                  { label: 'All', count: counts.totalStockAll },
+                  { label: 'Low', count: counts.low },
+                  { label: 'Medium', count: counts.medium },
+                  { label: 'High', count: counts.high },
+                  { label: 'Empty', count: counts.empty },
+                ] as const).map((x) => (
                   <button
                     key={x.label}
                     type="button"
@@ -616,8 +594,39 @@ export default function InventoryPage() {
 
             <div className={styles.filterSection}>
               <div className={styles.filterLabel}>CATEGORY</div>
-
-              {activeTab === 'Menu' ? (
+              {activeTab === 'Ingredients' ? (
+                <div className={styles.categoryList}>
+                  <button
+                    type="button"
+                    className={`${styles.categoryBtn} ${categoryFilter === 'All' ? styles.categoryBtnActive : ''}`}
+                    onClick={() => setCategoryFilter('All')}
+                  >
+                    <span className={styles.categoryText}>
+                      <span aria-hidden="true">🧾</span>
+                      <span>All</span>
+                    </span>
+                    <span className={styles.categoryCount}>{counts.catCounts.All}</span>
+                  </button>
+                  {ingredientCategoriesLoading ? (
+                    <span style={{ fontSize: 12, opacity: 0.7 }}>Loading...</span>
+                  ) : (
+                    activeIngredientCategories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        className={`${styles.categoryBtn} ${categoryFilter === cat.name ? styles.categoryBtnActive : ''}`}
+                        onClick={() => setCategoryFilter(cat.name)}
+                      >
+                        <span className={styles.categoryText}>
+                          <span aria-hidden="true">{cat.icon || '📦'}</span>
+                          <span>{cat.name}</span>
+                        </span>
+                        <span className={styles.categoryCount}>{counts.catCounts[cat.name] || 0}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              ) : (
                 <div className={styles.chipsWrap}>
                   <button
                     type="button"
@@ -626,10 +635,10 @@ export default function InventoryPage() {
                   >
                     All <span className={styles.badgeCount}>{counts.dishCatCounts.All}</span>
                   </button>
-                  {categoriesLoading ? (
+                  {menuCategoriesLoading ? (
                     <span style={{ fontSize: 12, opacity: 0.7 }}>Loading...</span>
                   ) : (
-                    activeCategories.map((cat) => (
+                    activeMenuCategories.map((cat) => (
                       <button
                         key={cat.id}
                         type="button"
@@ -640,36 +649,6 @@ export default function InventoryPage() {
                       </button>
                     ))
                   )}
-                </div>
-              ) : (
-                <div className={styles.categoryList}>
-                  {(
-                    [
-                      { label: 'All', icon: '🧾' },
-                      { label: 'Fresh Produce', icon: '🥬' },
-                      { label: 'Meat & Poultry', icon: '🍗' },
-                      { label: 'Seafood', icon: '🐟' },
-                      { label: 'Dairy & Eggs', icon: '🥚' },
-                      { label: 'Dry Goods & Grains', icon: '🍚' },
-                    ] as const
-                  ).map((c) => {
-                    const isActive = categoryFilter === c.label;
-                    const count = counts.catCounts[c.label];
-                    return (
-                      <button
-                        key={c.label}
-                        type="button"
-                        className={`${styles.categoryBtn} ${isActive ? styles.categoryBtnActive : ''}`}
-                        onClick={() => setCategoryFilter(c.label)}
-                      >
-                        <span className={styles.categoryText}>
-                          <span aria-hidden="true">{c.icon}</span>
-                          <span>{c.label}</span>
-                        </span>
-                        <span className={styles.categoryCount}>{count}</span>
-                      </button>
-                    );
-                  })}
                 </div>
               )}
 
@@ -692,13 +671,7 @@ export default function InventoryPage() {
         <section className={activeTab === 'Categories' ? styles.contentCardFull : styles.contentCard}>
           <div className={styles.contentHeader}>
             <div className={styles.contentTitle}>
-              {activeTab === 'Menu'
-                ? 'Menu List'
-                : activeTab === 'Ingredients'
-                ? 'Ingredients List'
-                : activeTab === 'Categories'
-                ? 'Categories List'
-                : 'Request List'}
+              {activeTab === 'Menu' ? 'Menu List' : activeTab === 'Ingredients' ? 'Ingredients List' : activeTab === 'Categories' ? 'Categories List' : 'Request List'}
             </div>
           </div>
 
@@ -731,81 +704,95 @@ export default function InventoryPage() {
 
           {activeTab === 'Ingredients' && (
             <div className={styles.ingList}>
-              {filteredIngredients.map((i) => (
-                <div key={i.id} className={styles.ingRow}>
-                  <div className={styles.ingLeft}>
-                    {/* Use <img> here to avoid configuring remote image domains */}
-                    <img className={styles.ingImg} src={i.image} alt={i.name} loading="lazy" />
-                    <div style={{ minWidth: 0 }}>
-                      <div className={styles.ingName}>{i.name}</div>
-                      <div className={styles.ingMeta}>
-                        {i.category} · {i.stockText} · <span className={levelTextClass(i.stockLevel)}>{levelText[i.stockLevel]}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className={styles.ingColLabel}>SUPPLIER</div>
-                    <div className={styles.ingColValue}>{i.supplier}</div>
-                  </div>
-
-                  <div>
-                    <div className={styles.ingColLabel}>STATUS</div>
-                    <div className={statusPillClass(i.status)}>{i.status}</div>
-                  </div>
-
-                  <button type="button" className={styles.moreBtn} aria-label="More">
-                    <MoreIcon />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {activeTab === 'Categories' && (
-            <div className={styles.categoryMgmtList}>
-              {categoriesLoading && <div className={styles.loadingText}>Loading categories...</div>}
-              {categoryError && <div className={styles.errorText}>{categoryError}</div>}
-              {!categoriesLoading && !categoryError && filteredCategories.length === 0 && (
-                <div className={styles.emptyText}>No categories found. Add one to get started.</div>
+              {ingredientsLoading && <div className={styles.loadingText}>Loading ingredients...</div>}
+              {ingredientError && <div className={styles.errorText}>{ingredientError}</div>}
+              {!ingredientsLoading && !ingredientError && filteredIngredients.length === 0 && (
+                <div className={styles.emptyText}>No ingredients found. Add one to get started.</div>
               )}
-              {!categoriesLoading &&
-                !categoryError &&
-                filteredCategories.map((cat) => (
-                  <div key={cat.id} className={styles.categoryMgmtRow}>
-                    <div className={styles.categoryMgmtLeft}>
-                      <div className={styles.categoryMgmtIcon}>🏷️</div>
-                      <div>
-                        <div className={styles.categoryMgmtName}>{cat.name}</div>
-                        <div className={styles.categoryMgmtMeta}>
-                          Sort Order: {cat.sortOrder} · Status:{' '}
-                          <span className={cat.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}>
-                            {cat.status}
-                          </span>
+              {!ingredientsLoading && !ingredientError && filteredIngredients.map((i) => {
+                const level = stockStatusToLevel(i.stockStatus);
+                const displayStatus = stockStatusToDisplay(i.stockStatus);
+                return (
+                  <div key={i.id} className={styles.ingRow}>
+                    <div className={styles.ingLeft}>
+                      {i.imageUrl ? (
+                        <img className={styles.ingImg} src={i.imageUrl} alt={i.name} loading="lazy" />
+                      ) : (
+                        <div className={styles.ingImg} style={{ background: 'rgba(243,244,246,1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>📦</div>
+                      )}
+                      <div style={{ minWidth: 0 }}>
+                        <div className={styles.ingName}>{i.name}</div>
+                        <div className={styles.ingMeta}>
+                          {i.categoryName || 'Uncategorized'} · Stock: {i.currentStock} {i.unitAbbreviation} · <span className={levelTextClass(level)}>{levelText[level]}</span>
+                          {i.isSellable && <span style={{ marginLeft: 8, color: 'rgba(57,107,251,1)' }}>• Sellable</span>}
                         </div>
                       </div>
                     </div>
-                    <div className={styles.categoryMgmtActions}>
-                      <button
-                        type="button"
-                        className={styles.editBtn}
-                        onClick={() => openEditCategory(cat)}
-                        aria-label="Edit"
-                      >
+
+                    <div>
+                      <div className={styles.ingColLabel}>COST / SELL</div>
+                      <div className={styles.ingColValue}>
+                        ${i.costPrice.toFixed(2)}
+                        {i.isSellable && i.sellingPrice && <span style={{ color: 'rgba(16,185,129,1)' }}> / ${i.sellingPrice.toFixed(2)}</span>}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className={styles.ingColLabel}>STATUS</div>
+                      <div className={statusPillClass(displayStatus)}>{displayStatus}</div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button type="button" className={styles.editBtn} onClick={() => openStockMovement(i)} aria-label="Add Stock" title="Add Stock">
+                        <PlusIcon />
+                      </button>
+                      <button type="button" className={styles.editBtn} onClick={() => openEditIngredient(i)} aria-label="Edit">
                         <EditIcon />
                       </button>
                       <button
                         type="button"
                         className={styles.deleteBtn}
-                        onClick={() => handleDeleteCategory(cat.id)}
-                        disabled={deletingCategoryId === cat.id}
+                        onClick={() => handleDeleteIngredient(i.id)}
+                        disabled={deletingIngredientId === i.id}
                         aria-label="Delete"
                       >
-                        {deletingCategoryId === cat.id ? '...' : <TrashIcon />}
+                        {deletingIngredientId === i.id ? '...' : <TrashIcon />}
                       </button>
                     </div>
                   </div>
-                ))}
+                );
+              })}
+            </div>
+          )}
+
+          {activeTab === 'Categories' && (
+            <div className={styles.categoryMgmtList}>
+              {menuCategoriesLoading && <div className={styles.loadingText}>Loading categories...</div>}
+              {menuCategoryError && <div className={styles.errorText}>{menuCategoryError}</div>}
+              {!menuCategoriesLoading && !menuCategoryError && filteredMenuCategories.length === 0 && (
+                <div className={styles.emptyText}>No categories found. Add one to get started.</div>
+              )}
+              {!menuCategoriesLoading && !menuCategoryError && filteredMenuCategories.map((cat) => (
+                <div key={cat.id} className={styles.categoryMgmtRow}>
+                  <div className={styles.categoryMgmtLeft}>
+                    <div className={styles.categoryMgmtIcon}>🏷️</div>
+                    <div>
+                      <div className={styles.categoryMgmtName}>{cat.name}</div>
+                      <div className={styles.categoryMgmtMeta}>
+                        Sort Order: {cat.sortOrder} · Status: <span className={cat.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}>{cat.status}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles.categoryMgmtActions}>
+                    <button type="button" className={styles.editBtn} onClick={() => openEditMenuCategory(cat)} aria-label="Edit">
+                      <EditIcon />
+                    </button>
+                    <button type="button" className={styles.deleteBtn} onClick={() => handleDeleteMenuCategory(cat.id)} disabled={deletingCategoryId === cat.id} aria-label="Delete">
+                      {deletingCategoryId === cat.id ? '...' : <TrashIcon />}
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
@@ -817,149 +804,164 @@ export default function InventoryPage() {
         </section>
       </div>
 
-      {isAddOpen && (
-        <div
-          className={styles.modalOverlay}
-          role="dialog"
-          aria-modal="true"
-          aria-label={activeTab === 'Ingredients' ? 'Add New Ingredients' : 'Add New Dish'}
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) setIsAddOpen(false);
-          }}
-        >
+      {/* Ingredient Modal */}
+      {isIngredientModalOpen && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true" onMouseDown={(e) => { if (e.target === e.currentTarget) setIsIngredientModalOpen(false); }}>
           <div className={styles.modal}>
             <div className={styles.modalTop}>
-              <div className={styles.modalTitle}>{activeTab === 'Ingredients' ? 'Add New Ingredients' : 'Add New Dish'}</div>
-              <button type="button" className={styles.iconClose} onClick={() => setIsAddOpen(false)} aria-label="Close">
-                <XIcon />
-              </button>
+              <div className={styles.modalTitle}>{editingIngredient ? 'Edit Ingredient' : 'Add New Ingredient'}</div>
+              <button type="button" className={styles.iconClose} onClick={() => setIsIngredientModalOpen(false)} aria-label="Close"><XIcon /></button>
             </div>
-
             <div className={styles.modalBody}>
               <div className={styles.modalSidebar}>
-                <div className={`${styles.stepRow} ${addStep === 1 ? styles.stepRowActive : ''}`}>
-                  <span className={`${styles.stepDot} ${addStep === 1 ? styles.stepDotActive : styles.stepDotDone}`}>1</span>
-                  <span className={styles.stepText}>Dish Info</span>
+                <div className={`${styles.stepRow} ${styles.stepRowActive}`}>
+                  <span className={`${styles.stepDot} ${styles.stepDotActive}`}>1</span>
+                  <span className={styles.stepText}>Basic Info</span>
                 </div>
-                <div className={`${styles.stepRow} ${addStep === 2 ? styles.stepRowActive : ''}`}>
-                  <span className={`${styles.stepDot} ${addStep === 2 ? styles.stepDotActive : ''}`}>2</span>
-                  <span className={styles.stepText}>Ingredients</span>
+                <div className={styles.stepRow}>
+                  <span className={styles.stepDot}>2</span>
+                  <span className={styles.stepText}>Inventory</span>
+                </div>
+                <div className={styles.stepRow}>
+                  <span className={styles.stepDot}>3</span>
+                  <span className={styles.stepText}>Pricing</span>
                 </div>
               </div>
-
               <div className={styles.modalContent}>
-                {addStep === 1 ? (
-                  <>
-                    <div className={styles.panelTitle}>Dish Information</div>
-                    <div className={styles.formStack}>
-                      <div className={styles.field}>
-                        <div className={styles.label}>Dish Name</div>
-                        <input className={styles.input} placeholder="Enter Dish Name" />
-                      </div>
-                      <div className={styles.field}>
-                        <div className={styles.label}>Dish Category</div>
-                        <div className={styles.pillsRow}>
-                          {categoriesLoading ? (
-                            <span style={{ fontSize: 12, opacity: 0.7 }}>Loading categories...</span>
-                          ) : activeCategories.length === 0 ? (
-                            <span style={{ fontSize: 12, opacity: 0.7 }}>No categories available. Add categories first.</span>
-                          ) : (
-                            activeCategories.map((cat) => (
-                              <button
-                                key={cat.id}
-                                type="button"
-                                className={`${styles.categoryPill} ${selectedDishCategory === cat.name ? styles.categoryPillActive : ''}`}
-                                onClick={() => setSelectedDishCategory(cat.name)}
-                              >
-                                {cat.name}
-                              </button>
-                            ))
-                          )}
+                <div className={styles.panelTitle}>Ingredient Information</div>
+                <div className={styles.formStack}>
+                  <div className={styles.field}>
+                    <div className={styles.label}>Name *</div>
+                    <input className={styles.input} placeholder="Enter ingredient name" value={ingredientForm.name} onChange={(e) => setIngredientForm((f) => ({ ...f, name: e.target.value }))} />
+                  </div>
+                  <div className={styles.field}>
+                    <div className={styles.label}>Unit *</div>
+                    <input className={styles.input} placeholder="Enter unit" value={ingredientForm.unitId} onChange={(e) => setIngredientForm((f) => ({ ...f, unitId: e.target.value }))} />
+                  </div>
+                  <div className={styles.field}>
+                    <div className={styles.label}>Cost Price *</div>
+                    <div className={styles.priceWrap}>
+                      <div className={styles.pricePrefix}>$</div>
+                      <input className={styles.priceInput} type="number" step="0.01" value={ingredientForm.costPrice} onChange={(e) => setIngredientForm((f) => ({ ...f, costPrice: parseFloat(e.target.value) || 0 }))} />
+                    </div>
+                  </div>
+                  <div className={styles.field}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <input type="checkbox" checked={ingredientForm.trackInventory !== false} onChange={(e) => setIngredientForm((f) => ({ ...f, trackInventory: e.target.checked }))} />
+                      <span className={styles.label} style={{ marginBottom: 0 }}>Track Inventory</span>
+                    </label>
+                  </div>
+                  {ingredientForm.trackInventory !== false && (
+                    <>
+                      {!editingIngredient && (
+                        <div className={styles.field}>
+                          <div className={styles.label}>Initial Stock</div>
+                          <input className={styles.input} type="number" step="0.01" value={ingredientForm.currentStock || ''} onChange={(e) => setIngredientForm((f) => ({ ...f, currentStock: parseFloat(e.target.value) || 0 }))} />
                         </div>
-                      </div>
-                      <div className={styles.field}>
-                        <div className={styles.label}>Dish Description</div>
-                        <textarea className={styles.textarea} placeholder="Enter Dish Name" />
-                      </div>
-                      <div className={styles.field}>
-                        <div className={styles.label}>Price</div>
-                        <div className={styles.priceWrap}>
-                          <div className={styles.pricePrefix}>$</div>
-                          <input className={styles.priceInput} placeholder="" inputMode="decimal" />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className={styles.modalFooter}>
-                      <button type="button" className={styles.primaryBtn} onClick={() => setAddStep(2)}>
-                        Save and Next
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className={styles.panelTitle}>Ingredients</div>
-                    <div className={styles.ingredientsGrid}>
-                      <div className={styles.field}>
-                        <div className={styles.label}>Ingredients Name</div>
-                        <button type="button" className={styles.selectBtn}>
-                          <span>Select Ingredients</span>
-                          <ChevronDown />
-                        </button>
-                      </div>
-                      <div className={styles.field}>
-                        <div className={styles.label}>Quantity</div>
-                        <input className={styles.input} />
-                      </div>
-                      <div className={styles.field}>
-                        <div className={styles.label}>Unit</div>
-                        <button type="button" className={styles.selectBtn}>
-                          <span>Select Unit</span>
-                          <ChevronDown />
-                        </button>
-                      </div>
-                    </div>
-
-                    <button type="button" className={styles.outlineBtn}>
-                      <PlusIcon />
-                      Add Ingredients
-                    </button>
-
-                    <div className={styles.modalFooter}>
-                      <button type="button" className={styles.primaryBtn} onClick={() => setIsAddOpen(false)}>
-                        Save and Submit
-                      </button>
-                    </div>
-                  </>
-                )}
+                      )}
+                    </>
+                  )}
+                </div>
+                <div className={styles.modalFooter}>
+                  <button type="button" className={styles.primaryBtn} onClick={handleIngredientSubmit} disabled={ingredientSubmitting || !ingredientForm.name.trim() || !ingredientForm.unitId}>
+                    {ingredientSubmitting ? 'Saving...' : editingIngredient ? 'Update Ingredient' : 'Create Ingredient'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* Stock Movement Modal */}
+      {isStockMovementModalOpen && selectedIngredient && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true" onMouseDown={(e) => { if (e.target === e.currentTarget) setIsStockMovementModalOpen(false); }}>
+          <div className={styles.categoryModal}>
+            <div className={styles.modalTop}>
+              <div className={styles.modalTitle}>Record Stock Movement</div>
+              <button type="button" className={styles.iconClose} onClick={() => setIsStockMovementModalOpen(false)} aria-label="Close"><XIcon /></button>
+            </div>
+            <div className={styles.categoryModalBody}>
+              <div style={{ marginBottom: 16, padding: 12, background: 'rgba(243,244,246,1)', borderRadius: 12 }}>
+                <strong>{selectedIngredient.name}</strong>
+                <div style={{ fontSize: 12, color: 'rgba(109,120,139,0.95)', marginTop: 4 }}>
+                  Current Stock: {selectedIngredient.currentStock}
+                </div>
+              </div>
+              <div className={styles.field}>
+                <div className={styles.label}>Movement Type</div>
+                <select className={styles.input} value={stockMovementForm.movementType} onChange={(e) => setStockMovementForm((f) => ({ ...f, movementType: e.target.value as any }))}>
+                  <option value="PURCHASE">Purchase (Add Stock)</option>
+                  <option value="USAGE">Usage (Deduct Stock)</option>
+                  <option value="WASTAGE">Wastage (Deduct Stock)</option>
+                  <option value="ADJUSTMENT">Adjustment</option>
+                  <option value="RETURN">Return (Add Stock)</option>
+                </select>
+              </div>
+              <div className={styles.field}>
+                <div className={styles.label}>Quantity</div>
+                <input className={styles.input} type="number" step="0.01" placeholder="Enter quantity" value={stockMovementForm.quantity || ''} onChange={(e) => setStockMovementForm((f) => ({ ...f, quantity: parseFloat(e.target.value) || 0 }))} />
+              </div>
+              <div className={styles.field}>
+                <div className={styles.label}>Notes</div>
+                <input className={styles.input} placeholder="Optional notes" value={stockMovementForm.notes || ''} onChange={(e) => setStockMovementForm((f) => ({ ...f, notes: e.target.value || undefined }))} />
+              </div>
+              <div className={styles.modalFooter}>
+                <button type="button" className={styles.primaryBtn} onClick={handleStockMovementSubmit} disabled={stockMovementSubmitting || stockMovementForm.quantity <= 0}>
+                  {stockMovementSubmitting ? 'Recording...' : 'Record Movement'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Menu Category Modal */}
+      {isCategoryModalOpen && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true" onMouseDown={(e) => { if (e.target === e.currentTarget) setIsCategoryModalOpen(false); }}>
+          <div className={styles.categoryModal}>
+            <div className={styles.modalTop}>
+              <div className={styles.modalTitle}>{editingCategory ? 'Edit Category' : 'Add New Category'}</div>
+              <button type="button" className={styles.iconClose} onClick={() => setIsCategoryModalOpen(false)} aria-label="Close"><XIcon /></button>
+            </div>
+            <div className={styles.categoryModalBody}>
+              <div className={styles.field}>
+                <div className={styles.label}>Category Name</div>
+                <input className={styles.input} placeholder="Enter Category Name" value={categoryForm.name} onChange={(e) => setCategoryForm((f) => ({ ...f, name: e.target.value }))} />
+              </div>
+              <div className={styles.field}>
+                <div className={styles.label}>Sort Order</div>
+                <input className={styles.input} type="number" placeholder="0" value={categoryForm.sortOrder ?? 0} onChange={(e) => setCategoryForm((f) => ({ ...f, sortOrder: parseInt(e.target.value, 10) || 0 }))} />
+              </div>
+              <div className={styles.field}>
+                <div className={styles.label}>Status</div>
+                <div className={styles.pillsRow}>
+                  {(['ACTIVE', 'INACTIVE'] as const).map((s) => (
+                    <button key={s} type="button" className={`${styles.categoryPill} ${categoryForm.status === s ? styles.categoryPillActive : ''}`} onClick={() => setCategoryForm((f) => ({ ...f, status: s }))}>{s}</button>
+                  ))}
+                </div>
+              </div>
+              <div className={styles.modalFooter}>
+                <button type="button" className={styles.primaryBtn} onClick={handleMenuCategorySubmit} disabled={categorySubmitting || !categoryForm.name.trim()}>
+                  {categorySubmitting ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dish Detail Modal */}
       {detailDish && (
-        <div
-          className={styles.modalOverlay}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Detail Dish"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) setDetailDish(null);
-          }}
-        >
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true" onMouseDown={(e) => { if (e.target === e.currentTarget) setDetailDish(null); }}>
           <div className={styles.detailModal}>
             <div className={styles.modalTop}>
               <div className={styles.modalTitle}>Detail Dish</div>
-              <button type="button" className={styles.iconCloseDark} onClick={() => setDetailDish(null)} aria-label="Close">
-                <XIcon />
-              </button>
+              <button type="button" className={styles.iconCloseDark} onClick={() => setDetailDish(null)} aria-label="Close"><XIcon /></button>
             </div>
-
             <div className={styles.detailBody}>
               <div className={styles.detailSectionTitle}>Dish</div>
               <div className={styles.detailDishRow}>
-                {/* Use <img> to avoid configuring remote image domains */}
                 <img className={styles.detailDishImg} src={detailDish.image} alt={detailDish.name} />
                 <div>
                   <div className={styles.detailDishName}>{detailDish.name}</div>
@@ -972,9 +974,7 @@ export default function InventoryPage() {
                   </div>
                 </div>
               </div>
-
               <div style={{ height: 16 }} />
-
               <div className={styles.detailSectionTitle}>Ingredients</div>
               <div className={styles.detailGrid}>
                 {detailDish.ingredients.map((ing) => (
@@ -998,74 +998,92 @@ export default function InventoryPage() {
         </div>
       )}
 
-      {isCategoryModalOpen && (
-        <div
-          className={styles.modalOverlay}
-          role="dialog"
-          aria-modal="true"
-          aria-label={editingCategory ? 'Edit Category' : 'Add New Category'}
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) setIsCategoryModalOpen(false);
-          }}
-        >
-          <div className={styles.categoryModal}>
+      {/* Add Dish Modal */}
+      {isAddOpen && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true" onMouseDown={(e) => { if (e.target === e.currentTarget) setIsAddOpen(false); }}>
+          <div className={styles.modal}>
             <div className={styles.modalTop}>
-              <div className={styles.modalTitle}>{editingCategory ? 'Edit Category' : 'Add New Category'}</div>
-              <button
-                type="button"
-                className={styles.iconClose}
-                onClick={() => setIsCategoryModalOpen(false)}
-                aria-label="Close"
-              >
-                <XIcon />
-              </button>
+              <div className={styles.modalTitle}>Add New Dish</div>
+              <button type="button" className={styles.iconClose} onClick={() => setIsAddOpen(false)} aria-label="Close"><XIcon /></button>
             </div>
-
-            <div className={styles.categoryModalBody}>
-              <div className={styles.field}>
-                <div className={styles.label}>Category Name</div>
-                <input
-                  className={styles.input}
-                  placeholder="Enter Category Name"
-                  value={categoryForm.name}
-                  onChange={(e) => setCategoryForm((f) => ({ ...f, name: e.target.value }))}
-                />
-              </div>
-              <div className={styles.field}>
-                <div className={styles.label}>Sort Order</div>
-                <input
-                  className={styles.input}
-                  type="number"
-                  placeholder="0"
-                  value={categoryForm.sortOrder ?? 0}
-                  onChange={(e) => setCategoryForm((f) => ({ ...f, sortOrder: parseInt(e.target.value, 10) || 0 }))}
-                />
-              </div>
-              <div className={styles.field}>
-                <div className={styles.label}>Status</div>
-                <div className={styles.pillsRow}>
-                  {(['ACTIVE', 'INACTIVE'] as const).map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      className={`${styles.categoryPill} ${categoryForm.status === s ? styles.categoryPillActive : ''}`}
-                      onClick={() => setCategoryForm((f) => ({ ...f, status: s }))}
-                    >
-                      {s}
-                    </button>
-                  ))}
+            <div className={styles.modalBody}>
+              <div className={styles.modalSidebar}>
+                <div className={`${styles.stepRow} ${addStep === 1 ? styles.stepRowActive : ''}`}>
+                  <span className={`${styles.stepDot} ${addStep === 1 ? styles.stepDotActive : styles.stepDotDone}`}>1</span>
+                  <span className={styles.stepText}>Dish Info</span>
+                </div>
+                <div className={`${styles.stepRow} ${addStep === 2 ? styles.stepRowActive : ''}`}>
+                  <span className={`${styles.stepDot} ${addStep === 2 ? styles.stepDotActive : ''}`}>2</span>
+                  <span className={styles.stepText}>Ingredients</span>
                 </div>
               </div>
-
-              <div className={styles.modalFooter}>
-                <button
-                  type="button"
-                  className={styles.primaryBtn}
-                  onClick={handleCategorySubmit}
-                  disabled={categorySubmitting || !categoryForm.name.trim()}
-                >
-                  {categorySubmitting ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}
-                </button>
+              <div className={styles.modalContent}>
+                {addStep === 1 ? (
+                  <>
+                    <div className={styles.panelTitle}>Dish Information</div>
+                    <div className={styles.formStack}>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Dish Name</div>
+                        <input className={styles.input} placeholder="Enter Dish Name" />
+                      </div>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Dish Category</div>
+                        <div className={styles.pillsRow}>
+                          {menuCategoriesLoading ? (
+                            <span style={{ fontSize: 12, opacity: 0.7 }}>Loading...</span>
+                          ) : activeMenuCategories.length === 0 ? (
+                            <span style={{ fontSize: 12, opacity: 0.7 }}>No categories. Add one first.</span>
+                          ) : (
+                            activeMenuCategories.map((cat) => (
+                              <button key={cat.id} type="button" className={`${styles.categoryPill} ${selectedDishCategory === cat.name ? styles.categoryPillActive : ''}`} onClick={() => setSelectedDishCategory(cat.name)}>{cat.name}</button>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Description</div>
+                        <textarea className={styles.textarea} placeholder="Enter description" />
+                      </div>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Price</div>
+                        <div className={styles.priceWrap}>
+                          <div className={styles.pricePrefix}>$</div>
+                          <input className={styles.priceInput} placeholder="" inputMode="decimal" />
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.modalFooter}>
+                      <button type="button" className={styles.primaryBtn} onClick={() => setAddStep(2)}>Save and Next</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className={styles.panelTitle}>Ingredients</div>
+                    <div className={styles.ingredientsGrid}>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Ingredient</div>
+                        <select className={styles.input}>
+                          <option value="">-- Select --</option>
+                          {ingredients.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
+                        </select>
+                      </div>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Quantity</div>
+                        <input className={styles.input} type="number" />
+                      </div>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Unit</div>
+                        <select className={styles.input}>
+                          <option value="">-- Select --</option>
+                        </select>
+                      </div>
+                    </div>
+                    <button type="button" className={styles.outlineBtn}><PlusIcon /> Add Ingredient</button>
+                    <div className={styles.modalFooter}>
+                      <button type="button" className={styles.primaryBtn} onClick={() => setIsAddOpen(false)}>Save and Submit</button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
