@@ -645,7 +645,7 @@ export default function InventoryPage() {
       </div>
 
       <div className={styles.shell}>
-        {activeTab !== 'Categories' && (
+        {activeTab !== 'Categories' && activeTab !== 'Units'&& (
           <aside className={styles.filterCard}>
             <div className={styles.filterTitle}>Filter</div>
 
