@@ -1,0 +1,421 @@
+"use client";
+
+import React, { useMemo, useState } from "react";
+import styles from "./Orders.module.css";
+import Card from "@/components/ui/Card";
+import { Plus, Search, ChevronDown, ArrowRight, FileText, X, Timer, CheckCircle2, UtensilsCrossed } from "lucide-react";
+import Link from "next/link";
+
+type OrderStatus = "All" | "In Progress" | "Ready to Served" | "Waiting for Payment";
+
+type Order = {
+  id: string;
+  type: "Dine In" | "Take Away";
+  time: string;
+  table: string;
+  customer: string;
+  status: Exclude<OrderStatus, "All">;
+  progress: number;
+  itemsCount: number;
+  total: number;
+  items: { name: string; qty: number; price: number; checked: boolean }[];
+};
+
+type DetailItemStatus = "Waiting to cooked" | "Served";
+
+type DetailItem = {
+  name: string;
+  additions: string;
+  note: string;
+  price: number;
+  qty: number;
+  status: DetailItemStatus;
+  imageUrl: string;
+};
+
+type OrderDetails = {
+  totalPayment: number;
+  items: DetailItem[];
+};
+
+const ORDERS: Order[] = [
+  {
+    id: "DI104",
+    type: "Dine In",
+    time: "Mon, 17 Feb 12:24 PM",
+    table: "B3",
+    customer: "Eve",
+    status: "In Progress",
+    progress: 10,
+    itemsCount: 10,
+    total: 156.0,
+    items: [
+      { name: "Belgian Waffles", qty: 2, price: 32.0, checked: false },
+      { name: "Classic Lemonade", qty: 3, price: 36.0, checked: false },
+      { name: "Creamy Garlic Chicken", qty: 4, price: 60.0, checked: false },
+      { name: "Spicy Tuna Tartare", qty: 1, price: 28.0, checked: false },
+    ],
+  },
+  {
+    id: "TA001",
+    type: "Take Away",
+    time: "Mon, 17 Feb 10:20 PM",
+    table: "A7",
+    customer: "Vlona",
+    status: "In Progress",
+    progress: 10,
+    itemsCount: 10,
+    total: 156.0,
+    items: [
+      { name: "Belgian Waffles", qty: 2, price: 32.0, checked: false },
+      { name: "Classic Lemonade", qty: 3, price: 36.0, checked: false },
+      { name: "Creamy Garlic Chicken", qty: 4, price: 60.0, checked: false },
+      { name: "Spicy Tuna Tartare", qty: 1, price: 28.0, checked: false },
+    ],
+  },
+  {
+    id: "DI103",
+    type: "Dine In",
+    time: "Mon, 17 Feb 11:41 PM",
+    table: "A10",
+    customer: "Nielson",
+    status: "In Progress",
+    progress: 40,
+    itemsCount: 10,
+    total: 156.0,
+    items: [
+      { name: "Belgian Waffles", qty: 2, price: 32.0, checked: true },
+      { name: "Classic Lemonade", qty: 3, price: 36.0, checked: false },
+      { name: "Creamy Garlic Chicken", qty: 4, price: 60.0, checked: true },
+      { name: "Spicy Tuna Tartare", qty: 1, price: 28.0, checked: false },
+    ],
+  },
+  {
+    id: "TA001",
+    type: "Take Away",
+    time: "Mon, 17 Feb 10:20 PM",
+    table: "A7",
+    customer: "Vlona",
+    status: "In Progress",
+    progress: 10,
+    itemsCount: 10,
+    total: 156.0,
+    items: [
+      { name: "Belgian Waffles", qty: 2, price: 32.0, checked: false },
+      { name: "Classic Lemonade", qty: 3, price: 36.0, checked: false },
+      { name: "Creamy Garlic Chicken", qty: 4, price: 60.0, checked: false },
+      { name: "Spicy Tuna Tartare", qty: 1, price: 28.0, checked: false },
+    ],
+  },
+  {
+    id: "DI103",
+    type: "Dine In",
+    time: "Mon, 17 Feb 11:41 PM",
+    table: "A10",
+    customer: "Nielson",
+    status: "In Progress",
+    progress: 40,
+    itemsCount: 10,
+    total: 156.0,
+    items: [
+      { name: "Belgian Waffles", qty: 2, price: 32.0, checked: true },
+      { name: "Classic Lemonade", qty: 3, price: 36.0, checked: false },
+      { name: "Creamy Garlic Chicken", qty: 4, price: 60.0, checked: true },
+      { name: "Spicy Tuna Tartare", qty: 1, price: 28.0, checked: false },
+    ],
+  },
+  {
+    id: "TA001",
+    type: "Take Away",
+    time: "Mon, 17 Feb 10:20 PM",
+    table: "A7",
+    customer: "Vlona",
+    status: "In Progress",
+    progress: 10,
+    itemsCount: 10,
+    total: 156.0,
+    items: [
+      { name: "Belgian Waffles", qty: 2, price: 32.0, checked: false },
+      { name: "Classic Lemonade", qty: 3, price: 36.0, checked: false },
+      { name: "Creamy Garlic Chicken", qty: 4, price: 60.0, checked: false },
+      { name: "Spicy Tuna Tartare", qty: 1, price: 28.0, checked: false },
+    ],
+  },
+  {
+    id: "DI103",
+    type: "Dine In",
+    time: "Mon, 17 Feb 11:41 PM",
+    table: "A10",
+    customer: "Nielson",
+    status: "In Progress",
+    progress: 40,
+    itemsCount: 10,
+    total: 156.0,
+    items: [
+      { name: "Belgian Waffles", qty: 2, price: 32.0, checked: true },
+      { name: "Classic Lemonade", qty: 3, price: 36.0, checked: false },
+      { name: "Creamy Garlic Chicken", qty: 4, price: 60.0, checked: true },
+      { name: "Spicy Tuna Tartare", qty: 1, price: 28.0, checked: false },
+    ],
+  },
+];
+
+const ORDER_DETAILS: Record<string, OrderDetails> = {
+  DI104: {
+    totalPayment: 274.42,
+    items: [
+      {
+        name: "Lemon Butter Dory",
+        additions: "Addition: Add on 1 , Add on 2 , Add on 3 , Add on 4",
+        note: "Note: Don't use onion",
+        price: 50.5,
+        qty: 1,
+        status: "Waiting to cooked",
+        imageUrl: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=200&q=60",
+      },
+      {
+        name: "Fried Rice with Green Chili",
+        additions: "Addition: Add on 1 , Add on 2 , Add on 3 , Add on 4",
+        note: "",
+        price: 58.0,
+        qty: 1,
+        status: "Served",
+        imageUrl: "https://images.unsplash.com/photo-1604908554065-793e9c8b0f7d?auto=format&fit=crop&w=200&q=60",
+      },
+    ],
+  },
+};
+
+export default function OrderPage() {
+  const [activeStatus, setActiveStatus] = useState<OrderStatus>("All");
+  const [query, setQuery] = useState("");
+  const [sortBy, setSortBy] = useState("Latest Order");
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  const selectedOrder = useMemo(() => ORDERS.find((o) => o.id === selectedOrderId) ?? null, [selectedOrderId]);
+  const selectedDetails = useMemo(() => (selectedOrderId ? ORDER_DETAILS[selectedOrderId] : undefined), [selectedOrderId]);
+
+  const statusFilters: { label: OrderStatus; count: number }[] = [
+    { label: "All", count: 20 },
+    { label: "In Progress", count: 20 },
+    { label: "Ready to Served", count: 20 },
+    { label: "Waiting for Payment", count: 20 },
+  ];
+
+  const filteredOrders = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return ORDERS.filter((o) => {
+      const matchesStatus = activeStatus === "All" ? true : o.status === activeStatus;
+      const matchesQuery = !q || o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q);
+      return matchesStatus && matchesQuery;
+    });
+  }, [activeStatus, query]);
+
+  return (
+    <div className={styles.page}>
+      <div className={styles.topRow}>
+        <div className={styles.pageTitlePill}>
+          <FileText size={18} />
+          <span>Order</span>
+        </div>
+
+        <div className={styles.topActions}>
+          <div className={styles.searchBar}>
+            <Search size={18} />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search Order ID or Customer Name"
+            />
+          </div>
+
+          <Link href="/orders/new" className={styles.createBtn}>
+            <Plus size={18} /> Create New Order
+          </Link>
+
+          <div className={styles.sortWrap}>
+            <label className={styles.sortLabel} htmlFor="sort">
+              Sort by:
+            </label>
+            <div className={styles.sortSelectWrap}>
+              <select id="sort" value={sortBy} onChange={(e) => setSortBy(e.target.value)} className={styles.sortSelect}>
+                <option>Latest Order</option>
+                <option>Oldest Order</option>
+              </select>
+              <ChevronDown size={16} className={styles.sortChevron} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.filterRow}>
+        {statusFilters.map((f) => (
+          <button
+            key={f.label}
+            className={f.label === activeStatus ? styles.filterPillActive : styles.filterPill}
+            onClick={() => setActiveStatus(f.label)}
+          >
+            <span>{f.label}</span>
+            <span className={styles.pillCount}>{f.count}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className={styles.grid}>
+        {filteredOrders.map((order) => (
+          <Card key={order.id} className={styles.orderCard} variant="outline">
+            <div className={styles.cardTop}>
+              <div className={styles.cardMeta}>
+                <span className={styles.metaLeft}>
+                  Order# <b>{order.id}</b> / <b>{order.type}</b>
+                </span>
+                <span className={styles.metaRight}>{order.time}</span>
+              </div>
+
+              <div className={styles.customerRow}>
+                <div className={styles.tablePill}>{order.table}</div>
+                <div className={styles.customerInfo}>
+                  <div className={styles.customerLabel}>Customer Name</div>
+                  <div className={styles.customerName}>{order.customer}</div>
+                </div>
+              </div>
+
+              <div className={styles.statusRow}>
+                <div className={styles.statusLeft}>
+                  <div className={styles.progressRing} style={{ ["--p" as any]: `${order.progress}` }} aria-label={`Progress ${order.progress}%`}>
+                    <span>{order.progress}%</span>
+                  </div>
+                  <div className={styles.statusText}>{order.status}</div>
+                </div>
+                <div className={styles.itemsCount}>
+                  {order.itemsCount} Items <ArrowRight size={16} />
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.itemsTable}>
+              <div className={styles.itemsHeader}>
+                <span>Items</span>
+                <span>Qty</span>
+                <span>Price</span>
+              </div>
+
+              <div className={styles.itemsBody}>
+                {order.items.map((it, idx) => (
+                  <div key={idx} className={styles.itemRow}>
+                    <div className={styles.itemNameWrap}>
+                      <input type="checkbox" checked={it.checked} readOnly />
+                      <span className={styles.itemName}>{it.name}</span>
+                    </div>
+                    <span className={styles.itemQty}>{it.qty}</span>
+                    <span className={styles.itemPrice}>${it.price.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className={styles.totalRow}>
+                <span className={styles.totalLabel}>Total</span>
+                <span />
+                <span className={styles.totalValue}>${order.total.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div className={styles.cardFooter}>
+              <button className={styles.secondaryBtn} onClick={() => setSelectedOrderId(order.id)}>
+                See Details
+              </button>
+              <button className={styles.primaryBtn} disabled={order.status !== "Waiting for Payment"}>
+                Pay Bills
+              </button>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {selectedOrder && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true" aria-label="Detail Order" onMouseDown={() => setSelectedOrderId(null)}>
+          <div className={styles.modal} onMouseDown={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <div className={styles.modalTitle}>Detail Order</div>
+              <button className={styles.modalClose} aria-label="Close" onClick={() => setSelectedOrderId(null)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <div className={styles.detailMetaRow}>
+                <div className={styles.detailMetaLeft}>
+                  Order# <b>{selectedOrder.id}</b> / <b>{selectedOrder.type}</b>
+                </div>
+                <div className={styles.detailMetaRight}>{selectedOrder.time}</div>
+              </div>
+
+              <div className={styles.detailCustomerRow}>
+                <div className={styles.detailTableBadge}>{selectedOrder.table}</div>
+                <div className={styles.detailCustomerInfo}>
+                  <div className={styles.detailCustomerLabel}>Customer Name</div>
+                  <div className={styles.detailCustomerName}>{selectedOrder.customer}</div>
+                </div>
+              </div>
+
+              <div className={styles.detailStatusBar}>
+                <div className={styles.detailStatusLeft}>
+                  <div className={styles.detailProgressBadge}>10%</div>
+                  <div className={styles.detailStatusText}>In Progress •</div>
+                </div>
+                <div className={styles.detailItemsRight}>6 Items <ArrowRight size={16} /></div>
+              </div>
+
+              <div className={styles.detailItemsList}>
+                {(selectedDetails?.items ?? []).map((it, idx) => (
+                  <div key={idx} className={styles.detailItemCard}>
+                    <div className={it.status === "Served" ? styles.detailItemHeaderServed : styles.detailItemHeaderWait}>
+                      <div className={styles.detailItemHeaderLeft}>
+                        {it.status === "Served" ? <CheckCircle2 size={18} /> : <Timer size={18} />}
+                        <span>{it.status}</span>
+                      </div>
+                      {it.status === "Waiting to cooked" && (
+                        <button className={styles.cancelBtn}>
+                          <UtensilsCrossed size={16} /> Cancel order
+                        </button>
+                      )}
+                    </div>
+
+                    <div className={styles.detailItemBody}>
+                      <img className={styles.detailItemImage} src={it.imageUrl} alt={it.name} />
+                      <div className={styles.detailItemInfo}>
+                        <div className={styles.detailItemName}>{it.name}</div>
+                        <div className={styles.detailItemSub}>{it.additions}</div>
+                        {it.note ? <div className={styles.detailItemNote}>{it.note}</div> : null}
+                      </div>
+                    </div>
+
+                    <div className={styles.detailItemFooter}>
+                      <div className={styles.detailItemPrice}>${it.price.toFixed(2)}</div>
+                      <div className={styles.detailQtyPill}>x{it.qty}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.modalFooter}>
+              <div className={styles.paymentRow}>
+                <span>Total Payment</span>
+                <b>US${(selectedDetails?.totalPayment ?? selectedOrder.total).toFixed(2)}</b>
+              </div>
+              <div className={styles.footerButtons}>
+                <button className={styles.footerGhostBtn}>
+                  <Plus size={18} /> New Order
+                </button>
+                <button className={styles.footerPrimaryBtn} disabled>
+                  Proceed to Payment
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

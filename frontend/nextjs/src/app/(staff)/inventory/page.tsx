@@ -253,13 +253,6 @@ export default function InventoryPage() {
   });
   const [stockMovementSubmitting, setStockMovementSubmitting] = useState(false);
 
-  // Suppliers state
-  const [suppliers, setSuppliers] = useState<SupplierResponse[]>([]);
-  const [suppliersLoading, setSuppliersLoading] = useState(false);
-
-  // Ingredient modal step state
-  const [ingredientStep, setIngredientStep] = useState<1 | 2 | 3>(1);
-
   const dishes = useMemo(() => dishesSeed, []);
 
   // Fetch outlet ID on mount
@@ -270,7 +263,7 @@ export default function InventoryPage() {
           setOutletId(outlets[0].id);
         }
       })
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
   // Fetch menu categories
@@ -331,20 +324,6 @@ export default function InventoryPage() {
     }
   }, [outletId]);
 
-  // Fetch suppliers
-  const fetchSuppliers = useCallback(async () => {
-    if (!outletId) return;
-    setSuppliersLoading(true);
-    try {
-      const data = await listSuppliers(outletId);
-      setSuppliers(data || []);
-    } catch (err: any) {
-      console.error('Failed to load suppliers', err);
-    } finally {
-      setSuppliersLoading(false);
-    }
-  }, [outletId]);
-
   // Fetch all data on mount
   useEffect(() => {
     if (outletId) {
@@ -352,9 +331,8 @@ export default function InventoryPage() {
       fetchIngredients();
       fetchIngredientCategories();
       fetchUnits();
-      fetchSuppliers();
     }
-  }, [outletId, fetchMenuCategories, fetchIngredients, fetchIngredientCategories, fetchUnits, fetchSuppliers]);
+  }, [outletId, fetchMenuCategories, fetchIngredients, fetchIngredientCategories, fetchUnits]);
 
   const activeMenuCategories = useMemo(() => {
     return menuCategories.filter((c) => c.status === 'ACTIVE');
@@ -603,14 +581,14 @@ export default function InventoryPage() {
     activeTab === 'Ingredients'
       ? 'Search Ingredients Name Here'
       : activeTab === 'Categories'
-        ? 'Search Category Name Here'
-        : 'Search Dish Name Here';
+      ? 'Search Category Name Here'
+      : 'Search Dish Name Here';
   const addLabel =
     activeTab === 'Ingredients'
       ? 'Add New Ingredient'
       : activeTab === 'Categories'
-        ? 'Add New Category'
-        : 'Add New Dish';
+      ? 'Add New Category'
+      : 'Add New Dish';
 
   return (
     <div className={styles.page}>
@@ -669,7 +647,7 @@ export default function InventoryPage() {
       </div>
 
       <div className={styles.shell}>
-        {activeTab !== 'Categories' && activeTab !== 'Units' && (
+        {activeTab !== 'Categories' && activeTab !== 'Units'&& (
           <aside className={styles.filterCard}>
             <div className={styles.filterTitle}>Filter</div>
 
@@ -927,29 +905,29 @@ export default function InventoryPage() {
               {!unitsLoading && !unitsError && units
                 .filter((u) => !query || u.name.toLowerCase().includes(query.toLowerCase()) || u.abbreviation.toLowerCase().includes(query.toLowerCase()))
                 .map((unit) => (
-                  <div key={unit.id} className={styles.categoryMgmtRow}>
-                    <div className={styles.categoryMgmtLeft}>
-                      <div className={styles.categoryMgmtIcon}>📏</div>
-                      <div>
-                        <div className={styles.categoryMgmtName}>{unit.name} <span style={{ fontWeight: 400, color: 'rgba(109,120,139,0.95)' }}>({unit.abbreviation})</span></div>
-                        <div className={styles.categoryMgmtMeta}>
-                          Type: <span style={{ fontWeight: 500 }}>{unit.unitType}</span> · Status: <span className={unit.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}>{unit.status}</span>
-                          {unit.baseUnitId && unit.conversionFactor && (
-                            <span> · Conversion: {unit.conversionFactor}x base</span>
-                          )}
-                        </div>
+                <div key={unit.id} className={styles.categoryMgmtRow}>
+                  <div className={styles.categoryMgmtLeft}>
+                    <div className={styles.categoryMgmtIcon}>📏</div>
+                    <div>
+                      <div className={styles.categoryMgmtName}>{unit.name} <span style={{ fontWeight: 400, color: 'rgba(109,120,139,0.95)' }}>({unit.abbreviation})</span></div>
+                      <div className={styles.categoryMgmtMeta}>
+                        Type: <span style={{ fontWeight: 500 }}>{unit.unitType}</span> · Status: <span className={unit.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}>{unit.status}</span>
+                        {unit.baseUnitId && unit.conversionFactor && (
+                          <span> · Conversion: {unit.conversionFactor}x base</span>
+                        )}
                       </div>
                     </div>
-                    <div className={styles.categoryMgmtActions}>
-                      <button type="button" className={styles.editBtn} onClick={() => openEditUnit(unit)} aria-label="Edit">
-                        <EditIcon />
-                      </button>
-                      <button type="button" className={styles.deleteBtn} onClick={() => handleDeleteUnit(unit.id)} disabled={deletingUnitId === unit.id} aria-label="Delete">
-                        {deletingUnitId === unit.id ? '...' : <TrashIcon />}
-                      </button>
-                    </div>
                   </div>
-                ))}
+                  <div className={styles.categoryMgmtActions}>
+                    <button type="button" className={styles.editBtn} onClick={() => openEditUnit(unit)} aria-label="Edit">
+                      <EditIcon />
+                    </button>
+                    <button type="button" className={styles.deleteBtn} onClick={() => handleDeleteUnit(unit.id)} disabled={deletingUnitId === unit.id} aria-label="Delete">
+                      {deletingUnitId === unit.id ? '...' : <TrashIcon />}
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
@@ -970,8 +948,6 @@ export default function InventoryPage() {
               <button type="button" className={styles.iconClose} onClick={() => setIsIngredientModalOpen(false)} aria-label="Close"><XIcon /></button>
             </div>
             <div className={styles.modalBody}>
-              <div className={styles.modalSidebar}>
-                <div className={`${styles.stepRow} ${styles.stepRowActive}`}>
                   <span className={`${styles.stepDot} ${styles.stepDotActive}`}>1</span>
                   <span className={styles.stepText}>Basic Info</span>
                 </div>
@@ -1187,131 +1163,135 @@ export default function InventoryPage() {
               <div className={styles.modalTitle}>Dish Details</div>
               <button type="button" className={styles.iconClose} onClick={() => setDetailDish(null)} aria-label="Close"><XIcon /></button>
             </div>
-            <Image className={styles.detailImg} src={detailDish.image} alt={detailDish.name} fill sizes="400px" />
-          </div>
-          <div className={styles.detailInfo}>
-            <div className={styles.detailName}>{detailDish.name}</div>
-            <div className={styles.detailCategory}>{detailDish.category}</div>
-            <div className={styles.detailMeta}>
-              <span>Can be served {detailDish.canBeServed}</span>
-              <span>·</span>
-              <span className={levelTextClass(detailDish.stockLevel)}>{levelText[detailDish.stockLevel]}</span>
-            </div>
-          </div>
-          <div style={{ height: 16 }} />
-          <div className={styles.detailSectionTitle}>Ingredients</div>
-          <div className={styles.detailGrid}>
-            {detailDish.ingredients.map((ing) => (
-              <div key={ing.name} className={styles.detailIngCard}>
-                <div className={styles.detailIngLeft}>
-                  <div className={styles.detailIngAvatar} aria-hidden="true" />
-                  <div style={{ minWidth: 0 }}>
-                    <div className={styles.detailIngName}>{ing.name}</div>
-                    <div className={styles.detailIngAmt}>{ing.amount}</div>
-                  </div>
-                </div>
-                <div className={styles.detailIngLevel}>
-                  <span className={`${styles.dot} ${levelDotClass(ing.stockLevel)}`} aria-hidden="true" />
-                  <span className={`${styles.stockText} ${levelTextClass(ing.stockLevel)}`}>{levelText[ing.stockLevel]}</span>
+            <div className={styles.detailModalBody}>
+              <div className={styles.detailImageWrap}>
+                <Image className={styles.detailImg} src={detailDish.image} alt={detailDish.name} fill sizes="400px" />
+              </div>
+              <div className={styles.detailInfo}>
+                <div className={styles.detailName}>{detailDish.name}</div>
+                <div className={styles.detailCategory}>{detailDish.category}</div>
+                <div className={styles.detailMeta}>
+                  <span>Can be served {detailDish.canBeServed}</span>
+                  <span>·</span>
+                  <span className={levelTextClass(detailDish.stockLevel)}>{levelText[detailDish.stockLevel]}</span>
                 </div>
               </div>
-            ))}
+              <div style={{ height: 16 }} />
+              <div className={styles.detailSectionTitle}>Ingredients</div>
+              <div className={styles.detailGrid}>
+                {detailDish.ingredients.map((ing) => (
+                  <div key={ing.name} className={styles.detailIngCard}>
+                    <div className={styles.detailIngLeft}>
+                      <div className={styles.detailIngAvatar} aria-hidden="true" />
+                      <div style={{ minWidth: 0 }}>
+                        <div className={styles.detailIngName}>{ing.name}</div>
+                        <div className={styles.detailIngAmt}>{ing.amount}</div>
+                      </div>
+                    </div>
+                    <div className={styles.detailIngLevel}>
+                      <span className={`${styles.dot} ${levelDotClass(ing.stockLevel)}`} aria-hidden="true" />
+                      <span className={`${styles.stockText} ${levelTextClass(ing.stockLevel)}`}>{levelText[ing.stockLevel]}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div >
+        </div>
       )}
 
       {/* Add Dish Modal */}
       {isAddOpen && (
-          <div className={styles.modalOverlay} role="dialog" aria-modal="true" onMouseDown={(e) => { if (e.target === e.currentTarget) setIsAddOpen(false); }}>
-            <div className={styles.modal}>
-              <div className={styles.modalTop}>
-                <div className={styles.modalTitle}>Add New Dish</div>
-                <button type="button" className={styles.iconClose} onClick={() => setIsAddOpen(false)} aria-label="Close"><XIcon /></button>
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true" onMouseDown={(e) => { if (e.target === e.currentTarget) setIsAddOpen(false); }}>
+          <div className={styles.modal}>
+            <div className={styles.modalTop}>
+              <div className={styles.modalTitle}>Add New Dish</div>
+              <button type="button" className={styles.iconClose} onClick={() => setIsAddOpen(false)} aria-label="Close"><XIcon /></button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.modalSidebar}>
+                <div className={`${styles.stepRow} ${addStep === 1 ? styles.stepRowActive : ''}`}>
+                  <span className={`${styles.stepDot} ${addStep === 1 ? styles.stepDotActive : styles.stepDotDone}`}>1</span>
+                  <span className={styles.stepText}>Dish Info</span>
+                </div>
+                <div className={`${styles.stepRow} ${addStep === 2 ? styles.stepRowActive : ''}`}>
+                  <span className={`${styles.stepDot} ${addStep === 2 ? styles.stepDotActive : ''}`}>2</span>
+                  <span className={styles.stepText}>Ingredients</span>
+                </div>
               </div>
-              <div className={styles.modalBody}>
-                <div className={styles.modalSidebar}>
-                  <div className={`${styles.stepRow} ${addStep === 1 ? styles.stepRowActive : ''}`}>
-                    <span className={`${styles.stepDot} ${addStep === 1 ? styles.stepDotActive : styles.stepDotDone}`}>1</span>
-                    <span className={styles.stepText}>Dish Info</span>
-                  </div>
-                  <div className={`${styles.stepRow} ${addStep === 2 ? styles.stepRowActive : ''}`}>
-                    <span className={`${styles.stepDot} ${addStep === 2 ? styles.stepDotActive : ''}`}>2</span>
-                    <span className={styles.stepText}>Ingredients</span>
-                  </div>
-                </div>
-                <div className={styles.modalContent}>
-                  {addStep === 1 ? (
-                    <>
-                      <div className={styles.panelTitle}>Dish Information</div>
-                      <div className={styles.formStack}>
-                        <div className={styles.field}>
-                          <div className={styles.label}>Dish Name</div>
-                          <input className={styles.input} placeholder="Enter Dish Name" />
-                        </div>
-                        <div className={styles.field}>
-                          <div className={styles.label}>Dish Category</div>
-                          <div className={styles.pillsRow}>
-                            {menuCategoriesLoading ? (
-                              <span style={{ fontSize: 12, opacity: 0.7 }}>Loading...</span>
-                            ) : activeMenuCategories.length === 0 ? (
-                              <span style={{ fontSize: 12, opacity: 0.7 }}>No categories. Add one first.</span>
-                            ) : (
-                              activeMenuCategories.map((cat) => (
-                                <button key={cat.id} type="button" className={`${styles.categoryPill} ${selectedDishCategory === cat.name ? styles.categoryPillActive : ''}`} onClick={() => setSelectedDishCategory(cat.name)}>{cat.name}</button>
-                              ))
-                            )}
-                          </div>
-                        </div>
-                        <div className={styles.field}>
-                          <div className={styles.label}>Description</div>
-                          <textarea className={styles.textarea} placeholder="Enter description" />
-                        </div>
-                        <div className={styles.field}>
-                          <div className={styles.label}>Price</div>
-                          <div className={styles.priceWrap}>
-                            <div className={styles.pricePrefix}>$</div>
-                            <input className={styles.priceInput} placeholder="" inputMode="decimal" />
-                          </div>
+              <div className={styles.modalContent}>
+                {addStep === 1 ? (
+                  <>
+                    <div className={styles.panelTitle}>Dish Information</div>
+                    <div className={styles.formStack}>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Dish Name</div>
+                        <input className={styles.input} placeholder="Enter Dish Name" />
+                      </div>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Dish Category</div>
+                        <div className={styles.pillsRow}>
+                          {menuCategoriesLoading ? (
+                            <span style={{ fontSize: 12, opacity: 0.7 }}>Loading...</span>
+                          ) : activeMenuCategories.length === 0 ? (
+                            <span style={{ fontSize: 12, opacity: 0.7 }}>No categories. Add one first.</span>
+                          ) : (
+                            activeMenuCategories.map((cat) => (
+                              <button key={cat.id} type="button" className={`${styles.categoryPill} ${selectedDishCategory === cat.name ? styles.categoryPillActive : ''}`} onClick={() => setSelectedDishCategory(cat.name)}>{cat.name}</button>
+                            ))
+                          )}
                         </div>
                       </div>
-                      <div className={styles.modalFooter}>
-                        <button type="button" className={styles.primaryBtn} onClick={() => setAddStep(2)}>Save and Next</button>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Description</div>
+                        <textarea className={styles.textarea} placeholder="Enter description" />
                       </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className={styles.panelTitle}>Ingredients</div>
-                      <div className={styles.ingredientsGrid}>
-                        <div className={styles.field}>
-                          <div className={styles.label}>Ingredient</div>
-                          <select className={styles.input}>
-                            <option value="">-- Select --</option>
-                            {ingredients.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
-                          </select>
-                        </div>
-                        <div className={styles.field}>
-                          <div className={styles.label}>Quantity</div>
-                          <input className={styles.input} type="number" />
-                        </div>
-                        <div className={styles.field}>
-                          <div className={styles.label}>Unit</div>
-                          <select className={styles.input}>
-                            <option value="">-- Select --</option>
-                          </select>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Price</div>
+                        <div className={styles.priceWrap}>
+                          <div className={styles.pricePrefix}>$</div>
+                          <input className={styles.priceInput} placeholder="" inputMode="decimal" />
                         </div>
                       </div>
-                      <button type="button" className={styles.outlineBtn}><PlusIcon /> Add Ingredient</button>
-                      <div className={styles.modalFooter}>
-                        <button type="button" className={styles.primaryBtn} onClick={() => setIsAddOpen(false)}>Save and Submit</button>
+                    </div>
+                    <div className={styles.modalFooter}>
+                      <button type="button" className={styles.primaryBtn} onClick={() => setAddStep(2)}>Save and Next</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className={styles.panelTitle}>Ingredients</div>
+                    <div className={styles.ingredientsGrid}>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Ingredient</div>
+                        <select className={styles.input}>
+                          <option value="">-- Select --</option>
+                          {ingredients.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
+                        </select>
                       </div>
-                    </>
-                  )}
-                </div>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Quantity</div>
+                        <input className={styles.input} type="number" />
+                      </div>
+                      <div className={styles.field}>
+                        <div className={styles.label}>Unit</div>
+                        <select className={styles.input}>
+                          <option value="">-- Select --</option>
+                        </select>
+                      </div>
+                    </div>
+                    <button type="button" className={styles.outlineBtn}><PlusIcon /> Add Ingredient</button>
+                    <div className={styles.modalFooter}>
+                      <button type="button" className={styles.primaryBtn} onClick={() => setIsAddOpen(false)}>Save and Submit</button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
+        </div>
       )}
-    </div >
+    </div>
   );
 }
 
@@ -1347,6 +1327,6 @@ function TrashIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-    </svg >
+    </svg>
   );
 }
