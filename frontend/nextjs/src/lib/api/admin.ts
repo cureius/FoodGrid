@@ -162,7 +162,7 @@ export function listTenants() {
   return http<any[]>(`/api/v1/admin/tenants`, {
     method: "GET",
     headers: {
-      ...adminAuthHeader()
+      ...tenantAdminAuthHeader()
     }
   });
 }
@@ -171,7 +171,7 @@ export function getTenant(tenantId: string) {
   return http<any>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}`, {
     method: "GET",
     headers: {
-      ...adminAuthHeader()
+      ...tenantAdminAuthHeader()
     }
   });
 }
@@ -180,7 +180,7 @@ export function createTenant(input: TenantUpsertInput) {
   return http<any>(`/api/v1/admin/tenants`, {
     method: "POST",
     headers: {
-      ...adminAuthHeader()
+      ...tenantAdminAuthHeader()
     },
     body: JSON.stringify(input)
   });
@@ -190,7 +190,7 @@ export function updateTenant(tenantId: string, input: TenantUpsertInput) {
   return http<any>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}`, {
     method: "PUT",
     headers: {
-      ...adminAuthHeader()
+      ...tenantAdminAuthHeader()
     },
     body: JSON.stringify(input)
   });
@@ -200,7 +200,7 @@ export function deleteTenant(tenantId: string) {
   return http<any>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}`, {
     method: "DELETE",
     headers: {
-      ...adminAuthHeader()
+      ...tenantAdminAuthHeader()
     }
   });
 }
@@ -209,7 +209,7 @@ export function activateTenant(tenantId: string) {
   return http<any>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/activate`, {
     method: "PUT",
     headers: {
-      ...adminAuthHeader()
+      ...tenantAdminAuthHeader()
     }
   });
 }
@@ -218,7 +218,7 @@ export function deactivateTenant(tenantId: string) {
   return http<any>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/deactivate`, {
     method: "PUT",
     headers: {
-      ...adminAuthHeader()
+      ...tenantAdminAuthHeader()
     }
   });
 }

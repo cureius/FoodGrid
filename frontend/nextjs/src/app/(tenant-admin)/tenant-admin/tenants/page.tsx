@@ -15,10 +15,10 @@ import { isTenantAdmin } from "@/lib/utils/admin";
 
 export default function TenantsPage() {
   useEffect(() => {
-    const t = localStorage.getItem("fg_admin_access_token");
+    const t = localStorage.getItem("fg_tenant_admin_access_token");
     if (!t) {
       if (typeof globalThis !== 'undefined' && globalThis.location) {
-        globalThis.location.href = "/admin-login";
+        globalThis.location.href = "/tenant-admin-login";
       }
       return;
     }

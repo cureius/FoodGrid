@@ -14,7 +14,7 @@ import java.util.List;
 @Path("/api/v1/admin/tenants")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@RolesAllowed({"ADMIN"})
+@RolesAllowed({"ADMIN", "TENANT_ADMIN"})
 public class TenantAdminResource {
 
   @Inject TenantAdminService tenantAdminService;
@@ -26,36 +26,36 @@ public class TenantAdminResource {
 
   @GET
   @Path("/{tenantId}")
-  public ClientResponse get(@PathParam("tenantId") String tenantId) {
+  public ClientResponse get(@PathParam("tenantId") final String tenantId) {
     return tenantAdminService.get(tenantId);
   }
 
   @POST
-  public ClientResponse create(@Valid ClientUpsertRequest request) {
+  public ClientResponse create(@Valid final ClientUpsertRequest request) {
     return tenantAdminService.create(request);
   }
 
   @PUT
   @Path("/{tenantId}")
-  public ClientResponse update(@PathParam("tenantId") String tenantId, @Valid ClientUpsertRequest request) {
+  public ClientResponse update(@PathParam("tenantId") final String tenantId, @Valid final ClientUpsertRequest request) {
     return tenantAdminService.update(tenantId, request);
   }
 
   @DELETE
   @Path("/{tenantId}")
-  public void delete(@PathParam("tenantId") String tenantId) {
+  public void delete(@PathParam("tenantId") final String tenantId) {
     tenantAdminService.delete(tenantId);
   }
 
   @PUT
   @Path("/{tenantId}/activate")
-  public ClientResponse activate(@PathParam("tenantId") String tenantId) {
+  public ClientResponse activate(@PathParam("tenantId") final String tenantId) {
     return tenantAdminService.activate(tenantId);
   }
 
   @PUT
   @Path("/{tenantId}/deactivate")
-  public ClientResponse deactivate(@PathParam("tenantId") String tenantId) {
+  public ClientResponse deactivate(@PathParam("tenantId") final String tenantId) {
     return tenantAdminService.deactivate(tenantId);
   }
 }
