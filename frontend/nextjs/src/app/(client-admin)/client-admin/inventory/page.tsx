@@ -1,8 +1,17 @@
 'use client';
 
 import Image from 'next/image';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from './Inventory.module.css';
+import {
+  listMenuCategories,
+  createMenuCategory,
+  updateMenuCategory,
+  deleteMenuCategory,
+  listOutlets,
+  type MenuCategoryResponse,
+  type MenuCategoryUpsertInput,
+} from '@/lib/api/clientAdmin';
 
 type StockLevel = 'high' | 'medium' | 'low' | 'empty';
 type DishStatus = 'available' | 'not-available';
@@ -304,7 +313,7 @@ function countByStockLevel(level: StockLevel, items: { stockLevel: StockLevel }[
 }
 
 export default function InventoryPage() {
-  const [activeTab, setActiveTab] = useState<'Menu' | 'Ingredients' | 'Request List'>('Menu');
+  const [activeTab, setActiveTab] = useState<'Menu' | 'Ingredients' | 'Categories' | 'Request List'>('Menu');
   const [query, setQuery] = useState('');
 
   const [dishStatusFilter, setDishStatusFilter] = useState<'All' | 'Available' | 'Not Available'>('All');
@@ -316,8 +325,105 @@ export default function InventoryPage() {
 
   const [detailDish, setDetailDish] = useState<Dish | null>(null);
 
+  // Category management state
+  const [outletId, setOutletId] = useState<string | null>(null);
+  const [categories, setCategories] = useState<MenuCategoryResponse[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [categoryError, setCategoryError] = useState<string | null>(null);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<MenuCategoryResponse | null>(null);
+  const [categoryForm, setCategoryForm] = useState<MenuCategoryUpsertInput>({ name: '', sortOrder: 0, status: 'ACTIVE' });
+  const [categorySubmitting, setCategorySubmitting] = useState(false);
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
+
   const dishes = useMemo(() => dishesSeed, []);
   const ingredients = useMemo(() => ingredientsSeed, []);
+
+  // Fetch outlet ID on mount
+  useEffect(() => {
+    listOutlets()
+      .then((outlets) => {
+        if (outlets && outlets.length > 0) {
+          setOutletId(outlets[0].id);
+        }
+      })
+      .catch(() => {
+        // ignore
+      });
+  }, []);
+
+  // Fetch categories when outlet changes or tab is Categories
+  const fetchCategories = useCallback(async () => {
+    if (!outletId) return;
+    setCategoriesLoading(true);
+    setCategoryError(null);
+    try {
+      const data = await listMenuCategories(outletId);
+      setCategories(data || []);
+    } catch (err: any) {
+      setCategoryError(err?.message || 'Failed to load categories');
+    } finally {
+      setCategoriesLoading(false);
+    }
+  }, [outletId]);
+
+  useEffect(() => {
+    if (activeTab === 'Categories' && outletId) {
+      fetchCategories();
+    }
+  }, [activeTab, outletId, fetchCategories]);
+
+  const openAddCategory = () => {
+    setEditingCategory(null);
+    setCategoryForm({ name: '', sortOrder: categories.length, status: 'ACTIVE' });
+    setIsCategoryModalOpen(true);
+  };
+
+  const openEditCategory = (cat: MenuCategoryResponse) => {
+    setEditingCategory(cat);
+    setCategoryForm({ name: cat.name, sortOrder: cat.sortOrder, status: cat.status });
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleCategorySubmit = async () => {
+    if (!outletId || !categoryForm.name.trim()) return;
+    setCategorySubmitting(true);
+    try {
+      if (editingCategory) {
+        await updateMenuCategory(outletId, editingCategory.id, categoryForm);
+      } else {
+        await createMenuCategory(outletId, categoryForm);
+      }
+      setIsCategoryModalOpen(false);
+      fetchCategories();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to save category');
+    } finally {
+      setCategorySubmitting(false);
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    if (!outletId) return;
+    if (!confirm('Are you sure you want to delete this category?')) return;
+    setDeletingCategoryId(categoryId);
+    try {
+      await deleteMenuCategory(outletId, categoryId);
+      fetchCategories();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to delete category');
+    } finally {
+      setDeletingCategoryId(null);
+    }
+  };
+
+  const filteredCategories = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return categories.filter((c) => {
+      if (!q) return true;
+      return c.name.toLowerCase().includes(q);
+    });
+  }, [categories, query]);
 
   const counts = useMemo(() => {
     const totalStockAll = ingredients.length + dishes.length;
@@ -386,8 +492,18 @@ export default function InventoryPage() {
       });
   }, [categoryFilter, ingredients, query, stockFilter]);
 
-  const headerTitle = activeTab === 'Ingredients' ? 'Search Ingredients Name Here' : 'Search Dish Name Here';
-  const addLabel = activeTab === 'Ingredients' ? 'Add New Ingredients' : 'Add New Dish';
+  const headerTitle =
+    activeTab === 'Ingredients'
+      ? 'Search Ingredients Name Here'
+      : activeTab === 'Categories'
+      ? 'Search Category Name Here'
+      : 'Search Dish Name Here';
+  const addLabel =
+    activeTab === 'Ingredients'
+      ? 'Add New Ingredients'
+      : activeTab === 'Categories'
+      ? 'Add New Category'
+      : 'Add New Dish';
 
   return (
     <div className={styles.page}>
@@ -399,7 +515,7 @@ export default function InventoryPage() {
 
         <div className={styles.headerMid}>
           <div className={styles.tabs}>
-            {(['Menu', 'Ingredients', 'Request List'] as const).map((t) => (
+            {(['Menu', 'Ingredients', 'Categories', 'Request List'] as const).map((t) => (
               <button
                 key={t}
                 type="button"
@@ -422,6 +538,10 @@ export default function InventoryPage() {
             className={styles.addBtn}
             onClick={() => {
               if (activeTab === 'Request List') return;
+              if (activeTab === 'Categories') {
+                openAddCategory();
+                return;
+              }
               setIsAddOpen(true);
               setAddStep(1);
             }}
@@ -563,7 +683,13 @@ export default function InventoryPage() {
         <section className={styles.contentCard}>
           <div className={styles.contentHeader}>
             <div className={styles.contentTitle}>
-              {activeTab === 'Menu' ? 'Menu List' : activeTab === 'Ingredients' ? 'Ingredients List' : 'Request List'}
+              {activeTab === 'Menu'
+                ? 'Menu List'
+                : activeTab === 'Ingredients'
+                ? 'Ingredients List'
+                : activeTab === 'Categories'
+                ? 'Categories List'
+                : 'Request List'}
             </div>
           </div>
 
@@ -624,6 +750,53 @@ export default function InventoryPage() {
                   </button>
                 </div>
               ))}
+            </div>
+          )}
+
+          {activeTab === 'Categories' && (
+            <div className={styles.categoryMgmtList}>
+              {categoriesLoading && <div className={styles.loadingText}>Loading categories...</div>}
+              {categoryError && <div className={styles.errorText}>{categoryError}</div>}
+              {!categoriesLoading && !categoryError && filteredCategories.length === 0 && (
+                <div className={styles.emptyText}>No categories found. Add one to get started.</div>
+              )}
+              {!categoriesLoading &&
+                !categoryError &&
+                filteredCategories.map((cat) => (
+                  <div key={cat.id} className={styles.categoryMgmtRow}>
+                    <div className={styles.categoryMgmtLeft}>
+                      <div className={styles.categoryMgmtIcon}>🏷️</div>
+                      <div>
+                        <div className={styles.categoryMgmtName}>{cat.name}</div>
+                        <div className={styles.categoryMgmtMeta}>
+                          Sort Order: {cat.sortOrder} · Status:{' '}
+                          <span className={cat.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}>
+                            {cat.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.categoryMgmtActions}>
+                      <button
+                        type="button"
+                        className={styles.editBtn}
+                        onClick={() => openEditCategory(cat)}
+                        aria-label="Edit"
+                      >
+                        <EditIcon />
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.deleteBtn}
+                        onClick={() => handleDeleteCategory(cat.id)}
+                        disabled={deletingCategoryId === cat.id}
+                        aria-label="Delete"
+                      >
+                        {deletingCategoryId === cat.id ? '...' : <TrashIcon />}
+                      </button>
+                    </div>
+                  </div>
+                ))}
             </div>
           )}
 
@@ -804,6 +977,116 @@ export default function InventoryPage() {
           </div>
         </div>
       )}
+
+      {isCategoryModalOpen && (
+        <div
+          className={styles.modalOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-label={editingCategory ? 'Edit Category' : 'Add New Category'}
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setIsCategoryModalOpen(false);
+          }}
+        >
+          <div className={styles.categoryModal}>
+            <div className={styles.modalTop}>
+              <div className={styles.modalTitle}>{editingCategory ? 'Edit Category' : 'Add New Category'}</div>
+              <button
+                type="button"
+                className={styles.iconClose}
+                onClick={() => setIsCategoryModalOpen(false)}
+                aria-label="Close"
+              >
+                <XIcon />
+              </button>
+            </div>
+
+            <div className={styles.categoryModalBody}>
+              <div className={styles.field}>
+                <div className={styles.label}>Category Name</div>
+                <input
+                  className={styles.input}
+                  placeholder="Enter Category Name"
+                  value={categoryForm.name}
+                  onChange={(e) => setCategoryForm((f) => ({ ...f, name: e.target.value }))}
+                />
+              </div>
+              <div className={styles.field}>
+                <div className={styles.label}>Sort Order</div>
+                <input
+                  className={styles.input}
+                  type="number"
+                  placeholder="0"
+                  value={categoryForm.sortOrder ?? 0}
+                  onChange={(e) => setCategoryForm((f) => ({ ...f, sortOrder: parseInt(e.target.value, 10) || 0 }))}
+                />
+              </div>
+              <div className={styles.field}>
+                <div className={styles.label}>Status</div>
+                <div className={styles.pillsRow}>
+                  {(['ACTIVE', 'INACTIVE'] as const).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      className={`${styles.categoryPill} ${categoryForm.status === s ? styles.categoryPillActive : ''}`}
+                      onClick={() => setCategoryForm((f) => ({ ...f, status: s }))}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.modalFooter}>
+                <button
+                  type="button"
+                  className={styles.primaryBtn}
+                  onClick={handleCategorySubmit}
+                  disabled={categorySubmitting || !categoryForm.name.trim()}
+                >
+                  {categorySubmitting ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+function EditIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 6H5H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

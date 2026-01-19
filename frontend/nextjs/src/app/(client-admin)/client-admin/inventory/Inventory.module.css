@@ -841,6 +841,156 @@
   gap: 8px;
 }
 
+/* Category Management */
+.categoryMgmtList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 6px;
+  height: calc(680px - 60px);
+  overflow: auto;
+}
+
+.categoryMgmtRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.categoryMgmtLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.categoryMgmtIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(57, 107, 251, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.categoryMgmtName {
+  font-weight: 900;
+  color: rgba(17, 24, 39, 0.92);
+}
+
+.categoryMgmtMeta {
+  margin-top: 2px;
+  font-size: 12px;
+  color: rgba(109, 120, 139, 0.92);
+}
+
+.categoryMgmtActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(57, 107, 251, 1);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.editBtn:hover {
+  background: rgba(57, 107, 251, 0.08);
+}
+
+.deleteBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.06);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(239, 68, 68, 1);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.deleteBtn:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.deleteBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.statusActive {
+  color: rgba(16, 185, 129, 1);
+  font-weight: 700;
+}
+
+.statusInactive {
+  color: rgba(156, 163, 175, 1);
+  font-weight: 700;
+}
+
+.loadingText {
+  padding: 24px;
+  text-align: center;
+  color: rgba(109, 120, 139, 0.95);
+  font-weight: 600;
+}
+
+.errorText {
+  padding: 24px;
+  text-align: center;
+  color: rgba(239, 68, 68, 1);
+  font-weight: 600;
+}
+
+.emptyText {
+  padding: 24px;
+  text-align: center;
+  color: rgba(109, 120, 139, 0.95);
+  font-weight: 600;
+}
+
+/* Category Modal */
+.categoryModal {
+  width: min(480px, 92vw);
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 30px 70px rgba(16, 24, 40, 0.18);
+  overflow: hidden;
+}
+
+.categoryModalBody {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.categoryPillActive {
+  background: rgba(57, 107, 251, 0.15);
+  border-color: rgba(57, 107, 251, 0.3);
+  color: rgba(57, 107, 251, 1);
+}
+
 @media (max-width: 1060px) {
   .headerRow {
     grid-template-columns: 1fr;

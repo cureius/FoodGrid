@@ -198,3 +198,71 @@ export function deleteTable(outletId: string, tableId: string) {
     }
   );
 }
+
+// ─────────────────────────────────────────────────────────────
+// Menu Categories
+// ─────────────────────────────────────────────────────────────
+
+export type MenuCategoryResponse = {
+  id: string;
+  outletId: string;
+  name: string;
+  sortOrder: number;
+  status: string;
+};
+
+export type MenuCategoryUpsertInput = {
+  name: string;
+  sortOrder?: number;
+  status?: string;
+};
+
+export function listMenuCategories(outletId: string) {
+  return http<MenuCategoryResponse[]>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/categories`,
+    {
+      method: "GET",
+      headers: {
+        ...clientAdminAuthHeader()
+      }
+    }
+  );
+}
+
+export function createMenuCategory(outletId: string, input: MenuCategoryUpsertInput) {
+  return http<MenuCategoryResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/categories`,
+    {
+      method: "POST",
+      headers: {
+        ...clientAdminAuthHeader()
+      },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function updateMenuCategory(outletId: string, categoryId: string, input: MenuCategoryUpsertInput) {
+  return http<MenuCategoryResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/categories/${encodeURIComponent(categoryId)}`,
+    {
+      method: "PUT",
+      headers: {
+        ...clientAdminAuthHeader()
+      },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function deleteMenuCategory(outletId: string, categoryId: string) {
+  return http<void>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/categories/${encodeURIComponent(categoryId)}`,
+    {
+      method: "DELETE",
+      headers: {
+        ...clientAdminAuthHeader()
+      }
+    }
+  );
+}
