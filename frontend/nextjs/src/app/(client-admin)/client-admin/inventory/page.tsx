@@ -1020,7 +1020,7 @@ export default function InventoryPage() {
                       className={`${styles.categoryBtn} ${menuCategoryFilter === 'All' ? styles.categoryBtnActive : ''}`}
                       onClick={() => setMenuCategoryFilter('All')}
                     >
-                      <span className={styles.categoryText}>All Categories</span>
+                      <span className={styles.categoryText}>All</span>
                       <span className={styles.categoryCount}>{menuItemsCounts.total}</span>
                     </button>
                     {menuCategoriesLoading ? (
@@ -1172,6 +1172,24 @@ export default function InventoryPage() {
           <div className={styles.contentHeader}>
             <div className={styles.contentTitle}>
               {activeTab === 'Menu' ? 'Menu List' : activeTab === 'Ingredients' ? 'Ingredients List' : activeTab === 'Categories' ? 'Categories List' : activeTab === 'Units' ? 'Units of Measure' : activeTab === 'Suppliers' ? 'Suppliers List' : 'Request List'}
+              {activeTab === 'Menu' && (
+                <span> ({filteredMenuItems.length})</span>
+              )}
+              {activeTab === 'Ingredients' && (
+                <span> ({filteredIngredients.length})</span>
+              )}
+              {activeTab === 'Categories' && (
+                <span> ({filteredMenuCategories.length})</span>
+              )}
+              {activeTab === 'Units' && (
+                <span> ({units.length})</span>
+              )}
+              {activeTab === 'Suppliers' && (
+                <span> ({filteredSuppliers.length})</span>
+              )}
+              {activeTab === 'Request List' && (
+                <span> ({filteredSuppliers.length})</span>
+              )}
             </div>
           </div>
 
