@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record MenuItemUpsertRequest(
   String categoryId,
@@ -11,5 +12,6 @@ public record MenuItemUpsertRequest(
   String description,
   Boolean isVeg,
   @NotNull BigDecimal basePrice,
-  String status
+  String status,
+  List<MenuItemImageUpsertRequest> images
 ) {}

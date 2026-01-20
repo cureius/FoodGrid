@@ -268,6 +268,104 @@ export function deleteMenuCategory(outletId: string, categoryId: string) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Menu Items
+// ─────────────────────────────────────────────────────────────
+
+export type MenuItemImageResponse = {
+  id: string;
+  imageUrl: string;
+  sortOrder: number;
+  isPrimary: boolean;
+};
+
+export type MenuItemImageUpsertInput = {
+  imageUrl: string;
+  sortOrder?: number;
+  isPrimary?: boolean;
+};
+
+export type MenuItemResponse = {
+  id: string;
+  outletId: string;
+  categoryId: string | null;
+  categoryName: string | null;
+  name: string;
+  description: string | null;
+  isVeg: boolean;
+  basePrice: number;
+  status: 'ACTIVE' | 'INACTIVE';
+  images: MenuItemImageResponse[];
+  primaryImageUrl: string | null;
+};
+
+export type MenuItemUpsertInput = {
+  categoryId?: string | null;
+  name: string;
+  description?: string | null;
+  isVeg?: boolean;
+  basePrice: number;
+  status?: 'ACTIVE' | 'INACTIVE';
+  images?: MenuItemImageUpsertInput[];
+};
+
+export function listMenuItems(outletId: string, params?: { categoryId?: string; status?: string }) {
+  const searchParams = new URLSearchParams();
+  if (params?.categoryId) searchParams.set('categoryId', params.categoryId);
+  if (params?.status) searchParams.set('status', params.status);
+  const query = searchParams.toString();
+  
+  return http<MenuItemResponse[]>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/items${query ? `?${query}` : ''}`,
+    {
+      method: "GET",
+      headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+export function getMenuItem(outletId: string, itemId: string) {
+  return http<MenuItemResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/items/${encodeURIComponent(itemId)}`,
+    {
+      method: "GET",
+      headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+export function createMenuItem(outletId: string, input: MenuItemUpsertInput) {
+  return http<MenuItemResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/items`,
+    {
+      method: "POST",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function updateMenuItem(outletId: string, itemId: string, input: MenuItemUpsertInput) {
+  return http<MenuItemResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/items/${encodeURIComponent(itemId)}`,
+    {
+      method: "PUT",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function deleteMenuItem(outletId: string, itemId: string) {
+  return http<void>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/items/${encodeURIComponent(itemId)}`,
+    {
+      method: "DELETE",
+      headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
 // Ingredient Categories
 // ─────────────────────────────────────────────────────────────
 

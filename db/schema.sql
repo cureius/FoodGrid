@@ -160,6 +160,62 @@ CREATE TABLE IF NOT EXISTS pin_otp_challenges (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
+-- MENU MANAGEMENT SYSTEM
+-- =====================================================
+
+-- Menu Categories (Starters, Main Course, Desserts, etc.)
+CREATE TABLE IF NOT EXISTS menu_categories (
+  id CHAR(36) NOT NULL,
+  outlet_id CHAR(36) NOT NULL,
+  tenant_id CHAR(36) NULL,
+  name VARCHAR(120) NOT NULL,
+  sort_order INT NOT NULL DEFAULT 0,
+  status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_menu_categories_outlet (outlet_id),
+  CONSTRAINT fk_menu_categories_outlet FOREIGN KEY (outlet_id) REFERENCES outlets(id)
+    ON UPDATE RESTRICT ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Menu Items (Dishes)
+CREATE TABLE IF NOT EXISTS menu_items (
+  id CHAR(36) NOT NULL,
+  outlet_id CHAR(36) NOT NULL,
+  tenant_id CHAR(36) NULL,
+  category_id CHAR(36) NULL,
+  name VARCHAR(160) NOT NULL,
+  description VARCHAR(500) NULL,
+  is_veg BOOLEAN NOT NULL DEFAULT FALSE,
+  base_price DECIMAL(12,2) NOT NULL,
+  status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_menu_items_outlet (outlet_id),
+  KEY idx_menu_items_category (category_id),
+  CONSTRAINT fk_menu_items_outlet FOREIGN KEY (outlet_id) REFERENCES outlets(id)
+    ON UPDATE RESTRICT ON DELETE RESTRICT,
+  CONSTRAINT fk_menu_items_category FOREIGN KEY (category_id) REFERENCES menu_categories(id)
+    ON UPDATE RESTRICT ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Menu Item Images (Multiple images per dish)
+CREATE TABLE IF NOT EXISTS menu_item_images (
+  id CHAR(36) NOT NULL,
+  menu_item_id CHAR(36) NOT NULL,
+  image_url VARCHAR(500) NOT NULL,
+  sort_order INT NOT NULL DEFAULT 0,
+  is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_menu_item_images_item (menu_item_id),
+  CONSTRAINT fk_menu_item_images_item FOREIGN KEY (menu_item_id) REFERENCES menu_items(id)
+    ON UPDATE RESTRICT ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
 -- INGREDIENT MANAGEMENT SYSTEM
 -- =====================================================
 
