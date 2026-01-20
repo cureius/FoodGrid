@@ -20,6 +20,9 @@ import {
   updateUnitOfMeasure,
   deleteUnitOfMeasure,
   listSuppliers,
+  createSupplier,
+  updateSupplier,
+  deleteSupplier,
   type MenuCategoryResponse,
   type MenuCategoryUpsertInput,
   type IngredientResponse,
@@ -29,6 +32,7 @@ import {
   type UnitOfMeasureResponse,
   type UnitOfMeasureUpsertInput,
   type SupplierResponse,
+  type SupplierUpsertInput,
 } from '@/lib/api/clientAdmin';
 
 type StockLevel = 'high' | 'medium' | 'low' | 'empty';
@@ -181,7 +185,7 @@ const dishesSeed: Dish[] = [
 ];
 
 export default function InventoryPage() {
-  const [activeTab, setActiveTab] = useState<'Menu' | 'Ingredients' | 'Categories' | 'Units' | 'Request List'>('Ingredients');
+  const [activeTab, setActiveTab] = useState<'Menu' | 'Ingredients' | 'Categories' | 'Units' | 'Suppliers' | 'Request List'>('Ingredients');
   const [query, setQuery] = useState('');
 
   const [dishStatusFilter, setDishStatusFilter] = useState<'All' | 'Available' | 'Not Available'>('All');
@@ -256,6 +260,20 @@ export default function InventoryPage() {
   // Suppliers state
   const [suppliers, setSuppliers] = useState<SupplierResponse[]>([]);
   const [suppliersLoading, setSuppliersLoading] = useState(false);
+  const [suppliersError, setSuppliersError] = useState<string | null>(null);
+  const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
+  const [editingSupplier, setEditingSupplier] = useState<SupplierResponse | null>(null);
+  const [supplierForm, setSupplierForm] = useState<SupplierUpsertInput>({
+    name: '',
+    contactPerson: '',
+    email: '',
+    phone: '',
+    address: '',
+    notes: '',
+    status: 'ACTIVE',
+  });
+  const [supplierSubmitting, setSupplierSubmitting] = useState(false);
+  const [deletingSupplierId, setDeletingSupplierId] = useState<string | null>(null);
 
   // Ingredient modal step state
   const [ingredientStep, setIngredientStep] = useState<1 | 2 | 3>(1);
@@ -267,18 +285,18 @@ export default function InventoryPage() {
     costPrice: number;
     trackInventory: boolean;
     currentStock: number;
-    description?: string | null;
-    imageUrl?: string | null;
-    categoryId?: string | null;
-    sku?: string | null;
-    isSellable: boolean | null;
-    sellingPrice?: number | null;
-    reorderLevel?: number | null;
-    reorderQuantity?: number | null;
-    maxStockLevel?: number | null;
-    shelfLifeDays?: number | null;
-    storageInstructions?: string | null;
-    defaultSupplierId?: string | null;
+    description?: string;
+    imageUrl?: string;
+    categoryId?: string;
+    sku?: string;
+    isSellable?: boolean;
+    sellingPrice?: number;
+    reorderLevel?: number;
+    reorderQuantity?: number;
+    maxStockLevel?: number;
+    shelfLifeDays?: number;
+    storageInstructions?: string;
+    defaultSupplierId?: string;
     status: 'ACTIVE' | 'INACTIVE';
   }>({
     name: '',
@@ -365,10 +383,12 @@ export default function InventoryPage() {
   const fetchSuppliers = useCallback(async () => {
     if (!outletId) return;
     setSuppliersLoading(true);
+    setSuppliersError(null);
     try {
       const data = await listSuppliers(outletId);
       setSuppliers(data || []);
     } catch (err: any) {
+      setSuppliersError(err?.message || 'Failed to load suppliers');
       console.error('Failed to load suppliers', err);
     } finally {
       setSuppliersLoading(false);
@@ -478,17 +498,17 @@ export default function InventoryPage() {
       trackInventory: ing.trackInventory,
       currentStock: ing.currentStock,
       description: ing.description ?? undefined,
-      imageUrl: ing.imageUrl,
-      categoryId: ing.categoryId,
-      sku: ing.sku,
-      isSellable: ing.isSellable,
-      sellingPrice: ing.sellingPrice,
-      reorderLevel: ing.reorderLevel,
-      reorderQuantity: ing.reorderQuantity,
-      maxStockLevel: ing.maxStockLevel,
-      shelfLifeDays: ing.shelfLifeDays,
-      storageInstructions: ing.storageInstructions,
-      defaultSupplierId: ing.defaultSupplierId,
+      imageUrl: ing.imageUrl ?? undefined,
+      categoryId: ing.categoryId ?? undefined,
+      sku: ing.sku ?? undefined,
+      isSellable: ing.isSellable ?? undefined,
+      sellingPrice: ing.sellingPrice ?? undefined,
+      reorderLevel: ing.reorderLevel ?? undefined,
+      reorderQuantity: ing.reorderQuantity ?? undefined,
+      maxStockLevel: ing.maxStockLevel ?? undefined,
+      shelfLifeDays: ing.shelfLifeDays ?? undefined,
+      storageInstructions: ing.storageInstructions ?? undefined,
+      defaultSupplierId: ing.defaultSupplierId ?? undefined,
       status: ing.status,
     });
     setIngredientStep(1);
@@ -610,6 +630,67 @@ export default function InventoryPage() {
     }
   };
 
+  // Supplier handlers
+  const openAddSupplier = () => {
+    setEditingSupplier(null);
+    setSupplierForm({
+      name: '',
+      contactPerson: '',
+      email: '',
+      phone: '',
+      address: '',
+      notes: '',
+      status: 'ACTIVE',
+    });
+    setIsSupplierModalOpen(true);
+  };
+
+  const openEditSupplier = (supplier: SupplierResponse) => {
+    setEditingSupplier(supplier);
+    setSupplierForm({
+      name: supplier.name,
+      contactPerson: supplier.contactPerson || '',
+      email: supplier.email || '',
+      phone: supplier.phone || '',
+      address: supplier.address || '',
+      notes: supplier.notes || '',
+      status: supplier.status,
+    });
+    setIsSupplierModalOpen(true);
+  };
+
+  const handleSupplierSubmit = async () => {
+    if (!outletId || !supplierForm.name.trim()) return;
+    setSupplierSubmitting(true);
+    try {
+      if (editingSupplier) {
+        await updateSupplier(outletId, editingSupplier.id, supplierForm);
+      } else {
+        await createSupplier(outletId, supplierForm);
+      }
+      setIsSupplierModalOpen(false);
+      fetchSuppliers();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to save supplier');
+    } finally {
+      setSupplierSubmitting(false);
+    }
+  };
+
+  const handleDeleteSupplier = async (supplierId: string) => {
+    if (!outletId) return;
+    if (!confirm('Are you sure you want to delete this supplier? This may affect ingredients linked to this supplier.')) return;
+    setDeletingSupplierId(supplierId);
+    try {
+      await deleteSupplier(outletId, supplierId);
+      fetchSuppliers();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to delete supplier');
+    } finally {
+      setDeletingSupplierId(null);
+    }
+  };
+
   const filteredMenuCategories = useMemo(() => {
     const q = query.trim().toLowerCase();
     return menuCategories.filter((c) => !q || c.name.toLowerCase().includes(q));
@@ -660,18 +741,33 @@ export default function InventoryPage() {
       });
   }, [categoryFilter, ingredients, query, stockFilter, activeIngredientCategories]);
 
+  const filteredSuppliers = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return suppliers.filter((s) =>
+      !q ||
+      s.name.toLowerCase().includes(q) ||
+      (s.contactPerson && s.contactPerson.toLowerCase().includes(q)) ||
+      (s.email && s.email.toLowerCase().includes(q)) ||
+      (s.phone && s.phone.toLowerCase().includes(q))
+    );
+  }, [suppliers, query]);
+
   const headerTitle =
     activeTab === 'Ingredients'
       ? 'Search Ingredients Name Here'
       : activeTab === 'Categories'
         ? 'Search Category Name Here'
-        : 'Search Dish Name Here';
+        : activeTab === 'Suppliers'
+          ? 'Search Supplier Name Here'
+          : 'Search Dish Name Here';
   const addLabel =
     activeTab === 'Ingredients'
       ? 'Add New Ingredient'
       : activeTab === 'Categories'
         ? 'Add New Category'
-        : 'Add New Dish';
+        : activeTab === 'Suppliers'
+          ? 'Add New Supplier'
+          : 'Add New Dish';
 
   return (
     <div className={styles.page}>
@@ -683,7 +779,7 @@ export default function InventoryPage() {
 
         <div className={styles.headerMid}>
           <div className={styles.tabs}>
-            {(['Menu', 'Ingredients', 'Categories', 'Request List', 'Units'] as const).map((t) => (
+            {(['Menu', 'Ingredients', 'Request List', 'Categories', 'Suppliers', 'Units'] as const).map((t) => (
               <button
                 key={t}
                 type="button"
@@ -699,7 +795,7 @@ export default function InventoryPage() {
         <div className={styles.headerRight}>
           <div className={styles.searchWrap}>
             <SearchIcon />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={activeTab === 'Units' ? 'Search Unit Name Here' : headerTitle} />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={activeTab === 'Units' ? 'Search Unit Name Here' : activeTab === 'Suppliers' ? 'Search Supplier Name Here' : headerTitle} />
           </div>
           <button
             type="button"
@@ -718,19 +814,23 @@ export default function InventoryPage() {
                 openAddUnit();
                 return;
               }
+              if (activeTab === 'Suppliers') {
+                openAddSupplier();
+                return;
+              }
               setIsAddOpen(true);
               setAddStep(1);
             }}
             disabled={activeTab === 'Request List'}
           >
             <PlusIcon />
-            {activeTab === 'Units' ? 'Add New Unit' : addLabel}
+            {activeTab === 'Units' ? 'Add New Unit' : activeTab === 'Suppliers' ? 'Add New Supplier' : addLabel}
           </button>
         </div>
       </div>
 
       <div className={styles.shell}>
-        {activeTab !== 'Categories' && activeTab !== 'Units' && (
+        {activeTab !== 'Categories' && activeTab !== 'Units' && activeTab !== 'Suppliers' && (
           <aside className={styles.filterCard}>
             <div className={styles.filterTitle}>Filter</div>
 
@@ -850,10 +950,10 @@ export default function InventoryPage() {
           </aside>
         )}
 
-        <section className={activeTab === 'Categories' || activeTab === 'Units' ? styles.contentCardFull : styles.contentCard}>
+        <section className={activeTab === 'Categories' || activeTab === 'Units' || activeTab === 'Suppliers' ? styles.contentCardFull : styles.contentCard}>
           <div className={styles.contentHeader}>
             <div className={styles.contentTitle}>
-              {activeTab === 'Menu' ? 'Menu List' : activeTab === 'Ingredients' ? 'Ingredients List' : activeTab === 'Categories' ? 'Categories List' : activeTab === 'Units' ? 'Units of Measure' : 'Request List'}
+              {activeTab === 'Menu' ? 'Menu List' : activeTab === 'Ingredients' ? 'Ingredients List' : activeTab === 'Categories' ? 'Categories List' : activeTab === 'Units' ? 'Units of Measure' : activeTab === 'Suppliers' ? 'Suppliers List' : 'Request List'}
             </div>
           </div>
 
@@ -1011,6 +1111,45 @@ export default function InventoryPage() {
                     </div>
                   </div>
                 ))}
+            </div>
+          )}
+
+          {activeTab === 'Suppliers' && (
+            <div className={styles.categoryMgmtList}>
+              {suppliersLoading && <div className={styles.loadingText}>Loading suppliers...</div>}
+              {suppliersError && <div className={styles.errorText}>{suppliersError}</div>}
+              {!suppliersLoading && !suppliersError && filteredSuppliers.length === 0 && (
+                <div className={styles.emptyText}>No suppliers found. Add one to get started.</div>
+              )}
+              {!suppliersLoading && !suppliersError && filteredSuppliers.map((supplier) => (
+                <div key={supplier.id} className={styles.categoryMgmtRow}>
+                  <div className={styles.categoryMgmtLeft}>
+                    <div className={styles.categoryMgmtIcon}>🏢</div>
+                    <div>
+                      <div className={styles.categoryMgmtName}>{supplier.name}</div>
+                      <div className={styles.categoryMgmtMeta}>
+                        {supplier.contactPerson && <span>Contact: {supplier.contactPerson} · </span>}
+                        {supplier.phone && <span>{supplier.phone} · </span>}
+                        {supplier.email && <span>{supplier.email} · </span>}
+                        Status: <span className={supplier.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}>{supplier.status}</span>
+                      </div>
+                      {supplier.address && (
+                        <div className={styles.categoryMgmtMeta} style={{ marginTop: 2 }}>
+                          📍 {supplier.address}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className={styles.categoryMgmtActions}>
+                    <button type="button" className={styles.editBtn} onClick={() => openEditSupplier(supplier)} aria-label="Edit">
+                      <EditIcon />
+                    </button>
+                    <button type="button" className={styles.deleteBtn} onClick={() => handleDeleteSupplier(supplier.id)} disabled={deletingSupplierId === supplier.id} aria-label="Delete">
+                      {deletingSupplierId === supplier.id ? '...' : <TrashIcon />}
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
@@ -1274,6 +1413,59 @@ export default function InventoryPage() {
               <div className={styles.modalFooter}>
                 <button type="button" className={styles.primaryBtn} onClick={handleMenuCategorySubmit} disabled={categorySubmitting || !categoryForm.name.trim()}>
                   {categorySubmitting ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Supplier Modal */}
+      {isSupplierModalOpen && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true" onMouseDown={(e) => { if (e.target === e.currentTarget) setIsSupplierModalOpen(false); }}>
+          <div className={styles.categoryModal} style={{ maxWidth: 520 }}>
+            <div className={styles.modalTop}>
+              <div className={styles.modalTitle}>{editingSupplier ? 'Edit Supplier' : 'Add New Supplier'}</div>
+              <button type="button" className={styles.iconClose} onClick={() => setIsSupplierModalOpen(false)} aria-label="Close"><XIcon /></button>
+            </div>
+            <div className={styles.categoryModalBody}>
+              <div className={styles.field}>
+                <div className={styles.label}>Supplier Name *</div>
+                <input className={styles.input} placeholder="Enter supplier name" value={supplierForm.name} onChange={(e) => setSupplierForm((f) => ({ ...f, name: e.target.value }))} />
+              </div>
+              <div className={styles.field}>
+                <div className={styles.label}>Contact Person</div>
+                <input className={styles.input} placeholder="Enter contact person name" value={supplierForm.contactPerson || ''} onChange={(e) => setSupplierForm((f) => ({ ...f, contactPerson: e.target.value }))} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className={styles.field}>
+                  <div className={styles.label}>Email</div>
+                  <input className={styles.input} type="email" placeholder="email@example.com" value={supplierForm.email || ''} onChange={(e) => setSupplierForm((f) => ({ ...f, email: e.target.value }))} />
+                </div>
+                <div className={styles.field}>
+                  <div className={styles.label}>Phone</div>
+                  <input className={styles.input} type="tel" placeholder="+1 234 567 8900" value={supplierForm.phone || ''} onChange={(e) => setSupplierForm((f) => ({ ...f, phone: e.target.value }))} />
+                </div>
+              </div>
+              <div className={styles.field}>
+                <div className={styles.label}>Address</div>
+                <textarea className={styles.textarea} placeholder="Enter supplier address" value={supplierForm.address || ''} onChange={(e) => setSupplierForm((f) => ({ ...f, address: e.target.value }))} />
+              </div>
+              <div className={styles.field}>
+                <div className={styles.label}>Notes</div>
+                <textarea className={styles.textarea} placeholder="Additional notes about the supplier" value={supplierForm.notes || ''} onChange={(e) => setSupplierForm((f) => ({ ...f, notes: e.target.value }))} />
+              </div>
+              <div className={styles.field}>
+                <div className={styles.label}>Status</div>
+                <div className={styles.pillsRow}>
+                  {(['ACTIVE', 'INACTIVE'] as const).map((s) => (
+                    <button key={s} type="button" className={`${styles.categoryPill} ${supplierForm.status === s ? styles.categoryPillActive : ''}`} onClick={() => setSupplierForm((f) => ({ ...f, status: s }))}>{s}</button>
+                  ))}
+                </div>
+              </div>
+              <div className={styles.modalFooter}>
+                <button type="button" className={styles.primaryBtn} onClick={handleSupplierSubmit} disabled={supplierSubmitting || !supplierForm.name.trim()}>
+                  {supplierSubmitting ? 'Saving...' : editingSupplier ? 'Update Supplier' : 'Create Supplier'}
                 </button>
               </div>
             </div>
