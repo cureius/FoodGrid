@@ -4,12 +4,13 @@ import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "ingredients")
 public class Ingredient extends PanacheEntityBase {
   @Id
-  @Column(length = 36)
+  @Column(length = 36, updatable = false)
   public String id;
 
   @Column(name = "outlet_id", nullable = false, length = 36)
@@ -85,12 +86,25 @@ public class Ingredient extends PanacheEntityBase {
 
   @PrePersist
   public void prePersist() {
-    if (createdAt == null) createdAt = LocalDateTime.now();
-    if (updatedAt == null) updatedAt = LocalDateTime.now();
+    if (id == null || id.isEmpty()) {
+      id = UUID.randomUUID().toString();
+    }
+    LocalDateTime now = LocalDateTime.now();
+    if (createdAt == null) createdAt = now;
+    if (updatedAt == null) updatedAt = now;
+    if (costPrice == null) costPrice = BigDecimal.ZERO;
+    if (currentStock == null) currentStock = BigDecimal.ZERO;
+    if (isSellable == null) isSellable = false;
+    if (trackInventory == null) trackInventory = true;
+    if (status == null) status = Status.ACTIVE;
   }
 
   @PreUpdate
   public void preUpdate() {
     updatedAt = LocalDateTime.now();
+    if (costPrice == null) costPrice = BigDecimal.ZERO;
+    if (currentStock == null) currentStock = BigDecimal.ZERO;
+    if (isSellable == null) isSellable = false;
+    if (trackInventory == null) trackInventory = true;
   }
 }

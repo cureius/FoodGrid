@@ -63,14 +63,31 @@ public record IngredientResponse(
   }
 
   private static String calculateStockStatus(Ingredient entity) {
-    if (!entity.trackInventory) return "NOT_TRACKED";
-    if (entity.currentStock.compareTo(BigDecimal.ZERO) <= 0) return "OUT_OF_STOCK";
-    if (entity.reorderLevel != null && entity.currentStock.compareTo(entity.reorderLevel) <= 0) return "LOW";
-    if (entity.maxStockLevel != null && entity.currentStock.compareTo(entity.maxStockLevel) >= 0) return "OVERSTOCKED";
+    if (entity.trackInventory == null || !entity.trackInventory) {
+      return "NOT_TRACKED";
+    }
+    
+    BigDecimal currentStock = entity.currentStock != null ? entity.currentStock : BigDecimal.ZERO;
+    
+    if (currentStock.compareTo(BigDecimal.ZERO) <= 0) {
+      return "OUT_OF_STOCK";
+    }
+    
+    if (entity.maxStockLevel != null && currentStock.compareTo(entity.maxStockLevel) >= 0) {
+      return "OVERSTOCKED";
+    }
+    
+    if (entity.reorderLevel != null && currentStock.compareTo(entity.reorderLevel) <= 0) {
+      return "LOW";
+    }
+    
     if (entity.reorderLevel != null) {
       BigDecimal midPoint = entity.reorderLevel.multiply(BigDecimal.valueOf(2));
-      if (entity.currentStock.compareTo(midPoint) <= 0) return "MEDIUM";
+      if (currentStock.compareTo(midPoint) <= 0) {
+        return "MEDIUM";
+      }
     }
+    
     return "HIGH";
   }
 }

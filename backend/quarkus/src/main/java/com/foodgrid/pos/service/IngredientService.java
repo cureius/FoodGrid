@@ -222,7 +222,7 @@ public class IngredientService {
     ingredient.description = request.description();
     ingredient.imageUrl = request.imageUrl();
     ingredient.unitId = request.unitId();
-    ingredient.costPrice = request.costPrice();
+    ingredient.costPrice = request.costPrice() != null ? request.costPrice() : BigDecimal.ZERO;
     ingredient.isSellable = request.isSellable() != null ? request.isSellable() : false;
     ingredient.sellingPrice = request.sellingPrice();
     ingredient.linkedMenuItemId = request.linkedMenuItemId();
@@ -255,13 +255,19 @@ public class IngredientService {
       throw new BadRequestException("Ingredient with this SKU already exists");
     }
 
+    // Validate unit exists if provided
+    if (request.unitId() != null) {
+      unitRepo.findByIdAndOutlet(request.unitId(), outletId)
+          .orElseThrow(() -> new BadRequestException("Invalid unit ID"));
+    }
+
     ingredient.categoryId = request.categoryId();
     ingredient.sku = request.sku();
     ingredient.name = request.name();
     ingredient.description = request.description();
     ingredient.imageUrl = request.imageUrl();
-    ingredient.unitId = request.unitId();
-    ingredient.costPrice = request.costPrice();
+    if (request.unitId() != null) ingredient.unitId = request.unitId();
+    if (request.costPrice() != null) ingredient.costPrice = request.costPrice();
     if (request.isSellable() != null) ingredient.isSellable = request.isSellable();
     ingredient.sellingPrice = request.sellingPrice();
     ingredient.linkedMenuItemId = request.linkedMenuItemId();

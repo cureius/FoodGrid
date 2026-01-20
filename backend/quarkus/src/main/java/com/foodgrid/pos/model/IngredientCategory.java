@@ -3,12 +3,13 @@ package com.foodgrid.pos.model;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "ingredient_categories")
 public class IngredientCategory extends PanacheEntityBase {
   @Id
-  @Column(length = 36)
+  @Column(length = 36, updatable = false)
   public String id;
 
   @Column(name = "outlet_id", nullable = false, length = 36)
@@ -42,8 +43,14 @@ public class IngredientCategory extends PanacheEntityBase {
 
   @PrePersist
   public void prePersist() {
-    if (createdAt == null) createdAt = LocalDateTime.now();
-    if (updatedAt == null) updatedAt = LocalDateTime.now();
+    if (id == null || id.isEmpty()) {
+      id = UUID.randomUUID().toString();
+    }
+    LocalDateTime now = LocalDateTime.now();
+    if (createdAt == null) createdAt = now;
+    if (updatedAt == null) updatedAt = now;
+    if (sortOrder == null) sortOrder = 0;
+    if (status == null) status = Status.ACTIVE;
   }
 
   @PreUpdate
