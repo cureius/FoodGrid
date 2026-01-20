@@ -191,7 +191,7 @@ const dishesSeed: Dish[] = [
 ];
 
 export default function InventoryPage() {
-  const [activeTab, setActiveTab] = useState<'Menu' | 'Ingredients' | 'Categories' | 'Units' | 'Suppliers' | 'Request List'>('Ingredients');
+  const [activeTab, setActiveTab] = useState<'Menu' | 'Ingredients' | 'Categories' | 'Units' | 'Suppliers' | 'Request List'>('Menu');
   const [query, setQuery] = useState('');
 
   const [dishStatusFilter, setDishStatusFilter] = useState<'All' | 'Available' | 'Not Available'>('All');
