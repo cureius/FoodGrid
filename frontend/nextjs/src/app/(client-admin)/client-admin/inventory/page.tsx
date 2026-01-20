@@ -1280,30 +1280,6 @@ export default function InventoryPage() {
           </div>
         </div>
       )}
-      <div className={styles.panelTitle}>Ingredients</div>
-      <div className={styles.ingredientsGrid}>
-        <div className={styles.field}>
-          <div className={styles.label}>Ingredient</div>
-          <select className={styles.input}>
-            <option value="">-- Select --</option>
-            {ingredients.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
-          </select>
-        </div>
-        <div className={styles.field}>
-          <div className={styles.label}>Quantity</div>
-          <input className={styles.input} type="number" />
-        </div>
-        <div className={styles.field}>
-          <div className={styles.label}>Unit</div>
-          <select className={styles.input}>
-            <option value="">-- Select --</option>
-          </select>
-        </div>
-      </div>
-      <button type="button" className={styles.outlineBtn}><PlusIcon /> Add Ingredient</button>
-      <div className={styles.modalFooter}>
-        <button type="button" className={styles.primaryBtn} onClick={() => setIsAddOpen(false)}>Save and Submit</button>
-      </div>
     </div>
   );
 }
