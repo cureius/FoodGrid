@@ -8,6 +8,10 @@ import {
   createMenuCategory,
   updateMenuCategory,
   deleteMenuCategory,
+  listMenuItems,
+  createMenuItem,
+  updateMenuItem,
+  deleteMenuItem,
   listOutlets,
   listIngredients,
   createIngredient,
@@ -25,6 +29,8 @@ import {
   deleteSupplier,
   type MenuCategoryResponse,
   type MenuCategoryUpsertInput,
+  type MenuItemResponse,
+  type MenuItemUpsertInput,
   type IngredientResponse,
   type IngredientUpsertInput,
   type IngredientCategoryResponse,
@@ -192,6 +198,11 @@ export default function InventoryPage() {
   const [stockFilter, setStockFilter] = useState<'All' | 'Low' | 'Medium' | 'High' | 'Empty'>('All');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
 
+  // Menu-specific filters (to match /inventory/menu page)
+  const [menuStatusFilter, setMenuStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All');
+  const [vegFilter, setVegFilter] = useState<'All' | 'Veg' | 'Non-Veg'>('All');
+  const [menuCategoryFilter, setMenuCategoryFilter] = useState<string>('All');
+
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [addStep, setAddStep] = useState<1 | 2>(1);
   const [selectedDishCategory, setSelectedDishCategory] = useState<string>('');
@@ -274,6 +285,22 @@ export default function InventoryPage() {
   });
   const [supplierSubmitting, setSupplierSubmitting] = useState(false);
   const [deletingSupplierId, setDeletingSupplierId] = useState<string | null>(null);
+
+  // Menu Items state
+  const [menuItems, setMenuItems] = useState<MenuItemResponse[]>([]);
+  const [menuItemsLoading, setMenuItemsLoading] = useState(false);
+  const [menuItemsError, setMenuItemsError] = useState<string | null>(null);
+  const [isMenuItemModalOpen, setIsMenuItemModalOpen] = useState(false);
+  const [editingMenuItem, setEditingMenuItem] = useState<MenuItemResponse | null>(null);
+  const [menuItemForm, setMenuItemForm] = useState<MenuItemUpsertInput>({
+    name: '',
+    categoryId: '',
+    basePrice: 0,
+    status: 'ACTIVE',
+  });
+  const [menuItemSubmitting, setMenuItemSubmitting] = useState(false);
+  const [deletingMenuItemId, setDeletingMenuItemId] = useState<string | null>(null);
+  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItemResponse | null>(null);
 
   // Ingredient modal step state
   const [ingredientStep, setIngredientStep] = useState<1 | 2 | 3>(1);
@@ -395,6 +422,22 @@ export default function InventoryPage() {
     }
   }, [outletId]);
 
+  // Fetch menu items
+  const fetchMenuItems = useCallback(async () => {
+    if (!outletId) return;
+    setMenuItemsLoading(true);
+    setMenuItemsError(null);
+    try {
+      const data = await listMenuItems(outletId);
+      setMenuItems(data || []);
+    } catch (err: any) {
+      setMenuItemsError(err?.message || 'Failed to load menu items');
+      console.error('Failed to load menu items', err);
+    } finally {
+      setMenuItemsLoading(false);
+    }
+  }, [outletId]);
+
   // Fetch all data on mount
   useEffect(() => {
     if (outletId) {
@@ -403,8 +446,9 @@ export default function InventoryPage() {
       fetchIngredientCategories();
       fetchUnits();
       fetchSuppliers();
+      fetchMenuItems();
     }
-  }, [outletId, fetchMenuCategories, fetchIngredients, fetchIngredientCategories, fetchUnits, fetchSuppliers]);
+  }, [outletId, fetchMenuCategories, fetchIngredients, fetchIngredientCategories, fetchUnits, fetchSuppliers, fetchMenuItems]);
 
   const activeMenuCategories = useMemo(() => {
     return menuCategories.filter((c) => c.status === 'ACTIVE');
@@ -691,6 +735,97 @@ export default function InventoryPage() {
     }
   };
 
+  // Menu Item handlers
+  const openAddMenuItem = () => {
+    setEditingMenuItem(null);
+    setMenuItemForm({
+      name: '',
+      categoryId: activeMenuCategories.length > 0 ? activeMenuCategories[0].id : '',
+      basePrice: 0,
+      status: 'ACTIVE',
+    });
+    setIsMenuItemModalOpen(true);
+  };
+
+  const openEditMenuItem = (item: MenuItemResponse) => {
+    setEditingMenuItem(item);
+    setMenuItemForm({
+      name: item.name,
+      description: item.description || undefined,
+      categoryId: item.categoryId || '',
+      basePrice: item.basePrice,
+      isVeg: item.isVeg,
+      status: item.status,
+    });
+    setIsMenuItemModalOpen(true);
+  };
+
+  const handleMenuItemSubmit = async () => {
+    if (!outletId || !menuItemForm.name.trim() || !menuItemForm.categoryId) return;
+    setMenuItemSubmitting(true);
+    try {
+      if (editingMenuItem) {
+        await updateMenuItem(outletId, editingMenuItem.id, menuItemForm);
+      } else {
+        await createMenuItem(outletId, menuItemForm);
+      }
+      setIsMenuItemModalOpen(false);
+      fetchMenuItems();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to save menu item');
+    } finally {
+      setMenuItemSubmitting(false);
+    }
+  };
+
+  const handleDeleteMenuItem = async (menuItemId: string) => {
+    if (!outletId) return;
+    if (!confirm('Are you sure you want to delete this menu item?')) return;
+    setDeletingMenuItemId(menuItemId);
+    try {
+      await deleteMenuItem(outletId, menuItemId);
+      fetchMenuItems();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to delete menu item');
+    } finally {
+      setDeletingMenuItemId(null);
+    }
+  };
+
+  // Menu items counts (to match /inventory/menu page)
+  const menuItemsCounts = useMemo(() => {
+    const total = menuItems.length;
+    const active = menuItems.filter((i) => i.status === 'ACTIVE').length;
+    const inactive = menuItems.filter((i) => i.status === 'INACTIVE').length;
+    const veg = menuItems.filter((i) => i.isVeg).length;
+    const nonVeg = menuItems.filter((i) => !i.isVeg).length;
+
+    const catCounts: Record<string, number> = { All: total };
+    activeMenuCategories.forEach((cat) => {
+      catCounts[cat.id] = menuItems.filter((i) => i.categoryId === cat.id).length;
+    });
+
+    return { total, active, inactive, veg, nonVeg, catCounts };
+  }, [menuItems, activeMenuCategories]);
+
+  const filteredMenuItems = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return menuItems
+      .filter((item) => !q || item.name.toLowerCase().includes(q) || item.description?.toLowerCase().includes(q))
+      .filter((item) => {
+        if (menuStatusFilter === 'All') return true;
+        return menuStatusFilter === 'Active' ? item.status === 'ACTIVE' : item.status === 'INACTIVE';
+      })
+      .filter((item) => {
+        if (menuCategoryFilter === 'All') return true;
+        return item.categoryId === menuCategoryFilter;
+      })
+      .filter((item) => {
+        if (vegFilter === 'All') return true;
+        return vegFilter === 'Veg' ? item.isVeg : !item.isVeg;
+      });
+  }, [menuItems, query, menuStatusFilter, menuCategoryFilter, vegFilter]);
+
   const filteredMenuCategories = useMemo(() => {
     const q = query.trim().toLowerCase();
     return menuCategories.filter((c) => !q || c.name.toLowerCase().includes(q));
@@ -835,118 +970,201 @@ export default function InventoryPage() {
             <div className={styles.filterTitle}>Filter</div>
 
             {activeTab === 'Menu' && (
-              <div className={styles.filterSection}>
-                <div className={styles.filterLabel}>DISHES STATUS</div>
-                <div className={styles.chipsWrap}>
-                  {(['All', 'Available', 'Not Available'] as const).map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      className={`${styles.chip} ${dishStatusFilter === s ? styles.chipActive : ''}`}
-                      onClick={() => setDishStatusFilter(s)}
-                    >
-                      {s}
-                    </button>
-                  ))}
+              <>
+                {/* Status Filter - matches /inventory/menu */}
+                <div className={styles.filterSection}>
+                  <div className={styles.filterLabel}>STATUS</div>
+                  <div className={styles.chipsWrap}>
+                    {(['All', 'Active', 'Inactive'] as const).map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        className={`${styles.chip} ${menuStatusFilter === s ? styles.chipActive : ''}`}
+                        onClick={() => setMenuStatusFilter(s)}
+                      >
+                        {s}
+                        <span className={styles.badgeCount}>
+                          {s === 'All' ? menuItemsCounts.total : s === 'Active' ? menuItemsCounts.active : menuItemsCounts.inactive}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+
+                {/* Veg/Non-Veg Filter - matches /inventory/menu */}
+                <div className={styles.filterSection}>
+                  <div className={styles.filterLabel}>TYPE</div>
+                  <div className={styles.chipsWrap}>
+                    {(['All', 'Veg', 'Non-Veg'] as const).map((v) => (
+                      <button
+                        key={v}
+                        type="button"
+                        className={`${styles.chip} ${vegFilter === v ? styles.chipActive : ''}`}
+                        onClick={() => setVegFilter(v)}
+                      >
+                        {v}
+                        <span className={styles.badgeCount}>
+                          {v === 'All' ? menuItemsCounts.total : v === 'Veg' ? menuItemsCounts.veg : menuItemsCounts.nonVeg}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Category Filter - matches /inventory/menu (as list) */}
+                <div className={styles.filterSection}>
+                  <div className={styles.filterLabel}>CATEGORY</div>
+                  <div className={styles.categoryList}>
+                    <button
+                      type="button"
+                      className={`${styles.categoryBtn} ${menuCategoryFilter === 'All' ? styles.categoryBtnActive : ''}`}
+                      onClick={() => setMenuCategoryFilter('All')}
+                    >
+                      <span className={styles.categoryText}>All Categories</span>
+                      <span className={styles.categoryCount}>{menuItemsCounts.total}</span>
+                    </button>
+                    {menuCategoriesLoading ? (
+                      <span style={{ fontSize: 12, opacity: 0.7 }}>Loading...</span>
+                    ) : (
+                      activeMenuCategories.map((cat) => (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          className={`${styles.categoryBtn} ${menuCategoryFilter === cat.id ? styles.categoryBtnActive : ''}`}
+                          onClick={() => setMenuCategoryFilter(cat.id)}
+                        >
+                          <span className={styles.categoryText}>{cat.name}</span>
+                          <span className={styles.categoryCount}>{menuItemsCounts.catCounts[cat.id] || 0}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.resetBtn}
+                  onClick={() => {
+                    setMenuStatusFilter('All');
+                    setMenuCategoryFilter('All');
+                    setVegFilter('All');
+                    setQuery('');
+                  }}
+                >
+                  Reset Filter
+                </button>
+              </>
             )}
 
-            <div className={styles.filterSection}>
-              <div className={styles.filterLabel}>STOCK LEVEL</div>
-              <div className={styles.chipsWrap}>
-                {([
-                  { label: 'All', count: counts.totalStockAll },
-                  { label: 'Low', count: counts.low },
-                  { label: 'Medium', count: counts.medium },
-                  { label: 'High', count: counts.high },
-                  { label: 'Empty', count: counts.empty },
-                ] as const).map((x) => (
-                  <button
-                    key={x.label}
-                    type="button"
-                    className={`${styles.chip} ${stockFilter === x.label ? styles.chipActive : ''}`}
-                    onClick={() => setStockFilter(x.label)}
-                  >
-                    {x.label} <span className={styles.badgeCount}>{x.count}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.filterSection}>
-              <div className={styles.filterLabel}>CATEGORY</div>
-              {activeTab === 'Ingredients' ? (
-                <div className={styles.categoryList}>
-                  <button
-                    type="button"
-                    className={`${styles.categoryBtn} ${categoryFilter === 'All' ? styles.categoryBtnActive : ''}`}
-                    onClick={() => setCategoryFilter('All')}
-                  >
-                    <span className={styles.categoryText}>
-                      <span aria-hidden="true">🧾</span>
-                      <span>All</span>
-                    </span>
-                    <span className={styles.categoryCount}>{counts.catCounts.All}</span>
-                  </button>
-                  {ingredientCategoriesLoading ? (
-                    <span style={{ fontSize: 12, opacity: 0.7 }}>Loading...</span>
-                  ) : (
-                    activeIngredientCategories.map((cat) => (
+            {activeTab === 'Ingredients' && (
+              <>
+                <div className={styles.filterSection}>
+                  <div className={styles.filterLabel}>STOCK LEVEL</div>
+                  <div className={styles.chipsWrap}>
+                    {([
+                      { label: 'All', count: counts.totalStockAll },
+                      { label: 'Low', count: counts.low },
+                      { label: 'Medium', count: counts.medium },
+                      { label: 'High', count: counts.high },
+                      { label: 'Empty', count: counts.empty },
+                    ] as const).map((x) => (
                       <button
-                        key={cat.id}
+                        key={x.label}
                         type="button"
-                        className={`${styles.categoryBtn} ${categoryFilter === cat.name ? styles.categoryBtnActive : ''}`}
-                        onClick={() => setCategoryFilter(cat.name)}
+                        className={`${styles.chip} ${stockFilter === x.label ? styles.chipActive : ''}`}
+                        onClick={() => setStockFilter(x.label)}
                       >
-                        <span className={styles.categoryText}>
-                          <span aria-hidden="true">{cat.icon || '📦'}</span>
-                          <span>{cat.name}</span>
-                        </span>
-                        <span className={styles.categoryCount}>{counts.catCounts[cat.name] || 0}</span>
+                        {x.label} <span className={styles.badgeCount}>{x.count}</span>
                       </button>
-                    ))
-                  )}
+                    ))}
+                  </div>
                 </div>
-              ) : (
-                <div className={styles.chipsWrap}>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${categoryFilter === 'All' ? styles.chipActive : ''}`}
-                    onClick={() => setCategoryFilter('All')}
-                  >
-                    All <span className={styles.badgeCount}>{counts.dishCatCounts.All}</span>
-                  </button>
-                  {menuCategoriesLoading ? (
-                    <span style={{ fontSize: 12, opacity: 0.7 }}>Loading...</span>
-                  ) : (
-                    activeMenuCategories.map((cat) => (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        className={`${styles.chip} ${categoryFilter === cat.name ? styles.chipActive : ''}`}
-                        onClick={() => setCategoryFilter(cat.name)}
-                      >
-                        {cat.name} <span className={styles.badgeCount}>{counts.dishCatCounts[cat.name] || 0}</span>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
 
-              <button
-                type="button"
-                className={styles.resetBtn}
-                onClick={() => {
-                  setDishStatusFilter('All');
-                  setStockFilter('All');
-                  setCategoryFilter('All');
-                  setQuery('');
-                }}
-              >
-                ↻ Reset Filter
-              </button>
-            </div>
+                <div className={styles.filterSection}>
+                  <div className={styles.filterLabel}>CATEGORY</div>
+                  <div className={styles.categoryList}>
+                    <button
+                      type="button"
+                      className={`${styles.categoryBtn} ${categoryFilter === 'All' ? styles.categoryBtnActive : ''}`}
+                      onClick={() => setCategoryFilter('All')}
+                    >
+                      <span className={styles.categoryText}>
+                        <span aria-hidden="true">🧾</span>
+                        <span>All</span>
+                      </span>
+                      <span className={styles.categoryCount}>{counts.catCounts.All}</span>
+                    </button>
+                    {ingredientCategoriesLoading ? (
+                      <span style={{ fontSize: 12, opacity: 0.7 }}>Loading...</span>
+                    ) : (
+                      activeIngredientCategories.map((cat) => (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          className={`${styles.categoryBtn} ${categoryFilter === cat.name ? styles.categoryBtnActive : ''}`}
+                          onClick={() => setCategoryFilter(cat.name)}
+                        >
+                          <span className={styles.categoryText}>
+                            <span aria-hidden="true">{cat.icon || '📦'}</span>
+                            <span>{cat.name}</span>
+                          </span>
+                          <span className={styles.categoryCount}>{counts.catCounts[cat.name] || 0}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.resetBtn}
+                  onClick={() => {
+                    setStockFilter('All');
+                    setCategoryFilter('All');
+                    setQuery('');
+                  }}
+                >
+                  ↻ Reset Filter
+                </button>
+              </>
+            )}
+
+            {activeTab === 'Request List' && (
+              <>
+                <div className={styles.filterSection}>
+                  <div className={styles.filterLabel}>STOCK LEVEL</div>
+                  <div className={styles.chipsWrap}>
+                    {([
+                      { label: 'All', count: counts.totalStockAll },
+                      { label: 'Low', count: counts.low },
+                      { label: 'Medium', count: counts.medium },
+                      { label: 'High', count: counts.high },
+                      { label: 'Empty', count: counts.empty },
+                    ] as const).map((x) => (
+                      <button
+                        key={x.label}
+                        type="button"
+                        className={`${styles.chip} ${stockFilter === x.label ? styles.chipActive : ''}`}
+                        onClick={() => setStockFilter(x.label)}
+                      >
+                        {x.label} <span className={styles.badgeCount}>{x.count}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.resetBtn}
+                  onClick={() => {
+                    setStockFilter('All');
+                    setQuery('');
+                  }}
+                >
+                  ↻ Reset Filter
+                </button>
+              </>
+            )}
           </aside>
         )}
 
@@ -959,27 +1177,83 @@ export default function InventoryPage() {
 
           {activeTab === 'Menu' && (
             <div className={styles.dishGrid}>
-              {filteredDishes.map((d) => (
-                <button key={d.id} type="button" className={styles.dishCard} onClick={() => setDetailDish(d)}>
+              {menuItemsLoading && <div className={styles.loadingText}>Loading menu items...</div>}
+              {menuItemsError && <div className={styles.errorText}>{menuItemsError}</div>}
+              {!menuItemsLoading && !menuItemsError && filteredMenuItems.length === 0 && (
+                <div className={styles.emptyText}>No menu items found. Add one to get started.</div>
+              )}
+              {!menuItemsLoading && !menuItemsError && filteredMenuItems.map((item) => (
+                <div key={item.id} className={styles.dishCard}>
                   <div className={styles.dishImageWrap}>
-                    <Image className={styles.dishImg} src={d.image} alt={d.name} fill sizes="(max-width: 1100px) 50vw, 33vw" />
+                    {item.primaryImageUrl ? (
+                      <Image
+                        className={styles.dishImg}
+                        src={item.primaryImageUrl}
+                        alt={item.name}
+                        fill
+                        sizes="(max-width: 1100px) 50vw, 33vw"
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: 'rgba(243, 244, 246, 1)',
+                          color: 'rgba(156, 163, 175, 1)',
+                          fontSize: '32px',
+                        }}
+                      >
+                        🍽️
+                      </div>
+                    )}
                     <div className={styles.availablePill}>
                       <span className={styles.availableDot} aria-hidden="true" />
-                      <span>{d.status === 'available' ? 'Available' : 'Not Available'}</span>
+                      <span>{item.status === 'ACTIVE' ? 'Available' : 'Not Available'}</span>
                     </div>
                   </div>
                   <div className={styles.dishBody}>
-                    <div className={styles.dishName}>{d.name}</div>
-                    <div className={styles.dishCategory}>{d.category}</div>
+                    <div className={styles.dishName}>{item.name}</div>
+                    <div className={styles.dishCategory}>{item.categoryName || 'Uncategorized'}</div>
                     <div className={styles.dishFooter}>
-                      <div className={styles.canServe}>Can be served: {d.canBeServed}</div>
-                      <div className={styles.stockInline}>
-                        <span className={`${styles.dot} ${levelDotClass(d.stockLevel)}`} aria-hidden="true" />
-                        <span className={`${styles.stockText} ${levelTextClass(d.stockLevel)}`}>{levelText[d.stockLevel]}</span>
+                      <div className={styles.canServe}>₹{item.basePrice.toFixed(2)}</div>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          type="button"
+                          className={styles.editBtn}
+                          onClick={() => openEditMenuItem(item)}
+                          title="Edit"
+                        >
+                          <EditIcon />
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.deleteBtn}
+                          onClick={() => handleDeleteMenuItem(item.id)}
+                          disabled={deletingMenuItemId === item.id}
+                          title="Delete"
+                        >
+                          {deletingMenuItemId === item.id ? '...' : <TrashIcon />}
+                        </button>
                       </div>
                     </div>
+                    <div style={{ marginTop: '8px' }}>
+                      <span
+                        className={item.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}
+                        style={{ fontSize: '12px' }}
+                      >
+                        {item.status === 'ACTIVE' ? '● Active' : '○ Inactive'}
+                      </span>
+                      {item.isVeg !== undefined && (
+                        <span style={{ marginLeft: 8, fontSize: '12px' }}>
+                          {item.isVeg ? '🟢 Veg' : '🔴 Non-Veg'}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           )}
