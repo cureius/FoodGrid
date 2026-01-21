@@ -176,6 +176,7 @@ Configure webhooks in your payment gateway dashboard to point to:
 | Razorpay  | `https://your-domain/api/v1/webhooks/payment/razorpay` |
 | Stripe    | `https://your-domain/api/v1/webhooks/payment/stripe` |
 | PayU      | `https://your-domain/api/v1/webhooks/payment/payu` |
+| BharatPay | `https://your-domain/api/v1/webhooks/payment/bharatpay` |
 
 ## Database Schema
 

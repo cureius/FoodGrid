@@ -114,4 +114,22 @@ public class PaymentWebhookResource {
             return Response.ok().build();
         }
     }
+
+    @POST
+    @Path("/bharatpay")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "BharatPay webhook", description = "Receive webhooks from BharatPay")
+    public Response bharatPayWebhook(
+            @HeaderParam("X-BharatPay-Signature") final String signature,
+            final String payload) {
+        LOG.infof("Received BharatPay webhook, signature present: %s", signature != null);
+        try {
+            paymentService.processWebhook(PaymentGatewayType.BHARATPAY, payload, signature);
+            return Response.ok().build();
+        } catch (final Exception e) {
+            LOG.errorf(e, "Error processing BharatPay webhook");
+            return Response.ok().build();
+        }
+    }
 }

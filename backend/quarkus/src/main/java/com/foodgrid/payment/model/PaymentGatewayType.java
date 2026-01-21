@@ -9,7 +9,8 @@ public enum PaymentGatewayType {
     STRIPE("Stripe", "USD"),
     PAYU("PayU", "INR"),
     PHONEPE("PhonePe", "INR"),
-    CASHFREE("Cashfree", "INR");
+    CASHFREE("Cashfree", "INR"),
+    BHARATPAY("BharatPay", "INR");
 
     private final String displayName;
     private final String defaultCurrency;

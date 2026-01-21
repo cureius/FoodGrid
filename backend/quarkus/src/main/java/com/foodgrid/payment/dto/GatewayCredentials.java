@@ -25,6 +25,7 @@ public record GatewayCredentials(
             case PAYU -> isLiveMode ? "https://secure.payu.in" : "https://sandboxsecure.payu.in";
             case PHONEPE -> isLiveMode ? "https://api.phonepe.com/apis/hermes" : "https://api-preprod.phonepe.com/apis/pg-sandbox";
             case CASHFREE -> isLiveMode ? "https://api.cashfree.com/pg" : "https://sandbox.cashfree.com/pg";
+            case BHARATPAY -> isLiveMode ? "https://api.bharatpay.co.in/api/v1" : "https://sandbox.bharatpay.co.in/api/v1";
         };
     }
 }

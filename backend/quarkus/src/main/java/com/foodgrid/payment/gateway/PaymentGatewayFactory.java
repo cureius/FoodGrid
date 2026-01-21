@@ -95,6 +95,7 @@ public class PaymentGatewayFactory {
             case RAZORPAY -> new RazorpayGateway();
             case STRIPE -> new StripeGateway();
             case PAYU -> new PayUGateway();
+            case BHARATPAY -> new BharatPayGateway();
             case PHONEPE -> throw new BadRequestException("PhonePe gateway not yet implemented");
             case CASHFREE -> throw new BadRequestException("Cashfree gateway not yet implemented");
         };
