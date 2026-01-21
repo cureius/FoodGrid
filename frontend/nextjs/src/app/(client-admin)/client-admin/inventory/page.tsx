@@ -173,6 +173,24 @@ function XIcon() {
   );
 }
 
+
+function VegIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="2" y="2" width="20" height="20" rx="2" stroke="#16a34a" strokeWidth="2"/>
+      <circle cx="12" cy="12" r="5" fill="#16a34a"/>
+    </svg>
+  );
+}
+
+function NonVegIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="2" y="2" width="20" height="20" rx="2" stroke="#dc2626" strokeWidth="2"/>
+      <polygon points="12,7 17,17 7,17" fill="#dc2626"/>
+    </svg>
+  );
+}
 const dishesSeed: Dish[] = [
   {
     id: 'd1',
@@ -953,6 +971,10 @@ export default function InventoryPage() {
                 openAddSupplier();
                 return;
               }
+              if (activeTab === 'Menu') {
+                openAddMenuItem();
+                return;
+              }
               setIsAddOpen(true);
               setAddStep(1);
             }}
@@ -1452,6 +1474,263 @@ export default function InventoryPage() {
           )}
         </section>
       </div>
+
+      {/* Add/Edit Modal */}
+      {isMenuItemModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsMenuItemModalOpen(false)}>
+          <div className={styles.categoryModal} style={{ width: 'min(600px, 92vw)' }} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalTop}>
+              <div className={styles.modalTitle}>
+                {editingItem ? 'Edit Menu Item' : 'Add New Menu Item'}
+              </div>
+              <button
+                type="button"
+                className={styles.iconClose}
+                onClick={() => setIsMenuItemModalOpen(false)}
+              >
+                <XIcon />
+              </button>
+            </div>
+            <div className={styles.categoryModalBody}>
+              <div className={styles.formStack}>
+                {/* Name */}
+                <div className={styles.field}>
+                  <label className={styles.label}>Name *</label>
+                  <input
+                    type="text"
+                    className={styles.input}
+                    value={itemForm.name}
+                    onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })}
+                    placeholder="Enter item name"
+                  />
+                </div>
+
+                {/* Description */}
+                <div className={styles.field}>
+                  <label className={styles.label}>Description</label>
+                  <textarea
+                    className={styles.textarea}
+                    value={itemForm.description || ''}
+                    onChange={(e) => setItemForm({ ...itemForm, description: e.target.value })}
+                    placeholder="Enter item description"
+                    style={{ minHeight: '80px' }}
+                  />
+                </div>
+
+                {/* Category */}
+                <div className={styles.field}>
+                  <label className={styles.label}>Category</label>
+                  <select
+                    className={styles.input}
+                    value={itemForm.categoryId || ''}
+                    onChange={(e) =>
+                      setItemForm({ ...itemForm, categoryId: e.target.value || null })
+                    }
+                  >
+                    <option value="">-- No Category --</option>
+                    {activeCategories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Price */}
+                <div className={styles.field}>
+                  <label className={styles.label}>Base Price (₹) *</label>
+                  <div className={styles.priceWrap}>
+                    <span className={styles.pricePrefix}>₹</span>
+                    <input
+                      type="number"
+                      className={styles.priceInput}
+                      value={itemForm.basePrice}
+                      onChange={(e) =>
+                        setItemForm({ ...itemForm, basePrice: parseFloat(e.target.value) || 0 })
+                      }
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+
+                {/* Veg/Non-Veg */}
+                <div className={styles.field}>
+                  <label className={styles.label}>Type</label>
+                  <div className={styles.pillsRow}>
+                    <button
+                      type="button"
+                      className={`${styles.categoryPill} ${itemForm.isVeg ? styles.categoryPillActive : ''}`}
+                      onClick={() => setItemForm({ ...itemForm, isVeg: true })}
+                    >
+                      <VegIcon /> Veg
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.categoryPill} ${!itemForm.isVeg ? styles.categoryPillActive : ''}`}
+                      onClick={() => setItemForm({ ...itemForm, isVeg: false })}
+                    >
+                      <NonVegIcon /> Non-Veg
+                    </button>
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div className={styles.field}>
+                  <label className={styles.label}>Status</label>
+                  <div className={styles.pillsRow}>
+                    <button
+                      type="button"
+                      className={`${styles.categoryPill} ${itemForm.status === 'ACTIVE' ? styles.categoryPillActive : ''}`}
+                      onClick={() => setItemForm({ ...itemForm, status: 'ACTIVE' })}
+                    >
+                      Active
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.categoryPill} ${itemForm.status === 'INACTIVE' ? styles.categoryPillActive : ''}`}
+                      onClick={() => setItemForm({ ...itemForm, status: 'INACTIVE' })}
+                    >
+                      Inactive
+                    </button>
+                  </div>
+                </div>
+
+                {/* Images */}
+                <div className={styles.field}>
+                  <label className={styles.label}>Images</label>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                    <input
+                      type="text"
+                      className={styles.input}
+                      value={imageUrlInput}
+                      onChange={(e) => setImageUrlInput(e.target.value)}
+                      placeholder="Enter image URL"
+                      style={{ flex: 1 }}
+                    />
+                    <button
+                      type="button"
+                      className={styles.addBtn}
+                      onClick={addImage}
+                      style={{ height: '40px', padding: '0 14px' }}
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {(itemForm.images?.length || 0) > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                      {itemForm.images?.map((img, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            position: 'relative',
+                            width: '80px',
+                            height: '80px',
+                            borderRadius: '12px',
+                            overflow: 'hidden',
+                            border: img.isPrimary
+                              ? '3px solid rgba(57, 107, 251, 1)'
+                              : '1px solid rgba(0,0,0,0.1)',
+                          }}
+                        >
+                          <Image
+                            src={img.imageUrl}
+                            alt={`Image ${idx + 1}`}
+                            fill
+                            style={{ objectFit: 'cover' }}
+                          />
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              right: 0,
+                              display: 'flex',
+                              gap: '2px',
+                            }}
+                          >
+                            {!img.isPrimary && (
+                              <button
+                                type="button"
+                                onClick={() => setPrimaryImage(idx)}
+                                style={{
+                                  width: '20px',
+                                  height: '20px',
+                                  borderRadius: '0 0 0 6px',
+                                  background: 'rgba(57, 107, 251, 0.9)',
+                                  color: 'white',
+                                  fontSize: '10px',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                }}
+                                title="Set as primary"
+                              >
+                                ★
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removeImage(idx)}
+                              style={{
+                                width: '20px',
+                                height: '20px',
+                                borderRadius: img.isPrimary ? '0 0 0 6px' : '0',
+                                background: 'rgba(239, 68, 68, 0.9)',
+                                color: 'white',
+                                fontSize: '12px',
+                                border: 'none',
+                                cursor: 'pointer',
+                              }}
+                              title="Remove"
+                            >
+                              ×
+                            </button>
+                          </div>
+                          {img.isPrimary && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                background: 'rgba(57, 107, 251, 0.9)',
+                                color: 'white',
+                                fontSize: '9px',
+                                textAlign: 'center',
+                                padding: '2px',
+                              }}
+                            >
+                              Primary
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.modalFooter} style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  className={styles.resetBtn}
+                  onClick={() => setIsModalOpen(false)}
+                  style={{ width: 'auto', marginTop: 0 }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className={styles.primaryBtn}
+                  onClick={handleSubmit}
+                  disabled={itemSubmitting || !itemForm.name.trim()}
+                >
+                  {itemSubmitting ? 'Saving...' : editingItem ? 'Update Item' : 'Create Item'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Ingredient Modal */}
       {isIngredientModalOpen && (
