@@ -315,6 +315,7 @@ export default function InventoryPage() {
     categoryId: '',
     basePrice: 0,
     status: 'ACTIVE',
+    images: [],
   });
   const [menuItemSubmitting, setMenuItemSubmitting] = useState(false);
   const [deletingMenuItemId, setDeletingMenuItemId] = useState<string | null>(null);
@@ -352,6 +353,9 @@ export default function InventoryPage() {
     isSellable: false,
     status: 'ACTIVE',
   });
+
+  // Image URL input state
+  const [imageUrlInput, setImageUrlInput] = useState('');
 
   const dishes = useMemo(() => dishesSeed, []);
 
@@ -761,7 +765,9 @@ export default function InventoryPage() {
       categoryId: activeMenuCategories.length > 0 ? activeMenuCategories[0].id : '',
       basePrice: 0,
       status: 'ACTIVE',
+      images: [],
     });
+    setImageUrlInput('');
     setIsMenuItemModalOpen(true);
   };
 
@@ -774,12 +780,18 @@ export default function InventoryPage() {
       basePrice: item.basePrice,
       isVeg: item.isVeg,
       status: item.status,
+      images: item.images?.map((img) => ({
+        imageUrl: img.imageUrl,
+        sortOrder: img.sortOrder,
+        isPrimary: img.isPrimary,
+      })) || [],
     });
+    setImageUrlInput('');
     setIsMenuItemModalOpen(true);
   };
 
   const handleMenuItemSubmit = async () => {
-    if (!outletId || !menuItemForm.name.trim() || !menuItemForm.categoryId) return;
+    if (!outletId || !menuItemForm.name.trim()) return;
     setMenuItemSubmitting(true);
     try {
       if (editingMenuItem) {
@@ -808,6 +820,38 @@ export default function InventoryPage() {
     } finally {
       setDeletingMenuItemId(null);
     }
+  };
+
+  // Helper functions for image management
+  const addImage = () => {
+    if (!imageUrlInput.trim()) return;
+    const newImages = [
+      ...(menuItemForm.images || []),
+      {
+        imageUrl: imageUrlInput.trim(),
+        sortOrder: (menuItemForm.images?.length || 0),
+        isPrimary: (menuItemForm.images?.length || 0) === 0,
+      },
+    ];
+    setMenuItemForm({ ...menuItemForm, images: newImages });
+    setImageUrlInput('');
+  };
+
+  const removeImage = (index: number) => {
+    const newImages = (menuItemForm.images || []).filter((_, i) => i !== index);
+    // If we removed the primary, make the first one primary
+    if (newImages.length > 0 && !newImages.some((img) => img.isPrimary)) {
+      newImages[0].isPrimary = true;
+    }
+    setMenuItemForm({ ...menuItemForm, images: newImages });
+  };
+
+  const setPrimaryImage = (index: number) => {
+    const newImages = (menuItemForm.images || []).map((img, i) => ({
+      ...img,
+      isPrimary: i === index,
+    }));
+    setMenuItemForm({ ...menuItemForm, images: newImages });
   };
 
   // Menu items counts (to match /inventory/menu page)
@@ -1225,10 +1269,10 @@ export default function InventoryPage() {
               {!menuItemsLoading && !menuItemsError && filteredMenuItems.map((item) => (
                 <div key={item.id} className={styles.dishCard}>
                   <div className={styles.dishImageWrap}>
-                    {item.primaryImageUrl ? (
+                    {item.images.length > 0  ? (
                       <Image
                         className={styles.dishImg}
-                        src={item.primaryImageUrl}
+                        src={item.images && item.images.length > 0 ? item.images.find((img) => img.isPrimary)?.imageUrl || item.images[0].imageUrl : item.primaryImageUrl}
                         alt={item.name}
                         fill
                         sizes="(max-width: 1100px) 50vw, 33vw"
@@ -1481,7 +1525,7 @@ export default function InventoryPage() {
           <div className={styles.categoryModal} style={{ width: 'min(600px, 92vw)' }} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalTop}>
               <div className={styles.modalTitle}>
-                {editingItem ? 'Edit Menu Item' : 'Add New Menu Item'}
+                {editingMenuItem ? 'Edit Menu Item' : 'Add New Menu Item'}
               </div>
               <button
                 type="button"
@@ -1499,8 +1543,8 @@ export default function InventoryPage() {
                   <input
                     type="text"
                     className={styles.input}
-                    value={itemForm.name}
-                    onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })}
+                    value={menuItemForm.name}
+                    onChange={(e) => setMenuItemForm({ ...menuItemForm, name: e.target.value })}
                     placeholder="Enter item name"
                   />
                 </div>
@@ -1510,8 +1554,8 @@ export default function InventoryPage() {
                   <label className={styles.label}>Description</label>
                   <textarea
                     className={styles.textarea}
-                    value={itemForm.description || ''}
-                    onChange={(e) => setItemForm({ ...itemForm, description: e.target.value })}
+                    value={menuItemForm.description || ''}
+                    onChange={(e) => setMenuItemForm({ ...menuItemForm, description: e.target.value })}
                     placeholder="Enter item description"
                     style={{ minHeight: '80px' }}
                   />
@@ -1522,13 +1566,13 @@ export default function InventoryPage() {
                   <label className={styles.label}>Category</label>
                   <select
                     className={styles.input}
-                    value={itemForm.categoryId || ''}
+                    value={menuItemForm.categoryId || ''}
                     onChange={(e) =>
-                      setItemForm({ ...itemForm, categoryId: e.target.value || null })
+                      setMenuItemForm({ ...menuItemForm, categoryId: e.target.value || '' })
                     }
                   >
                     <option value="">-- No Category --</option>
-                    {activeCategories.map((cat) => (
+                    {activeMenuCategories.map((cat) => (
                       <option key={cat.id} value={cat.id}>
                         {cat.name}
                       </option>
@@ -1544,9 +1588,9 @@ export default function InventoryPage() {
                     <input
                       type="number"
                       className={styles.priceInput}
-                      value={itemForm.basePrice}
+                      value={menuItemForm.basePrice}
                       onChange={(e) =>
-                        setItemForm({ ...itemForm, basePrice: parseFloat(e.target.value) || 0 })
+                        setMenuItemForm({ ...menuItemForm, basePrice: parseFloat(e.target.value) || 0 })
                       }
                       min="0"
                       step="0.01"
@@ -1560,15 +1604,15 @@ export default function InventoryPage() {
                   <div className={styles.pillsRow}>
                     <button
                       type="button"
-                      className={`${styles.categoryPill} ${itemForm.isVeg ? styles.categoryPillActive : ''}`}
-                      onClick={() => setItemForm({ ...itemForm, isVeg: true })}
+                      className={`${styles.categoryPill} ${menuItemForm.isVeg ? styles.categoryPillActive : ''}`}
+                      onClick={() => setMenuItemForm({ ...menuItemForm, isVeg: true })}
                     >
                       <VegIcon /> Veg
                     </button>
                     <button
                       type="button"
-                      className={`${styles.categoryPill} ${!itemForm.isVeg ? styles.categoryPillActive : ''}`}
-                      onClick={() => setItemForm({ ...itemForm, isVeg: false })}
+                      className={`${styles.categoryPill} ${!menuItemForm.isVeg ? styles.categoryPillActive : ''}`}
+                      onClick={() => setMenuItemForm({ ...menuItemForm, isVeg: false })}
                     >
                       <NonVegIcon /> Non-Veg
                     </button>
@@ -1581,15 +1625,15 @@ export default function InventoryPage() {
                   <div className={styles.pillsRow}>
                     <button
                       type="button"
-                      className={`${styles.categoryPill} ${itemForm.status === 'ACTIVE' ? styles.categoryPillActive : ''}`}
-                      onClick={() => setItemForm({ ...itemForm, status: 'ACTIVE' })}
+                      className={`${styles.categoryPill} ${menuItemForm.status === 'ACTIVE' ? styles.categoryPillActive : ''}`}
+                      onClick={() => setMenuItemForm({ ...menuItemForm, status: 'ACTIVE' })}
                     >
                       Active
                     </button>
                     <button
                       type="button"
-                      className={`${styles.categoryPill} ${itemForm.status === 'INACTIVE' ? styles.categoryPillActive : ''}`}
-                      onClick={() => setItemForm({ ...itemForm, status: 'INACTIVE' })}
+                      className={`${styles.categoryPill} ${menuItemForm.status === 'INACTIVE' ? styles.categoryPillActive : ''}`}
+                      onClick={() => setMenuItemForm({ ...menuItemForm, status: 'INACTIVE' })}
                     >
                       Inactive
                     </button>
@@ -1617,9 +1661,9 @@ export default function InventoryPage() {
                       Add
                     </button>
                   </div>
-                  {(itemForm.images?.length || 0) > 0 && (
+                  {(menuItemForm.images?.length || 0) > 0 && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                      {itemForm.images?.map((img, idx) => (
+                      {menuItemForm.images?.map((img, idx) => (
                         <div
                           key={idx}
                           style={{
@@ -1713,7 +1757,7 @@ export default function InventoryPage() {
                 <button
                   type="button"
                   className={styles.resetBtn}
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => setIsMenuItemModalOpen(false)}
                   style={{ width: 'auto', marginTop: 0 }}
                 >
                   Cancel
@@ -1721,10 +1765,10 @@ export default function InventoryPage() {
                 <button
                   type="button"
                   className={styles.primaryBtn}
-                  onClick={handleSubmit}
-                  disabled={itemSubmitting || !itemForm.name.trim()}
+                  onClick={handleMenuItemSubmit}
+                  disabled={menuItemSubmitting || !menuItemForm.name.trim()}
                 >
-                  {itemSubmitting ? 'Saving...' : editingItem ? 'Update Item' : 'Create Item'}
+                  {menuItemSubmitting ? 'Saving...' : editingMenuItem ? 'Update Item' : 'Create Item'}
                 </button>
               </div>
             </div>
