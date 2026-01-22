@@ -19,8 +19,8 @@ public class OrderPosResource {
   @Inject OrderPosService orderPosService;
 
   @POST
-  public OrderResponse create(@Valid final OrderCreateRequest request) {
-    return orderPosService.create(request);
+  public OrderResponse create(@Valid final OrderCreateRequest request, @QueryParam("outletId") final String outletId) {
+    return orderPosService.create(request, outletId);
   }
 
   @GET

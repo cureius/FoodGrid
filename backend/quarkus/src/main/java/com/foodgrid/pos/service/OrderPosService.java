@@ -46,19 +46,21 @@ public class OrderPosService {
   @Inject JsonWebToken jwt;
 
   @Transactional
-  public OrderResponse create(final OrderCreateRequest req) {
-    final String outletId = claimRequired("outletId");
+  public OrderResponse create(final OrderCreateRequest req, final String outletIdParam) {
+    final String outletId = (outletIdParam != null && !outletIdParam.isBlank()) ? outletIdParam : claimRequired("outletId");
     guards.requireOutletInTenant(outletId);
 
-    final ShiftSession ss = activeSession();
+    // Check if this is admin access (no sessionId in token) or POS access
+    final boolean isAdminAccess = claim("sessionId") == null;
+    final ShiftSession ss = isAdminAccess ? null : activeSession();
 
     final Order o = new Order();
     o.id = Ids.uuid();
     o.outletId = outletId;
     o.tenantId = guards.requireTenant();
-    o.deviceId = ss.deviceId;
-    o.shiftId = ss.shiftId;
-    o.employeeId = employeeId();
+    o.deviceId = isAdminAccess ? "admin-device" : ss.deviceId;
+    o.shiftId = isAdminAccess ? "admin-shift" : ss.shiftId;
+    o.employeeId = isAdminAccess ? "admin" : employeeId();
     o.tableId = (req.tableId() == null || req.tableId().isBlank()) ? null : req.tableId();
     o.orderType = parseOrderType(req.orderType());
     o.status = Order.Status.OPEN;
@@ -338,7 +340,7 @@ public class OrderPosService {
 
   private String employeeId() {
     if (identity.getPrincipal() == null || identity.getPrincipal().getName() == null || identity.getPrincipal().getName().isBlank()) {
-      throw new BadRequestException("Missing employee identity");
+      return null; // Return null for admin access instead of throwing exception
     }
     return identity.getPrincipal().getName();
   }

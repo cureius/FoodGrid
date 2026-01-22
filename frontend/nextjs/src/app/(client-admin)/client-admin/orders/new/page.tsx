@@ -231,7 +231,7 @@ export default function NewOrderPage() {
         orderType: orderTypeStr,
         tableId: orderType === "DINE_IN" ? selectedTableId || undefined : undefined,
         notes: orderNotes || undefined,
-      });
+      }, outletId);
       
       setCurrentOrder(orderData);
       

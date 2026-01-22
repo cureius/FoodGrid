@@ -969,8 +969,8 @@ export function getOrder(orderId: string) {
   });
 }
 
-export function createOrder(input: OrderCreateInput) {
-  return http<OrderResponse>(`/api/v1/pos/orders`, {
+export function createOrder(input: OrderCreateInput, outletId?: string) {
+  return http<OrderResponse>(`/api/v1/pos/orders?outletId=${encodeURIComponent(outletId || '')}`, {
     method: "POST",
     headers: { ...clientAdminAuthHeader() },
     body: JSON.stringify(input)
