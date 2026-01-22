@@ -58,6 +58,15 @@ public class MenuAdminResource {
     return menuAdminService.createItem(outletId, request);
   }
 
+  @GET
+  @Path("/items/{itemId}")
+  public MenuItemResponse getItem(
+    @PathParam("outletId") final String outletId,
+    @PathParam("itemId") final String itemId
+  ) {
+    return menuAdminService.getItem(outletId, itemId);
+  }
+
   @PUT
   @Path("/items/{itemId}")
   public MenuItemResponse updateItem(

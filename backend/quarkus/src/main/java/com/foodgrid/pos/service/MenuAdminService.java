@@ -1,6 +1,7 @@
 package com.foodgrid.pos.service;
 
 import com.foodgrid.common.util.Ids;
+import com.foodgrid.common.storage.ImageUploadService;
 import com.foodgrid.pos.dto.*;
 import com.foodgrid.pos.model.MenuCategory;
 import com.foodgrid.pos.model.MenuItem;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -29,6 +31,7 @@ public class MenuAdminService {
   @Inject MenuItemRepository itemRepository;
   @Inject MenuItemImageRepository imageRepository;
   @Inject SecurityIdentity identity;
+  @Inject ImageUploadService imageUploadService;
 
   public List<MenuCategoryResponse> listCategories(String outletId) {
     enforceOutlet(outletId);
@@ -91,8 +94,9 @@ public class MenuAdminService {
       imageRepository.list("menuItemId IN ?1 ORDER BY sortOrder ASC", itemIds).stream()
         .collect(Collectors.groupingBy(img -> img.menuItemId));
     
+        Logger.getLogger(MenuAdminService.class.getName()).info("imagesByItem: " + imagesByItem);
     return items.stream()
-      .map(i -> toResponse(i, categoryNames.get(i.categoryId), imagesByItem.getOrDefault(i.id, List.of())))
+      .map(i -> toResponse(i, categoryNames.get(i.categoryId), imagesByItem.getOrDefault(i.id, List.of()), imageUploadService))
       .toList();
   }
 
@@ -124,7 +128,7 @@ public class MenuAdminService {
     // Handle images
     List<MenuItemImage> savedImages = saveImages(i.id, req.images());
 
-    return toResponse(i, categoryName, savedImages);
+    return toResponse(i, categoryName, savedImages, imageUploadService);
   }
 
   @Transactional
@@ -157,7 +161,25 @@ public class MenuAdminService {
     imageRepository.deleteByMenuItem(itemId);
     List<MenuItemImage> savedImages = saveImages(itemId, req.images());
 
-    return toResponse(i, categoryName, savedImages);
+    return toResponse(i, categoryName, savedImages, imageUploadService);
+  }
+
+  public MenuItemResponse getItem(String outletId, String itemId) {
+    enforceOutlet(outletId);
+    
+    MenuItem i = itemRepository.findByIdAndOutlet(itemId, outletId)
+      .orElseThrow(() -> new NotFoundException("Item not found"));
+    
+    String categoryName = null;
+    if (i.categoryId != null) {
+      categoryName = categoryRepository.findByIdAndOutlet(i.categoryId, outletId)
+        .map(c -> c.name)
+        .orElse(null);
+    }
+    
+    List<MenuItemImage> images = imageRepository.list("menuItemId = ?1 ORDER BY sortOrder ASC", itemId);
+    
+    return toResponse(i, categoryName, images, imageUploadService);
   }
 
   @Transactional
@@ -228,9 +250,13 @@ public class MenuAdminService {
     return new MenuCategoryResponse(c.id, c.outletId, c.name, c.sortOrder, c.status.name());
   }
 
-  private static MenuItemResponse toResponse(MenuItem i, String categoryName, List<MenuItemImage> images) {
+  private MenuItemResponse toResponse(MenuItem i, String categoryName, List<MenuItemImage> images, ImageUploadService imageUploadService) {
     List<MenuItemImageResponse> imageResponses = images.stream()
-      .map(img -> new MenuItemImageResponse(img.id, img.imageUrl, img.sortOrder, img.isPrimary))
+      .map(img -> {
+        // Convert file path to full URL
+        String imageUrl = imageUploadService.getImageUrl(img.imageUrl);
+        return new MenuItemImageResponse(img.id, imageUrl, img.sortOrder, img.isPrimary);
+      })
       .toList();
     
     return new MenuItemResponse(

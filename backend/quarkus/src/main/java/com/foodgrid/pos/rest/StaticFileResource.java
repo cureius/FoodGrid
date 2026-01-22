@@ -1,5 +1,6 @@
 package com.foodgrid.pos.rest;
 
+import jakarta.annotation.security.PermitAll;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -13,8 +14,10 @@ import java.nio.file.Paths;
 /**
  * REST resource for serving uploaded files from local storage.
  * Only used when storage provider is LOCAL.
+ * Publicly accessible - no authentication required.
  */
 @Path("/uploads")
+@PermitAll
 public class StaticFileResource {
 
     @ConfigProperty(name = "foodgrid.storage.local.base-path", defaultValue = "./uploads")
@@ -64,6 +67,9 @@ public class StaticFileResource {
             return Response.ok(fileContent)
                     .type(contentType)
                     .header("Cache-Control", "public, max-age=86400") // Cache for 1 day
+                    .header("Access-Control-Allow-Origin", "*") // Allow CORS for images
+                    .header("Access-Control-Allow-Methods", "GET, OPTIONS")
+                    .header("Access-Control-Allow-Headers", "Content-Type")
                     .build();
 
         } catch (final IOException e) {

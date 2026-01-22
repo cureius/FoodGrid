@@ -29,6 +29,9 @@ public class LocalStorageProvider implements BlobStorageProvider {
     @ConfigProperty(name = "foodgrid.storage.local.base-url", defaultValue = "/uploads")
     String baseUrl;
 
+    @ConfigProperty(name = "foodgrid.storage.local.server-base-url", defaultValue = "http://localhost:8080")
+    String serverBaseUrl;
+
     @Override
     public String upload(final InputStream inputStream, final String fileName, final String contentType, final String folder) {
         try {
@@ -71,8 +74,34 @@ public class LocalStorageProvider implements BlobStorageProvider {
 
     @Override
     public String getUrl(final String filePath) {
-        // Return URL path for accessing the file
-        return baseUrl + "/" + filePath;
+        if (filePath == null || filePath.isEmpty()) {
+            return null;
+        }
+        
+        // If filePath is already a full URL (starts with http:// or https://), return as-is
+        if (filePath.contains("http://") || filePath.contains("https://")) {
+            return filePath;
+        }
+        
+        // Return absolute URL for accessing the file
+        // URLs always use forward slashes, regardless of OS
+        final String URL_SEPARATOR = "/";
+        
+        // Remove leading slash from baseUrl if present, and ensure filePath doesn't have leading slash
+        final String cleanBaseUrl = baseUrl.startsWith(URL_SEPARATOR) ? baseUrl : URL_SEPARATOR + baseUrl;
+        final String cleanFilePath = filePath.startsWith(URL_SEPARATOR) ? filePath.substring(1) : filePath;
+        final String relativePath = cleanBaseUrl + URL_SEPARATOR + cleanFilePath;
+        
+        // If serverBaseUrl is set, return absolute URL; otherwise return relative URL
+        if (serverBaseUrl != null && !serverBaseUrl.isEmpty()) {
+            // Remove trailing slash from serverBaseUrl if present
+            final String cleanServerBaseUrl = serverBaseUrl.endsWith(URL_SEPARATOR)
+                ? serverBaseUrl.substring(0, serverBaseUrl.length() - 1) 
+                : serverBaseUrl;
+            return cleanServerBaseUrl + relativePath;
+        }
+        
+        return relativePath;
     }
 
     @Override
