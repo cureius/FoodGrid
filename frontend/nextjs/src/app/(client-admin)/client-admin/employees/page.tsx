@@ -6,10 +6,10 @@ import {
   createEmployee,
   deleteEmployee,
   listEmployees,
-  listOutlets,
   updateEmployee,
   type EmployeeUpsertInput,
 } from "@/lib/api/clientAdmin";
+import { useOutlet } from "@/contexts/OutletContext";
 import {
   Plus,
   Users,
@@ -46,20 +46,14 @@ interface Employee {
   status: string;
 }
 
-interface Outlet {
-  id: string;
-  name: string;
-  status?: string;
-}
 
 export default function EmployeesPage() {
   const router = useRouter();
+  const { selectedOutletId, selectedOutlet } = useOutlet();
 
   // State
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
-  const [outlets, setOutlets] = useState<Outlet[]>([]);
-  const [selectedOutletId, setSelectedOutletId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -115,15 +109,14 @@ export default function EmployeesPage() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  // Fetch outlets on mount
-  useEffect(() => {
-    fetchOutlets();
-  }, []);
-
   // Fetch employees when outlet changes
   useEffect(() => {
     if (selectedOutletId) {
       fetchEmployees();
+    } else {
+      setEmployees([]);
+      setFilteredEmployees([]);
+      setLoading(false);
     }
   }, [selectedOutletId]);
 
@@ -131,22 +124,6 @@ export default function EmployeesPage() {
   useEffect(() => {
     filterEmployees();
   }, [employees, searchQuery, statusFilter]);
-
-  const fetchOutlets = async () => {
-    try {
-      const data = await listOutlets();
-      setOutlets(data || []);
-      const envOutletId = process.env.NEXT_PUBLIC_OUTLET_ID;
-      if (envOutletId && data?.find((o: Outlet) => o.id === envOutletId)) {
-        setSelectedOutletId(envOutletId);
-      } else if (data && data.length > 0) {
-        setSelectedOutletId(data[0].id);
-      }
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Failed to fetch outlets";
-      showToast("Error", message, "error");
-    }
-  };
 
   const fetchEmployees = async () => {
     if (!selectedOutletId) return;
@@ -314,7 +291,6 @@ export default function EmployeesPage() {
 
   const activeCount = employees.filter((e) => e.status === "ACTIVE").length;
   const inactiveCount = employees.filter((e) => e.status !== "ACTIVE").length;
-  const selectedOutlet = outlets.find((o) => o.id === selectedOutletId);
 
   const stats = [
     { title: "Total Employees", value: employees.length, icon: Users, color: "#6366f1", bgColor: "rgba(99, 102, 241, 0.1)" },
@@ -438,67 +414,6 @@ export default function EmployeesPage() {
               </button>
             </div>
           </div>
-
-          {/* Outlet Selector */}
-          <Card style={{ marginBottom: 20 }}>
-            <div style={{ padding: 20, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-              <div style={{ padding: 12, borderRadius: 14, background: "rgba(249, 115, 22, 0.1)" }}>
-                <Building2 size={24} style={{ color: "#f97316" }} />
-              </div>
-              <div style={{ flex: 1, minWidth: 240 }}>
-                <label
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: "#64748b",
-                    display: "block",
-                    marginBottom: 8,
-                    letterSpacing: 0.2,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Outlet
-                </label>
-                <select
-                  value={selectedOutletId}
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedOutletId(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: 12,
-                    border: "1px solid #e2e8f0",
-                    background: "#f8fafc",
-                    fontSize: 14,
-                    cursor: "pointer",
-                    outline: "none",
-                  }}
-                >
-                  <option value="">Choose an outlet to manage employees</option>
-                  {outlets.map((outlet) => (
-                    <option key={outlet.id} value={outlet.id}>
-                      {outlet.name}
-                    </option>
-                  ))}
-                </select>
-                <div style={{ marginTop: 8, fontSize: 12, color: "#94a3b8" }}>
-                  Tip: Use the dropdown to switch outlet context.
-                </div>
-              </div>
-
-              {selectedOutlet ? (
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  <Badge variant="info">
-                    <Store size={14} style={{ marginRight: 6 }} />
-                    {selectedOutlet.name}
-                  </Badge>
-                  <Badge variant={selectedOutlet.status === "INACTIVE" ? "danger" : "success"}>
-                    {selectedOutlet.status === "INACTIVE" ? <ShieldX size={14} style={{ marginRight: 6 }} /> : <ShieldCheck size={14} style={{ marginRight: 6 }} />}
-                    {selectedOutlet.status ?? "ACTIVE"}
-                  </Badge>
-                </div>
-              ) : null}
-            </div>
-          </Card>
 
           {/* Stats */}
           {selectedOutletId && (
@@ -917,7 +832,7 @@ export default function EmployeesPage() {
                   <UserPlus size={28} style={{ color: "#8b5cf6" }} />
                 </div>
                 <h2 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 4px" }}>Add New Employee</h2>
-                <p style={{ color: "#64748b", fontSize: 14, margin: 0 }}>Create a new employee for {selectedOutlet?.name}</p>
+                <p style={{ color: "#64748b", fontSize: 14, margin: 0 }}>Create a new employee for {selectedOutlet?.name || 'the selected outlet'}</p>
               </div>
               <div style={{ padding: 24 }}>
                 <div style={{ marginBottom: 16 }}>

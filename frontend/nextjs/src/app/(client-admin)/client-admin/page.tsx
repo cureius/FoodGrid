@@ -16,7 +16,8 @@ import {
   ChevronRight,
   MapPin
 } from "lucide-react";
-import { listEmployees, listOutlets } from "@/lib/api/clientAdmin";
+import { listEmployees } from "@/lib/api/clientAdmin";
+import { useOutlet } from "@/contexts/OutletContext";
 
 function formatTime(d: Date) {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -118,8 +119,8 @@ export default function Page() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [outlets, setOutlets] = useState<any[]>([]);
-  const [allEmployees, setAllEmployees] = useState<any[]>([]);
+  const { selectedOutletId, selectedOutlet } = useOutlet();
+  const [employees, setEmployees] = useState<any[]>([]);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -127,27 +128,21 @@ export default function Page() {
   }, []);
 
   async function load(isRefresh = false) {
+    if (!selectedOutletId) {
+      setLoading(false);
+      setRefreshing(false);
+      setEmployees([]);
+      return;
+    }
+
     try {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
       setError(null);
 
-      const outletsRes = await listOutlets();
-      setOutlets(outletsRes ?? []);
-
-      // Load employees for all outlets
-      const allEmps: any[] = [];
-      for (const outlet of (outletsRes ?? [])) {
-        try {
-          const emps = await listEmployees(outlet.id);
-          if (emps) {
-            allEmps.push(...emps.map((e: any) => ({ ...e, outletId: outlet.id, outletName: outlet.name })));
-          }
-        } catch {
-          // Skip outlets we can't access
-        }
-      }
-      setAllEmployees(allEmps);
+      // Load employees for selected outlet
+      const emps = await listEmployees(selectedOutletId);
+      setEmployees(emps ?? []);
     } catch (e: any) {
       setError(e?.message ?? "Failed to load dashboard data");
     } finally {
@@ -158,24 +153,20 @@ export default function Page() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [selectedOutletId]);
 
   const stats = useMemo(() => {
-    const activeOutlets = outlets.filter((o) => o.status === "ACTIVE").length;
-    const activeEmployees = allEmployees.filter((e) => (e.status ?? "ACTIVE") === "ACTIVE").length;
-    const inactiveEmployees = allEmployees.length - activeEmployees;
+    const activeEmployees = employees.filter((e) => (e.status ?? "ACTIVE") === "ACTIVE").length;
+    const inactiveEmployees = employees.length - activeEmployees;
 
     return {
-      outletsCount: outlets.length,
-      activeOutlets,
-      employeesCount: allEmployees.length,
+      employeesCount: employees.length,
       activeEmployees,
       inactiveEmployees
     };
-  }, [outlets, allEmployees]);
+  }, [employees]);
 
-  const recentOutlets = outlets.slice(0, 4);
-  const recentEmployees = allEmployees.slice(0, 5);
+  const recentEmployees = employees.slice(0, 5);
 
   return (
     <div style={{ padding: "32px", maxWidth: 1400, margin: "0 auto" }}>
@@ -274,18 +265,9 @@ export default function Page() {
         marginBottom: 32,
       }}>
         <StatCard
-          title="Total Outlets"
-          value={stats.outletsCount}
-          subtitle={`${stats.activeOutlets} active`}
-          icon={<Store size={26} />}
-          color="#8b5cf6"
-          bgColor="rgba(139, 92, 246, 0.1)"
-          loading={loading}
-        />
-        <StatCard
           title="Total Employees"
           value={stats.employeesCount}
-          subtitle="Across all outlets"
+          subtitle={selectedOutlet ? `For ${selectedOutlet.name}` : "Select an outlet"}
           icon={<Users size={26} />}
           color="#3b82f6"
           bgColor="rgba(59, 130, 246, 0.1)"
@@ -317,126 +299,6 @@ export default function Page() {
         gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
         gap: 24,
       }}>
-        {/* Outlets Section */}
-        <div style={{
-          background: "white",
-          borderRadius: 20,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
-          border: "1px solid rgba(0,0,0,0.04)",
-          overflow: "hidden",
-        }}>
-          <div style={{
-            padding: "20px 24px",
-            borderBottom: "1px solid #f1f5f9",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{
-                width: 40,
-                height: 40,
-                borderRadius: 10,
-                background: "rgba(139, 92, 246, 0.1)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}>
-                <Building2 size={20} style={{ color: "#8b5cf6" }} />
-              </div>
-              <div>
-                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Outlets</h3>
-                <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>{outlets.length} total</p>
-              </div>
-            </div>
-            <Link href="/client-admin/outlets" style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              color: "#8b5cf6",
-              fontSize: 13,
-              fontWeight: 600,
-              textDecoration: "none",
-            }}>
-              View All <ChevronRight size={16} />
-            </Link>
-          </div>
-
-          <div style={{ padding: 16 }}>
-            {loading ? (
-              <div style={{ padding: 20, textAlign: "center", color: "#64748b" }}>Loading outlets...</div>
-            ) : recentOutlets.length === 0 ? (
-              <div style={{ padding: 40, textAlign: "center" }}>
-                <Store size={40} style={{ color: "#cbd5e1", marginBottom: 12 }} />
-                <p style={{ color: "#64748b", margin: 0 }}>No outlets found</p>
-                <Link href="/client-admin/outlets" style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  marginTop: 12,
-                  padding: "10px 18px",
-                  borderRadius: 10,
-                  background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                  color: "white",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  textDecoration: "none",
-                }}>
-                  Add Outlet <ArrowRight size={14} />
-                </Link>
-              </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {recentOutlets.map((outlet) => (
-                  <div key={outlet.id} style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 14,
-                    padding: "14px 16px",
-                    borderRadius: 12,
-                    background: "#f8fafc",
-                    transition: "all 0.15s ease",
-                  }}>
-                    <div style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 12,
-                      background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "white",
-                      fontWeight: 700,
-                      fontSize: 14,
-                    }}>
-                      {(outlet.name ?? "O").slice(0, 2).toUpperCase()}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: "#1e293b", marginBottom: 2 }}>
-                        {outlet.name ?? "Unnamed Outlet"}
-                      </div>
-                      <div style={{ fontSize: 12, color: "#64748b", display: "flex", alignItems: "center", gap: 4 }}>
-                        <MapPin size={12} />
-                        {outlet.timezone ?? "No timezone"}
-                      </div>
-                    </div>
-                    <div style={{
-                      padding: "4px 10px",
-                      borderRadius: 20,
-                      background: outlet.status === "ACTIVE" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                      color: outlet.status === "ACTIVE" ? "#10b981" : "#ef4444",
-                      fontSize: 11,
-                      fontWeight: 600,
-                    }}>
-                      {outlet.status ?? "ACTIVE"}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
         {/* Employees Section */}
         <div style={{
           background: "white",
@@ -466,7 +328,7 @@ export default function Page() {
               </div>
               <div>
                 <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Employees</h3>
-                <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>{allEmployees.length} total</p>
+                <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>{employees.length} total</p>
               </div>
             </div>
             <Link href="/client-admin/employees" style={{

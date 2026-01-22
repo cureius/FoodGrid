@@ -5,7 +5,8 @@ import styles from "./Orders.module.css";
 import Card from "@/components/ui/Card";
 import { Plus, Search, ChevronDown, ArrowRight, FileText, X, Timer, CheckCircle2, UtensilsCrossed, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { listOrders, getOrder, cancelOrderItem, markOrderServed, billOrder, listOutlets, type OrderResponse, type OrderItemResponse } from "@/lib/api/clientAdmin";
+import { listOrders, getOrder, cancelOrderItem, markOrderServed, billOrder, type OrderResponse, type OrderItemResponse } from "@/lib/api/clientAdmin";
+import { useOutlet } from "@/contexts/OutletContext";
 import { getImageUrl } from "@/lib/api/clientAdmin";
 import Image from "next/image";
 
@@ -150,38 +151,17 @@ export default function OrderPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [outletId, setOutletId] = useState<string | null>(null);
-
-  // Fetch outlets on mount
-  useEffect(() => {
-    async function fetchOutlets() {
-      try {
-        const outlets = await listOutlets();
-        if (outlets && outlets.length > 0) {
-          // Use first outlet or check for env variable
-          const envOutletId = process.env.NEXT_PUBLIC_OUTLET_ID;
-          if (envOutletId && outlets.find((o: any) => o.id === envOutletId)) {
-            setOutletId(envOutletId);
-          } else {
-            setOutletId(outlets[0].id);
-          }
-        }
-      } catch (err: any) {
-        console.error("Failed to fetch outlets:", err);
-      }
-    }
-    fetchOutlets();
-  }, []);
+  const { selectedOutletId } = useOutlet();
 
   // Fetch orders when outletId is available
   useEffect(() => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     
     async function fetchOrders() {
       try {
         setLoading(true);
         setError(null);
-        const data = await listOrders(100, outletId); // Get up to 100 recent orders for the outlet
+        const data = await listOrders(100, selectedOutletId); // Get up to 100 recent orders for the outlet
         setOrders(data);
       } catch (err: any) {
         setError(err?.message || "Failed to load orders");
@@ -191,7 +171,7 @@ export default function OrderPage() {
       }
     }
     fetchOrders();
-  }, [outletId]);
+  }, [selectedOutletId]);
 
   // Fetch order details when selected
   useEffect(() => {
@@ -253,12 +233,12 @@ export default function OrderPage() {
   }, [mappedOrders, activeStatus, query, sortBy]);
 
   const handleCancelItem = async (orderId: string, orderItemId: string) => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     try {
       setActionLoading(`cancel-${orderItemId}`);
       await cancelOrderItem(orderId, orderItemId);
       // Refresh orders
-      const data = await listOrders(100, outletId);
+      const data = await listOrders(100, selectedOutletId);
       setOrders(data);
       // Refresh selected order if it's the same
       if (selectedOrderId === orderId) {
@@ -274,12 +254,12 @@ export default function OrderPage() {
   };
 
   const handleMarkServed = async (orderId: string) => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     try {
       setActionLoading(`serve-${orderId}`);
       await markOrderServed(orderId);
       // Refresh orders
-      const data = await listOrders(100, outletId);
+      const data = await listOrders(100, selectedOutletId);
       setOrders(data);
       // Refresh selected order if it's the same
       if (selectedOrderId === orderId) {
@@ -295,12 +275,12 @@ export default function OrderPage() {
   };
 
   const handleBillOrder = async (orderId: string) => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     try {
       setActionLoading(`bill-${orderId}`);
       await billOrder(orderId);
       // Refresh orders
-      const data = await listOrders(100, outletId);
+      const data = await listOrders(100, selectedOutletId);
       setOrders(data);
       // Refresh selected order if it's the same
       if (selectedOrderId === orderId) {

@@ -3,13 +3,13 @@
 import { useEffect, useState, useMemo, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
-  listOutlets,
   listTables,
   createTable,
   updateTable,
   deleteTable,
   type TableUpsertInput,
 } from "@/lib/api/clientAdmin";
+import { useOutlet } from "@/contexts/OutletContext";
 import {
   Plus,
   Search,
@@ -42,20 +42,14 @@ interface DiningTable {
   status: string;
 }
 
-interface Outlet {
-  id: string;
-  name: string;
-  status?: string;
-}
 
 export default function TablesPage() {
   const router = useRouter();
+  const { selectedOutletId, selectedOutlet } = useOutlet();
 
   // State
   const [tables, setTables] = useState<DiningTable[]>([]);
   const [filteredTables, setFilteredTables] = useState<DiningTable[]>([]);
-  const [outlets, setOutlets] = useState<Outlet[]>([]);
-  const [selectedOutletId, setSelectedOutletId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -106,15 +100,14 @@ export default function TablesPage() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  // Fetch outlets on mount
-  useEffect(() => {
-    fetchOutlets();
-  }, []);
-
   // Fetch tables when outlet changes
   useEffect(() => {
     if (selectedOutletId) {
       fetchTables();
+    } else {
+      setTables([]);
+      setFilteredTables([]);
+      setLoading(false);
     }
   }, [selectedOutletId]);
 
@@ -122,22 +115,6 @@ export default function TablesPage() {
   useEffect(() => {
     filterTables();
   }, [tables, searchQuery, statusFilter]);
-
-  const fetchOutlets = async () => {
-    try {
-      const data = await listOutlets();
-      setOutlets(data || []);
-      const envOutletId = process.env.NEXT_PUBLIC_OUTLET_ID;
-      if (envOutletId && data?.find((o: Outlet) => o.id === envOutletId)) {
-        setSelectedOutletId(envOutletId);
-      } else if (data && data.length > 0) {
-        setSelectedOutletId(data[0].id);
-      }
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Failed to fetch outlets";
-      showToast("Error", message, "error");
-    }
-  };
 
   const fetchTables = async () => {
     if (!selectedOutletId) return;
@@ -269,7 +246,6 @@ export default function TablesPage() {
 
   const activeCount = tables.filter((t) => t.status === "ACTIVE").length;
   const inactiveCount = tables.filter((t) => t.status === "INACTIVE").length;
-  const selectedOutlet = outlets.find((o) => o.id === selectedOutletId);
 
   const stats = [
     { title: "Total Tables", value: tables.length, icon: LayoutGrid, color: "#6366f1", bgColor: "rgba(99, 102, 241, 0.1)" },
@@ -400,58 +376,6 @@ export default function TablesPage() {
               </button>
             </div>
           </div>
-
-          {/* Outlet Selector */}
-          <Card style={{ marginBottom: 20 }}>
-            <div style={{ padding: 20, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-              <div style={{ padding: 12, borderRadius: 14, background: "rgba(249, 115, 22, 0.1)" }}>
-                <Building2 size={24} style={{ color: "#f97316" }} />
-              </div>
-              <div style={{ flex: 1, minWidth: 240 }}>
-                <label
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: "#64748b",
-                    display: "block",
-                    marginBottom: 8,
-                    letterSpacing: 0.2,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Outlet
-                </label>
-                <select
-                  value={selectedOutletId}
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedOutletId(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: 12,
-                    border: "1px solid #e2e8f0",
-                    background: "#f8fafc",
-                    fontSize: 14,
-                    cursor: "pointer",
-                    outline: "none",
-                  }}
-                >
-                  <option value="">Choose an outlet to manage tables</option>
-                  {outlets.map((outlet) => (
-                    <option key={outlet.id} value={outlet.id}>
-                      {outlet.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {selectedOutlet && (
-                <Badge variant="info">
-                  <Store size={14} style={{ marginRight: 6 }} />
-                  {selectedOutlet.name}
-                </Badge>
-              )}
-            </div>
-          </Card>
 
           {/* Stats */}
           {selectedOutletId && (

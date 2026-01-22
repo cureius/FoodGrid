@@ -45,6 +45,7 @@ import {
 } from '@/lib/api/clientAdmin';
 import ImageUploadDropbox from '@/components/ui/ImageUploadDropbox';
 import RecipeManager from '@/components/ui/RecipeManager';
+import { useOutlet } from '@/contexts/OutletContext';
 
 type StockLevel = 'high' | 'medium' | 'low' | 'empty';
 type DishStatus = 'available' | 'not-available';
@@ -232,8 +233,8 @@ export default function InventoryPage() {
 
   const [detailDish, setDetailDish] = useState<Dish | null>(null);
 
-  // Outlet state
-  const [outletId, setOutletId] = useState<string | null>(null);
+  // Outlet from context
+  const { selectedOutletId } = useOutlet();
 
   // Menu Category management state
   const [menuCategories, setMenuCategories] = useState<MenuCategoryResponse[]>([]);
@@ -367,82 +368,72 @@ export default function InventoryPage() {
 
   const dishes = useMemo(() => dishesSeed, []);
 
-  // Fetch outlet ID on mount
-  useEffect(() => {
-    listOutlets()
-      .then((outlets) => {
-        if (outlets && outlets.length > 0) {
-          setOutletId(outlets[0].id);
-        }
-      })
-      .catch(() => { });
-  }, []);
 
   // Fetch menu categories
   const fetchMenuCategories = useCallback(async () => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     setMenuCategoriesLoading(true);
     setMenuCategoryError(null);
     try {
-      const data = await listMenuCategories(outletId);
+      const data = await listMenuCategories(selectedOutletId);
       setMenuCategories(data || []);
     } catch (err: any) {
       setMenuCategoryError(err?.message || 'Failed to load categories');
     } finally {
       setMenuCategoriesLoading(false);
     }
-  }, [outletId]);
+  }, [selectedOutletId]);
 
   // Fetch ingredients
   const fetchIngredients = useCallback(async () => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     setIngredientsLoading(true);
     setIngredientError(null);
     try {
-      const data = await listIngredients(outletId);
+      const data = await listIngredients(selectedOutletId);
       setIngredients(data || []);
     } catch (err: any) {
       setIngredientError(err?.message || 'Failed to load ingredients');
     } finally {
       setIngredientsLoading(false);
     }
-  }, [outletId]);
+  }, [selectedOutletId]);
 
   // Fetch ingredient categories
   const fetchIngredientCategories = useCallback(async () => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     setIngredientCategoriesLoading(true);
     try {
-      const data = await listIngredientCategories(outletId);
+      const data = await listIngredientCategories(selectedOutletId);
       setIngredientCategories(data || []);
     } catch (err: any) {
       console.error('Failed to load ingredient categories', err);
     } finally {
       setIngredientCategoriesLoading(false);
     }
-  }, [outletId]);
+  }, [selectedOutletId]);
 
   // Fetch units of measure
   const fetchUnits = useCallback(async () => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     setUnitsLoading(true);
     try {
-      const data = await listUnitsOfMeasure(outletId);
+      const data = await listUnitsOfMeasure(selectedOutletId);
       setUnits(data || []);
     } catch (err: any) {
       console.error('Failed to load units', err);
     } finally {
       setUnitsLoading(false);
     }
-  }, [outletId]);
+  }, [selectedOutletId]);
 
   // Fetch suppliers
   const fetchSuppliers = useCallback(async () => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     setSuppliersLoading(true);
     setSuppliersError(null);
     try {
-      const data = await listSuppliers(outletId);
+      const data = await listSuppliers(selectedOutletId);
       setSuppliers(data || []);
     } catch (err: any) {
       setSuppliersError(err?.message || 'Failed to load suppliers');
@@ -450,15 +441,15 @@ export default function InventoryPage() {
     } finally {
       setSuppliersLoading(false);
     }
-  }, [outletId]);
+  }, [selectedOutletId]);
 
   // Fetch menu items
   const fetchMenuItems = useCallback(async () => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     setMenuItemsLoading(true);
     setMenuItemsError(null);
     try {
-      const data = await listMenuItems(outletId);
+      const data = await listMenuItems(selectedOutletId);
       setMenuItems(data || []);
     } catch (err: any) {
       setMenuItemsError(err?.message || 'Failed to load menu items');
@@ -466,11 +457,11 @@ export default function InventoryPage() {
     } finally {
       setMenuItemsLoading(false);
     }
-  }, [outletId]);
+  }, [selectedOutletId]);
 
   // Fetch all data on mount
   useEffect(() => {
-    if (outletId) {
+    if (selectedOutletId) {
       fetchMenuCategories();
       fetchIngredients();
       fetchIngredientCategories();
@@ -478,7 +469,7 @@ export default function InventoryPage() {
       fetchSuppliers();
       fetchMenuItems();
     }
-  }, [outletId, fetchMenuCategories, fetchIngredients, fetchIngredientCategories, fetchUnits, fetchSuppliers, fetchMenuItems]);
+  }, [selectedOutletId, fetchMenuCategories, fetchIngredients, fetchIngredientCategories, fetchUnits, fetchSuppliers, fetchMenuItems]);
 
   const activeMenuCategories = useMemo(() => {
     return menuCategories.filter((c) => c.status === 'ACTIVE');
@@ -502,13 +493,13 @@ export default function InventoryPage() {
   };
 
   const handleMenuCategorySubmit = async () => {
-    if (!outletId || !categoryForm.name.trim()) return;
+    if (!selectedOutletId || !categoryForm.name.trim()) return;
     setCategorySubmitting(true);
     try {
       if (editingCategory) {
-        await updateMenuCategory(outletId, editingCategory.id, categoryForm);
+        await updateMenuCategory(selectedOutletId, editingCategory.id, categoryForm);
       } else {
-        await createMenuCategory(outletId, categoryForm);
+        await createMenuCategory(selectedOutletId, categoryForm);
       }
       setIsCategoryModalOpen(false);
       fetchMenuCategories();
@@ -520,11 +511,11 @@ export default function InventoryPage() {
   };
 
   const handleDeleteMenuCategory = async (categoryId: string) => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     if (!confirm('Are you sure you want to delete this category?')) return;
     setDeletingCategoryId(categoryId);
     try {
-      await deleteMenuCategory(outletId, categoryId);
+      await deleteMenuCategory(selectedOutletId, categoryId);
       fetchMenuCategories();
     } catch (err: any) {
       alert(err?.message || 'Failed to delete category');
@@ -590,13 +581,13 @@ export default function InventoryPage() {
   };
 
   const handleIngredientSubmit = async () => {
-    if (!outletId || !ingredientExtendedForm.name.trim() || !ingredientExtendedForm.unitId) return;
+    if (!selectedOutletId || !ingredientExtendedForm.name.trim() || !ingredientExtendedForm.unitId) return;
     setIngredientSubmitting(true);
     try {
       if (editingIngredient) {
-        await updateIngredient(outletId, editingIngredient.id, ingredientExtendedForm);
+        await updateIngredient(selectedOutletId, editingIngredient.id, ingredientExtendedForm);
       } else {
-        await createIngredient(outletId, ingredientExtendedForm);
+        await createIngredient(selectedOutletId, ingredientExtendedForm);
       }
       setIsIngredientModalOpen(false);
       fetchIngredients();
@@ -608,11 +599,11 @@ export default function InventoryPage() {
   };
 
   const handleDeleteIngredient = async (ingredientId: string) => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     if (!confirm('Are you sure you want to delete this ingredient?')) return;
     setDeletingIngredientId(ingredientId);
     try {
-      await deleteIngredient(outletId, ingredientId);
+      await deleteIngredient(selectedOutletId, ingredientId);
       fetchIngredients();
     } catch (err: any) {
       alert(err?.message || 'Failed to delete ingredient');
@@ -634,10 +625,10 @@ export default function InventoryPage() {
   };
 
   const handleStockMovementSubmit = async () => {
-    if (!outletId || !stockMovementForm.ingredientId || stockMovementForm.quantity <= 0) return;
+    if (!selectedOutletId || !stockMovementForm.ingredientId || stockMovementForm.quantity <= 0) return;
     setStockMovementSubmitting(true);
     try {
-      await createStockMovement(outletId, stockMovementForm);
+      await createStockMovement(selectedOutletId, stockMovementForm);
       setIsStockMovementModalOpen(false);
       fetchIngredients();
     } catch (err: any) {
@@ -673,13 +664,13 @@ export default function InventoryPage() {
   };
 
   const handleUnitSubmit = async () => {
-    if (!outletId || !unitForm.name.trim() || !unitForm.abbreviation.trim()) return;
+    if (!selectedOutletId || !unitForm.name.trim() || !unitForm.abbreviation.trim()) return;
     setUnitSubmitting(true);
     try {
       if (editingUnit) {
-        await updateUnitOfMeasure(outletId, editingUnit.id, unitForm);
+        await updateUnitOfMeasure(selectedOutletId, editingUnit.id, unitForm);
       } else {
-        await createUnitOfMeasure(outletId, unitForm);
+        await createUnitOfMeasure(selectedOutletId, unitForm);
       }
       setIsUnitModalOpen(false);
       fetchUnits();
@@ -691,11 +682,11 @@ export default function InventoryPage() {
   };
 
   const handleDeleteUnit = async (unitId: string) => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     if (!confirm('Are you sure you want to delete this unit? This may affect ingredients using this unit.')) return;
     setDeletingUnitId(unitId);
     try {
-      await deleteUnitOfMeasure(outletId, unitId);
+      await deleteUnitOfMeasure(selectedOutletId, unitId);
       fetchUnits();
     } catch (err: any) {
       alert(err?.message || 'Failed to delete unit');
@@ -734,13 +725,13 @@ export default function InventoryPage() {
   };
 
   const handleSupplierSubmit = async () => {
-    if (!outletId || !supplierForm.name.trim()) return;
+    if (!selectedOutletId || !supplierForm.name.trim()) return;
     setSupplierSubmitting(true);
     try {
       if (editingSupplier) {
-        await updateSupplier(outletId, editingSupplier.id, supplierForm);
+        await updateSupplier(selectedOutletId, editingSupplier.id, supplierForm);
       } else {
-        await createSupplier(outletId, supplierForm);
+        await createSupplier(selectedOutletId, supplierForm);
       }
       setIsSupplierModalOpen(false);
       fetchSuppliers();
@@ -752,11 +743,11 @@ export default function InventoryPage() {
   };
 
   const handleDeleteSupplier = async (supplierId: string) => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     if (!confirm('Are you sure you want to delete this supplier? This may affect ingredients linked to this supplier.')) return;
     setDeletingSupplierId(supplierId);
     try {
-      await deleteSupplier(outletId, supplierId);
+      await deleteSupplier(selectedOutletId, supplierId);
       fetchSuppliers();
     } catch (err: any) {
       alert(err?.message || 'Failed to delete supplier');
@@ -801,7 +792,7 @@ export default function InventoryPage() {
   };
 
   const handleMenuItemSubmit = async () => {
-    if (!outletId || !menuItemForm.name.trim()) return;
+    if (!selectedOutletId || !menuItemForm.name.trim()) return;
     setMenuItemSubmitting(true);
     try {
       // Filter out data URLs (preview URLs) from images when creating new item
@@ -816,10 +807,10 @@ export default function InventoryPage() {
 
       let menuItemId: string;
       if (editingMenuItem) {
-        await updateMenuItem(outletId, editingMenuItem.id, formDataToSubmit);
+        await updateMenuItem(selectedOutletId, editingMenuItem.id, formDataToSubmit);
         menuItemId = editingMenuItem.id;
       } else {
-        const newItem = await createMenuItem(outletId, formDataToSubmit);
+        const newItem = await createMenuItem(selectedOutletId, formDataToSubmit);
         menuItemId = newItem.id;
       }
 
@@ -829,7 +820,7 @@ export default function InventoryPage() {
         for (let i = 0; i < pendingImageUploads.length; i++) {
           const file = pendingImageUploads[i];
           try {
-            await uploadMenuItemImage(outletId, menuItemId, file, {
+            await uploadMenuItemImage(selectedOutletId, menuItemId, file, {
               isPrimary: existingImageCount === 0 && i === 0,
               sortOrder: existingImageCount + i,
             });
@@ -850,11 +841,11 @@ export default function InventoryPage() {
   };
 
   const handleDeleteMenuItem = async (menuItemId: string) => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     if (!confirm('Are you sure you want to delete this menu item?')) return;
     setDeletingMenuItemId(menuItemId);
     try {
-      await deleteMenuItem(outletId, menuItemId);
+      await deleteMenuItem(selectedOutletId, menuItemId);
       fetchMenuItems();
     } catch (err: any) {
       alert(err?.message || 'Failed to delete menu item');
@@ -901,7 +892,7 @@ export default function InventoryPage() {
 
   // Handle image file upload
   const handleImageUpload = async (file: File): Promise<string> => {
-    if (!outletId) {
+    if (!selectedOutletId) {
       throw new Error('Outlet ID is required');
     }
 
@@ -909,13 +900,13 @@ export default function InventoryPage() {
     if (editingMenuItem) {
       try {
         const currentImageCount = menuItemForm.images?.length || 0;
-        const response = await uploadMenuItemImage(outletId, editingMenuItem.id, file, {
+        const response = await uploadMenuItemImage(selectedOutletId, editingMenuItem.id, file, {
           isPrimary: currentImageCount === 0,
           sortOrder: currentImageCount,
         });
         
         // Refresh menu item data to get updated images
-        const updatedItem = await getMenuItem(outletId, editingMenuItem.id);
+        const updatedItem = await getMenuItem(selectedOutletId, editingMenuItem.id);
         setMenuItemForm({
           ...menuItemForm,
           images: updatedItem.images?.map((img) => ({
@@ -1872,7 +1863,7 @@ export default function InventoryPage() {
                 {/* Recipe */}
                 <div className={styles.field}>
                   <RecipeManager
-                    outletId={outletId || ''}
+                    selectedOutletId={selectedOutletId || ''}
                     menuItemId={editingMenuItem?.id || null}
                     disabled={menuItemSubmitting}
                   />

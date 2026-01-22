@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import ClientAdminLayout from '@/components/layout/ClientAdminLayout';
 import { isClientAdminToken } from '@/lib/utils/admin';
+import { OutletProvider } from '@/contexts/OutletContext';
 
 export default function ClientAdminRootLayout({
   children,
@@ -57,6 +58,10 @@ export default function ClientAdminRootLayout({
     return <>{children}</>;
   }
 
-  // All other pages get the sidebar layout
-  return <ClientAdminLayout>{children}</ClientAdminLayout>;
+  // All other pages get the sidebar layout with outlet provider
+  return (
+    <OutletProvider>
+      <ClientAdminLayout>{children}</ClientAdminLayout>
+    </OutletProvider>
+  );
 }

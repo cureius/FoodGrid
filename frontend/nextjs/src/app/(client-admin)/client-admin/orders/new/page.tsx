@@ -38,6 +38,7 @@ import {
   getImageUrl,
 } from "@/lib/api/clientAdmin";
 import Image from "next/image";
+import { useOutlet } from "@/contexts/OutletContext";
 
 type OrderType = "DINE_IN" | "TAKEAWAY" | "DELIVERY";
 
@@ -65,7 +66,7 @@ export default function NewOrderPage() {
   const [menuItems, setMenuItems] = useState<MenuItemResponse[]>([]);
   const [categories, setCategories] = useState<MenuCategoryResponse[]>([]);
   const [tables, setTables] = useState<any[]>([]);
-  const [outletId, setOutletId] = useState<string | null>(null);
+  const { selectedOutletId } = useOutlet();
   const [menuLoading, setMenuLoading] = useState(false);
   
   // Step 3 & 4: Order Summary & Payment
@@ -82,28 +83,10 @@ export default function NewOrderPage() {
   const [addModalQty, setAddModalQty] = useState<number>(1);
   const [addModalNote, setAddModalNote] = useState<string>("");
 
-  // Fetch outlets on mount
-  useEffect(() => {
-    async function fetchOutlets() {
-      try {
-        const outlets = await listOutlets();
-        if (outlets && outlets.length > 0) {
-          const envOutletId = process.env.NEXT_PUBLIC_OUTLET_ID;
-          const selectedId = envOutletId && outlets.find((o: any) => o.id === envOutletId) 
-            ? envOutletId 
-            : outlets[0].id;
-          setOutletId(selectedId);
-        }
-      } catch (err) {
-        console.error("Failed to fetch outlets:", err);
-      }
-    }
-    fetchOutlets();
-  }, []);
-
+  const outletId = selectedOutletId || "";
   // Fetch menu categories
   useEffect(() => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     async function fetchCategories() {
       try {
         const data = await listMenuCategories(outletId);
@@ -125,7 +108,7 @@ export default function NewOrderPage() {
         if (categoryId && categoryId !== "all") {
           params.categoryId = categoryId;
         }
-        const data = await listMenuItems(outletId, params);
+        const data = await listMenuItems(selectedOutletId, params);
         setMenuItems(data || []);
       } catch (err) {
         console.error("Failed to fetch menu items:", err);
@@ -134,21 +117,21 @@ export default function NewOrderPage() {
       }
     }
     fetchMenuItems();
-  }, [outletId, categoryId]);
+  }, [selectedOutletId, categoryId]);
 
   // Fetch tables for Dine In
   useEffect(() => {
-    if (!outletId || orderType !== "DINE_IN") return;
+    if (!selectedOutletId || orderType !== "DINE_IN") return;
     async function fetchTables() {
       try {
-        const data = await listTables(outletId);
+        const data = await listTables(selectedOutletId);
         setTables(data || []);
       } catch (err) {
         console.error("Failed to fetch tables:", err);
       }
     }
     fetchTables();
-  }, [outletId, orderType]);
+  }, [selectedOutletId, orderType]);
 
   const filteredMenu = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -219,7 +202,7 @@ export default function NewOrderPage() {
   };
 
   const handleCreateOrder = async () => {
-    if (!outletId) return;
+    if (!selectedOutletId) return;
     
     try {
       setCreatingOrder(true);
@@ -231,7 +214,7 @@ export default function NewOrderPage() {
         tableId: orderType === "DINE_IN" ? selectedTableId || undefined : undefined,
         customerName: customerName || undefined,
         notes: orderNotes || undefined,
-      }, outletId);
+      }, selectedOutletId);
       
       setCurrentOrder(orderData);
       setStep(2);
@@ -246,7 +229,7 @@ export default function NewOrderPage() {
 
   // Step 2 -> Step 3: Create order and add items
   const handleProceedToSummary = async () => {
-    if (!outletId || cart.length === 0) return;
+    if (!selectedOutletId || cart.length === 0) return;
     
     try {
       // Add all items to order
