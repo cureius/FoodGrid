@@ -3,12 +3,11 @@ package com.foodgrid.pos.service;
 import com.foodgrid.common.util.Ids;
 import com.foodgrid.common.storage.ImageUploadService;
 import com.foodgrid.pos.dto.*;
-import com.foodgrid.pos.model.MenuCategory;
-import com.foodgrid.pos.model.MenuItem;
-import com.foodgrid.pos.model.MenuItemImage;
+import com.foodgrid.pos.model.*;
 import com.foodgrid.pos.repo.MenuCategoryRepository;
 import com.foodgrid.pos.repo.MenuItemRepository;
 import com.foodgrid.pos.repo.MenuItemImageRepository;
+import com.foodgrid.pos.repo.MenuItemRecipeRepository;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -30,6 +29,7 @@ public class MenuAdminService {
   @Inject MenuCategoryRepository categoryRepository;
   @Inject MenuItemRepository itemRepository;
   @Inject MenuItemImageRepository imageRepository;
+  @Inject MenuItemRecipeRepository recipeRepository;
   @Inject SecurityIdentity identity;
   @Inject ImageUploadService imageUploadService;
 
@@ -94,9 +94,13 @@ public class MenuAdminService {
       imageRepository.list("menuItemId IN ?1 ORDER BY sortOrder ASC", itemIds).stream()
         .collect(Collectors.groupingBy(img -> img.menuItemId));
     
-        Logger.getLogger(MenuAdminService.class.getName()).info("imagesByItem: " + imagesByItem);
+    // Load all recipes for these items
+    Map<String, List<MenuItemRecipe>> recipesByItem = itemIds.isEmpty() ? Map.of() :
+      recipeRepository.list("menuItemId IN ?1 ORDER BY sortOrder ASC", itemIds).stream()
+        .collect(Collectors.groupingBy(recipe -> recipe.menuItemId));
+    
     return items.stream()
-      .map(i -> toResponse(i, categoryNames.get(i.categoryId), imagesByItem.getOrDefault(i.id, List.of()), imageUploadService))
+      .map(i -> toResponse(i, categoryNames.get(i.categoryId), imagesByItem.getOrDefault(i.id, List.of()), recipesByItem.getOrDefault(i.id, List.of()), imageUploadService))
       .toList();
   }
 
@@ -127,8 +131,11 @@ public class MenuAdminService {
     
     // Handle images
     List<MenuItemImage> savedImages = saveImages(i.id, req.images());
+    
+    // Load recipes
+    List<MenuItemRecipe> recipes = recipeRepository.findByMenuItemId(i.id);
 
-    return toResponse(i, categoryName, savedImages, imageUploadService);
+    return toResponse(i, categoryName, savedImages, recipes, imageUploadService);
   }
 
   @Transactional
@@ -160,8 +167,11 @@ public class MenuAdminService {
     // Delete existing images and save new ones
     imageRepository.deleteByMenuItem(itemId);
     List<MenuItemImage> savedImages = saveImages(itemId, req.images());
+    
+    // Load recipes
+    List<MenuItemRecipe> recipes = recipeRepository.findByMenuItemId(itemId);
 
-    return toResponse(i, categoryName, savedImages, imageUploadService);
+    return toResponse(i, categoryName, savedImages, recipes, imageUploadService);
   }
 
   public MenuItemResponse getItem(String outletId, String itemId) {
@@ -178,8 +188,9 @@ public class MenuAdminService {
     }
     
     List<MenuItemImage> images = imageRepository.list("menuItemId = ?1 ORDER BY sortOrder ASC", itemId);
+    List<MenuItemRecipe> recipes = recipeRepository.findByMenuItemId(itemId);
     
-    return toResponse(i, categoryName, images, imageUploadService);
+    return toResponse(i, categoryName, images, recipes, imageUploadService);
   }
 
   @Transactional
@@ -250,7 +261,7 @@ public class MenuAdminService {
     return new MenuCategoryResponse(c.id, c.outletId, c.name, c.sortOrder, c.status.name());
   }
 
-  private MenuItemResponse toResponse(MenuItem i, String categoryName, List<MenuItemImage> images, ImageUploadService imageUploadService) {
+  private MenuItemResponse toResponse(MenuItem i, String categoryName, List<MenuItemImage> images, List<MenuItemRecipe> recipes, ImageUploadService imageUploadService) {
     List<MenuItemImageResponse> imageResponses = images.stream()
       .map(img -> {
         // Convert file path to full URL
@@ -259,9 +270,31 @@ public class MenuAdminService {
       })
       .toList();
     
+    List<MenuItemRecipeResponse> recipeResponses = recipes.stream()
+      .map(recipe -> {
+        // Load ingredient and unit details
+        Ingredient ingredient = Ingredient.findById(recipe.ingredientId);
+        UnitOfMeasure unit = UnitOfMeasure.findById(recipe.unitId);
+        
+        return new MenuItemRecipeResponse(
+          recipe.id,
+          recipe.menuItemId,
+          recipe.ingredientId,
+          ingredient != null ? ingredient.name : null,
+          recipe.unitId,
+          unit != null ? unit.name : null,
+          unit != null ? unit.abbreviation : null,
+          recipe.quantity,
+          recipe.notes,
+          recipe.isOptional,
+          recipe.sortOrder
+        );
+      })
+      .toList();
+    
     return new MenuItemResponse(
       i.id, i.outletId, i.categoryId, categoryName, i.name, i.description, 
-      i.isVeg, i.basePrice, i.status.name(), imageResponses
+      i.isVeg, i.basePrice, i.status.name(), imageResponses, recipeResponses
     );
   }
 }

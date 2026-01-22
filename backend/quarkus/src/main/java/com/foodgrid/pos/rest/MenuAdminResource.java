@@ -2,6 +2,7 @@ package com.foodgrid.pos.rest;
 
 import com.foodgrid.pos.dto.*;
 import com.foodgrid.pos.service.MenuAdminService;
+import com.foodgrid.pos.service.RecipeService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -17,6 +18,7 @@ import java.util.List;
 public class MenuAdminResource {
 
   @Inject MenuAdminService menuAdminService;
+  @Inject RecipeService recipeService;
 
   @GET
   @Path("/categories")
@@ -81,5 +83,57 @@ public class MenuAdminResource {
   @Path("/items/{itemId}")
   public void deleteItem(@PathParam("outletId") final String outletId, @PathParam("itemId") final String itemId) {
     menuAdminService.deleteItem(outletId, itemId);
+  }
+
+  // ==================== RECIPE MANAGEMENT ====================
+
+  @GET
+  @Path("/items/{itemId}/recipes")
+  public List<MenuItemRecipeResponse> getRecipes(
+    @PathParam("outletId") final String outletId,
+    @PathParam("itemId") final String itemId
+  ) {
+    return recipeService.getRecipes(outletId, itemId);
+  }
+
+  @POST
+  @Path("/items/{itemId}/recipes")
+  public MenuItemRecipeResponse createRecipe(
+    @PathParam("outletId") final String outletId,
+    @PathParam("itemId") final String itemId,
+    @Valid final MenuItemRecipeUpsertRequest request
+  ) {
+    return recipeService.createRecipe(outletId, itemId, request);
+  }
+
+  @PUT
+  @Path("/items/{itemId}/recipes/{recipeId}")
+  public MenuItemRecipeResponse updateRecipe(
+    @PathParam("outletId") final String outletId,
+    @PathParam("itemId") final String itemId,
+    @PathParam("recipeId") final String recipeId,
+    @Valid final MenuItemRecipeUpsertRequest request
+  ) {
+    return recipeService.updateRecipe(outletId, itemId, recipeId, request);
+  }
+
+  @DELETE
+  @Path("/items/{itemId}/recipes/{recipeId}")
+  public void deleteRecipe(
+    @PathParam("outletId") final String outletId,
+    @PathParam("itemId") final String itemId,
+    @PathParam("recipeId") final String recipeId
+  ) {
+    recipeService.deleteRecipe(outletId, itemId, recipeId);
+  }
+
+  @PUT
+  @Path("/items/{itemId}/recipes")
+  public List<MenuItemRecipeResponse> upsertRecipes(
+    @PathParam("outletId") final String outletId,
+    @PathParam("itemId") final String itemId,
+    @Valid final List<MenuItemRecipeUpsertRequest> requests
+  ) {
+    return recipeService.upsertRecipes(outletId, itemId, requests);
   }
 }

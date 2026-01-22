@@ -44,6 +44,7 @@ import {
   type SupplierUpsertInput,
 } from '@/lib/api/clientAdmin';
 import ImageUploadDropbox from '@/components/ui/ImageUploadDropbox';
+import RecipeManager from '@/components/ui/RecipeManager';
 
 type StockLevel = 'high' | 'medium' | 'low' | 'empty';
 type DishStatus = 'available' | 'not-available';
@@ -1866,6 +1867,15 @@ export default function InventoryPage() {
                       ))}
                     </div>
                   )}
+                </div>
+
+                {/* Recipe */}
+                <div className={styles.field}>
+                  <RecipeManager
+                    outletId={outletId || ''}
+                    menuItemId={editingMenuItem?.id || null}
+                    disabled={menuItemSubmitting}
+                  />
                 </div>
               </div>
 

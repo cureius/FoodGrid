@@ -8,14 +8,10 @@ import com.foodgrid.common.idempotency.RequestHash;
 import com.foodgrid.common.security.TenantGuards;
 import com.foodgrid.common.util.Ids;
 import com.foodgrid.pos.dto.*;
-import com.foodgrid.pos.model.MenuItem;
-import com.foodgrid.pos.model.Order;
-import com.foodgrid.pos.model.OrderItem;
-import com.foodgrid.pos.model.Payment;
-import com.foodgrid.pos.repo.MenuItemRepository;
-import com.foodgrid.pos.repo.OrderItemRepository;
-import com.foodgrid.pos.repo.OrderRepository;
-import com.foodgrid.pos.repo.PaymentRepository;
+import com.foodgrid.pos.model.*;
+import com.foodgrid.pos.repo.*;
+import com.foodgrid.pos.dto.StockMovementCreateRequest;
+import com.foodgrid.pos.service.IngredientService;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -40,7 +36,9 @@ public class OrderPosService {
   @Inject OrderRepository orderRepository;
   @Inject OrderItemRepository orderItemRepository;
   @Inject MenuItemRepository menuItemRepository;
+  @Inject MenuItemRecipeRepository recipeRepository;
   @Inject PaymentRepository paymentRepository;
+  @Inject IngredientService ingredientService;
   @Inject SecurityIdentity identity;
   @Inject TenantGuards guards;
   @Inject IdempotencyService idempotency;
@@ -129,6 +127,78 @@ public class OrderPosService {
     recomputeTotals(o);
 
     return get(orderId);
+  }
+
+  @Transactional
+  public OrderResponse markServed(final String orderId) {
+    final Order o = getOrderForOutlet(orderId);
+
+    if (o.status != Order.Status.OPEN && o.status != Order.Status.KOT_SENT) {
+      throw new BadRequestException("Order cannot be marked as served");
+    }
+
+    // Deduct ingredients from stock for all order items
+    deductIngredientsFromStock(o);
+
+    o.status = Order.Status.SERVED;
+    o.updatedAt = Date.from(Instant.now());
+    orderRepository.persist(o);
+
+    audit.record("ORDER_SERVED", o.outletId, "Order", o.id, "Order marked as served");
+
+    return get(orderId);
+  }
+
+  private void deductIngredientsFromStock(final Order order) {
+    final List<OrderItem> orderItems = orderItemRepository.listByOrder(order.id);
+    
+    for (final OrderItem orderItem : orderItems) {
+      // Skip cancelled items
+      if (orderItem.status == OrderItem.Status.CANCELLED) {
+        continue;
+      }
+
+      // Get recipe for this menu item
+      final List<MenuItemRecipe> recipes = recipeRepository.findByMenuItemId(orderItem.itemId);
+      
+      for (final MenuItemRecipe recipe : recipes) {
+        // Skip optional ingredients
+        if (Boolean.TRUE.equals(recipe.isOptional)) {
+          continue;
+        }
+
+        // Calculate total quantity needed (recipe quantity * order item quantity)
+        final BigDecimal totalQuantity = recipe.quantity.multiply(orderItem.qty);
+        
+        // Get ingredient to check if it tracks inventory
+        final Ingredient ingredient = Ingredient.findById(recipe.ingredientId);
+        if (ingredient == null || !Boolean.TRUE.equals(ingredient.trackInventory)) {
+          continue; // Skip ingredients that don't track inventory
+        }
+
+        // Create stock movement for usage
+        try {
+          final StockMovementCreateRequest stockMovementRequest = new StockMovementCreateRequest(
+            recipe.ingredientId,
+            com.foodgrid.pos.model.StockMovement.MovementType.USAGE,
+            totalQuantity,
+            recipe.unitId,
+            null, // unitCost
+            null, // supplierId
+            null, // purchaseOrderNumber
+            null, // invoiceNumber
+            null, // wastageReason
+            "Order #" + order.id + " - " + orderItem.itemName // notes
+          );
+          
+          ingredientService.recordStockMovement(order.outletId, stockMovementRequest);
+        } catch (final Exception e) {
+          // Log error but continue with other ingredients
+          audit.record("STOCK_DEDUCTION_FAILED", order.outletId, "Order", order.id, 
+            "Failed to deduct ingredient " + recipe.ingredientId + ": " + e.getMessage());
+        }
+      }
+    }
   }
 
   @Transactional

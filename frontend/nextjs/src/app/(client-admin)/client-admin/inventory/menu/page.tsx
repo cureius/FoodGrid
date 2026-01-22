@@ -19,6 +19,7 @@ import {
   type MenuItemUpsertInput,
 } from '@/lib/api/clientAdmin';
 import ImageUploadDropbox from '@/components/ui/ImageUploadDropbox';
+import RecipeManager from '@/components/ui/RecipeManager';
 
 function SearchIcon() {
   return (
@@ -867,6 +868,15 @@ export default function MenuItemsPage() {
                       ))}
                     </div>
                   )}
+                </div>
+
+                {/* Recipe */}
+                <div className={styles.field}>
+                  <RecipeManager
+                    outletId={outletId || ''}
+                    menuItemId={editingItem?.id || null}
+                    disabled={itemSubmitting}
+                  />
                 </div>
               </div>
 

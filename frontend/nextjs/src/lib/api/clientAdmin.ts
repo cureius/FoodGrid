@@ -307,6 +307,29 @@ export type MenuItemImageUpsertInput = {
   isPrimary?: boolean;
 };
 
+export type MenuItemRecipeResponse = {
+  id: string;
+  menuItemId: string;
+  ingredientId: string;
+  ingredientName: string | null;
+  unitId: string;
+  unitName: string | null;
+  unitAbbreviation: string | null;
+  quantity: number;
+  notes: string | null;
+  isOptional: boolean;
+  sortOrder: number;
+};
+
+export type MenuItemRecipeUpsertInput = {
+  ingredientId: string;
+  quantity: number;
+  unitId: string;
+  notes?: string | null;
+  isOptional?: boolean;
+  sortOrder?: number;
+};
+
 export type MenuItemResponse = {
   id: string;
   outletId: string;
@@ -319,6 +342,7 @@ export type MenuItemResponse = {
   status: 'ACTIVE' | 'INACTIVE';
   images: MenuItemImageResponse[];
   primaryImageUrl: string | null;
+  recipes: MenuItemRecipeResponse[];
 };
 
 export type MenuItemUpsertInput = {
@@ -384,6 +408,63 @@ export function deleteMenuItem(outletId: string, itemId: string) {
     {
       method: "DELETE",
       headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Menu Item Recipes
+// ─────────────────────────────────────────────────────────────
+
+export function getMenuItemRecipes(outletId: string, menuItemId: string) {
+  return http<MenuItemRecipeResponse[]>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/items/${encodeURIComponent(menuItemId)}/recipes`,
+    {
+      method: "GET",
+      headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+export function createMenuItemRecipe(outletId: string, menuItemId: string, input: MenuItemRecipeUpsertInput) {
+  return http<MenuItemRecipeResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/items/${encodeURIComponent(menuItemId)}/recipes`,
+    {
+      method: "POST",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function updateMenuItemRecipe(outletId: string, menuItemId: string, recipeId: string, input: MenuItemRecipeUpsertInput) {
+  return http<MenuItemRecipeResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/items/${encodeURIComponent(menuItemId)}/recipes/${encodeURIComponent(recipeId)}`,
+    {
+      method: "PUT",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function deleteMenuItemRecipe(outletId: string, menuItemId: string, recipeId: string) {
+  return http<void>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/items/${encodeURIComponent(menuItemId)}/recipes/${encodeURIComponent(recipeId)}`,
+    {
+      method: "DELETE",
+      headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+export function upsertMenuItemRecipes(outletId: string, menuItemId: string, recipes: MenuItemRecipeUpsertInput[]) {
+  return http<MenuItemRecipeResponse[]>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/items/${encodeURIComponent(menuItemId)}/recipes`,
+    {
+      method: "PUT",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(recipes)
     }
   );
 }

@@ -13,5 +13,6 @@ public record MenuItemResponse(
   boolean isVeg,
   BigDecimal basePrice,
   String status,
-  List<MenuItemImageResponse> images
+  List<MenuItemImageResponse> images,
+  List<MenuItemRecipeResponse> recipes
 ) {}

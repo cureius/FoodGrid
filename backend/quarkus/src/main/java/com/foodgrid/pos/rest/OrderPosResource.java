@@ -61,4 +61,10 @@ public class OrderPosResource {
   ) {
     return orderPosService.payWithIdempotency(orderId, request, idempotencyKey);
   }
+
+  @POST
+  @Path("/{orderId}/serve")
+  public OrderResponse markServed(@PathParam("orderId") final String orderId) {
+    return orderPosService.markServed(orderId);
+  }
 }
