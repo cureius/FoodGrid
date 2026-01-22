@@ -317,11 +317,19 @@ public class OrderPosService {
   }
 
   private Order getOrderForOutlet(final String orderId) {
-    final String outletId = claimRequired("outletId");
-    guards.requireOutletInTenant(outletId);
-
-    final Order o = orderRepository.findByIdAndOutlet(orderId, outletId)
+    // First, fetch the order by ID (works for both POS and Admin users)
+    final Order o = orderRepository.findByIdOptional(orderId)
       .orElseThrow(() -> new NotFoundException("Order not found"));
+
+    // Get outletId from the order itself (not from JWT claims)
+    // This allows Client Admin users to work with orders even if they don't have outletId in their JWT
+    final String outletId = o.outletId;
+    if (outletId == null || outletId.isBlank()) {
+      throw new BadRequestException("Order has no outletId");
+    }
+
+    // Validate that the outlet belongs to the tenant
+    guards.requireOutletInTenant(outletId);
 
     // Defensive tenant check
     final String tenantId = guards.requireTenant();
