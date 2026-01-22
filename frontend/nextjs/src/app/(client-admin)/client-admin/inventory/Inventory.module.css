@@ -813,6 +813,12 @@
   align-items: center;
 }
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .detailDishImg {
   width: 46px;
   height: 46px;
