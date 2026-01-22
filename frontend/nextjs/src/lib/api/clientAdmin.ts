@@ -943,6 +943,7 @@ export type OrderItemResponse = {
 export type OrderCreateInput = {
   orderType: string; // "DINE_IN" | "TAKEAWAY" | "DELIVERY"
   tableId?: string;
+  customerName?: string;
   notes?: string;
 };
 
@@ -970,6 +971,7 @@ export function getOrder(orderId: string) {
 }
 
 export function createOrder(input: OrderCreateInput, outletId?: string) {
+  console.log("🚀 ~ createOrder ~ input:", input)
   return http<OrderResponse>(`/api/v1/pos/orders?outletId=${encodeURIComponent(outletId || '')}`, {
     method: "POST",
     headers: { ...clientAdminAuthHeader() },

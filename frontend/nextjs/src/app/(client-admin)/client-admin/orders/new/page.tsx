@@ -218,9 +218,8 @@ export default function NewOrderPage() {
     setOpenAddModalFor(null);
   };
 
-  // Step 2 -> Step 3: Create order and add items
-  const handleProceedToSummary = async () => {
-    if (!outletId || cart.length === 0) return;
+  const handleCreateOrder = async () => {
+    if (!outletId) return;
     
     try {
       setCreatingOrder(true);
@@ -230,17 +229,33 @@ export default function NewOrderPage() {
       const orderData = await createOrder({
         orderType: orderTypeStr,
         tableId: orderType === "DINE_IN" ? selectedTableId || undefined : undefined,
+        customerName: customerName || undefined,
         notes: orderNotes || undefined,
       }, outletId);
       
       setCurrentOrder(orderData);
-      
+      setStep(2);
+    } catch (err: any) {
+      alert(err?.message || "Failed to create order");
+      console.error("Failed to create order:", err);
+    } finally {
+      setCreatingOrder(false);
+      setAddingItems(false);
+    }
+  };
+
+  // Step 2 -> Step 3: Create order and add items
+  const handleProceedToSummary = async () => {
+    if (!outletId || cart.length === 0) return;
+    
+    try {
       // Add all items to order
+      if (!currentOrder) return;
       setAddingItems(true);
-      let updatedOrder = orderData;
+      let updatedOrder = currentOrder;
       for (const line of cart) {
         try {
-          updatedOrder = await addOrderItem(orderData.id, {
+          updatedOrder = await addOrderItem(currentOrder.id, {
             itemId: line.menuItem.id,
             qty: line.qty,
           });
@@ -437,7 +452,7 @@ export default function NewOrderPage() {
               <button
                 className={styles.primaryCta}
                 disabled={!canContinueFromStep1}
-                onClick={() => setStep(2)}
+                onClick={() => handleCreateOrder()}
               >
                 Continue <ArrowRight size={18} />
               </button>
