@@ -1,5 +1,28 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8080";
 
+/**
+ * Converts a relative file path to an absolute URL.
+ * If the path is already an absolute URL (http:// or https://), returns it as-is.
+ * Otherwise, prepends the API base URL and /uploads/ prefix.
+ */
+export function getImageUrl(imagePath: string | null | undefined): string | null {
+  console.log("🚀 ~ getImageUrl ~ imagePath:", imagePath)
+  if (!imagePath) return null;
+  
+  // If it's already an absolute URL, return as-is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://') || imagePath.startsWith('data:')) {
+    return imagePath;
+  }
+  
+  // If it starts with /, it's already a relative URL from the root
+  if (imagePath.startsWith('/')) {
+    return `${imagePath}`;
+  }
+  
+  // Otherwise, it's a relative file path - prepend /uploads/
+  return `${imagePath}`;
+}
+
 async function http<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
@@ -362,6 +385,77 @@ export function deleteMenuItem(outletId: string, itemId: string) {
       method: "DELETE",
       headers: { ...clientAdminAuthHeader() }
     }
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Image Upload
+// ─────────────────────────────────────────────────────────────
+
+export type ImageUploadResponse = {
+  id: string;
+  filePath: string;
+  imageUrl: string;
+  fileName: string | null;
+  contentType: string | null;
+};
+
+async function httpMultipart<T>(path: string, formData: FormData): Promise<T> {
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8080";
+  const token = typeof window !== "undefined" ? localStorage.getItem("fg_client_admin_access_token") : null;
+  
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      // Don't set content-type for FormData - browser will set it with boundary
+    },
+    body: formData,
+    cache: "no-store"
+  });
+
+  if (!res.ok) {
+    let msg = `Request failed (${res.status})`;
+    try {
+      const body = await res.json();
+      if (body?.message) msg = body.message;
+    } catch {
+      // ignore
+    }
+    throw new Error(msg);
+  }
+
+  const contentType = res.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) return null as T;
+
+  const text = await res.text();
+  if (!text || text.trim().length === 0) return null as T;
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return null as T;
+  }
+}
+
+export function uploadMenuItemImage(
+  outletId: string,
+  menuItemId: string,
+  file: File,
+  options?: { isPrimary?: boolean; sortOrder?: number }
+): Promise<ImageUploadResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (options?.isPrimary !== undefined) {
+    formData.append("isPrimary", String(options.isPrimary));
+  }
+  if (options?.sortOrder !== undefined) {
+    formData.append("sortOrder", String(options.sortOrder));
+  }
+
+  return httpMultipart<ImageUploadResponse>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/images/menu-items/${encodeURIComponent(menuItemId)}`,
+    formData
   );
 }
 

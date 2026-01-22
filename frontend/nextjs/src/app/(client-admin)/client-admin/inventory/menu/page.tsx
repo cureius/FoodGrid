@@ -10,11 +10,15 @@ import {
   createMenuItem,
   updateMenuItem,
   deleteMenuItem,
+  getMenuItem,
   listOutlets,
+  uploadMenuItemImage,
+  getImageUrl,
   type MenuCategoryResponse,
   type MenuItemResponse,
   type MenuItemUpsertInput,
 } from '@/lib/api/clientAdmin';
+import ImageUploadDropbox from '@/components/ui/ImageUploadDropbox';
 
 function SearchIcon() {
   return (
@@ -118,6 +122,9 @@ export default function MenuItemsPage() {
 
   // Image URL input
   const [imageUrlInput, setImageUrlInput] = useState('');
+  
+  // Pending file uploads (files to be uploaded after menu item creation)
+  const [pendingImageUploads, setPendingImageUploads] = useState<File[]>([]);
 
   // Fetch outlet ID on mount
   useEffect(() => {
@@ -184,6 +191,7 @@ export default function MenuItemsPage() {
       images: [],
     });
     setImageUrlInput('');
+    setPendingImageUploads([]);
     setIsModalOpen(true);
   };
 
@@ -204,6 +212,7 @@ export default function MenuItemsPage() {
       })) || [],
     });
     setImageUrlInput('');
+    setPendingImageUploads([]);
     setIsModalOpen(true);
   };
 
@@ -212,17 +221,105 @@ export default function MenuItemsPage() {
     if (!outletId || !itemForm.name.trim()) return;
     setItemSubmitting(true);
     try {
+      // Filter out data URLs (preview URLs) from images when creating new item
+      const imagesToSubmit = editingItem
+        ? itemForm.images
+        : itemForm.images?.filter((img) => !img.imageUrl.startsWith('data:'));
+
+      const formDataToSubmit = {
+        ...itemForm,
+        images: imagesToSubmit,
+      };
+
+      let menuItemId: string;
       if (editingItem) {
-        await updateMenuItem(outletId, editingItem.id, itemForm);
+        await updateMenuItem(outletId, editingItem.id, formDataToSubmit);
+        menuItemId = editingItem.id;
       } else {
-        await createMenuItem(outletId, itemForm);
+        const newItem = await createMenuItem(outletId, formDataToSubmit);
+        menuItemId = newItem.id;
       }
+
+      // Upload pending image files (for new items)
+      if (pendingImageUploads.length > 0) {
+        const existingImageCount = imagesToSubmit?.length || 0;
+        for (let i = 0; i < pendingImageUploads.length; i++) {
+          const file = pendingImageUploads[i];
+          try {
+            await uploadMenuItemImage(outletId, menuItemId, file, {
+              isPrimary: existingImageCount === 0 && i === 0,
+              sortOrder: existingImageCount + i,
+            });
+          } catch (err: any) {
+            console.error('Failed to upload image:', err);
+            // Continue with other uploads even if one fails
+          }
+        }
+      }
+
       setIsModalOpen(false);
       fetchMenuItems();
     } catch (err: any) {
       alert(err?.message || 'Failed to save menu item');
     } finally {
       setItemSubmitting(false);
+    }
+  };
+
+  // Handle image file upload
+  const handleImageUpload = async (file: File): Promise<string> => {
+    if (!outletId) {
+      throw new Error('Outlet ID is required');
+    }
+
+    // If editing an existing item, upload immediately
+    if (editingItem) {
+      try {
+        const currentImageCount = itemForm.images?.length || 0;
+        const response = await uploadMenuItemImage(outletId, editingItem.id, file, {
+          isPrimary: currentImageCount === 0,
+          sortOrder: currentImageCount,
+        });
+        
+        // Refresh menu item data to get updated images
+        const updatedItem = await getMenuItem(outletId, editingItem.id);
+        setItemForm({
+          ...itemForm,
+          images: updatedItem.images?.map((img) => ({
+            imageUrl: img.imageUrl,
+            sortOrder: img.sortOrder,
+            isPrimary: img.isPrimary,
+          })) || [],
+        });
+        
+        return response.imageUrl;
+      } catch (err: any) {
+        throw new Error(err?.message || 'Failed to upload image');
+      }
+    } else {
+      // If creating a new item, store file for later upload and show preview
+      setPendingImageUploads((prev) => [...prev, file]);
+      
+      // Return a preview URL and add to images array temporarily
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const previewUrl = reader.result as string;
+          // Add preview to images array temporarily (will be filtered out on submit)
+          const currentImageCount = itemForm.images?.length || 0;
+          const newImages = [
+            ...(itemForm.images || []),
+            {
+              imageUrl: previewUrl,
+              sortOrder: currentImageCount,
+              isPrimary: currentImageCount === 0,
+            },
+          ];
+          setItemForm({ ...itemForm, images: newImages });
+          resolve(previewUrl);
+        };
+        reader.readAsDataURL(file);
+      });
     }
   };
 
@@ -258,7 +355,19 @@ export default function MenuItemsPage() {
 
   // Remove image from form
   const removeImage = (index: number) => {
-    const newImages = (itemForm.images || []).filter((_, i) => i !== index);
+    const images = itemForm.images || [];
+    const imageToRemove = images[index];
+    
+    // If it's a preview URL (data URL), also remove from pending uploads
+    if (imageToRemove?.imageUrl?.startsWith('data:')) {
+      // Find the corresponding file index (they should be in the same order)
+      const previewIndex = images
+        .slice(0, index)
+        .filter((img) => img.imageUrl?.startsWith('data:')).length;
+      setPendingImageUploads((prev) => prev.filter((_, i) => i !== previewIndex));
+    }
+    
+    const newImages = images.filter((_, i) => i !== index);
     // If we removed the primary, make the first one primary
     if (newImages.length > 0 && !newImages.some((img) => img.isPrimary)) {
       newImages[0].isPrimary = true;
@@ -440,7 +549,7 @@ export default function MenuItemsPage() {
                   <div className={styles.dishImageWrap}>
                     {item.primaryImageUrl ? (
                       <Image
-                        src={item.primaryImageUrl}
+                        src={getImageUrl(item.primaryImageUrl) || ''}
                         alt={item.name}
                         fill
                         className={styles.dishImg}
@@ -640,13 +749,24 @@ export default function MenuItemsPage() {
                 {/* Images */}
                 <div className={styles.field}>
                   <label className={styles.label}>Images</label>
+                  
+                  {/* Image Upload Dropbox */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <ImageUploadDropbox
+                      onUpload={handleImageUpload}
+                      disabled={itemSubmitting}
+                      maxSizeMB={5}
+                    />
+                  </div>
+
+                  {/* Image URL Input (existing functionality) */}
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
                     <input
                       type="text"
                       className={styles.input}
                       value={imageUrlInput}
                       onChange={(e) => setImageUrlInput(e.target.value)}
-                      placeholder="Enter image URL"
+                      placeholder="Or enter image URL"
                       style={{ flex: 1 }}
                     />
                     <button
@@ -655,7 +775,7 @@ export default function MenuItemsPage() {
                       onClick={addImage}
                       style={{ height: '40px', padding: '0 14px' }}
                     >
-                      Add
+                      Add URL
                     </button>
                   </div>
                   {(itemForm.images?.length || 0) > 0 && (
@@ -675,7 +795,7 @@ export default function MenuItemsPage() {
                           }}
                         >
                           <Image
-                            src={img.imageUrl}
+                            src={getImageUrl(img.imageUrl) || ''}
                             alt={`Image ${idx + 1}`}
                             fill
                             style={{ objectFit: 'cover' }}

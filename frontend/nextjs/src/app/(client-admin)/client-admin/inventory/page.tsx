@@ -12,6 +12,7 @@ import {
   createMenuItem,
   updateMenuItem,
   deleteMenuItem,
+  getMenuItem,
   listOutlets,
   listIngredients,
   createIngredient,
@@ -27,6 +28,8 @@ import {
   createSupplier,
   updateSupplier,
   deleteSupplier,
+  uploadMenuItemImage,
+  getImageUrl,
   type MenuCategoryResponse,
   type MenuCategoryUpsertInput,
   type MenuItemResponse,
@@ -40,6 +43,7 @@ import {
   type SupplierResponse,
   type SupplierUpsertInput,
 } from '@/lib/api/clientAdmin';
+import ImageUploadDropbox from '@/components/ui/ImageUploadDropbox';
 
 type StockLevel = 'high' | 'medium' | 'low' | 'empty';
 type DishStatus = 'available' | 'not-available';
@@ -173,7 +177,6 @@ function XIcon() {
   );
 }
 
-
 function VegIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -191,6 +194,7 @@ function NonVegIcon() {
     </svg>
   );
 }
+
 const dishesSeed: Dish[] = [
   {
     id: 'd1',
@@ -356,6 +360,9 @@ export default function InventoryPage() {
 
   // Image URL input state
   const [imageUrlInput, setImageUrlInput] = useState('');
+  
+  // Pending file uploads (files to be uploaded after menu item creation)
+  const [pendingImageUploads, setPendingImageUploads] = useState<File[]>([]);
 
   const dishes = useMemo(() => dishesSeed, []);
 
@@ -768,6 +775,7 @@ export default function InventoryPage() {
       images: [],
     });
     setImageUrlInput('');
+    setPendingImageUploads([]);
     setIsMenuItemModalOpen(true);
   };
 
@@ -787,6 +795,7 @@ export default function InventoryPage() {
       })) || [],
     });
     setImageUrlInput('');
+    setPendingImageUploads([]);
     setIsMenuItemModalOpen(true);
   };
 
@@ -794,11 +803,42 @@ export default function InventoryPage() {
     if (!outletId || !menuItemForm.name.trim()) return;
     setMenuItemSubmitting(true);
     try {
+      // Filter out data URLs (preview URLs) from images when creating new item
+      const imagesToSubmit = editingMenuItem
+        ? menuItemForm.images
+        : menuItemForm.images?.filter((img) => !img.imageUrl.startsWith('data:'));
+
+      const formDataToSubmit = {
+        ...menuItemForm,
+        images: imagesToSubmit,
+      };
+
+      let menuItemId: string;
       if (editingMenuItem) {
-        await updateMenuItem(outletId, editingMenuItem.id, menuItemForm);
+        await updateMenuItem(outletId, editingMenuItem.id, formDataToSubmit);
+        menuItemId = editingMenuItem.id;
       } else {
-        await createMenuItem(outletId, menuItemForm);
+        const newItem = await createMenuItem(outletId, formDataToSubmit);
+        menuItemId = newItem.id;
       }
+
+      // Upload pending image files (for new items)
+      if (pendingImageUploads.length > 0) {
+        const existingImageCount = imagesToSubmit?.length || 0;
+        for (let i = 0; i < pendingImageUploads.length; i++) {
+          const file = pendingImageUploads[i];
+          try {
+            await uploadMenuItemImage(outletId, menuItemId, file, {
+              isPrimary: existingImageCount === 0 && i === 0,
+              sortOrder: existingImageCount + i,
+            });
+          } catch (err: any) {
+            console.error('Failed to upload image:', err);
+            // Continue with other uploads even if one fails
+          }
+        }
+      }
+
       setIsMenuItemModalOpen(false);
       fetchMenuItems();
     } catch (err: any) {
@@ -838,12 +878,81 @@ export default function InventoryPage() {
   };
 
   const removeImage = (index: number) => {
-    const newImages = (menuItemForm.images || []).filter((_, i) => i !== index);
+    const images = menuItemForm.images || [];
+    const imageToRemove = images[index];
+    
+    // If it's a preview URL (data URL), also remove from pending uploads
+    if (imageToRemove?.imageUrl?.startsWith('data:')) {
+      // Find the corresponding file index (they should be in the same order)
+      const previewIndex = images
+        .slice(0, index)
+        .filter((img) => img.imageUrl?.startsWith('data:')).length;
+      setPendingImageUploads((prev) => prev.filter((_, i) => i !== previewIndex));
+    }
+    
+    const newImages = images.filter((_, i) => i !== index);
     // If we removed the primary, make the first one primary
     if (newImages.length > 0 && !newImages.some((img) => img.isPrimary)) {
       newImages[0].isPrimary = true;
     }
     setMenuItemForm({ ...menuItemForm, images: newImages });
+  };
+
+  // Handle image file upload
+  const handleImageUpload = async (file: File): Promise<string> => {
+    if (!outletId) {
+      throw new Error('Outlet ID is required');
+    }
+
+    // If editing an existing item, upload immediately
+    if (editingMenuItem) {
+      try {
+        const currentImageCount = menuItemForm.images?.length || 0;
+        const response = await uploadMenuItemImage(outletId, editingMenuItem.id, file, {
+          isPrimary: currentImageCount === 0,
+          sortOrder: currentImageCount,
+        });
+        
+        // Refresh menu item data to get updated images
+        const updatedItem = await getMenuItem(outletId, editingMenuItem.id);
+        setMenuItemForm({
+          ...menuItemForm,
+          images: updatedItem.images?.map((img) => ({
+            imageUrl: img.imageUrl,
+            sortOrder: img.sortOrder,
+            isPrimary: img.isPrimary,
+          })) || [],
+        });
+        
+        return response.imageUrl;
+      } catch (err: any) {
+        throw new Error(err?.message || 'Failed to upload image');
+      }
+    } else {
+      // If creating a new item, store file for later upload and show preview
+      setPendingImageUploads((prev) => [...prev, file]);
+      
+      // Return a preview URL and add to images array temporarily
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const previewUrl = reader.result as string;
+          // Add preview to images array temporarily (will be filtered out on submit)
+          const currentImageCount = menuItemForm.images?.length || 0;
+          const newImages = [
+            ...(menuItemForm.images || []),
+            {
+              imageUrl: previewUrl,
+              sortOrder: currentImageCount,
+              isPrimary: currentImageCount === 0,
+            },
+          ];
+          setMenuItemForm({ ...menuItemForm, images: newImages });
+          resolve(previewUrl);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
   };
 
   const setPrimaryImage = (index: number) => {
@@ -887,6 +996,7 @@ export default function InventoryPage() {
         return vegFilter === 'Veg' ? item.isVeg : !item.isVeg;
       });
   }, [menuItems, query, menuStatusFilter, menuCategoryFilter, vegFilter]);
+  console.log("🚀 ~ InventoryPage ~ filteredMenuItems:", filteredMenuItems)
 
   const filteredMenuCategories = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -1272,7 +1382,7 @@ export default function InventoryPage() {
                     {item.images.length > 0  ? (
                       <Image
                         className={styles.dishImg}
-                        src={item.images && item.images.length > 0 ? item.images.find((img) => img.isPrimary)?.imageUrl || item.images[0].imageUrl : item.primaryImageUrl}
+                        src={getImageUrl(item.images.find((img) => img.isPrimary)?.imageUrl || item.images[0]?.imageUrl) || getImageUrl(item.primaryImageUrl) || ''}
                         alt={item.name}
                         fill
                         sizes="(max-width: 1100px) 50vw, 33vw"
@@ -1293,10 +1403,10 @@ export default function InventoryPage() {
                         🍽️
                       </div>
                     )}
-                    <div className={styles.availablePill}>
-                      <span className={styles.availableDot} aria-hidden="true" />
-                      <span>{item.status === 'ACTIVE' ? 'Available' : 'Not Available'}</span>
-                    </div>
+                   <div className={styles.availablePill}>
+                                         {item.isVeg ? <VegIcon /> : <NonVegIcon />}
+                                         {item.isVeg ? 'Veg' : 'Non-Veg'}
+                                       </div>
                   </div>
                   <div className={styles.dishBody}>
                     <div className={styles.dishName}>{item.name}</div>
@@ -1330,12 +1440,7 @@ export default function InventoryPage() {
                       >
                         {item.status === 'ACTIVE' ? '● Active' : '○ Inactive'}
                       </span>
-                      {item.isVeg !== undefined && (
-                        <span style={{ marginLeft: 8, fontSize: '12px' }}>
-                          {item.isVeg ? '🟢 Veg' : '🔴 Non-Veg'}
-                        </span>
-                      )}
-                    </div>
+                      </div>
                   </div>
                 </div>
               ))}
@@ -1643,13 +1748,24 @@ export default function InventoryPage() {
                 {/* Images */}
                 <div className={styles.field}>
                   <label className={styles.label}>Images</label>
+                  
+                  {/* Image Upload Dropbox */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <ImageUploadDropbox
+                      onUpload={handleImageUpload}
+                      disabled={menuItemSubmitting}
+                      maxSizeMB={5}
+                    />
+                  </div>
+
+                  {/* Image URL Input (existing functionality) */}
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
                     <input
                       type="text"
                       className={styles.input}
                       value={imageUrlInput}
                       onChange={(e) => setImageUrlInput(e.target.value)}
-                      placeholder="Enter image URL"
+                      placeholder="Or enter image URL"
                       style={{ flex: 1 }}
                     />
                     <button
@@ -1658,7 +1774,7 @@ export default function InventoryPage() {
                       onClick={addImage}
                       style={{ height: '40px', padding: '0 14px' }}
                     >
-                      Add
+                      Add URL
                     </button>
                   </div>
                   {(menuItemForm.images?.length || 0) > 0 && (
@@ -1678,7 +1794,7 @@ export default function InventoryPage() {
                           }}
                         >
                           <Image
-                            src={img.imageUrl}
+                            src={getImageUrl(img.imageUrl) || ''}
                             alt={`Image ${idx + 1}`}
                             fill
                             style={{ objectFit: 'cover' }}
