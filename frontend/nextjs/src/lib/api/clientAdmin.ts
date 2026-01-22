@@ -1005,3 +1005,28 @@ export function markOrderServed(orderId: string) {
     headers: { ...clientAdminAuthHeader() }
   });
 }
+
+export type PaymentCreateInput = {
+  method: string; // "CASH" | "CARD" | "UPI" | "GATEWAY"
+  amount: number;
+};
+
+export type PaymentResponse = {
+  id: string;
+  orderId: string;
+  method: string;
+  amount: number;
+  status: string;
+};
+
+export function payOrder(orderId: string, input: PaymentCreateInput, idempotencyKey?: string) {
+  const headers: Record<string, string> = { ...clientAdminAuthHeader() };
+  if (idempotencyKey) {
+    headers['Idempotency-Key'] = idempotencyKey;
+  }
+  return http<PaymentResponse>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}/payments`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(input)
+  });
+}
