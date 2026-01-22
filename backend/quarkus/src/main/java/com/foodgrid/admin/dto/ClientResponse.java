@@ -14,3 +14,4 @@ public record ClientResponse(
   String adminDisplayName,
   String adminPassword
 ) {}
+

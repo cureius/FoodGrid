@@ -266,3 +266,4 @@ public class TenantAdminService {
     return toResponse(client, adminUser, null);
   }
 }
+

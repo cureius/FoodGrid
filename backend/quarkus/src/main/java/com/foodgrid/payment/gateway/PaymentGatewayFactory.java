@@ -2,6 +2,7 @@ package com.foodgrid.payment.gateway;
 
 import com.foodgrid.common.util.EncryptionUtil;
 import com.foodgrid.payment.dto.GatewayCredentials;
+import com.foodgrid.payment.gateway.impl.BharatPayGateway;
 import com.foodgrid.payment.gateway.impl.PayUGateway;
 import com.foodgrid.payment.gateway.impl.RazorpayGateway;
 import com.foodgrid.payment.gateway.impl.StripeGateway;

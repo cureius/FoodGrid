@@ -16,3 +16,4 @@ public class ClientRepository implements PanacheRepositoryBase<Client, String> {
     return find("contactEmail", contactEmail).firstResultOptional();
   }
 }
+

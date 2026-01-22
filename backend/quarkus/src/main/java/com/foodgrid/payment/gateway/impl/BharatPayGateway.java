@@ -274,8 +274,31 @@ public class BharatPayGateway implements PaymentGateway {
     }
 
     @Override
-    public boolean supportsWebhooks() {
-        return true;
+    public String getPublicKey() {
+        // BharatPay typically provides a key ID or public key for client-side initialization
+        // For now, return the API key as a placeholder
+        return credentials.apiKey();
+    }
+
+    @Override
+    public boolean verifyWebhookSignature(String payload, String signature) {
+        try {
+            final String expectedSignature = generateWebhookSignature(payload);
+            return expectedSignature.equals(signature);
+        } catch (final Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Generate webhook signature for verification.
+     */
+    private String generateWebhookSignature(final String payload) {
+        try {
+            return generateHmacSha256(payload, credentials.secretKey());
+        } catch (final Exception e) {
+            throw new RuntimeException("Failed to generate webhook signature", e);
+        }
     }
 
     /**

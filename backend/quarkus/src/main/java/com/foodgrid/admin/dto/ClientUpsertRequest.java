@@ -10,3 +10,4 @@ public record ClientUpsertRequest(
   String adminPassword,
   String adminDisplayName
 ) {}
+

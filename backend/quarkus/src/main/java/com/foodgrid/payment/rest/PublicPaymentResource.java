@@ -100,6 +100,10 @@ public class PublicPaymentResource {
                 true, true, true, true, false,
                 new String[]{"card", "upi", "netbanking", "wallet"}
             );
+            case BHARATPAY -> new PaymentMethods(
+                true, true, true, true, true,
+                new String[]{"credit_card", "debit_card", "upi", "netbanking", "wallet", "emi"}
+            );
         };
         return Response.ok(methods).build();
     }

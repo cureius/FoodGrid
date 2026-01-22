@@ -59,3 +59,4 @@ public class TenantAdminResource {
     return tenantAdminService.deactivate(tenantId);
   }
 }
+
