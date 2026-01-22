@@ -280,8 +280,8 @@ public class OrderPosService {
     return toResponse(o, items);
   }
 
-  public List<OrderResponse> listRecent(final Integer limit) {
-    final String outletId = claimRequired("outletId");
+  public List<OrderResponse> listRecent(final Integer limit, final String outletIdParam) {
+    final String outletId = (outletIdParam != null && !outletIdParam.isBlank()) ? outletIdParam : claimRequired("outletId");
     guards.requireOutletInTenant(outletId);
 
     final int lim = (limit == null || limit <= 0 || limit > 200) ? 50 : limit;

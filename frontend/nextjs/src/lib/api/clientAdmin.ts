@@ -911,3 +911,97 @@ export function createStockMovement(outletId: string, input: StockMovementCreate
     }
   );
 }
+
+// Order Management APIs
+export type OrderResponse = {
+  id: string;
+  outletId: string;
+  deviceId: string;
+  shiftId: string;
+  employeeId: string;
+  tableId: string | null;
+  orderType: string; // "DINE_IN" | "TAKEAWAY" | "DELIVERY"
+  status: string; // "OPEN" | "KOT_SENT" | "SERVED" | "BILLED" | "PAID" | "CANCELLED"
+  subtotal: number;
+  taxTotal: number;
+  discountTotal: number;
+  grandTotal: number;
+  notes: string | null;
+  items: OrderItemResponse[];
+};
+
+export type OrderItemResponse = {
+  id: string;
+  itemId: string;
+  itemName: string;
+  qty: number;
+  unitPrice: number;
+  lineTotal: number;
+  status: string; // "OPEN" | "CANCELLED"
+};
+
+export type OrderCreateInput = {
+  orderType: string; // "DINE_IN" | "TAKEAWAY" | "DELIVERY"
+  tableId?: string;
+  notes?: string;
+};
+
+export type OrderAddItemInput = {
+  itemId: string;
+  qty: number;
+};
+
+export function listOrders(limit?: number, outletId?: string) {
+  const params = new URLSearchParams();
+  if (limit) params.append('limit', limit.toString());
+  if (outletId) params.append('outletId', outletId);
+  const queryString = params.toString();
+  return http<OrderResponse[]>(`/api/v1/pos/orders${queryString ? `?${queryString}` : ''}`, {
+    method: "GET",
+    headers: { ...clientAdminAuthHeader() }
+  });
+}
+
+export function getOrder(orderId: string) {
+  return http<OrderResponse>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}`, {
+    method: "GET",
+    headers: { ...clientAdminAuthHeader() }
+  });
+}
+
+export function createOrder(input: OrderCreateInput) {
+  return http<OrderResponse>(`/api/v1/pos/orders`, {
+    method: "POST",
+    headers: { ...clientAdminAuthHeader() },
+    body: JSON.stringify(input)
+  });
+}
+
+export function addOrderItem(orderId: string, input: OrderAddItemInput) {
+  return http<OrderResponse>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}/items`, {
+    method: "POST",
+    headers: { ...clientAdminAuthHeader() },
+    body: JSON.stringify(input)
+  });
+}
+
+export function cancelOrderItem(orderId: string, orderItemId: string) {
+  return http<OrderResponse>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}/items/${encodeURIComponent(orderItemId)}`, {
+    method: "DELETE",
+    headers: { ...clientAdminAuthHeader() }
+  });
+}
+
+export function billOrder(orderId: string) {
+  return http<OrderResponse>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}/bill`, {
+    method: "POST",
+    headers: { ...clientAdminAuthHeader() }
+  });
+}
+
+export function markOrderServed(orderId: string) {
+  return http<OrderResponse>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}/serve`, {
+    method: "POST",
+    headers: { ...clientAdminAuthHeader() }
+  });
+}

@@ -19,13 +19,13 @@ public class Order extends PanacheEntityBase {
   @Column(name = "tenant_id", length = 36)
   public String tenantId;
 
-  @Column(name = "device_id", nullable = false, length = 36)
+  @Column(name = "device_id", nullable = true, length = 36)
   public String deviceId;
 
-  @Column(name = "shift_id", nullable = false, length = 36)
+  @Column(name = "shift_id", nullable = true, length = 36)
   public String shiftId;
 
-  @Column(name = "employee_id", nullable = false, length = 36)
+  @Column(name = "employee_id", nullable = true, length = 36)
   public String employeeId;
 
   @Column(name = "table_id", length = 36)

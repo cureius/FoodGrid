@@ -30,8 +30,8 @@ public class OrderPosResource {
   }
 
   @GET
-  public List<OrderResponse> list(@QueryParam("limit") final Integer limit) {
-    return orderPosService.listRecent(limit);
+  public List<OrderResponse> list(@QueryParam("limit") final Integer limit, @QueryParam("outletId") final String outletId) {
+    return orderPosService.listRecent(limit, outletId);
   }
 
   @POST
