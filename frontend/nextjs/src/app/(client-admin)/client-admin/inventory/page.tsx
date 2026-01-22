@@ -1878,25 +1878,25 @@ export default function InventoryPage() {
                   />
                 </div>
               </div>
+            </div>
 
-              <div className={styles.modalFooter} style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                <button
-                  type="button"
-                  className={styles.resetBtn}
-                  onClick={() => setIsMenuItemModalOpen(false)}
-                  style={{ width: 'auto', marginTop: 0 }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className={styles.primaryBtn}
-                  onClick={handleMenuItemSubmit}
-                  disabled={menuItemSubmitting || !menuItemForm.name.trim()}
-                >
-                  {menuItemSubmitting ? 'Saving...' : editingMenuItem ? 'Update Item' : 'Create Item'}
-                </button>
-              </div>
+            <div className={styles.modalFooter} style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', padding: '0 20px 20px' }}>
+              <button
+                type="button"
+                className={styles.resetBtn}
+                onClick={() => setIsMenuItemModalOpen(false)}
+                style={{ width: 'auto', marginTop: 0 }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.primaryBtn}
+                onClick={handleMenuItemSubmit}
+                disabled={menuItemSubmitting || !menuItemForm.name.trim()}
+              >
+                {menuItemSubmitting ? 'Saving...' : editingMenuItem ? 'Update Item' : 'Create Item'}
+              </button>
             </div>
           </div>
         </div>
