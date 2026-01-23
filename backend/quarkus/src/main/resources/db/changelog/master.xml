@@ -17,5 +17,6 @@
   <include file="db/changelog/4-create-payment-gateway-tables.xml"/>
   <include file="db/changelog/5-add-gateway-transaction-to-payments.xml"/>
   <include file="db/changelog/6-add-payment-gateway-to-clients.xml"/>
+  <include file="db/changelog/7-remove-payment-fields-from-clients.xml"/>
 
 </databaseChangeLog>

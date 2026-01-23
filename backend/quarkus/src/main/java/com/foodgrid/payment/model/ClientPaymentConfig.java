@@ -55,6 +55,15 @@ public class ClientPaymentConfig extends PanacheEntityBase {
     @Column(name = "additional_config", columnDefinition = "TEXT")
     public String additionalConfig;
 
+    @Column(name = "auto_capture_enabled")
+    public boolean autoCaptureEnabled = true;
+
+    @Column(name = "partial_refund_enabled")
+    public boolean partialRefundEnabled = true;
+
+    @Column(name = "webhook_url", length = 500)
+    public String webhookUrl;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     public Date createdAt;

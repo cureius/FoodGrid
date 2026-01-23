@@ -10,7 +10,9 @@ import com.foodgrid.admin.repo.ClientRepository;
 import com.foodgrid.admin.rest.TenantAdminResource.PaymentGatewayUpdateRequest;
 import com.foodgrid.auth.service.PinHasher;
 import com.foodgrid.common.util.Ids;
+import com.foodgrid.payment.model.ClientPaymentConfig;
 import com.foodgrid.payment.model.PaymentGatewayType;
+import com.foodgrid.payment.repo.ClientPaymentConfigRepository;
 import com.foodgrid.payment.service.PaymentConfigService;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -32,6 +34,7 @@ public class TenantAdminService {
   @Inject PinHasher pinHasher;
   @Inject SecurityIdentity identity;
   @Inject PaymentConfigService paymentConfigService;
+  @Inject ClientPaymentConfigRepository clientPaymentConfigRepository;
 
   private record AdminUserCreationResult(AdminUser user, String password) {}
 
@@ -251,7 +254,28 @@ public class TenantAdminService {
     return v == null ? null : v.toString();
   }
 
-  private static ClientResponse toResponse(final Client client, final AdminUser adminUser, final String adminPassword) {
+  private ClientResponse toResponse(final Client client, final AdminUser adminUser, final String adminPassword) {
+    // Fetch payment config from ClientPaymentConfig (primary active config)
+    PaymentGatewayType defaultGatewayType = null;
+    boolean paymentEnabled = false;
+    Boolean autoCaptureEnabled = null;
+    Boolean partialRefundEnabled = null;
+    String webhookUrl = null;
+    String paymentGatewayConfig = null;
+
+    final var primaryPaymentConfig = clientPaymentConfigRepository
+      .findPrimaryActiveByClient(client.id);
+    
+    if (primaryPaymentConfig.isPresent()) {
+      final var config = primaryPaymentConfig.get();
+      defaultGatewayType = config.gatewayType;
+      paymentEnabled = config.isActive;
+      autoCaptureEnabled = config.autoCaptureEnabled;
+      partialRefundEnabled = config.partialRefundEnabled;
+      webhookUrl = config.webhookUrl;
+      paymentGatewayConfig = config.additionalConfig;
+    }
+
     return new ClientResponse(
       client.id,
       client.name,
@@ -263,16 +287,16 @@ public class TenantAdminService {
       adminUser != null ? adminUser.email : null,
       adminUser != null ? adminUser.displayName : null,
       adminPassword,
-      client.defaultGatewayType,
-      client.paymentEnabled,
-      client.autoCaptureEnabled,
-      client.partialRefundEnabled,
-      client.webhookUrl,
-      client.paymentGatewayConfig
+      defaultGatewayType,
+      paymentEnabled,
+      autoCaptureEnabled != null ? autoCaptureEnabled : true,
+      partialRefundEnabled != null ? partialRefundEnabled : true,
+      webhookUrl,
+      paymentGatewayConfig
     );
   }
 
-  private static ClientResponse toResponse(final Client client, final AdminUser adminUser) {
+  private ClientResponse toResponse(final Client client, final AdminUser adminUser) {
     return toResponse(client, adminUser, null);
   }
 
@@ -288,30 +312,77 @@ public class TenantAdminService {
     final Client client = clientRepository.findByIdOptional(clientId)
       .orElseThrow(() -> new NotFoundException("Client not found"));
 
-    // Store old values for audit
-    final PaymentGatewayType oldGatewayType = client.defaultGatewayType;
-    final boolean oldPaymentEnabled = client.paymentEnabled;
+    if (request.defaultGatewayType() == null) {
+      throw new BadRequestException("Gateway type is required");
+    }
 
-    client.defaultGatewayType = request.defaultGatewayType();
-    client.paymentEnabled = request.paymentEnabled();
-    client.autoCaptureEnabled = request.autoCaptureEnabled();
-    client.partialRefundEnabled = request.partialRefundEnabled();
-    client.webhookUrl = request.webhookUrl();
-    client.paymentGatewayConfig = request.paymentGatewayConfig();
-    client.updatedAt = new Date();
+    // Deactivate any existing active configs for this client (only one active config per client)
+    final var existingActiveConfigs = clientPaymentConfigRepository.findAllActiveByClient(clientId);
+    for (final var existing : existingActiveConfigs) {
+      existing.isActive = false;
+      existing.updatedAt = new Date();
+      clientPaymentConfigRepository.persist(existing);
+    }
 
-    clientRepository.persist(client);
+    // Find or create ClientPaymentConfig for the specified gateway type
+    final var existingConfig = clientPaymentConfigRepository
+      .findActiveByClientAndGateway(clientId, request.defaultGatewayType());
 
-    // Invalidate payment gateway cache if gateway type or payment settings changed
-    if (oldGatewayType != client.defaultGatewayType || oldPaymentEnabled != client.paymentEnabled) {
-      if (client.defaultGatewayType != null) {
-        paymentConfigService.invalidateCache(clientId, client.defaultGatewayType);
+    final ClientPaymentConfig paymentConfig;
+
+    if (existingConfig.isPresent()) {
+      paymentConfig = existingConfig.get();
+      // Reactivate if it was deactivated
+      paymentConfig.isActive = true;
+    } else {
+      // Check if there's any existing config (even inactive) for this gateway type
+      final var anyExisting = clientPaymentConfigRepository
+        .find("clientId = ?1 and gatewayType = ?2", clientId, request.defaultGatewayType())
+        .firstResultOptional();
+      
+      if (anyExisting.isPresent()) {
+        // Use existing config (even if inactive)
+        paymentConfig = anyExisting.get();
+        paymentConfig.isActive = true;
+      } else {
+        // Create new config with placeholder encrypted fields
+        // These will need to be set via PaymentConfigService.saveConfig() for actual payment processing
+        paymentConfig = new ClientPaymentConfig();
+        paymentConfig.id = Ids.uuid();
+        paymentConfig.clientId = clientId;
+        paymentConfig.gatewayType = request.defaultGatewayType();
+        paymentConfig.createdAt = new Date();
+        paymentConfig.isActive = true;
+        // Set placeholder encrypted values (required by DB constraint)
+        // These should be replaced with actual encrypted credentials via PaymentConfigService.saveConfig()
+        paymentConfig.apiKeyEncrypted = "PLACEHOLDER_NOT_CONFIGURED";
+        paymentConfig.secretKeyEncrypted = "PLACEHOLDER_NOT_CONFIGURED";
       }
     }
+
+    // Update payment config fields
+    paymentConfig.autoCaptureEnabled = request.autoCaptureEnabled();
+    paymentConfig.partialRefundEnabled = request.partialRefundEnabled();
+    paymentConfig.webhookUrl = request.webhookUrl();
+    paymentConfig.additionalConfig = request.paymentGatewayConfig();
+    paymentConfig.updatedAt = new Date();
+
+    // Note: API key and secret encryption should be handled via PaymentConfigService.saveConfig()
+    // This method stores the raw config JSON in additionalConfig for reference
+
+    clientPaymentConfigRepository.persist(paymentConfig);
+
+    // Update client updatedAt timestamp
+    client.updatedAt = new Date();
+    clientRepository.persist(client);
+
+    // Invalidate payment gateway cache
+    paymentConfigService.invalidateCache(clientId, request.defaultGatewayType());
 
     final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
     return toResponse(client, adminUser, null);
   }
+
 
   @Transactional
   public ClientResponse togglePayments(final String clientId, final boolean enabled) {
@@ -323,36 +394,56 @@ public class TenantAdminService {
     final Client client = clientRepository.findByIdOptional(clientId)
       .orElseThrow(() -> new NotFoundException("Client not found"));
 
-    final boolean oldEnabled = client.paymentEnabled;
-    client.paymentEnabled = enabled;
-    client.updatedAt = new Date();
-
-    clientRepository.persist(client);
-
-    // Invalidate payment gateway cache
-    if (client.defaultGatewayType != null) {
-      paymentConfigService.invalidateCache(clientId, client.defaultGatewayType);
+    // Toggle all active payment configs for this client
+    final var activeConfigs = clientPaymentConfigRepository.findAllActiveByClient(clientId);
+    
+    for (final var config : activeConfigs) {
+      config.isActive = enabled;
+      config.updatedAt = new Date();
+      clientPaymentConfigRepository.persist(config);
+      
+      // Invalidate payment gateway cache
+      paymentConfigService.invalidateCache(clientId, config.gatewayType);
     }
+
+    // Update client updatedAt timestamp
+    client.updatedAt = new Date();
+    clientRepository.persist(client);
 
     final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
     return toResponse(client, adminUser, null);
   }
 
   public List<ClientResponse> getTenantsWithPaymentsEnabled() {
-    return clientRepository.findWithPaymentsEnabled().stream()
-      .map(client -> {
-        final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
-        return toResponse(client, adminUser, null);
+    // Get all clients that have at least one active payment config
+    final var allActiveConfigs = clientPaymentConfigRepository.list("isActive = true");
+    final var clientsWithPayments = allActiveConfigs.stream()
+      .map(config -> config.clientId)
+      .distinct()
+      .toList();
+    
+    return clientsWithPayments.stream()
+      .map(clientId -> {
+        final var client = clientRepository.findByIdOptional(clientId);
+        if (client.isEmpty()) return null;
+        final AdminUser adminUser = adminUserRepository.find("clientId", clientId).firstResult();
+        return toResponse(client.get(), adminUser, null);
       })
+      .filter(response -> response != null && response.paymentEnabled())
       .toList();
   }
 
   public List<ClientResponse> getActiveTenantsWithPaymentsEnabled() {
-    return clientRepository.findActiveWithPaymentsEnabled().stream()
+    // Get all active clients that have at least one active payment config
+    final var allClients = clientRepository.listAll();
+    
+    return allClients.stream()
+      .filter(client -> client.status == Client.Status.ACTIVE)
       .map(client -> {
         final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
         return toResponse(client, adminUser, null);
       })
+      .filter(response -> response.paymentEnabled())
       .toList();
   }
 }

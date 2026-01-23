@@ -25,31 +25,10 @@ public class ClientRepository implements PanacheRepositoryBase<Client, String> {
   }
 
   /**
-   * Find clients with payments enabled.
-   */
-  public List<Client> findWithPaymentsEnabled() {
-    return list("paymentEnabled", true);
-  }
-
-  /**
-   * Find clients by default gateway type.
-   */
-  public List<Client> findByDefaultGatewayType(com.foodgrid.payment.model.PaymentGatewayType gatewayType) {
-    return list("defaultGatewayType", gatewayType);
-  }
-
-  /**
    * Check if contact email exists (excluding a specific client ID).
    */
   public boolean contactEmailExists(String contactEmail, String excludeClientId) {
     return count("contactEmail = ?1 and id != ?2", contactEmail, excludeClientId) > 0;
-  }
-
-  /**
-   * Find active clients with payments enabled.
-   */
-  public List<Client> findActiveWithPaymentsEnabled() {
-    return list("status = ?1 and paymentEnabled = ?2", Client.Status.ACTIVE, true);
   }
 }
 
