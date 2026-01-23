@@ -12,7 +12,6 @@ import com.foodgrid.payment.repo.ClientPaymentConfigRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 
 import java.time.Instant;
@@ -57,16 +56,26 @@ public class PaymentConfigService {
             config.gatewayType = request.gatewayType();
             config.createdAt = Date.from(Instant.now());
             isNew = true;
+            // Set defaults for new configs
+            config.autoCaptureEnabled = true;
+            config.partialRefundEnabled = true;
         }
 
-        // Encrypt and store credentials
+        // Encrypt and store credentials (always update these when provided)
         config.apiKeyEncrypted = encryptionUtil.encrypt(request.apiKey());
         config.secretKeyEncrypted = encryptionUtil.encrypt(request.secretKey());
         config.webhookSecretEncrypted = request.webhookSecret() != null ?
             encryptionUtil.encrypt(request.webhookSecret()) : null;
         config.merchantId = request.merchantId();
         config.isLiveMode = request.isLiveMode();
-        config.additionalConfig = request.additionalConfig();
+        
+        // Preserve existing settings if updating, or use provided additionalConfig
+        if (request.additionalConfig() != null && !request.additionalConfig().isBlank()) {
+            config.additionalConfig = request.additionalConfig();
+        }
+        // Note: autoCaptureEnabled, partialRefundEnabled, and webhookUrl are preserved
+        // They should be updated via TenantAdminService.updatePaymentGateway()
+        
         config.isActive = true;
         config.updatedAt = Date.from(Instant.now());
 
@@ -212,9 +221,44 @@ public class PaymentConfigService {
     }
 
     /**
+     * Update an existing payment gateway configuration.
+     */
+    @Transactional
+    public PaymentConfigResponse updateConfig(final String configId, final PaymentConfigRequest request) {
+        final ClientPaymentConfig config = configRepository.findByIdOptional(configId)
+            .orElseThrow(() -> new NotFoundException("Payment configuration not found"));
+
+        // Encrypt and store credentials (always update these when provided)
+        config.apiKeyEncrypted = encryptionUtil.encrypt(request.apiKey());
+        config.secretKeyEncrypted = encryptionUtil.encrypt(request.secretKey());
+        config.webhookSecretEncrypted = request.webhookSecret() != null ?
+            encryptionUtil.encrypt(request.webhookSecret()) : null;
+        config.merchantId = request.merchantId();
+        config.isLiveMode = request.isLiveMode();
+        config.isActive = request.isActive();
+        
+        // Preserve existing settings if updating, or use provided additionalConfig
+        if (request.additionalConfig() != null && !request.additionalConfig().isBlank()) {
+            config.additionalConfig = request.additionalConfig();
+        }
+        
+        // Update payment config fields if provided
+        config.autoCaptureEnabled = request.autoCaptureEnabled();
+        config.partialRefundEnabled = request.partialRefundEnabled();
+        config.webhookUrl = request.webhookUrl();
+        
+        config.updatedAt = Date.from(Instant.now());
+
+        configRepository.persist(config);
+        invalidateCache(config.clientId, config.gatewayType);
+
+        return toResponse(config);
+    }
+
+    /**
      * Invalidate gateway cache for a client.
      */
-    public void invalidateCache(String clientId, PaymentGatewayType gatewayType) {
+    public void invalidateCache(final String clientId, final PaymentGatewayType gatewayType) {
         gatewayFactory.invalidateCache(clientId, gatewayType);
     }
 

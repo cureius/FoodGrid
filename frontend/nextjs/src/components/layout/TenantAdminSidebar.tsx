@@ -13,7 +13,8 @@ import {
   ShieldCheck,
   BarChart3,
   FileText,
-  Bell
+  Bell,
+  Wallet
 } from 'lucide-react';
 import styles from './TenantAdminSidebar.module.css';
 
@@ -22,6 +23,7 @@ const navItems = [
   { icon: Building2, label: 'Tenants', href: '/tenant-admin/tenants' },
   { icon: Users, label: 'Users', href: '/tenant-admin/users' },
   { icon: CreditCard, label: 'Subscriptions', href: '/tenant-admin/subscriptions' },
+  { icon: Wallet, label: 'Payment Gateway', href: '/tenant-admin/payment-config' },
   { icon: BarChart3, label: 'Analytics', href: '/tenant-admin/analytics' },
   { icon: FileText, label: 'Reports', href: '/tenant-admin/reports' },
   { icon: Bell, label: 'Notifications', href: '/tenant-admin/notifications' },
@@ -76,7 +78,7 @@ const TenantAdminSidebar = () => {
 
         <div className={styles.navSection}>
           <span className={styles.navSectionTitle}>Management</span>
-          {navItems.slice(2, 6).map((item) => (
+          {navItems.slice(2, 7).map((item) => (
             <Link 
               key={item.href} 
               href={item.href}
@@ -90,7 +92,7 @@ const TenantAdminSidebar = () => {
 
         <div className={styles.navSection}>
           <span className={styles.navSectionTitle}>System</span>
-          {navItems.slice(6).map((item) => (
+          {navItems.slice(7).map((item) => (
             <Link 
               key={item.href} 
               href={item.href}

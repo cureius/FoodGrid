@@ -19,16 +19,19 @@
         <constraints nullable="false"/>
       </column>
       <column name="api_key_encrypted" type="text">
-        <constraints nullable="false"/>
+        <constraints nullable="true"/>
       </column>
       <column name="secret_key_encrypted" type="text">
-        <constraints nullable="false"/>
+        <constraints nullable="true"/>
       </column>
       <column name="webhook_secret_encrypted" type="text"/>
       <column name="merchant_id" type="varchar(255)"/>
       <column name="is_active" type="boolean" defaultValueBoolean="true"/>
       <column name="is_live_mode" type="boolean" defaultValueBoolean="false"/>
       <column name="additional_config" type="text"/>
+      <column name="auto_capture_enabled" type="boolean" defaultValueBoolean="true"/>
+      <column name="partial_refund_enabled" type="boolean" defaultValueBoolean="true"/>
+      <column name="webhook_url" type="varchar(500)"/>
       <column name="created_at" type="datetime"/>
       <column name="updated_at" type="datetime"/>
     </createTable>

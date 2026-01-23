@@ -312,10 +312,123 @@ export function getActiveTenantsWithPaymentsEnabled() {
 }
 
 export function getSupportedGatewayTypes() {
-  return http<PaymentGatewayType[]>(`/api/v1/admin/tenants/gateway-types`, {
+  return http<PaymentGatewayType[]>(`/api/v1/payment-config/gateway-types`, {
     method: "GET",
     headers: {
       ...tenantAdminAuthHeader()
+    }
+  });
+}
+
+// Payment Config API Types
+export type PaymentConfigRequest = {
+  gatewayType: PaymentGatewayType;
+  apiKey: string;
+  secretKey: string;
+  webhookSecret?: string;
+  merchantId?: string;
+  isActive: boolean;
+  isLiveMode: boolean;
+  additionalConfig?: string;
+  autoCaptureEnabled: boolean;
+  partialRefundEnabled: boolean;
+  webhookUrl?: string;
+};
+
+export type PaymentConfigResponse = {
+  id: string;
+  clientId: string;
+  gatewayType: PaymentGatewayType;
+  merchantId?: string;
+  isActive: boolean;
+  isLiveMode: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type GatewayTypeInfo = {
+  type: PaymentGatewayType;
+  displayName: string;
+  defaultCurrency: string;
+  isImplemented: boolean;
+};
+
+export type ValidationResult = {
+  valid: boolean;
+};
+
+// Payment Config API Functions
+export function createPaymentConfig(clientId: string, request: PaymentConfigRequest) {
+  return http<PaymentConfigResponse>(`/api/v1/payment-config/${encodeURIComponent(clientId)}`, {
+    method: "POST",
+    headers: {
+      ...adminOnlyAuthHeader()
+    },
+    body: JSON.stringify(request)
+  });
+}
+
+export function updatePaymentConfig(configId: string, request: PaymentConfigRequest) {
+  return http<PaymentConfigResponse>(`/api/v1/payment-config/${encodeURIComponent(configId)}`, {
+    method: "PUT",
+    headers: {
+      ...adminOnlyAuthHeader()
+    },
+    body: JSON.stringify(request)
+  });
+}
+
+export function listPaymentConfigs(clientId: string, activeOnly: boolean = false) {
+  const queryParam = activeOnly ? "?activeOnly=true" : "";
+  return http<PaymentConfigResponse[]>(`/api/v1/payment-config/${encodeURIComponent(clientId)}${queryParam}`, {
+    method: "GET",
+    headers: {
+      ...adminOnlyAuthHeader()
+    }
+  });
+}
+
+export function getPaymentConfig(configId: string) {
+  return http<PaymentConfigResponse>(`/api/v1/payment-config/${encodeURIComponent(configId)}`, {
+    method: "GET",
+    headers: {
+      ...adminOnlyAuthHeader()
+    }
+  });
+}
+
+export function deactivatePaymentConfig(clientId: string, gatewayType: PaymentGatewayType) {
+  return http<void>(`/api/v1/payment-config/${encodeURIComponent(gatewayType)}/${encodeURIComponent(clientId)}`, {
+    method: "DELETE",
+    headers: {
+      ...adminOnlyAuthHeader()
+    }
+  });
+}
+
+export function reactivatePaymentConfig(configId: string) {
+  return http<PaymentConfigResponse>(`/api/v1/payment-config/${encodeURIComponent(configId)}/reactivate`, {
+    method: "PUT",
+    headers: {
+      ...adminOnlyAuthHeader()
+    }
+  });
+}
+
+export function validatePaymentCredentials(clientId: string, gatewayType: PaymentGatewayType) {
+  return http<ValidationResult>(`/api/v1/payment-config/validate/${encodeURIComponent(gatewayType)}/${encodeURIComponent(clientId)}`, {
+    method: "POST",
+    headers: {
+      ...adminOnlyAuthHeader()
+    }
+  });
+}
+
+export function getSupportedGateways() {
+  return http<GatewayTypeInfo[]>(`/api/v1/payment-config/gateways`, {
+    method: "GET",
+    headers: {
+      ...adminOnlyAuthHeader()
     }
   });
 }

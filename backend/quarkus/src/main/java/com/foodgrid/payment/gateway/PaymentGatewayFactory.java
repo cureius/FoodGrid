@@ -40,6 +40,15 @@ public class PaymentGatewayFactory {
             throw new BadRequestException("No payment configuration found");
         }
 
+        // Validate that credentials are configured
+        if (config.apiKeyEncrypted == null || config.apiKeyEncrypted.isBlank() ||
+            config.secretKeyEncrypted == null || config.secretKeyEncrypted.isBlank()) {
+            throw new BadRequestException(
+                "Payment gateway credentials not configured for " + config.gatewayType + ". " +
+                "Please configure API keys using: POST /api/v1/payment-config"
+            );
+        }
+
         final String cacheKey = config.clientId + ":" + config.gatewayType.name() + ":" + config.isLiveMode;
 
         return gatewayCache.computeIfAbsent(cacheKey, key -> {
@@ -104,13 +113,14 @@ public class PaymentGatewayFactory {
 
     /**
      * Decrypt credentials from config.
+     * Assumes credentials are already validated (non-null) before calling this method.
      */
     private GatewayCredentials decryptCredentials(final ClientPaymentConfig config) {
         return new GatewayCredentials(
             config.gatewayType,
             encryptionUtil.decrypt(config.apiKeyEncrypted),
             encryptionUtil.decrypt(config.secretKeyEncrypted),
-            encryptionUtil.decrypt(config.webhookSecretEncrypted),
+            config.webhookSecretEncrypted != null ? encryptionUtil.decrypt(config.webhookSecretEncrypted) : null,
             config.merchantId,
             config.isLiveMode,
             config.additionalConfig

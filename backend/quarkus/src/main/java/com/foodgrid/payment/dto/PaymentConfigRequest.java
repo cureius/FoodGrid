@@ -13,6 +13,10 @@ public record PaymentConfigRequest(
     @NotBlank String secretKey,
     String webhookSecret,
     String merchantId,
+    boolean isActive,
     boolean isLiveMode,
-    String additionalConfig
+    String additionalConfig,
+    boolean autoCaptureEnabled,
+    boolean partialRefundEnabled,
+    String webhookUrl
 ) {}

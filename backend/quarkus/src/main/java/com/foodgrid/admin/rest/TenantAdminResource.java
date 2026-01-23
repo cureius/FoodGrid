@@ -70,59 +70,5 @@ public class TenantAdminResource {
     return tenantAdminService.deactivate(tenantId);
   }
 
-  // Payment Gateway Management Endpoints
-
-  @PUT
-  @Path("/{tenantId}/payment-gateway")
-  @RolesAllowed({"ADMIN", "TENANT_ADMIN"})
-  @Operation(summary = "Update payment gateway", description = "Update payment gateway configuration for a tenant")
-  public ClientResponse updatePaymentGateway(@PathParam("tenantId") final String tenantId,
-                                             @Valid final PaymentGatewayUpdateRequest request) {
-    return tenantAdminService.updatePaymentGateway(tenantId, request);
-  }
-
-  @PUT
-  @Path("/{tenantId}/toggle-payments")
-  @RolesAllowed({"ADMIN", "TENANT_ADMIN"})
-  @Operation(summary = "Toggle payments", description = "Enable or disable payments for a tenant")
-  public ClientResponse togglePayments(@PathParam("tenantId") final String tenantId,
-                                       @QueryParam("enabled") final boolean enabled) {
-    return tenantAdminService.togglePayments(tenantId, enabled);
-  }
-
-  @GET
-  @Path("/payments-enabled")
-  @RolesAllowed({"ADMIN", "TENANT_ADMIN"})
-  @Operation(summary = "List tenants with payments", description = "List all tenants that have payments enabled")
-  public List<ClientResponse> getTenantsWithPaymentsEnabled() {
-    return tenantAdminService.getTenantsWithPaymentsEnabled();
-  }
-
-  @GET
-  @Path("/active-with-payments")
-  @RolesAllowed({"ADMIN", "TENANT_ADMIN"})
-  @Operation(summary = "List active tenants with payments", description = "List active tenants that have payments enabled")
-  public List<ClientResponse> getActiveTenantsWithPaymentsEnabled() {
-    return tenantAdminService.getActiveTenantsWithPaymentsEnabled();
-  }
-
-  @GET
-  @Path("/gateway-types")
-  @RolesAllowed({"ADMIN", "TENANT_ADMIN"})
-  @Operation(summary = "List supported gateway types", description = "List all supported payment gateway types")
-  public PaymentGatewayType[] getSupportedGatewayTypes() {
-    return PaymentGatewayType.values();
-  }
-
-  // Payment Gateway Update Request Record
-  public record PaymentGatewayUpdateRequest(
-          PaymentGatewayType defaultGatewayType,
-          boolean paymentEnabled,
-          boolean autoCaptureEnabled,
-          boolean partialRefundEnabled,
-          String webhookUrl,
-          String paymentGatewayConfig
-  ) {
-  }
 }
 

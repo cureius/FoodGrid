@@ -29,12 +29,12 @@ public class ClientPaymentConfig extends PanacheEntityBase {
     @Column(name = "gateway_type", nullable = false, length = 50)
     public PaymentGatewayType gatewayType;
 
-    /** Encrypted API key / Key ID */
-    @Column(name = "api_key_encrypted", nullable = false, columnDefinition = "TEXT")
+    /** Encrypted API key / Key ID - nullable until credentials are configured */
+    @Column(name = "api_key_encrypted", nullable = true, columnDefinition = "TEXT")
     public String apiKeyEncrypted;
 
-    /** Encrypted Secret key */
-    @Column(name = "secret_key_encrypted", nullable = false, columnDefinition = "TEXT")
+    /** Encrypted Secret key - nullable until credentials are configured */
+    @Column(name = "secret_key_encrypted", nullable = true, columnDefinition = "TEXT")
     public String secretKeyEncrypted;
 
     /** Encrypted webhook secret for signature verification */
