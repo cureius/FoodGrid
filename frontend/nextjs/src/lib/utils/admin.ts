@@ -113,3 +113,25 @@ export function isTenantAdmin(): boolean {
 export function isClientAdmin(): boolean {
   return getAdminRole() === 'CLIENT_ADMIN';
 }
+
+/**
+ * Check if current user has ADMIN role (for accessing admin-only endpoints)
+ * ADMIN role can be in tenant admin token or admin token
+ */
+export function hasAdminRole(): boolean {
+  if (typeof window === 'undefined') return false;
+  
+  // Check tenant admin token
+  const tenantToken = localStorage.getItem('fg_tenant_admin_access_token');
+  if (tenantToken && hasRole(tenantToken, 'ADMIN')) {
+    return true;
+  }
+  
+  // Check admin token
+  const adminToken = localStorage.getItem('fg_admin_access_token');
+  if (adminToken && hasRole(adminToken, 'ADMIN')) {
+    return true;
+  }
+  
+  return false;
+}

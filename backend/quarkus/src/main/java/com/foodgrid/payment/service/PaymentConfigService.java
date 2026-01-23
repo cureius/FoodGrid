@@ -211,6 +211,13 @@ public class PaymentConfigService {
         );
     }
 
+    /**
+     * Invalidate gateway cache for a client.
+     */
+    public void invalidateCache(String clientId, PaymentGatewayType gatewayType) {
+        gatewayFactory.invalidateCache(clientId, gatewayType);
+    }
+
     private PaymentConfigResponse toResponse(final ClientPaymentConfig config) {
         return new PaymentConfigResponse(
             config.id, config.clientId, config.gatewayType,

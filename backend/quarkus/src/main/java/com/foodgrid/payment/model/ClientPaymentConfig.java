@@ -1,5 +1,6 @@
 package com.foodgrid.payment.model;
 
+import com.foodgrid.admin.model.Client;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 
@@ -19,6 +20,10 @@ public class ClientPaymentConfig extends PanacheEntityBase {
 
     @Column(name = "client_id", nullable = false, length = 36)
     public String clientId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id", referencedColumnName = "id", insertable = false, updatable = false)
+    public Client client;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gateway_type", nullable = false, length = 50)

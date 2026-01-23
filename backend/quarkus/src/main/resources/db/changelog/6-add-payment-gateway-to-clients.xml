@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+      http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+  <!-- Add payment gateway fields to clients table -->
+  <changeSet id="6-add-payment-gateway-to-clients" author="dev">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <tableExists tableName="clients"/>
+        <not>
+          <columnExists tableName="clients" columnName="default_gateway_type"/>
+        </not>
+      </and>
+    </preConditions>
+
+    <addColumn tableName="clients">
+      <column name="default_gateway_type" type="varchar(50)"/>
+    </addColumn>
+
+    <addColumn tableName="clients">
+      <column name="payment_enabled" type="boolean" defaultValueBoolean="false"/>
+    </addColumn>
+
+    <addColumn tableName="clients">
+      <column name="auto_capture_enabled" type="boolean" defaultValueBoolean="true"/>
+    </addColumn>
+
+    <addColumn tableName="clients">
+      <column name="partial_refund_enabled" type="boolean" defaultValueBoolean="true"/>
+    </addColumn>
+
+    <addColumn tableName="clients">
+      <column name="webhook_url" type="varchar(500)"/>
+    </addColumn>
+
+    <createIndex tableName="clients" indexName="idx_clients_gateway_type">
+      <column name="default_gateway_type"/>
+    </createIndex>
+
+    <createIndex tableName="clients" indexName="idx_clients_payment_enabled">
+      <column name="payment_enabled"/>
+    </createIndex>
+
+    <createIndex tableName="clients" indexName="idx_clients_active_payments">
+      <column name="status"/>
+      <column name="payment_enabled"/>
+    </createIndex>
+
+    <rollback>
+      <dropIndex indexName="idx_clients_active_payments" tableName="clients"/>
+      <dropIndex indexName="idx_clients_payment_enabled" tableName="clients"/>
+      <dropIndex indexName="idx_clients_gateway_type" tableName="clients"/>
+      <dropColumn tableName="clients" columnName="webhook_url"/>
+      <dropColumn tableName="clients" columnName="partial_refund_enabled"/>
+      <dropColumn tableName="clients" columnName="auto_capture_enabled"/>
+      <dropColumn tableName="clients" columnName="payment_enabled"/>
+      <dropColumn tableName="clients" columnName="default_gateway_type"/>
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>

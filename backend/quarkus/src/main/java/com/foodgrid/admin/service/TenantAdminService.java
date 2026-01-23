@@ -7,8 +7,11 @@ import com.foodgrid.admin.model.Client;
 import com.foodgrid.admin.repo.AdminUserRepository;
 import com.foodgrid.admin.repo.AdminUserRoleRepository;
 import com.foodgrid.admin.repo.ClientRepository;
+import com.foodgrid.admin.rest.TenantAdminResource.PaymentGatewayUpdateRequest;
 import com.foodgrid.auth.service.PinHasher;
 import com.foodgrid.common.util.Ids;
+import com.foodgrid.payment.model.PaymentGatewayType;
+import com.foodgrid.payment.service.PaymentConfigService;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -28,6 +31,7 @@ public class TenantAdminService {
   @Inject AdminUserRoleRepository adminUserRoleRepository;
   @Inject PinHasher pinHasher;
   @Inject SecurityIdentity identity;
+  @Inject PaymentConfigService paymentConfigService;
 
   private record AdminUserCreationResult(AdminUser user, String password) {}
 
@@ -35,22 +39,22 @@ public class TenantAdminService {
     // Tenant admin can see all tenants/clients
     return clientRepository.listAll().stream()
       .map(client -> {
-        AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
+        final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
         return toResponse(client, adminUser, null);
       })
       .toList();
   }
 
-  public ClientResponse get(String clientId) {
-    Client client = clientRepository.findByIdOptional(clientId)
+  public ClientResponse get(final String clientId) {
+    final Client client = clientRepository.findByIdOptional(clientId)
       .orElseThrow(() -> new NotFoundException("Client not found"));
-    AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
+    final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
     return toResponse(client, adminUser, null);
   }
 
   @Transactional
-  public ClientResponse create(ClientUpsertRequest req) {
-    String adminId = subject();
+  public ClientResponse create(final ClientUpsertRequest req) {
+    final String adminId = subject();
     if (adminId == null || adminId.isBlank()) {
       throw new BadRequestException("Only authenticated users can create clients");
     }
@@ -67,7 +71,7 @@ public class TenantAdminService {
       });
     }
 
-    Client client = new Client();
+    final Client client = new Client();
     client.id = Ids.uuid();
     client.name = req.name();
     client.contactEmail = req.contactEmail();
@@ -78,22 +82,22 @@ public class TenantAdminService {
     clientRepository.persist(client);
 
     // Create a client admin user associated with this client
-    AdminUserCreationResult result = createClientAdmin(client, req);
-    
+    final AdminUserCreationResult result = createClientAdmin(client, req);
+
     return toResponse(client, result.user(), result.password());
   }
 
-  private AdminUserCreationResult createClientAdmin(Client client, ClientUpsertRequest req) {
+  private AdminUserCreationResult createClientAdmin(final Client client, final ClientUpsertRequest req) {
     // Generate default email if not provided
     String adminEmail = req.adminEmail();
     if (adminEmail == null || adminEmail.isBlank()) {
       // Generate email from client name: "client-name@foodgrid.local"
-      String emailBase = client.name.toLowerCase()
+      final String emailBase = client.name.toLowerCase()
         .replaceAll("[^a-z0-9]", "-")
         .replaceAll("-+", "-")
         .replaceAll("^-|-$", "");
       adminEmail = emailBase + "@foodgrid.local";
-      
+
       // Ensure uniqueness
       int counter = 1;
       while (adminUserRepository.findByEmail(adminEmail).isPresent()) {
@@ -121,7 +125,7 @@ public class TenantAdminService {
     }
 
     // Create admin user
-    AdminUser adminUser = new AdminUser();
+    final AdminUser adminUser = new AdminUser();
     adminUser.id = Ids.uuid();
     adminUser.email = adminEmail;
     adminUser.passwordHash = pinHasher.hash(adminPassword);
@@ -138,13 +142,13 @@ public class TenantAdminService {
   }
 
   @Transactional
-  public ClientResponse update(String clientId, ClientUpsertRequest req) {
-    String adminId = subject();
+  public ClientResponse update(final String clientId, final ClientUpsertRequest req) {
+    final String adminId = subject();
     if (adminId == null || adminId.isBlank()) {
       throw new BadRequestException("Only authenticated users can update clients");
     }
 
-    Client client = clientRepository.findByIdOptional(clientId)
+    final Client client = clientRepository.findByIdOptional(clientId)
       .orElseThrow(() -> new NotFoundException("Client not found"));
 
     // Check if name is being changed and if new name already exists
@@ -175,22 +179,22 @@ public class TenantAdminService {
     client.updatedAt = new Date();
 
     clientRepository.persist(client);
-    AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
+    final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
     return toResponse(client, adminUser, null);
   }
 
   @Transactional
-  public void delete(String clientId) {
-    String adminId = subject();
+  public void delete(final String clientId) {
+    final String adminId = subject();
     if (adminId == null || adminId.isBlank()) {
       throw new BadRequestException("Only authenticated users can delete clients");
     }
 
-    Client client = clientRepository.findByIdOptional(clientId)
+    final Client client = clientRepository.findByIdOptional(clientId)
       .orElseThrow(() -> new NotFoundException("Client not found"));
 
     // Delete associated admin user first
-    AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
+    final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
     if (adminUser != null) {
       // Remove roles first
       adminUserRoleRepository.replaceRoles(adminUser.id, List.of());
@@ -203,36 +207,36 @@ public class TenantAdminService {
   }
 
   @Transactional
-  public ClientResponse activate(String clientId) {
-    String adminId = subject();
+  public ClientResponse activate(final String clientId) {
+    final String adminId = subject();
     if (adminId == null || adminId.isBlank()) {
       throw new BadRequestException("Only authenticated users can activate clients");
     }
 
-    Client client = clientRepository.findByIdOptional(clientId)
+    final Client client = clientRepository.findByIdOptional(clientId)
       .orElseThrow(() -> new NotFoundException("Client not found"));
 
     client.status = Client.Status.ACTIVE;
     client.updatedAt = new Date();
     clientRepository.persist(client);
-    AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
+    final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
     return toResponse(client, adminUser, null);
   }
 
   @Transactional
-  public ClientResponse deactivate(String clientId) {
-    String adminId = subject();
+  public ClientResponse deactivate(final String clientId) {
+    final String adminId = subject();
     if (adminId == null || adminId.isBlank()) {
       throw new BadRequestException("Only authenticated users can deactivate clients");
     }
 
-    Client client = clientRepository.findByIdOptional(clientId)
+    final Client client = clientRepository.findByIdOptional(clientId)
       .orElseThrow(() -> new NotFoundException("Client not found"));
 
     client.status = Client.Status.INACTIVE;
     client.updatedAt = new Date();
     clientRepository.persist(client);
-    AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
+    final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
     return toResponse(client, adminUser, null);
   }
 
@@ -247,23 +251,109 @@ public class TenantAdminService {
     return v == null ? null : v.toString();
   }
 
-  private static ClientResponse toResponse(Client client, AdminUser adminUser, String adminPassword) {
+  private static ClientResponse toResponse(final Client client, final AdminUser adminUser, final String adminPassword) {
     return new ClientResponse(
       client.id,
       client.name,
       client.contactEmail,
-      client.status.name(),
+      client.status,
       client.createdAt,
       client.updatedAt,
       adminUser != null ? adminUser.id : null,
       adminUser != null ? adminUser.email : null,
       adminUser != null ? adminUser.displayName : null,
-      adminPassword
+      adminPassword,
+      client.defaultGatewayType,
+      client.paymentEnabled,
+      client.autoCaptureEnabled,
+      client.partialRefundEnabled,
+      client.webhookUrl,
+      client.paymentGatewayConfig
     );
   }
 
-  private static ClientResponse toResponse(Client client, AdminUser adminUser) {
+  private static ClientResponse toResponse(final Client client, final AdminUser adminUser) {
     return toResponse(client, adminUser, null);
+  }
+
+  // Payment Gateway Management Methods
+
+  @Transactional
+  public ClientResponse updatePaymentGateway(final String clientId, final PaymentGatewayUpdateRequest request) {
+    final String adminId = subject();
+    if (adminId == null || adminId.isBlank()) {
+      throw new BadRequestException("Only authenticated users can update payment gateway");
+    }
+
+    final Client client = clientRepository.findByIdOptional(clientId)
+      .orElseThrow(() -> new NotFoundException("Client not found"));
+
+    // Store old values for audit
+    final PaymentGatewayType oldGatewayType = client.defaultGatewayType;
+    final boolean oldPaymentEnabled = client.paymentEnabled;
+
+    client.defaultGatewayType = request.defaultGatewayType();
+    client.paymentEnabled = request.paymentEnabled();
+    client.autoCaptureEnabled = request.autoCaptureEnabled();
+    client.partialRefundEnabled = request.partialRefundEnabled();
+    client.webhookUrl = request.webhookUrl();
+    client.paymentGatewayConfig = request.paymentGatewayConfig();
+    client.updatedAt = new Date();
+
+    clientRepository.persist(client);
+
+    // Invalidate payment gateway cache if gateway type or payment settings changed
+    if (oldGatewayType != client.defaultGatewayType || oldPaymentEnabled != client.paymentEnabled) {
+      if (client.defaultGatewayType != null) {
+        paymentConfigService.invalidateCache(clientId, client.defaultGatewayType);
+      }
+    }
+
+    final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
+    return toResponse(client, adminUser, null);
+  }
+
+  @Transactional
+  public ClientResponse togglePayments(final String clientId, final boolean enabled) {
+    final String adminId = subject();
+    if (adminId == null || adminId.isBlank()) {
+      throw new BadRequestException("Only authenticated users can toggle payments");
+    }
+
+    final Client client = clientRepository.findByIdOptional(clientId)
+      .orElseThrow(() -> new NotFoundException("Client not found"));
+
+    final boolean oldEnabled = client.paymentEnabled;
+    client.paymentEnabled = enabled;
+    client.updatedAt = new Date();
+
+    clientRepository.persist(client);
+
+    // Invalidate payment gateway cache
+    if (client.defaultGatewayType != null) {
+      paymentConfigService.invalidateCache(clientId, client.defaultGatewayType);
+    }
+
+    final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
+    return toResponse(client, adminUser, null);
+  }
+
+  public List<ClientResponse> getTenantsWithPaymentsEnabled() {
+    return clientRepository.findWithPaymentsEnabled().stream()
+      .map(client -> {
+        final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
+        return toResponse(client, adminUser, null);
+      })
+      .toList();
+  }
+
+  public List<ClientResponse> getActiveTenantsWithPaymentsEnabled() {
+    return clientRepository.findActiveWithPaymentsEnabled().stream()
+      .map(client -> {
+        final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
+        return toResponse(client, adminUser, null);
+      })
+      .toList();
   }
 }
 

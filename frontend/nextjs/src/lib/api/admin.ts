@@ -50,6 +50,17 @@ function tenantAdminAuthHeader() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+// For ADMIN-only endpoints, try tenant admin token first (as TENANT_ADMIN users may have ADMIN role),
+// then fall back to admin token
+function adminOnlyAuthHeader() {
+  const tenantAdminToken = typeof window !== "undefined" ? localStorage.getItem("fg_tenant_admin_access_token") : null;
+  if (tenantAdminToken) {
+    return { Authorization: `Bearer ${tenantAdminToken}` };
+  }
+  const adminToken = typeof window !== "undefined" ? localStorage.getItem("fg_admin_access_token") : null;
+  return adminToken ? { Authorization: `Bearer ${adminToken}` } : {};
+}
+
 export function adminLogin(input: { email: string; password: string }) {
   return http<any>(`/api/v1/admin/auth/login`, {
     method: "POST",
@@ -152,14 +163,53 @@ export function deleteOutlet(outletId: string) {
   });
 }
 
+export type PaymentGatewayType = 
+  | "RAZORPAY"
+  | "STRIPE"
+  | "PAYU"
+  | "PHONEPE"
+  | "CASHFREE"
+  | "BHARATPAY";
+
+export type TenantResponse = {
+  id: string;
+  name: string;
+  contactEmail: string | null;
+  status: "ACTIVE" | "INACTIVE";
+  createdAt: string;
+  updatedAt: string;
+  adminUserId: string | null;
+  adminEmail: string | null;
+  adminDisplayName: string | null;
+  adminPassword: string | null;
+  defaultGatewayType: PaymentGatewayType | null;
+  paymentEnabled: boolean;
+  autoCaptureEnabled: boolean;
+  partialRefundEnabled: boolean;
+  webhookUrl: string | null;
+  paymentGatewayConfig: string | null;
+};
+
 export type TenantUpsertInput = {
   name: string;
   contactEmail?: string;
   status?: string;
+  adminEmail?: string;
+  adminPassword?: string;
+  adminDisplayName?: string;
+};
+
+export type PaymentGatewayUpdateRequest = {
+  defaultGatewayType: PaymentGatewayType;
+  paymentEnabled: boolean;
+  autoCaptureEnabled: boolean;
+  partialRefundEnabled: boolean;
+  webhookUrl?: string;
+  paymentGatewayConfig?: string;
 };
 
 export function listTenants() {
-  return http<any[]>(`/api/v1/admin/tenants`, {
+  return http<TenantResponse[]>(`/api/v1/admin/tenants`, {
     method: "GET",
     headers: {
       ...tenantAdminAuthHeader()
@@ -168,7 +218,7 @@ export function listTenants() {
 }
 
 export function getTenant(tenantId: string) {
-  return http<any>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}`, {
+  return http<TenantResponse>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}`, {
     method: "GET",
     headers: {
       ...tenantAdminAuthHeader()
@@ -177,7 +227,7 @@ export function getTenant(tenantId: string) {
 }
 
 export function createTenant(input: TenantUpsertInput) {
-  return http<any>(`/api/v1/admin/tenants`, {
+  return http<TenantResponse>(`/api/v1/admin/tenants`, {
     method: "POST",
     headers: {
       ...tenantAdminAuthHeader()
@@ -187,7 +237,7 @@ export function createTenant(input: TenantUpsertInput) {
 }
 
 export function updateTenant(tenantId: string, input: TenantUpsertInput) {
-  return http<any>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}`, {
+  return http<TenantResponse>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}`, {
     method: "PUT",
     headers: {
       ...tenantAdminAuthHeader()
@@ -197,7 +247,7 @@ export function updateTenant(tenantId: string, input: TenantUpsertInput) {
 }
 
 export function deleteTenant(tenantId: string) {
-  return http<any>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}`, {
+  return http<void>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}`, {
     method: "DELETE",
     headers: {
       ...tenantAdminAuthHeader()
@@ -206,7 +256,7 @@ export function deleteTenant(tenantId: string) {
 }
 
 export function activateTenant(tenantId: string) {
-  return http<any>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/activate`, {
+  return http<TenantResponse>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/activate`, {
     method: "PUT",
     headers: {
       ...tenantAdminAuthHeader()
@@ -215,8 +265,55 @@ export function activateTenant(tenantId: string) {
 }
 
 export function deactivateTenant(tenantId: string) {
-  return http<any>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/deactivate`, {
+  return http<TenantResponse>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/deactivate`, {
     method: "PUT",
+    headers: {
+      ...tenantAdminAuthHeader()
+    }
+  });
+}
+
+// Payment Gateway Management Functions (Admin only)
+export function updateTenantPaymentGateway(tenantId: string, input: PaymentGatewayUpdateRequest) {
+  return http<TenantResponse>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/payment-gateway`, {
+    method: "PUT",
+    headers: {
+      ...adminOnlyAuthHeader()
+    },
+    body: JSON.stringify(input)
+  });
+}
+
+export function toggleTenantPayments(tenantId: string, enabled: boolean) {
+  return http<TenantResponse>(`/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/toggle-payments?enabled=${enabled}`, {
+    method: "PUT",
+    headers: {
+      ...adminOnlyAuthHeader()
+    }
+  });
+}
+
+export function getTenantsWithPaymentsEnabled() {
+  return http<TenantResponse[]>(`/api/v1/admin/tenants/payments-enabled`, {
+    method: "GET",
+    headers: {
+      ...adminOnlyAuthHeader()
+    }
+  });
+}
+
+export function getActiveTenantsWithPaymentsEnabled() {
+  return http<TenantResponse[]>(`/api/v1/admin/tenants/active-with-payments`, {
+    method: "GET",
+    headers: {
+      ...adminOnlyAuthHeader()
+    }
+  });
+}
+
+export function getSupportedGatewayTypes() {
+  return http<PaymentGatewayType[]>(`/api/v1/admin/tenants/gateway-types`, {
+    method: "GET",
     headers: {
       ...tenantAdminAuthHeader()
     }
