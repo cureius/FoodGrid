@@ -1032,3 +1032,43 @@ export function payOrder(orderId: string, input: PaymentCreateInput, idempotency
     body: JSON.stringify(input)
   });
 }
+
+export type PaymentLinkResponse = {
+  transactionId: string;
+  orderId: string;
+  gatewayType: string;
+  gatewayOrderId: string;
+  paymentLink: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+};
+
+export function createPaymentLink(orderId: string, idempotencyKey?: string) {
+  const headers: Record<string, string> = { ...clientAdminAuthHeader() };
+  if (idempotencyKey) {
+    headers['Idempotency-Key'] = idempotencyKey;
+  }
+  return http<PaymentLinkResponse>(`/api/v1/payments/order/${encodeURIComponent(orderId)}/link`, {
+    method: "POST",
+    headers
+  });
+}
+
+export type PaymentStatusResponse = {
+  orderId: string;
+  transactionId: string | null;
+  gatewayType: string | null;
+  gatewayOrderId: string | null;
+  gatewayPaymentId: string | null;
+  transactionStatus: string;
+  orderStatus: string;
+  amount: number;
+};
+
+export function getPaymentStatus(orderId: string) {
+  return http<PaymentStatusResponse>(`/api/v1/payments/order/${encodeURIComponent(orderId)}/status`, {
+    method: "GET",
+    headers: { ...clientAdminAuthHeader() }
+  });
+}

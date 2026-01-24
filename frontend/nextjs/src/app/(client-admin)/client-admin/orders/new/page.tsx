@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import styles from "./NewOrder.module.css";
 import { cn } from "@/lib/utils";
 import {
@@ -27,6 +27,8 @@ import {
   addOrderItem,
   billOrder,
   payOrder,
+  createPaymentLink,
+  getPaymentStatus,
   listMenuItems,
   listMenuCategories,
   listTables,
@@ -35,6 +37,8 @@ import {
   type MenuItemResponse,
   type MenuCategoryResponse,
   type PaymentCreateInput,
+  type PaymentLinkResponse,
+  type PaymentStatusResponse,
   getImageUrl,
 } from "@/lib/api/clientAdmin";
 import Image from "next/image";
@@ -77,6 +81,12 @@ export default function NewOrderPage() {
   const [billingOrder, setBillingOrder] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>("CASH");
+  
+  // Payment link and iframe state
+  const [paymentLink, setPaymentLink] = useState<string | null>(null);
+  const [showPaymentIframe, setShowPaymentIframe] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatusResponse | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   // Modal state
   const [openAddModalFor, setOpenAddModalFor] = useState<MenuItemResponse | null>(null);
@@ -281,23 +291,102 @@ export default function NewOrderPage() {
     
     try {
       setProcessingPayment(true);
-      const idempotencyKey = `payment-${currentOrder.id}-${Date.now()}`;
-      const paymentInput: PaymentCreateInput = {
-        method: selectedPaymentMethod,
-        amount: Number(currentOrder.grandTotal),
-      };
       
-      await payOrder(currentOrder.id, paymentInput, idempotencyKey);
-      
-      // Redirect to orders page on success
-      router.push("/client-admin/orders");
+      // For GATEWAY payments, create payment link and show iframe
+      if (selectedPaymentMethod === "GATEWAY") {
+        const idempotencyKey = `payment-link-${currentOrder.id}-${Date.now()}`;
+        const linkResponse = await createPaymentLink(currentOrder.id, idempotencyKey);
+        
+        if (linkResponse.paymentLink) {
+          setPaymentLink(linkResponse.paymentLink);
+          setShowPaymentIframe(true);
+          window.open(linkResponse.paymentLink, "_blank");
+          startPaymentStatusPolling(currentOrder.id);
+        } else {
+          // If no payment link, fallback to regular payment flow
+          // Some gateways might not provide payment links
+          alert("Payment link not available. Please try a different payment method.");
+          setProcessingPayment(false);
+        }
+      } else {
+        // For non-gateway payments (CASH, CARD, UPI), use regular payment flow
+        const idempotencyKey = `payment-${currentOrder.id}-${Date.now()}`;
+        const paymentInput: PaymentCreateInput = {
+          method: selectedPaymentMethod,
+          amount: Number(currentOrder.grandTotal),
+        };
+        
+        await payOrder(currentOrder.id, paymentInput, idempotencyKey);
+        
+        // Redirect to orders page on success
+        router.push("/client-admin/orders");
+      }
     } catch (err: any) {
       alert(err?.message || "Failed to process payment");
       console.error("Failed to process payment:", err);
-    } finally {
       setProcessingPayment(false);
     }
   };
+
+  // Start polling for payment status
+  const startPaymentStatusPolling = (orderId: string) => {
+    // Clear any existing polling
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+    }
+
+    // Poll every 2 seconds
+    const interval = setInterval(async () => {
+      try {
+        const status = await getPaymentStatus(orderId);
+        setPaymentStatus(status);
+
+        // Check if payment is completed (success or failure)
+        if (status.transactionStatus === "CAPTURED" || 
+            status.transactionStatus === "FAILED" ||
+            status.orderStatus === "PAID") {
+          stopPaymentStatusPolling();
+          
+          // Close iframe after a short delay
+          setTimeout(() => {
+            setShowPaymentIframe(false);
+            setPaymentLink(null);
+            
+            if (status.transactionStatus === "CAPTURED" || status.orderStatus === "PAID") {
+              // Payment successful
+              alert("Payment successful!");
+              router.push("/client-admin/orders");
+            } else {
+              // Payment failed
+              alert("Payment failed. Please try again.");
+              setProcessingPayment(false);
+            }
+          }, 1000);
+        }
+      } catch (err) {
+        console.error("Failed to check payment status:", err);
+      }
+    }, 2000);
+
+    pollingIntervalRef.current = interval;
+  };
+
+  // Stop polling for payment status
+  const stopPaymentStatusPolling = () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  };
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, []);
 
   const getStepTitle = () => {
     switch (step) {
@@ -708,66 +797,161 @@ export default function NewOrderPage() {
       {/* Step 4: Payment */}
       {step === 4 && currentOrder && (
         <div className={styles.centerStage}>
-          <div className={styles.orderInfoCard}>
-            <div className={styles.formTitle}>Payment</div>
-
-            <div style={{ marginBottom: "24px" }}>
-              <div style={{ fontSize: "14px", color: "#666", marginBottom: "8px" }}>Total Amount</div>
-              <div style={{ fontSize: "32px", fontWeight: "bold", color: "#2563eb" }}>
-                ₹{Number(currentOrder.grandTotal).toFixed(2)}
+          {showPaymentIframe && paymentLink ? (
+            // Payment iframe view
+            <div style={{ 
+              width: "100%", 
+              maxWidth: "800px", 
+              height: "600px", 
+              display: "flex", 
+              flexDirection: "column",
+              background: "#fff",
+              borderRadius: "8px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+            }}>
+              <div style={{ 
+                padding: "16px", 
+                borderBottom: "1px solid #e0e0e0",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
+              }}>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: "bold" }}>Complete Payment</div>
+                  <div style={{ fontSize: "14px", color: "#666", marginTop: "4px" }}>
+                    Amount: ₹{Number(currentOrder.grandTotal).toFixed(2)}
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  {paymentStatus && (
+                    <div style={{ 
+                      padding: "8px 16px", 
+                      borderRadius: "4px",
+                      background: paymentStatus.transactionStatus === "CAPTURED" ? "#d4edda" : 
+                                 paymentStatus.transactionStatus === "FAILED" ? "#f8d7da" : "#fff3cd",
+                      color: paymentStatus.transactionStatus === "CAPTURED" ? "#155724" : 
+                             paymentStatus.transactionStatus === "FAILED" ? "#721c24" : "#856404",
+                      fontSize: "14px",
+                      fontWeight: "500"
+                    }}>
+                      {paymentStatus.transactionStatus === "CAPTURED" ? "✓ Payment Successful" :
+                       paymentStatus.transactionStatus === "FAILED" ? "✗ Payment Failed" :
+                       paymentStatus.transactionStatus === "PENDING" ? "⏳ Processing..." :
+                       "Checking status..."}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => {
+                      stopPaymentStatusPolling();
+                      setShowPaymentIframe(false);
+                      setPaymentLink(null);
+                      setProcessingPayment(false);
+                    }}
+                    style={{
+                      padding: "8px",
+                      background: "transparent",
+                      border: "1px solid #ccc",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}
+                    title="Close"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              </div>
+              <div style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "20px",
+                textAlign: "center"
+              }}>
+                <div style={{ marginBottom: "20px", fontSize: "16px", color: "#555" }}>
+                  Payment page has been opened in a new tab.<br/>
+                  Please complete the payment there.
+                </div>
+                <button 
+                  onClick={() => window.open(paymentLink, '_blank')}
+                  className={styles.primaryCta}
+                  style={{ width: "auto", padding: "10px 20px" }}
+                >
+                  Click to open again
+                </button>
               </div>
             </div>
+          ) : (
+            // Payment method selection view
+            <div className={styles.orderInfoCard}>
+              <div className={styles.formTitle}>Payment</div>
 
-            <div className={styles.fieldLabel} style={{ marginTop: 24 }}>Payment Method</div>
-            <div className={styles.typeGrid} style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
-              <button
-                className={cn(styles.typeCard, selectedPaymentMethod === "CASH" && styles.typeCardActive)}
-                onClick={() => setSelectedPaymentMethod("CASH")}
-              >
-                <Banknote size={24} />
-                <span>Cash</span>
-              </button>
-              <button
-                className={cn(styles.typeCard, selectedPaymentMethod === "CARD" && styles.typeCardActive)}
-                onClick={() => setSelectedPaymentMethod("CARD")}
-              >
-                <CreditCard size={24} />
-                <span>Card</span>
-              </button>
-              <button
-                className={cn(styles.typeCard, selectedPaymentMethod === "UPI" && styles.typeCardActive)}
-                onClick={() => setSelectedPaymentMethod("UPI")}
-              >
-                <Smartphone size={24} />
-                <span>UPI</span>
-              </button>
-              <button
-                className={cn(styles.typeCard, selectedPaymentMethod === "GATEWAY" && styles.typeCardActive)}
-                onClick={() => setSelectedPaymentMethod("GATEWAY")}
-              >
-                <Wallet size={24} />
-                <span>Online</span>
-              </button>
-            </div>
+              <div style={{ marginBottom: "24px" }}>
+                <div style={{ fontSize: "14px", color: "#666", marginBottom: "8px" }}>Total Amount</div>
+                <div style={{ fontSize: "32px", fontWeight: "bold", color: "#2563eb" }}>
+                  ₹{Number(currentOrder.grandTotal).toFixed(2)}
+                </div>
+              </div>
 
-            <div className={styles.formActions}>
-              <button
-                className={styles.primaryCta}
-                disabled={processingPayment}
-                onClick={handleProcessPayment}
-              >
-                {processingPayment ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" /> Processing Payment...
-                  </>
-                ) : (
-                  <>
-                    Complete Payment <Check size={18} />
-                  </>
-                )}
-              </button>
+              <div className={styles.fieldLabel} style={{ marginTop: 24 }}>Payment Method</div>
+              <div className={styles.typeGrid} style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
+                <button
+                  className={cn(styles.typeCard, selectedPaymentMethod === "CASH" && styles.typeCardActive)}
+                  onClick={() => setSelectedPaymentMethod("CASH")}
+                  disabled={processingPayment}
+                >
+                  <Banknote size={24} />
+                  <span>Cash</span>
+                </button>
+                <button
+                  className={cn(styles.typeCard, selectedPaymentMethod === "CARD" && styles.typeCardActive)}
+                  onClick={() => setSelectedPaymentMethod("CARD")}
+                  disabled={processingPayment}
+                >
+                  <CreditCard size={24} />
+                  <span>Card</span>
+                </button>
+                <button
+                  className={cn(styles.typeCard, selectedPaymentMethod === "UPI" && styles.typeCardActive)}
+                  onClick={() => setSelectedPaymentMethod("UPI")}
+                  disabled={processingPayment}
+                >
+                  <Smartphone size={24} />
+                  <span>UPI</span>
+                </button>
+                <button
+                  className={cn(styles.typeCard, selectedPaymentMethod === "GATEWAY" && styles.typeCardActive)}
+                  onClick={() => setSelectedPaymentMethod("GATEWAY")}
+                  disabled={processingPayment}
+                >
+                  <Wallet size={24} />
+                  <span>Online</span>
+                </button>
+              </div>
+
+              <div className={styles.formActions}>
+                <button
+                  className={styles.primaryCta}
+                  disabled={processingPayment}
+                  onClick={handleProcessPayment}
+                >
+                  {processingPayment ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" /> Processing Payment...
+                    </>
+                  ) : (
+                    <>
+                      {selectedPaymentMethod === "GATEWAY" ? "Proceed to Payment" : "Complete Payment"} <Check size={18} />
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 

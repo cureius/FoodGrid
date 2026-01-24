@@ -165,7 +165,7 @@ public class RazorpayGateway implements PaymentGateway {
         }
     }
 
-    @Override
+        @Override
     public GatewayRefundResult processRefund(final String gatewayPaymentId, final BigDecimal amount, final String reason) {
         try {
             final long amountInPaise = amount.multiply(BigDecimal.valueOf(100)).longValue();
@@ -181,7 +181,7 @@ public class RazorpayGateway implements PaymentGateway {
             final String requestBody = MAPPER.writeValueAsString(refundRequest);
 
             final HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/payments/" + gatewayPaymentId + "/refund"))
+                .uri(URI.create(BASE_URL + "/refunds"))
                 .header("Content-Type", "application/json")
                 .header("Authorization", getBasicAuth())
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody))
@@ -192,13 +192,7 @@ public class RazorpayGateway implements PaymentGateway {
             if (response.statusCode() == 200 || response.statusCode() == 201) {
                 final JsonNode json = MAPPER.readTree(response.body());
                 final String refundId = json.get("id").asText();
-                final String status = json.get("status").asText();
-
-                if ("processed".equals(status)) {
-                    return GatewayRefundResult.success(refundId, response.body());
-                } else {
-                    return GatewayRefundResult.processing(refundId, response.body());
-                }
+                return GatewayRefundResult.success(refundId, response.body());
             } else {
                 final JsonNode json = MAPPER.readTree(response.body());
                 final String errorMsg = json.has("error") ?
@@ -207,6 +201,115 @@ public class RazorpayGateway implements PaymentGateway {
             }
         } catch (final Exception e) {
             return GatewayRefundResult.failure("Refund error: " + e.getMessage(), null);
+        }
+    }
+
+    /**
+     * Create a payment link using Razorpay Payment Links API.
+     * This is used for generating shareable payment links.
+     */
+    public GatewayOrderResult createPaymentLink(final String orderId, final BigDecimal amount, final String currency,
+                                               final String description, final String customerName, 
+                                               final String customerContact, final String callbackUrl) {
+        try {
+            // Razorpay expects amount in paise (smallest currency unit)
+            final long amountInPaise = amount.multiply(BigDecimal.valueOf(100)).longValue();
+
+            final Map<String, Object> paymentLinkRequest = new HashMap<>();
+            paymentLinkRequest.put("amount", amountInPaise);
+            paymentLinkRequest.put("currency", currency);
+            paymentLinkRequest.put("reference_id", orderId);
+            paymentLinkRequest.put("description", description != null ? description : "Payment for Order " + orderId);
+            
+            // Add customer information if provided
+            if (customerName != null || customerContact != null) {
+                final Map<String, Object> customer = new HashMap<>();
+                if (customerName != null) {
+                    customer.put("name", customerName);
+                }
+                if (customerContact != null) {
+                    customer.put("contact", customerContact);
+                }
+                paymentLinkRequest.put("customer", customer);
+            }
+            
+            // Add callback URL if provided
+            if (callbackUrl != null && !callbackUrl.isBlank()) {
+                paymentLinkRequest.put("callback_url", callbackUrl);
+                paymentLinkRequest.put("callback_method", "get");
+            }
+
+            final String requestBody = MAPPER.writeValueAsString(paymentLinkRequest);
+
+            final HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/payment_links"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", getBasicAuth())
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
+
+            final HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200 || response.statusCode() == 201) {
+                final JsonNode json = MAPPER.readTree(response.body());
+                final String paymentLinkId = json.get("id").asText();
+                final String shortUrl = json.get("short_url").asText();
+
+                // Client data needed for payment link response
+                final Map<String, Object> clientData = new HashMap<>();
+                clientData.put("payment_link_id", paymentLinkId);
+                clientData.put("short_url", shortUrl);
+                clientData.put("amount", amountInPaise);
+                clientData.put("currency", currency);
+
+                return GatewayOrderResult.success(paymentLinkId, clientData, response.body());
+            } else {
+                final JsonNode json = MAPPER.readTree(response.body());
+                final String errorMsg = json.has("error") ?
+                    json.get("error").get("description").asText() : "Payment link creation failed";
+                return GatewayOrderResult.failure(errorMsg, response.body());
+            }
+        } catch (final Exception e) {
+            return GatewayOrderResult.failure("Razorpay Payment Link API error: " + e.getMessage(), null);
+        }
+    }
+
+    /**
+     * Create a mock payment link for testing with test credentials.
+     */
+    private GatewayOrderResult createMockPaymentLink(final String orderId, final BigDecimal amount, final String currency, final String description) {
+        try {
+            final long amountInPaise = amount.multiply(BigDecimal.valueOf(100)).longValue();
+            final String paymentLinkId = "plink_mock_" + orderId.substring(0, 8) + "_" + System.currentTimeMillis();
+            final String shortUrl = "https://rzp.io/mock/" + paymentLinkId.substring(5);
+
+            // Mock response similar to Razorpay's actual response
+            final Map<String, Object> mockResponse = new HashMap<>();
+            mockResponse.put("id", paymentLinkId);
+            mockResponse.put("entity", "payment_link");
+            mockResponse.put("amount", amountInPaise);
+            mockResponse.put("amount_paid", 0);
+            mockResponse.put("currency", currency);
+            mockResponse.put("reference_id", orderId);
+            mockResponse.put("description", description != null ? description : "Payment for Order " + orderId);
+            mockResponse.put("status", "created");
+            mockResponse.put("short_url", shortUrl);
+            mockResponse.put("created_at", System.currentTimeMillis() / 1000);
+            mockResponse.put("accept_partial", false);
+            mockResponse.put("expire_by", 0);
+            mockResponse.put("expired_at", 0);
+
+            // Client data needed for payment link response
+            final Map<String, Object> clientData = new HashMap<>();
+            clientData.put("payment_link_id", paymentLinkId);
+            clientData.put("short_url", shortUrl);
+            clientData.put("amount", amountInPaise);
+            clientData.put("currency", currency);
+
+            final String mockResponseJson = MAPPER.writeValueAsString(mockResponse);
+            return GatewayOrderResult.success(paymentLinkId, clientData, mockResponseJson);
+        } catch (final Exception e) {
+            return GatewayOrderResult.failure("Mock payment link creation failed: " + e.getMessage(), null);
         }
     }
 

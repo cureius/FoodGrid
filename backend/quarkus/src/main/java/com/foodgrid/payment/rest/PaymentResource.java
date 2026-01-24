@@ -102,4 +102,29 @@ public class PaymentResource {
         final List<RefundResponse> refunds = paymentService.listRefunds(transactionId);
         return Response.ok(refunds).build();
     }
+
+    @POST
+    @Path("/order/{orderId}/link")
+    @RolesAllowed({"POS_USER", "ADMIN", "CLIENT_ADMIN"})
+    @Operation(summary = "Create payment link", description = "Create a payment link for an order that has been billed")
+    public Response createPaymentLink(
+            @PathParam("orderId") final String orderId,
+            @HeaderParam("Idempotency-Key") final String idempotencyKey) {
+        final String tenantId = tenantGuards.requireTenant();
+        final String clientId = jwt.getClaim("clientId");
+        final String outletId = jwt.getClaim("outletId");
+
+        final PaymentLinkResponse response = paymentService.createPaymentLink(
+            tenantId, clientId, outletId, orderId, idempotencyKey);
+        return Response.ok(response).build();
+    }
+
+    @GET
+    @Path("/order/{orderId}/status")
+    @RolesAllowed({"POS_USER", "ADMIN", "CLIENT_ADMIN"})
+    @Operation(summary = "Get payment status", description = "Get payment status for an order (for UI polling)")
+    public Response getPaymentStatus(@PathParam("orderId") final String orderId) {
+        final PaymentStatusResponse response = paymentService.getPaymentStatus(orderId);
+        return Response.ok(response).build();
+    }
 }

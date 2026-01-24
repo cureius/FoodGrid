@@ -1,5 +1,8 @@
 package com.foodgrid.payment.service;
 
+import com.foodgrid.admin.repo.AdminUserRepository;
+import com.foodgrid.admin.repo.ClientRepository;
+import com.foodgrid.auth.repo.OutletRepository;
 import com.foodgrid.common.audit.AuditLogService;
 import com.foodgrid.common.util.EncryptionUtil;
 import com.foodgrid.common.util.Ids;
@@ -7,6 +10,12 @@ import com.foodgrid.payment.dto.*;
 import com.foodgrid.payment.gateway.*;
 import com.foodgrid.payment.model.*;
 import com.foodgrid.payment.repo.*;
+import com.foodgrid.pos.model.Order;
+import com.foodgrid.pos.model.Payment;
+import com.foodgrid.pos.repo.OrderRepository;
+import com.foodgrid.pos.repo.PaymentRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -16,7 +25,9 @@ import jakarta.ws.rs.NotFoundException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Payment service handling all payment gateway operations.
@@ -45,6 +56,23 @@ public class PaymentService {
 
     @Inject
     AuditLogService auditService;
+
+    @Inject
+    OrderRepository orderRepository;
+
+    @Inject
+    PaymentRepository paymentRepository;
+
+    @Inject
+    OutletRepository outletRepository;
+
+    @Inject
+    ClientRepository clientRepository;
+
+    @Inject
+    AdminUserRepository adminUserRepository;
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     /**
      * Initiate a payment for an order.
@@ -291,6 +319,176 @@ public class PaymentService {
     }
 
     /**
+     * Create payment link for an order.
+     * This is called when an order is billed and proceeds to payment.
+     * Returns the payment link URL that the client can use to complete payment.
+     */
+    @Transactional
+    public PaymentLinkResponse createPaymentLink(final String tenantId, final String clientId, String outletId,
+                                                 final String orderId, final String idempotencyKey) {
+        // Check if order exists and is billed
+        final Order order = orderRepository.findById(orderId);
+        final String adminUserId;
+        String derivedClientId;
+        if (order == null) {
+            throw new NotFoundException("Order not found");
+        }
+
+        if (order.status != Order.Status.BILLED && order.status != Order.Status.PAID) {
+            throw new BadRequestException("Order must be billed before creating payment link");
+        }
+
+        if(outletId == null){
+            outletId = order.outletId;
+        }
+
+        if(clientId == null){
+            //find the admin id of the outletId -> outlet to adminuser -> adminuser to client
+            derivedClientId = outletRepository.findById(outletId).clientId;
+            if(derivedClientId == null){
+                adminUserId = outletRepository.findById(outletId).ownerId;
+                derivedClientId = adminUserRepository.findById(adminUserId).clientId;
+            }
+        }else{
+            derivedClientId = clientId;
+        }
+
+
+        // Check if payment link already exists for this order
+        final var existingTx = transactionRepository.findByOrderId(orderId);
+        if (existingTx.isPresent() && 
+            (existingTx.get().status == GatewayTransactionStatus.PENDING || 
+             existingTx.get().status == GatewayTransactionStatus.INITIATED)) {
+            final GatewayTransaction tx = existingTx.get();
+            final PaymentGateway gateway = gatewayFactory.getPrimaryGateway(derivedClientId);
+            
+            // Extract payment link from gatewayResponse if available
+            final String paymentLink = extractPaymentLink(tx, gateway);
+            
+            return new PaymentLinkResponse(
+                tx.id, tx.orderId, tx.gatewayType, tx.gatewayOrderId,
+                paymentLink, tx.amount, tx.currency, tx.status
+            );
+        }
+
+        // Use outletId from order if not provided (fallback)
+        final String effectiveOutletId = outletId != null && !outletId.isBlank() ? outletId : order.outletId;
+        
+        // Create new payment transaction
+        final Map<String, String> metadata = new HashMap<>();
+        metadata.put("orderId", orderId);
+        if (effectiveOutletId != null && !effectiveOutletId.isBlank()) {
+            metadata.put("outletId", effectiveOutletId);
+        }
+        
+        // Get the primary gateway for this client
+        final PaymentGateway gateway = gatewayFactory.getPrimaryGateway(derivedClientId);
+        
+        // Create payment link using the gateway's payment link API
+        final GatewayOrderResult linkResult = gateway.createPaymentLink(
+            orderId,
+            order.grandTotal,
+            "INR",
+            "Payment for Order " + orderId,
+            null, // customer name - can be added later
+            null, // customer contact - can be added later
+            null  // callback URL - can be configured per client
+        );
+        
+        if (!linkResult.success()) {
+            throw new BadRequestException("Failed to create payment link: " + linkResult.errorMessage());
+        }
+        
+        // Create transaction record
+        final GatewayTransaction transaction = new GatewayTransaction();
+        transaction.id = Ids.uuid();
+        transaction.tenantId = tenantId;
+        transaction.clientId = derivedClientId;
+        transaction.outletId = effectiveOutletId;
+        transaction.orderId = orderId;
+        transaction.gatewayType = gateway.getType();
+        transaction.gatewayOrderId = linkResult.gatewayOrderId();
+        transaction.amount = order.grandTotal;
+        transaction.currency = "INR";
+        transaction.status = GatewayTransactionStatus.PENDING;
+        transaction.gatewayResponse = linkResult.rawResponse();
+        transaction.idempotencyKey = idempotencyKey;
+        transaction.createdAt = new Date();
+        
+        transactionRepository.persist(transaction);
+        
+        // Extract payment link from clientData
+        String paymentLink = null;
+        if (linkResult.clientData() != null) {
+            final Object linkObj = linkResult.clientData().get("short_url");
+            if (linkObj != null) {
+                paymentLink = linkObj.toString();
+            }
+        }
+
+        return new PaymentLinkResponse(
+            transaction.id, orderId, gateway.getType(), linkResult.gatewayOrderId(),
+            paymentLink, order.grandTotal, "INR", transaction.status
+        );
+    }
+
+    /**
+     * Extract payment link from transaction gatewayResponse.
+     * Parses the JSON response to find payment_link field.
+     */
+    private String extractPaymentLink(final GatewayTransaction tx, final PaymentGateway gateway) {
+        if (tx.gatewayResponse == null || tx.gatewayResponse.isBlank()) {
+            return null;
+        }
+
+        try {
+            final JsonNode json = OBJECT_MAPPER.readTree(tx.gatewayResponse);
+            
+            // Try different possible locations for payment link based on gateway
+            if (json.has("data") && json.get("data").has("payment_link")) {
+                return json.get("data").get("payment_link").asText();
+            } else if (json.has("payment_link")) {
+                return json.get("payment_link").asText();
+            } else if (json.has("data") && json.get("data").has("data") && 
+                       json.get("data").get("data").has("payment_link")) {
+                return json.get("data").get("data").get("payment_link").asText();
+            } else if (json.has("short_url")) {
+                // Razorpay payment links use short_url field
+                return json.get("short_url").asText();
+            }
+        } catch (final Exception e) {
+            // Failed to parse, return null
+        }
+        
+        return null;
+    }
+
+    /**
+     * Get payment status for an order.
+     * Used by UI to poll for payment status.
+     */
+    public PaymentStatusResponse getPaymentStatus(final String orderId) {
+        final Order order = orderRepository.findById(orderId);
+        if (order == null) {
+            throw new NotFoundException("Order not found");
+        }
+
+        final var txOpt = transactionRepository.findByOrderId(orderId);
+        if (txOpt.isEmpty()) {
+            return new PaymentStatusResponse(
+                orderId, null, null, null, null,
+                "NO_PAYMENT_INITIATED", order.status.name(), order.grandTotal
+            );
+        }
+
+        final GatewayTransaction tx = txOpt.get();
+        return new PaymentStatusResponse(
+            orderId, tx.id, tx.gatewayType.name(), tx.gatewayOrderId,
+            tx.gatewayPaymentId, tx.status.name(), order.status.name(), tx.amount
+        );
+    }
+
+    /**
      * List transactions for an outlet.
      */
     public List<GatewayTransactionResponse> listTransactions(final String outletId, final int limit) {
@@ -386,6 +584,9 @@ public class PaymentService {
                 tx.updatedAt = Date.from(Instant.now());
                 transactionRepository.persist(tx);
 
+                // Create Payment entity and update Order status
+                updateOrderAndCreatePayment(tx);
+
                 auditService.record("PAYMENT_WEBHOOK_CAPTURED", tx.outletId, "GatewayTransaction", tx.id,
                     "event=" + event.eventType());
             }
@@ -411,6 +612,63 @@ public class PaymentService {
                         }
                     });
             }
+        }
+    }
+
+    /**
+     * Create Payment entity and update Order status when payment is successful.
+     */
+    @Transactional
+    public void updateOrderAndCreatePayment(final GatewayTransaction tx) {
+        // Find the order
+        final Order order = orderRepository.findById(tx.orderId);
+        if (order == null) {
+            auditService.record("PAYMENT_ORDER_NOT_FOUND", tx.outletId, "GatewayTransaction", tx.id,
+                "orderId=" + tx.orderId);
+            return;
+        }
+
+        // Check if payment already exists for this transaction
+        Payment payment = null;
+        if (tx.paymentId != null && !tx.paymentId.isBlank()) {
+            payment = paymentRepository.findById(tx.paymentId);
+        }
+
+        // Create or update Payment entity
+        if (payment == null) {
+            payment = new Payment();
+            payment.id = Ids.uuid();
+            payment.orderId = tx.orderId;
+            payment.method = Payment.Method.GATEWAY;
+            payment.amount = tx.amount;
+            payment.status = Payment.Status.CAPTURED;
+            payment.gatewayTransactionId = tx.id;
+            payment.createdAt = Date.from(Instant.now());
+            paymentRepository.persist(payment);
+
+            // Update transaction with payment ID
+            tx.paymentId = payment.id;
+            transactionRepository.persist(tx);
+        } else {
+            // Update existing payment
+            payment.status = Payment.Status.CAPTURED;
+            payment.gatewayTransactionId = tx.id;
+            paymentRepository.persist(payment);
+        }
+
+        // Update order status if fully paid
+        final BigDecimal totalPaid = paymentRepository.listByOrder(order.id).stream()
+            .filter(p -> p.status == Payment.Status.CAPTURED)
+            .map(p -> p.amount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (totalPaid.compareTo(order.grandTotal) >= 0 && order.status != Order.Status.PAID) {
+            order.status = Order.Status.PAID;
+            order.updatedAt = Date.from(Instant.now());
+            orderRepository.persist(order);
+
+            auditService.record("ORDER_PAID", order.outletId, "Order", order.id,
+                "transaction=" + tx.id + ", totalPaid=" + totalPaid);
         }
     }
 

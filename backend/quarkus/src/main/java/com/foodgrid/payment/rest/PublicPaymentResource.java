@@ -45,6 +45,23 @@ public class PublicPaymentResource {
     }
 
     /**
+     * Get payment status for an order (public endpoint for customer UI polling).
+     */
+    @GET
+    @Path("/order/{orderId}/status")
+    @Operation(summary = "Get payment status", description = "Get payment status for an order (for UI polling)")
+    public Response getPaymentStatus(@PathParam("orderId") final String orderId) {
+        try {
+            final PaymentStatusResponse response = paymentService.getPaymentStatus(orderId);
+            return Response.ok(response).build();
+        } catch (final NotFoundException e) {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity(new ErrorResponse("ORDER_NOT_FOUND", "Order not found"))
+                .build();
+        }
+    }
+
+    /**
      * Verify a payment (public endpoint for client-side SDK callback).
      * This allows the payment SDK to verify the payment without authentication.
      */

@@ -38,6 +38,26 @@ public interface PaymentGateway {
                                     String receipt, Map<String, String> notes);
 
     /**
+     * Create a payment link using the gateway's payment links API.
+     * This is used for generating shareable payment links.
+     *
+     * @param orderId Internal order ID
+     * @param amount Payment amount
+     * @param currency Currency code (INR, USD, etc.)
+     * @param description Payment description
+     * @param customerName Customer name (optional)
+     * @param customerContact Customer contact (optional)
+     * @param callbackUrl Callback URL for payment completion (optional)
+     * @return Result containing payment link ID and client-side data
+     */
+    default GatewayOrderResult createPaymentLink(String orderId, BigDecimal amount, String currency,
+                                                 String description, String customerName, 
+                                                 String customerContact, String callbackUrl) {
+        // Default implementation - gateways can override if they support payment links
+        return GatewayOrderResult.failure("Payment links not supported by this gateway", null);
+    }
+
+    /**
      * Verify/capture a payment after client-side completion.
      *
      * @param gatewayOrderId Gateway's order ID
