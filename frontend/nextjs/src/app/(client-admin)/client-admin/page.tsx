@@ -199,7 +199,7 @@ export default function Page() {
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div style={{
             background: "white",
-            padding: "14px 20px",
+            padding: "2px 20px",
             borderRadius: 14,
             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
             border: "1px solid rgba(0,0,0,0.04)",
@@ -220,7 +220,7 @@ export default function Page() {
               display: "flex",
               alignItems: "center",
               gap: 8,
-              padding: "14px 20px",
+              padding: "16px 20px",
               borderRadius: 14,
               border: "none",
               background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",

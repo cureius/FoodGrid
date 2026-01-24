@@ -373,6 +373,7 @@ export default function EmployeesPage() {
                 style={{
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: "center",
                   gap: 8,
                   width: 44,
                   height: 44,
