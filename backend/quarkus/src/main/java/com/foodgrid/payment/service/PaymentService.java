@@ -411,6 +411,7 @@ public class PaymentService {
         transaction.orderId = orderId;
         transaction.gatewayType = gateway.getType();
         transaction.gatewayOrderId = linkResult.gatewayOrderId();
+        transaction.gatewayPaymentId = linkResult.gatewayOrderId();
         transaction.amount = order.grandTotal;
         transaction.currency = "INR";
         transaction.status = GatewayTransactionStatus.PENDING;
