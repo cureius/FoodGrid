@@ -214,7 +214,7 @@ export default function Page() {
   ];
 
   return (
-    <div style={{ padding: 32, maxWidth: 1400, margin: "0 auto" }}>
+    <div style={{ padding: 32 }}>
       {/* Toast */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 

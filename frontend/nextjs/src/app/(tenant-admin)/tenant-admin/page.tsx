@@ -39,7 +39,7 @@ export default function Page() {
   ];
 
   return (
-    <div style={{ padding: 32, maxWidth: 1400, margin: "0 auto" }}>
+    <div style={{ padding: 32 }}>
       {/* Header */}
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 32 }}>
         <div>

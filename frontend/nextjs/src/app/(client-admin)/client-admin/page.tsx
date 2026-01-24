@@ -169,7 +169,7 @@ export default function Page() {
   const recentEmployees = employees.slice(0, 5);
 
   return (
-    <div style={{ padding: "32px", maxWidth: 1400, margin: "0 auto" }}>
+    <div style={{ padding: "32px"}}>
       {/* Header */}
       <div style={{
         display: "flex",

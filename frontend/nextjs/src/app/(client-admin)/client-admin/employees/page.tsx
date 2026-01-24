@@ -334,7 +334,7 @@ export default function EmployeesPage() {
         </div>
       )}
 
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: 32 }}>
+      <div style={{ padding: 32 }}>
         {/* Header */}
         <div style={{ marginBottom: 28 }}>
           <div

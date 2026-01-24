@@ -9,11 +9,15 @@
   margin-left: 260px;
   min-width: 0;
   min-height: 100vh;
+  background: var(--bg-app);
+  padding-bottom: 40px;
 }
 
 /* Responsive */
 @media (max-width: 1024px) {
   .mainContent {
     margin-left: 80px;
+    background: var(--bg-app);
+    padding-bottom: 40px;
   }
 }

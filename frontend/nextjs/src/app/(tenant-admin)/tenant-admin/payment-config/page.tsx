@@ -341,8 +341,6 @@ export default function PaymentConfigPage() {
   return (
     <div style={{ 
       padding: '32px', 
-      maxWidth: '1400px', 
-      margin: '0 auto',
       background: 'var(--bg-app)',
       minHeight: '100vh'
     }}>

@@ -1,7 +1,5 @@
 .header {
-  background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
-  padding: 0 24px;
   height: 64px;
   display: flex;
   align-items: center;
@@ -16,6 +14,8 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  padding: 12px;
+  background: var(--bg-app);
 }
 
 .outletSelector {
@@ -27,7 +27,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: #f8fafc;
+  background: var(--bg-card);
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   cursor: pointer;
@@ -40,7 +40,7 @@
 }
 
 .outletButton:hover:not(:disabled) {
-  background: #f1f5f9;
+  background: var(--bg-card);
   border-color: #cbd5e1;
 }
 
@@ -135,13 +135,11 @@
 /* Responsive */
 @media (max-width: 640px) {
   .header {
-    padding: 0 16px;
     height: 56px;
   }
 
   .outletButton {
     min-width: 160px;
-    padding: 6px 12px;
     font-size: 13px;
   }
 
