@@ -85,6 +85,7 @@ public class TenantFilter implements ContainerRequestFilter {
       || p.startsWith("api/v1/admin/auth")
       || p.startsWith("api/v1/bootstrap")
       || p.startsWith("api/v1/pos/whoami")
+      || p.startsWith("api/v1/webhooks/payment")  // Allow public access to payment webhooks
       || p.startsWith("uploads")  // Allow public access to uploaded files (images, etc.)
       || p.startsWith("q/")
       || p.startsWith("openapi")

@@ -2,6 +2,7 @@ package com.foodgrid.payment.rest;
 
 import com.foodgrid.payment.model.PaymentGatewayType;
 import com.foodgrid.payment.service.PaymentService;
+import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -23,17 +24,33 @@ public class PaymentWebhookResource {
     @Inject
     PaymentService paymentService;
 
-    @POST
+    @GET
     @Path("/razorpay")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     @Operation(summary = "Razorpay webhook", description = "Receive webhooks from Razorpay")
     public Response razorpayWebhook(
-            @HeaderParam("X-Razorpay-Signature") final String signature,
-            final String payload) {
+            @QueryParam("razorpay_payment_id") final String razorpayPaymentId,
+            @QueryParam("razorpay_payment_link_id") final String razorpayPaymentLinkId,
+            @QueryParam("razorpay_payment_link_reference_id") final String razorpayPaymentLinkReferenceId,
+            @QueryParam("razorpay_payment_link_status") final String razorpayPaymentLinkStatus,
+            @QueryParam("razorpay_signature") final String signature) {
         LOG.infof("Received Razorpay webhook, signature present: %s", signature != null);
+        LOG.infof("Payment ID: %s, Link ID: %s, Reference ID: %s, Status: %s",
+                razorpayPaymentId, razorpayPaymentLinkId, razorpayPaymentLinkReferenceId, razorpayPaymentLinkStatus);
+
         try {
+            final String payload = "razorpay_payment_id=" + razorpayPaymentId +
+                    "&razorpay_payment_link_id=" + razorpayPaymentLinkId +
+                    "&razorpay_payment_link_reference_id=" + razorpayPaymentLinkReferenceId +
+                    "&razorpay_payment_link_status=" + razorpayPaymentLinkStatus;
+
+            // For now, just log the webhook and return success
+            // TODO: Enable full webhook processing when ready
             paymentService.processWebhook(PaymentGatewayType.RAZORPAY, payload, signature);
+
+            LOG.infof("Webhook processed successfully");
             return Response.ok().build();
         } catch (final Exception e) {
             LOG.errorf(e, "Error processing Razorpay webhook");
@@ -46,6 +63,7 @@ public class PaymentWebhookResource {
     @Path("/stripe")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     @Operation(summary = "Stripe webhook", description = "Receive webhooks from Stripe")
     public Response stripeWebhook(
             @HeaderParam("Stripe-Signature") final String signature,
@@ -64,6 +82,7 @@ public class PaymentWebhookResource {
     @Path("/payu")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     @Operation(summary = "PayU webhook/callback", description = "Receive callbacks from PayU")
     public Response payuWebhook(final String payload) {
         LOG.infof("Received PayU callback");
@@ -80,6 +99,7 @@ public class PaymentWebhookResource {
     @Path("/phonepe")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     @Operation(summary = "PhonePe webhook", description = "Receive webhooks from PhonePe")
     public Response phonePeWebhook(
             @HeaderParam("X-VERIFY") final String signature,
@@ -98,6 +118,7 @@ public class PaymentWebhookResource {
     @Path("/cashfree")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     @Operation(summary = "Cashfree webhook", description = "Receive webhooks from Cashfree")
     public Response cashfreeWebhook(
             @HeaderParam("x-webhook-signature") final String signature,
@@ -119,6 +140,7 @@ public class PaymentWebhookResource {
     @Path("/bharatpay")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     @Operation(summary = "BharatPay webhook", description = "Receive webhooks from BharatPay")
     public Response bharatPayWebhook(
             @HeaderParam("X-BharatPay-Signature") final String signature,
