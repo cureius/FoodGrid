@@ -50,9 +50,12 @@ public class MenuAdminResource {
 
   @GET
   @Path("/items")
-  public List<MenuItemResponse> listItems(@PathParam("outletId") final String outletId) {
-    return menuAdminService.listItems(outletId);
+  public List<MenuItemResponse> listItems(@PathParam("outletId") final String outletId,
+                                           @QueryParam("categoryId") final String categoryId) {
+    return menuAdminService.listItems(outletId, categoryId);
   }
+
+
 
   @POST
   @Path("/items")

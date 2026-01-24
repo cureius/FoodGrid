@@ -16,4 +16,8 @@ public class MenuItemRepository implements PanacheRepositoryBase<MenuItem, Strin
   public Optional<MenuItem> findByIdAndOutlet(String id, String outletId) {
     return find("id = ?1 and outletId = ?2", id, outletId).firstResultOptional();
   }
+
+  public List<MenuItem> listByOutletAndCategory(String outletId, String categoryId) {
+    return list("outletId = ?1 and categoryId = ?2", outletId, categoryId);
+  }
 }

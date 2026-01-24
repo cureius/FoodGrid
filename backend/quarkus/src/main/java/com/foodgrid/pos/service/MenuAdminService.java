@@ -33,16 +33,16 @@ public class MenuAdminService {
   @Inject SecurityIdentity identity;
   @Inject ImageUploadService imageUploadService;
 
-  public List<MenuCategoryResponse> listCategories(String outletId) {
+  public List<MenuCategoryResponse> listCategories(final String outletId) {
     enforceOutlet(outletId);
     return categoryRepository.listByOutlet(outletId).stream().map(MenuAdminService::toResponse).toList();
   }
 
   @Transactional
-  public MenuCategoryResponse createCategory(String outletId, MenuCategoryUpsertRequest req) {
+  public MenuCategoryResponse createCategory(final String outletId, final MenuCategoryUpsertRequest req) {
     enforceOutlet(outletId);
 
-    MenuCategory c = new MenuCategory();
+    final MenuCategory c = new MenuCategory();
     c.id = Ids.uuid();
     c.outletId = outletId;
     c.name = req.name();
@@ -56,10 +56,10 @@ public class MenuAdminService {
   }
 
   @Transactional
-  public MenuCategoryResponse updateCategory(String outletId, String categoryId, MenuCategoryUpsertRequest req) {
+  public MenuCategoryResponse updateCategory(final String outletId, final String categoryId, final MenuCategoryUpsertRequest req) {
     enforceOutlet(outletId);
 
-    MenuCategory c = categoryRepository.findByIdAndOutlet(categoryId, outletId)
+    final MenuCategory c = categoryRepository.findByIdAndOutlet(categoryId, outletId)
       .orElseThrow(() -> new NotFoundException("Category not found"));
 
     c.name = req.name();
@@ -72,30 +72,59 @@ public class MenuAdminService {
   }
 
   @Transactional
-  public void deleteCategory(String outletId, String categoryId) {
+  public void deleteCategory(final String outletId, final String categoryId) {
     enforceOutlet(outletId);
 
-    MenuCategory c = categoryRepository.findByIdAndOutlet(categoryId, outletId)
+    final MenuCategory c = categoryRepository.findByIdAndOutlet(categoryId, outletId)
       .orElseThrow(() -> new NotFoundException("Category not found"));
     categoryRepository.delete(c);
   }
 
-  public List<MenuItemResponse> listItems(String outletId) {
+  public List<MenuItemResponse> listItems(final String outletId, final String categoryId) {
     enforceOutlet(outletId);
-    List<MenuItem> items = itemRepository.listByOutlet(outletId);
-    
+    final List<MenuItem> items;
+    if (categoryId == null || categoryId.isBlank()) {
+      items = itemRepository.listByOutlet(outletId);
+    }else {
+      items = itemRepository.listByOutletAndCategory(outletId, categoryId);
+    }
+
     // Load all categories for this outlet to map categoryId -> categoryName
-    Map<String, String> categoryNames = categoryRepository.listByOutlet(outletId).stream()
+    final Map<String, String> categoryNames = categoryRepository.listByOutlet(outletId).stream()
       .collect(Collectors.toMap(c -> c.id, c -> c.name));
     
     // Load all images for these items
-    List<String> itemIds = items.stream().map(i -> i.id).toList();
-    Map<String, List<MenuItemImage>> imagesByItem = itemIds.isEmpty() ? Map.of() :
+    final List<String> itemIds = items.stream().map(i -> i.id).toList();
+    final Map<String, List<MenuItemImage>> imagesByItem = itemIds.isEmpty() ? Map.of() :
       imageRepository.list("menuItemId IN ?1 ORDER BY sortOrder ASC", itemIds).stream()
         .collect(Collectors.groupingBy(img -> img.menuItemId));
     
     // Load all recipes for these items
-    Map<String, List<MenuItemRecipe>> recipesByItem = itemIds.isEmpty() ? Map.of() :
+    final Map<String, List<MenuItemRecipe>> recipesByItem = itemIds.isEmpty() ? Map.of() :
+      recipeRepository.list("menuItemId IN ?1 ORDER BY sortOrder ASC", itemIds).stream()
+        .collect(Collectors.groupingBy(recipe -> recipe.menuItemId));
+    
+    return items.stream()
+      .map(i -> toResponse(i, categoryNames.get(i.categoryId), imagesByItem.getOrDefault(i.id, List.of()), recipesByItem.getOrDefault(i.id, List.of()), imageUploadService))
+      .toList();
+  }
+
+  public List<MenuItemResponse> listItemsOfCategory(final String outletId, final String categoryId) {
+    enforceOutlet(outletId);
+    final List<MenuItem> items = itemRepository.listByOutletAndCategory(outletId, categoryId);
+    
+    // Load all categories for this outlet to map categoryId -> categoryName
+    final Map<String, String> categoryNames = categoryRepository.listByOutlet(outletId).stream()
+      .collect(Collectors.toMap(c -> c.id, c -> c.name));
+    
+    // Load all images for these items
+    final List<String> itemIds = items.stream().map(i -> i.id).toList();
+    final Map<String, List<MenuItemImage>> imagesByItem = itemIds.isEmpty() ? Map.of() :
+      imageRepository.list("menuItemId IN ?1 ORDER BY sortOrder ASC", itemIds).stream()
+        .collect(Collectors.groupingBy(img -> img.menuItemId));
+    
+    // Load all recipes for these items
+    final Map<String, List<MenuItemRecipe>> recipesByItem = itemIds.isEmpty() ? Map.of() :
       recipeRepository.list("menuItemId IN ?1 ORDER BY sortOrder ASC", itemIds).stream()
         .collect(Collectors.groupingBy(recipe -> recipe.menuItemId));
     
@@ -105,17 +134,17 @@ public class MenuAdminService {
   }
 
   @Transactional
-  public MenuItemResponse createItem(String outletId, MenuItemUpsertRequest req) {
+  public MenuItemResponse createItem(final String outletId, final MenuItemUpsertRequest req) {
     enforceOutlet(outletId);
 
     String categoryName = null;
     if (req.categoryId() != null && !req.categoryId().isBlank()) {
-      MenuCategory cat = categoryRepository.findByIdAndOutlet(req.categoryId(), outletId)
+      final MenuCategory cat = categoryRepository.findByIdAndOutlet(req.categoryId(), outletId)
         .orElseThrow(() -> new BadRequestException("Invalid categoryId"));
       categoryName = cat.name;
     }
 
-    MenuItem i = new MenuItem();
+    final MenuItem i = new MenuItem();
     i.id = Ids.uuid();
     i.outletId = outletId;
     i.categoryId = (req.categoryId() == null || req.categoryId().isBlank()) ? null : req.categoryId();
@@ -130,24 +159,24 @@ public class MenuAdminService {
     itemRepository.persist(i);
     
     // Handle images
-    List<MenuItemImage> savedImages = saveImages(i.id, req.images());
+    final List<MenuItemImage> savedImages = saveImages(i.id, req.images());
     
     // Load recipes
-    List<MenuItemRecipe> recipes = recipeRepository.findByMenuItemId(i.id);
+    final List<MenuItemRecipe> recipes = recipeRepository.findByMenuItemId(i.id);
 
     return toResponse(i, categoryName, savedImages, recipes, imageUploadService);
   }
 
   @Transactional
-  public MenuItemResponse updateItem(String outletId, String itemId, MenuItemUpsertRequest req) {
+  public MenuItemResponse updateItem(final String outletId, final String itemId, final MenuItemUpsertRequest req) {
     enforceOutlet(outletId);
 
-    MenuItem i = itemRepository.findByIdAndOutlet(itemId, outletId)
+    final MenuItem i = itemRepository.findByIdAndOutlet(itemId, outletId)
       .orElseThrow(() -> new NotFoundException("Item not found"));
 
     String categoryName = null;
     if (req.categoryId() != null && !req.categoryId().isBlank()) {
-      MenuCategory cat = categoryRepository.findByIdAndOutlet(req.categoryId(), outletId)
+      final MenuCategory cat = categoryRepository.findByIdAndOutlet(req.categoryId(), outletId)
         .orElseThrow(() -> new BadRequestException("Invalid categoryId"));
       i.categoryId = req.categoryId();
       categoryName = cat.name;
@@ -166,18 +195,18 @@ public class MenuAdminService {
     
     // Delete existing images and save new ones
     imageRepository.deleteByMenuItem(itemId);
-    List<MenuItemImage> savedImages = saveImages(itemId, req.images());
+    final List<MenuItemImage> savedImages = saveImages(itemId, req.images());
     
     // Load recipes
-    List<MenuItemRecipe> recipes = recipeRepository.findByMenuItemId(itemId);
+    final List<MenuItemRecipe> recipes = recipeRepository.findByMenuItemId(itemId);
 
     return toResponse(i, categoryName, savedImages, recipes, imageUploadService);
   }
 
-  public MenuItemResponse getItem(String outletId, String itemId) {
+  public MenuItemResponse getItem(final String outletId, final String itemId) {
     enforceOutlet(outletId);
     
-    MenuItem i = itemRepository.findByIdAndOutlet(itemId, outletId)
+    final MenuItem i = itemRepository.findByIdAndOutlet(itemId, outletId)
       .orElseThrow(() -> new NotFoundException("Item not found"));
     
     String categoryName = null;
@@ -187,17 +216,17 @@ public class MenuAdminService {
         .orElse(null);
     }
     
-    List<MenuItemImage> images = imageRepository.list("menuItemId = ?1 ORDER BY sortOrder ASC", itemId);
-    List<MenuItemRecipe> recipes = recipeRepository.findByMenuItemId(itemId);
+    final List<MenuItemImage> images = imageRepository.list("menuItemId = ?1 ORDER BY sortOrder ASC", itemId);
+    final List<MenuItemRecipe> recipes = recipeRepository.findByMenuItemId(itemId);
     
     return toResponse(i, categoryName, images, recipes, imageUploadService);
   }
 
   @Transactional
-  public void deleteItem(String outletId, String itemId) {
+  public void deleteItem(final String outletId, final String itemId) {
     enforceOutlet(outletId);
 
-    MenuItem i = itemRepository.findByIdAndOutlet(itemId, outletId)
+    final MenuItem i = itemRepository.findByIdAndOutlet(itemId, outletId)
       .orElseThrow(() -> new NotFoundException("Item not found"));
     
     // Delete images first
@@ -205,17 +234,17 @@ public class MenuAdminService {
     itemRepository.delete(i);
   }
 
-  private List<MenuItemImage> saveImages(String menuItemId, List<MenuItemImageUpsertRequest> images) {
+  private List<MenuItemImage> saveImages(final String menuItemId, final List<MenuItemImageUpsertRequest> images) {
     if (images == null || images.isEmpty()) {
       return List.of();
     }
     
-    List<MenuItemImage> savedImages = new ArrayList<>();
+    final List<MenuItemImage> savedImages = new ArrayList<>();
     for (int idx = 0; idx < images.size(); idx++) {
-      MenuItemImageUpsertRequest imgReq = images.get(idx);
+      final MenuItemImageUpsertRequest imgReq = images.get(idx);
       if (imgReq.imageUrl() == null || imgReq.imageUrl().isBlank()) continue;
       
-      MenuItemImage img = new MenuItemImage();
+      final MenuItemImage img = new MenuItemImage();
       img.id = Ids.uuid();
       img.menuItemId = menuItemId;
       img.imageUrl = imgReq.imageUrl();
@@ -227,54 +256,54 @@ public class MenuAdminService {
     return savedImages;
   }
 
-  private void enforceOutlet(String outletId) {
-    String tokenOutletId = claim("outletId");
+  private void enforceOutlet(final String outletId) {
+    final String tokenOutletId = claim("outletId");
     if (tokenOutletId != null && !tokenOutletId.equals(outletId)) {
       throw new BadRequestException("Not allowed for this outlet");
     }
   }
 
-  private String claim(String name) {
-    Object v = identity.getAttributes().get(name);
+  private String claim(final String name) {
+    final Object v = identity.getAttributes().get(name);
     return v == null ? null : v.toString();
   }
 
-  private static MenuCategory.Status parseCategoryStatus(String status) {
+  private static MenuCategory.Status parseCategoryStatus(final String status) {
     if (status == null || status.isBlank()) return MenuCategory.Status.ACTIVE;
     try {
       return MenuCategory.Status.valueOf(status);
-    } catch (IllegalArgumentException ex) {
+    } catch (final IllegalArgumentException ex) {
       throw new BadRequestException("Invalid status");
     }
   }
 
-  private static MenuItem.Status parseItemStatus(String status) {
+  private static MenuItem.Status parseItemStatus(final String status) {
     if (status == null || status.isBlank()) return MenuItem.Status.ACTIVE;
     try {
       return MenuItem.Status.valueOf(status);
-    } catch (IllegalArgumentException ex) {
+    } catch (final IllegalArgumentException ex) {
       throw new BadRequestException("Invalid status");
     }
   }
 
-  private static MenuCategoryResponse toResponse(MenuCategory c) {
+  private static MenuCategoryResponse toResponse(final MenuCategory c) {
     return new MenuCategoryResponse(c.id, c.outletId, c.name, c.sortOrder, c.status.name());
   }
 
-  private MenuItemResponse toResponse(MenuItem i, String categoryName, List<MenuItemImage> images, List<MenuItemRecipe> recipes, ImageUploadService imageUploadService) {
-    List<MenuItemImageResponse> imageResponses = images.stream()
+  private MenuItemResponse toResponse(final MenuItem i, final String categoryName, final List<MenuItemImage> images, final List<MenuItemRecipe> recipes, final ImageUploadService imageUploadService) {
+    final List<MenuItemImageResponse> imageResponses = images.stream()
       .map(img -> {
         // Convert file path to full URL
-        String imageUrl = imageUploadService.getImageUrl(img.imageUrl);
+        final String imageUrl = imageUploadService.getImageUrl(img.imageUrl);
         return new MenuItemImageResponse(img.id, imageUrl, img.sortOrder, img.isPrimary);
       })
       .toList();
     
-    List<MenuItemRecipeResponse> recipeResponses = recipes.stream()
+    final List<MenuItemRecipeResponse> recipeResponses = recipes.stream()
       .map(recipe -> {
         // Load ingredient and unit details
-        Ingredient ingredient = Ingredient.findById(recipe.ingredientId);
-        UnitOfMeasure unit = UnitOfMeasure.findById(recipe.unitId);
+        final Ingredient ingredient = Ingredient.findById(recipe.ingredientId);
+        final UnitOfMeasure unit = UnitOfMeasure.findById(recipe.unitId);
         
         return new MenuItemRecipeResponse(
           recipe.id,
