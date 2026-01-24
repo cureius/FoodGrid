@@ -26,7 +26,7 @@ import {
 import { Building2, Plus, Edit, Trash2, Search, Power, PowerOff, Mail, CreditCard, Settings, CheckCircle2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { isTenantAdmin, hasAdminRole } from "@/lib/utils/admin";
 
-const defaultPaymentGateway : PaymentGatewayUpdateRequest = {
+const defaultPaymentGateway: PaymentGatewayUpdateRequest = {
   gatewayType: "RAZORPAY",
   apiKey: "",
   secretKey: "",
@@ -40,7 +40,7 @@ const defaultPaymentGateway : PaymentGatewayUpdateRequest = {
   webhookUrl: ""
 }
 
-const defaultPaymentConfig : PaymentConfigRequest = {
+const defaultPaymentConfig: PaymentConfigRequest = {
   gatewayType: "RAZORPAY",
   apiKey: "",
   secretKey: "",
@@ -242,10 +242,10 @@ export default function TenantsPage() {
     const clientPaymentConfigs = await listPaymentConfigs(tenant.id, false);
     console.log("🚀 ~ startEditPaymentGateway ~ clientPaymentConfigs:", clientPaymentConfigs)
     if (clientPaymentConfigs.length === 0 || clientPaymentConfigs.length === undefined) {
-     setPaymentGatewayForm(defaultPaymentGateway);
-    }else{
+      setPaymentGatewayForm(defaultPaymentGateway);
+    } else {
       const clientPaymentConfig = clientPaymentConfigs.find(c => c.clientId === tenant.id)
-      if(clientPaymentConfig){
+      if (clientPaymentConfig) {
         setPaymentGatewayForm({
           gatewayType: clientPaymentConfig.gatewayType,
           apiKey: clientPaymentConfig.apiKey,
@@ -259,7 +259,7 @@ export default function TenantsPage() {
           partialRefundEnabled: clientPaymentConfig.partialRefundEnabled,
           webhookUrl: clientPaymentConfig.webhookUrl || "",
         });
-      }else{
+      } else {
         setPaymentGatewayForm(defaultPaymentGateway);
       }
     }
@@ -451,11 +451,11 @@ export default function TenantsPage() {
 
   async function onDeletePaymentConfig(config: PaymentConfigResponse) {
     if (!editingPaymentGateway) return;
-    
+
     if (!confirm(`Are you sure you want to delete the ${config.gatewayType} payment configuration? This action cannot be undone.`)) {
       return;
     }
-    
+
     try {
       setSaving(true);
       setError(null);
@@ -1003,6 +1003,12 @@ export default function TenantsPage() {
           marginBottom: '32px',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)'
         }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px'
+          }}>
           <h3 style={{
             fontSize: '20px',
             fontWeight: 700,
@@ -1015,6 +1021,26 @@ export default function TenantsPage() {
             Payment Gateway Settings - {editingPaymentGateway.name}
           </h3>
 
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <button
+              onClick={cancelPaymentGatewayEdit}
+              disabled={saving}
+              style={{
+                background: 'transparent',
+                color: 'var(--text-muted)',
+                padding: '12px 24px',
+                borderRadius: '10px',
+                fontWeight: 600,
+                fontSize: '14px',
+                border: '1px solid var(--border-light)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Close
+            </button>
+          </div>
+              </div>
           {/* Current Payment Configuration */}
           {loadingConfigs ? (
             <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>
@@ -1033,9 +1059,9 @@ export default function TenantsPage() {
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                   <div style={{ flex: 1, minWidth: '200px' }}>
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
                       gap: '12px',
                       marginBottom: '12px'
                     }}>
@@ -1127,7 +1153,7 @@ export default function TenantsPage() {
                     </button>
                   </div>
                 </div>
-                
+
                 {/* Info message about editing */}
                 <div style={{
                   marginTop: '16px',
@@ -1153,41 +1179,270 @@ export default function TenantsPage() {
 
           {/* Payment Credentials Form - Only show when no config exists */}
           {!loadingConfigs && paymentConfigs.length === 0 && (
-          <div style={{ marginBottom: '20px' }}>
-            <h4 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px', color: 'var(--text-primary)' }}>
-              Add Payment Configuration
-            </h4>
-            <div style={{
-              padding: '20px',
-              background: 'var(--bg-app)',
-              borderRadius: '12px',
-              border: '1px solid var(--border-light)'
-            }}>
-
+            <div style={{ marginBottom: '20px' }}>
+              <h4 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px', color: 'var(--text-primary)' }}>
+                Add Payment Configuration
+              </h4>
               <div style={{
-                marginBottom: '16px',
-                padding: '12px',
-                background: 'rgba(59, 130, 246, 0.1)',
-                borderRadius: '8px',
-                border: '1px solid rgba(59, 130, 246, 0.2)',
-                fontSize: '13px',
-                color: 'var(--text-primary)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
+                padding: '20px',
+                background: 'var(--bg-app)',
+                borderRadius: '12px',
+                border: '1px solid var(--border-light)'
               }}>
-                <AlertCircle size={16} color="#3b82f6" />
-                <span>Configure your payment gateway credentials below. Each tenant can have one payment configuration at a time.</span>
-              </div>
+
+                <div style={{
+                  marginBottom: '16px',
+                  padding: '12px',
+                  background: 'rgba(59, 130, 246, 0.1)',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(59, 130, 246, 0.2)',
+                  fontSize: '13px',
+                  color: 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <AlertCircle size={16} color="#3b82f6" />
+                  <span>Configure your payment gateway credentials below. Each tenant can have one payment configuration at a time.</span>
+                </div>
 
 
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                gap: '16px',
-                marginBottom: '16px'
-              }}>
-                <div>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                  gap: '16px',
+                  marginBottom: '16px'
+                }}>
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: 'var(--text-primary)'
+                    }}>
+                      Gateway Type *
+                    </label>
+                    <select
+                      value={paymentConfigForm.gatewayType}
+                      onChange={(e) => setPaymentConfigForm((f) => ({ ...f, gatewayType: e.target.value as PaymentGatewayType }))}
+                      disabled={!!editingPaymentConfig}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderRadius: '10px',
+                        border: '1px solid var(--border-light)',
+                        fontSize: '14px',
+                        fontFamily: 'inherit',
+                        background: editingPaymentConfig ? 'var(--bg-app)' : 'var(--bg-card)',
+                        color: 'var(--text-primary)',
+                        opacity: editingPaymentConfig ? 0.6 : 1
+                      }}
+                    >
+                      {gatewayTypes.map((type) => (
+                        <option key={type} value={type}>
+                          {type.replace('_', ' ')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: 'var(--text-primary)'
+                    }}>
+                      API Key *
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showApiKey ? "text" : "password"}
+                        placeholder="sk_test_..."
+                        autoComplete="new-password"
+                        value={paymentConfigForm.apiKey}
+                        onChange={(e) => setPaymentConfigForm((f) => ({ ...f, apiKey: e.target.value }))}
+                        style={{
+                          width: '100%',
+                          padding: '12px 16px',
+                          paddingRight: '40px',
+                          borderRadius: '10px',
+                          border: '1px solid var(--border-light)',
+                          fontSize: '14px',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowApiKey(!showApiKey)}
+                        style={{
+                          position: 'absolute',
+                          right: '8px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '4px',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                      >
+                        {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: 'var(--text-primary)'
+                    }}>
+                      Secret Key *
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showSecretKey ? "text" : "password"}
+                        placeholder="sk_test_..."
+                        value={paymentConfigForm.secretKey}
+                        onChange={(e) => setPaymentConfigForm((f) => ({ ...f, secretKey: e.target.value }))}
+                        style={{
+                          width: '100%',
+                          padding: '12px 16px',
+                          paddingRight: '40px',
+                          borderRadius: '10px',
+                          border: '1px solid var(--border-light)',
+                          fontSize: '14px',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowSecretKey(!showSecretKey)}
+                        style={{
+                          position: 'absolute',
+                          right: '8px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '4px',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                      >
+                        {showSecretKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: 'var(--text-primary)'
+                    }}>
+                      Webhook Secret
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showWebhookSecret ? "text" : "password"}
+                        placeholder="whsec_..."
+                        value={paymentConfigForm.webhookSecret}
+                        onChange={(e) => setPaymentConfigForm((f) => ({ ...f, webhookSecret: e.target.value }))}
+                        style={{
+                          width: '100%',
+                          padding: '12px 16px',
+                          paddingRight: '40px',
+                          borderRadius: '10px',
+                          border: '1px solid var(--border-light)',
+                          fontSize: '14px',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowWebhookSecret(!showWebhookSecret)}
+                        style={{
+                          position: 'absolute',
+                          right: '8px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '4px',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                      >
+                        {showWebhookSecret ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: 'var(--text-primary)'
+                    }}>
+                      Merchant ID
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="acct_..."
+                      value={paymentConfigForm.merchantId}
+                      onChange={(e) => setPaymentConfigForm((f) => ({ ...f, merchantId: e.target.value }))}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderRadius: '10px',
+                        border: '1px solid var(--border-light)',
+                        fontSize: '14px',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: 'var(--text-primary)'
+                    }}>
+                      Webhook URL
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://your-domain.com/webhooks/payment"
+                      value={paymentConfigForm.webhookUrl}
+                      onChange={(e) => setPaymentConfigForm((f) => ({ ...f, webhookUrl: e.target.value }))}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderRadius: '10px',
+                        border: '1px solid var(--border-light)',
+                        fontSize: '14px',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
                   <label style={{
                     display: 'block',
                     marginBottom: '8px',
@@ -1195,361 +1450,112 @@ export default function TenantsPage() {
                     fontWeight: 600,
                     color: 'var(--text-primary)'
                   }}>
-                    Gateway Type *
+                    Additional Config (JSON) - Optional
                   </label>
-                  <select
-                    value={paymentConfigForm.gatewayType}
-                    onChange={(e) => setPaymentConfigForm((f) => ({ ...f, gatewayType: e.target.value as PaymentGatewayType }))}
-                    disabled={!!editingPaymentConfig}
+                  <textarea
+                    placeholder='{"refund_policy": "30_days", "max_refund_amount": 50000}'
+                    value={paymentConfigForm.additionalConfig || ""}
+                    onChange={(e) => {
+                      setPaymentConfigForm((f) => ({ ...f, additionalConfig: e.target.value }));
+                      setPaymentConfigJsonError(null);
+                    }}
                     style={{
                       width: '100%',
+                      minHeight: '100px',
                       padding: '12px 16px',
                       borderRadius: '10px',
-                      border: '1px solid var(--border-light)',
-                      fontSize: '14px',
-                      fontFamily: 'inherit',
-                      background: editingPaymentConfig ? 'var(--bg-app)' : 'var(--bg-card)',
+                      border: paymentConfigJsonError ? '1px solid var(--status-red)' : '1px solid var(--border-light)',
+                      fontSize: '13px',
+                      fontFamily: 'monospace',
+                      background: 'var(--bg-card)',
                       color: 'var(--text-primary)',
-                      opacity: editingPaymentConfig ? 0.6 : 1
+                      resize: 'vertical'
+                    }}
+                  />
+                  {paymentConfigJsonError && (
+                    <div style={{
+                      marginTop: '8px',
+                      color: 'var(--status-red)',
+                      fontSize: '12px'
+                    }}>
+                      {paymentConfigJsonError}
+                    </div>
+                  )}
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  marginBottom: '16px'
+                }}>
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: 'var(--text-primary)'
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={paymentConfigForm.isActive}
+                      onChange={(e) => setPaymentConfigForm((f) => ({ ...f, isActive: e.target.checked }))}
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        cursor: 'pointer'
+                      }}
+                    />
+                    <span>Active</span>
+                  </label>
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: 'var(--text-primary)'
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={paymentConfigForm.isLiveMode}
+                      onChange={(e) => setPaymentConfigForm((f) => ({ ...f, isLiveMode: e.target.checked }))}
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        cursor: 'pointer'
+                      }}
+                    />
+                    <span>Live Mode (Production)</span>
+                  </label>
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                  <button
+                    onClick={onSavePaymentConfig}
+                    disabled={saving}
+                    style={{
+                      background: 'var(--primary)',
+                      color: 'white',
+                      padding: '12px 24px',
+                      borderRadius: '10px',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      border: 'none',
+                      cursor: saving ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.2s ease',
+                      opacity: saving ? 0.6 : 1
                     }}
                   >
-                    {gatewayTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type.replace('_', ' ')}
-                      </option>
-                    ))}
-                  </select>
+                    {saving ? "Saving..." : "Save Configuration"}
+                  </button>
                 </div>
-
-                <div>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    color: 'var(--text-primary)'
-                  }}>
-                    API Key *
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      type={showApiKey ? "text" : "password"}
-                      placeholder="sk_test_..."
-                      autoComplete="new-password"
-                      value={paymentConfigForm.apiKey}
-                      onChange={(e) => setPaymentConfigForm((f) => ({ ...f, apiKey: e.target.value }))}
-                      style={{
-                        width: '100%',
-                        padding: '12px 16px',
-                        paddingRight: '40px',
-                        borderRadius: '10px',
-                        border: '1px solid var(--border-light)',
-                        fontSize: '14px',
-                        fontFamily: 'inherit'
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowApiKey(!showApiKey)}
-                      style={{
-                        position: 'absolute',
-                        right: '8px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '4px',
-                        display: 'flex',
-                        alignItems: 'center'
-                      }}
-                    >
-                      {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    color: 'var(--text-primary)'
-                  }}>
-                    Secret Key *
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      type={showSecretKey ? "text" : "password"}
-                      placeholder="sk_test_..."
-                      value={paymentConfigForm.secretKey}
-                      onChange={(e) => setPaymentConfigForm((f) => ({ ...f, secretKey: e.target.value }))}
-                      style={{
-                        width: '100%',
-                        padding: '12px 16px',
-                        paddingRight: '40px',
-                        borderRadius: '10px',
-                        border: '1px solid var(--border-light)',
-                        fontSize: '14px',
-                        fontFamily: 'inherit'
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowSecretKey(!showSecretKey)}
-                      style={{
-                        position: 'absolute',
-                        right: '8px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '4px',
-                        display: 'flex',
-                        alignItems: 'center'
-                      }}
-                    >
-                      {showSecretKey ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    color: 'var(--text-primary)'
-                  }}>
-                    Webhook Secret
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      type={showWebhookSecret ? "text" : "password"}
-                      placeholder="whsec_..."
-                      value={paymentConfigForm.webhookSecret}
-                      onChange={(e) => setPaymentConfigForm((f) => ({ ...f, webhookSecret: e.target.value }))}
-                      style={{
-                        width: '100%',
-                        padding: '12px 16px',
-                        paddingRight: '40px',
-                        borderRadius: '10px',
-                        border: '1px solid var(--border-light)',
-                        fontSize: '14px',
-                        fontFamily: 'inherit'
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowWebhookSecret(!showWebhookSecret)}
-                      style={{
-                        position: 'absolute',
-                        right: '8px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '4px',
-                        display: 'flex',
-                        alignItems: 'center'
-                      }}
-                    >
-                      {showWebhookSecret ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    color: 'var(--text-primary)'
-                  }}>
-                    Merchant ID
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="acct_..."
-                    value={paymentConfigForm.merchantId}
-                    onChange={(e) => setPaymentConfigForm((f) => ({ ...f, merchantId: e.target.value }))}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      borderRadius: '10px',
-                      border: '1px solid var(--border-light)',
-                      fontSize: '14px',
-                      fontFamily: 'inherit'
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    color: 'var(--text-primary)'
-                  }}>
-                    Webhook URL
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://your-domain.com/webhooks/payment"
-                    value={paymentConfigForm.webhookUrl}
-                    onChange={(e) => setPaymentConfigForm((f) => ({ ...f, webhookUrl: e.target.value }))}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      borderRadius: '10px',
-                      border: '1px solid var(--border-light)',
-                      fontSize: '14px',
-                      fontFamily: 'inherit'
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{
-                  display: 'block',
-                  marginBottom: '8px',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)'
-                }}>
-                  Additional Config (JSON) - Optional
-                </label>
-                <textarea
-                  placeholder='{"refund_policy": "30_days", "max_refund_amount": 50000}'
-                  value={paymentConfigForm.additionalConfig || ""}
-                  onChange={(e) => {
-                    setPaymentConfigForm((f) => ({ ...f, additionalConfig: e.target.value }));
-                    setPaymentConfigJsonError(null);
-                  }}
-                  style={{
-                    width: '100%',
-                    minHeight: '100px',
-                    padding: '12px 16px',
-                    borderRadius: '10px',
-                    border: paymentConfigJsonError ? '1px solid var(--status-red)' : '1px solid var(--border-light)',
-                    fontSize: '13px',
-                    fontFamily: 'monospace',
-                    background: 'var(--bg-card)',
-                    color: 'var(--text-primary)',
-                    resize: 'vertical'
-                  }}
-                />
-                {paymentConfigJsonError && (
-                  <div style={{
-                    marginTop: '8px',
-                    color: 'var(--status-red)',
-                    fontSize: '12px'
-                  }}>
-                    {paymentConfigJsonError}
-                  </div>
-                )}
-              </div>
-
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-                marginBottom: '16px'
-              }}>
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  color: 'var(--text-primary)'
-                }}>
-                  <input
-                    type="checkbox"
-                    checked={paymentConfigForm.isActive}
-                    onChange={(e) => setPaymentConfigForm((f) => ({ ...f, isActive: e.target.checked }))}
-                    style={{
-                      width: '18px',
-                      height: '18px',
-                      cursor: 'pointer'
-                    }}
-                  />
-                  <span>Active</span>
-                </label>
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  color: 'var(--text-primary)'
-                }}>
-                  <input
-                    type="checkbox"
-                    checked={paymentConfigForm.isLiveMode}
-                    onChange={(e) => setPaymentConfigForm((f) => ({ ...f, isLiveMode: e.target.checked }))}
-                    style={{
-                      width: '18px',
-                      height: '18px',
-                      cursor: 'pointer'
-                    }}
-                  />
-                  <span>Live Mode (Production)</span>
-                </label>
-              </div>
-
-              <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                <button
-                  onClick={onSavePaymentConfig}
-                  disabled={saving}
-                  style={{
-                    background: 'var(--primary)',
-                    color: 'white',
-                    padding: '12px 24px',
-                    borderRadius: '10px',
-                    fontWeight: 600,
-                    fontSize: '14px',
-                    border: 'none',
-                    cursor: saving ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.2s ease',
-                    opacity: saving ? 0.6 : 1
-                  }}
-                >
-                  {saving ? "Saving..." : "Save Configuration"}
-                </button>
               </div>
             </div>
-          </div>
           )}
-
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-            <button
-              onClick={cancelPaymentGatewayEdit}
-              disabled={saving}
-              style={{
-                background: 'transparent',
-                color: 'var(--text-muted)',
-                padding: '12px 24px',
-                borderRadius: '10px',
-                fontWeight: 600,
-                fontSize: '14px',
-                border: '1px solid var(--border-light)',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              Close
-            </button>
-          </div>
         </div>
       )}
 
