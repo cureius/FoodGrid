@@ -927,6 +927,7 @@ export type OrderResponse = {
   discountTotal: number;
   grandTotal: number;
   notes: string | null;
+  createdAt: string; // ISO date string
   items: OrderItemResponse[];
 };
 

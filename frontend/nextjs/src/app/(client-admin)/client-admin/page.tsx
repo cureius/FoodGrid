@@ -14,9 +14,10 @@ import {
   Building2,
   Activity,
   ChevronRight,
-  MapPin
+  MapPin,
+  ShoppingBag
 } from "lucide-react";
-import { listEmployees } from "@/lib/api/clientAdmin";
+import { listEmployees, listOrders, type OrderResponse } from "@/lib/api/clientAdmin";
 import { useOutlet } from "@/contexts/OutletContext";
 
 function formatTime(d: Date) {
@@ -25,6 +26,64 @@ function formatTime(d: Date) {
 
 function formatDate(d: Date) {
   return d.toLocaleDateString([], { weekday: "long", year: "numeric", month: "short", day: "numeric" });
+}
+
+type TimeRange = "today" | "thisWeek" | "thisMonth" | "thisQuarter" | "thisYear";
+
+function getTimeRangeDates(range: TimeRange): { start: Date; end: Date } {
+  const now = new Date();
+  const start = new Date(now);
+  const end = new Date(now);
+  end.setHours(23, 59, 59, 999);
+
+  switch (range) {
+    case "today":
+      start.setHours(0, 0, 0, 0);
+      break;
+    case "thisWeek":
+      const dayOfWeek = start.getDay();
+      const diff = start.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Monday
+      start.setDate(diff);
+      start.setHours(0, 0, 0, 0);
+      break;
+    case "thisMonth":
+      start.setDate(1);
+      start.setHours(0, 0, 0, 0);
+      end.setMonth(end.getMonth() + 1);
+      end.setDate(0);
+      end.setHours(23, 59, 59, 999);
+      break;
+    case "thisQuarter":
+      const quarter = Math.floor(start.getMonth() / 3);
+      start.setMonth(quarter * 3);
+      start.setDate(1);
+      start.setHours(0, 0, 0, 0);
+      end.setMonth((quarter + 1) * 3);
+      end.setDate(0);
+      end.setHours(23, 59, 59, 999);
+      break;
+    case "thisYear":
+      start.setMonth(0);
+      start.setDate(1);
+      start.setHours(0, 0, 0, 0);
+      end.setMonth(11);
+      end.setDate(31);
+      end.setHours(23, 59, 59, 999);
+      break;
+  }
+
+  return { start, end };
+}
+
+function isOrderCompleted(order: OrderResponse): boolean {
+  // Orders are considered completed/served if they are SERVED, BILLED, or PAID
+  return order.status === "SERVED" || order.status === "BILLED" || order.status === "PAID";
+}
+
+function isOrderInTimeRange(order: OrderResponse, start: Date, end: Date): boolean {
+  if (!order.createdAt) return false;
+  const orderDate = new Date(order.createdAt);
+  return orderDate >= start && orderDate <= end;
 }
 
 interface StatCardProps {
@@ -121,6 +180,9 @@ export default function Page() {
 
   const { selectedOutletId, selectedOutlet } = useOutlet();
   const [employees, setEmployees] = useState<any[]>([]);
+  const [orders, setOrders] = useState<OrderResponse[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [timeRange, setTimeRange] = useState<TimeRange>("today");
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -132,6 +194,7 @@ export default function Page() {
       setLoading(false);
       setRefreshing(false);
       setEmployees([]);
+      setOrders([]);
       return;
     }
 
@@ -143,11 +206,17 @@ export default function Page() {
       // Load employees for selected outlet
       const emps = await listEmployees(selectedOutletId);
       setEmployees(emps ?? []);
+
+      // Load orders for selected outlet (fetch a large number to cover all time ranges)
+      setOrdersLoading(true);
+      const allOrders = await listOrders(1000, selectedOutletId);
+      setOrders(allOrders ?? []);
     } catch (e: any) {
       setError(e?.message ?? "Failed to load dashboard data");
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setOrdersLoading(false);
     }
   }
 
@@ -159,12 +228,19 @@ export default function Page() {
     const activeEmployees = employees.filter((e) => (e.status ?? "ACTIVE") === "ACTIVE").length;
     const inactiveEmployees = employees.length - activeEmployees;
 
+    // Calculate completed orders for the selected time range
+    const { start, end } = getTimeRangeDates(timeRange);
+    const completedOrders = orders.filter(
+      (order) => isOrderCompleted(order) && isOrderInTimeRange(order, start, end)
+    ).length;
+
     return {
       employeesCount: employees.length,
       activeEmployees,
-      inactiveEmployees
+      inactiveEmployees,
+      completedOrders
     };
-  }, [employees]);
+  }, [employees, orders, timeRange]);
 
   const recentEmployees = employees.slice(0, 5);
 
@@ -257,6 +333,45 @@ export default function Page() {
         </div>
       )}
 
+      {/* Time Range Selector */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        marginBottom: 24,
+        flexWrap: "wrap",
+      }}>
+        <span style={{ fontSize: 14, fontWeight: 600, color: "#64748b" }}>Time Range:</span>
+        {(["today", "thisWeek", "thisMonth", "thisQuarter", "thisYear"] as TimeRange[]).map((range) => (
+          <button
+            key={range}
+            onClick={() => setTimeRange(range)}
+            style={{
+              padding: "8px 16px",
+              borderRadius: 8,
+              border: "none",
+              background: timeRange === range 
+                ? "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)"
+                : "white",
+              color: timeRange === range ? "white" : "#64748b",
+              fontSize: 13,
+              fontWeight: timeRange === range ? 600 : 500,
+              cursor: "pointer",
+              boxShadow: timeRange === range 
+                ? "0 2px 8px rgba(139, 92, 246, 0.3)"
+                : "0 1px 3px rgba(0,0,0,0.08)",
+              transition: "all 0.2s ease",
+              textTransform: "capitalize",
+            }}
+          >
+            {range === "thisWeek" ? "This Week" :
+             range === "thisMonth" ? "This Month" :
+             range === "thisQuarter" ? "This Quarter" :
+             range === "thisYear" ? "This Year" : "Today"}
+          </button>
+        ))}
+      </div>
+
       {/* Stats Grid */}
       <div style={{
         display: "grid",
@@ -264,6 +379,18 @@ export default function Page() {
         gap: 20,
         marginBottom: 32,
       }}>
+        <StatCard
+          title="Completed Orders"
+          value={stats.completedOrders}
+          subtitle={timeRange === "today" ? "Today" :
+                   timeRange === "thisWeek" ? "This week" :
+                   timeRange === "thisMonth" ? "This month" :
+                   timeRange === "thisQuarter" ? "This quarter" : "This year"}
+          icon={<ShoppingBag size={26} />}
+          color="#8b5cf6"
+          bgColor="rgba(139, 92, 246, 0.1)"
+          loading={loading || ordersLoading}
+        />
         <StatCard
           title="Total Employees"
           value={stats.employeesCount}

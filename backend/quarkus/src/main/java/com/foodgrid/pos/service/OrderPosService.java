@@ -424,6 +424,7 @@ public class OrderPosService {
       o.discountTotal,
       o.grandTotal,
       o.notes,
+      o.createdAt,
       items
     );
   }

@@ -109,7 +109,7 @@ function mapOrderResponse(order: OrderResponse): Order {
   return {
     id: order.id,
     type: mapOrderType(order.orderType),
-    time: formatOrderTime((order as any).createdAt || null), // createdAt not in DTO, will show "Recent"
+    time: formatOrderTime(order.createdAt || null),
     table: order.tableId || "N/A",
     customer: "Customer", // Placeholder - backend doesn't have customer name
     status: mapOrderStatus(order.status),
