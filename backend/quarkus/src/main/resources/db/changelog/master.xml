@@ -19,5 +19,6 @@
   <include file="db/changelog/6-add-payment-gateway-to-clients.xml"/>
   <include file="db/changelog/7-remove-payment-fields-from-clients.xml"/>
   <include file="db/changelog/8-make-payment-credentials-nullable.xml"/>
+  <include file="db/changelog/9-increase-payment-method-column-length.xml"/>
 
 </databaseChangeLog>

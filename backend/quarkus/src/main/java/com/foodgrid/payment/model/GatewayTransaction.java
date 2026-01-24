@@ -53,7 +53,7 @@ public class GatewayTransaction extends PanacheEntityBase {
     @Column(nullable = false, length = 50)
     public GatewayTransactionStatus status;
 
-    @Column(name = "payment_method", length = 50)
+    @Column(name = "payment_method", length = 100)
     public String paymentMethod;
 
     @Column(name = "failure_reason", columnDefinition = "TEXT")

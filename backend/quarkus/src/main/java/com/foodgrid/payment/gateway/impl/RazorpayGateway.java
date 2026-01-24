@@ -327,10 +327,10 @@ public class RazorpayGateway implements PaymentGateway {
             final JsonNode json = MAPPER.readTree(payload);
             final String eventType = json.get("razorpay_payment_link_status").asText().equals("paid") ? "payment.success" : "payment.failed" ;
 
-            final String gatewayOrderId = json.has("razorpay_payment_link_reference_id") ?
-                json.get("razorpay_payment_link_reference_id").asText() : null;
-            final String gatewayPaymentId = json.has("razorpay_payment_link_id") ?
+            final String gatewayOrderId = json.has("razorpay_payment_link_id") ?
                 json.get("razorpay_payment_link_id").asText() : null;
+            final String gatewayPaymentId = json.has("razorpay_payment_id") ?
+                json.get("razorpay_payment_id").asText() : null;
             final String status = json.has("razorpay_payment_link_status") ?
                 json.get("razorpay_payment_link_status").asText() : null;
             final String method = json.has("method") ?

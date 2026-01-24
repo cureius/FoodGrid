@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.jboss.logging.Logger;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
@@ -35,6 +36,8 @@ import java.util.Map;
  */
 @ApplicationScoped
 public class PaymentService {
+
+    private static final Logger LOG = Logger.getLogger(PaymentService.class);
 
     @Inject
     PaymentGatewayFactory gatewayFactory;
@@ -557,12 +560,31 @@ public class PaymentService {
             // Find and update transaction
             if (webhookEvent.gatewayOrderId() != null) {
                 transactionRepository.findByGatewayOrderId(webhookEvent.gatewayOrderId())
-                    .ifPresent(tx -> updateTransactionFromWebhook(tx, webhookEvent));
+                    .ifPresentOrElse(tx -> {
+                        LOG.infof("Found transaction by gatewayOrderId: %s", tx.id);
+                        updateTransactionFromWebhook(tx, webhookEvent);
+                    }, () -> {
+                        LOG.warnf("No transaction found with gatewayOrderId: %s", webhookEvent.gatewayOrderId());
+                    });
             }
             if (webhookEvent.gatewayPaymentId() != null) {
-                transactionRepository.findByGatewayOrderId(webhookEvent.gatewayPaymentId())
-                    .ifPresent(tx -> updateTransactionFromWebhook(tx, webhookEvent));
+                LOG.infof("Searching for transaction by gatewayPaymentId: %s", webhookEvent.gatewayPaymentId());
+                transactionRepository.findByGatewayPaymentId(webhookEvent.gatewayPaymentId())
+                    .ifPresentOrElse(tx -> {
+                        LOG.infof("Found transaction by gatewayPaymentId: %s", tx.id);
+                        updateTransactionFromWebhook(tx, webhookEvent);
+                    }, () -> {
+                        LOG.warnf("No transaction found with gatewayPaymentId: %s", webhookEvent.gatewayPaymentId());
+                    });
             }
+            
+            // If no transaction was found, let's check all transactions for debugging
+            LOG.infof("Checking all transactions for this order...");
+            transactionRepository.findByOrderId("7e90d20f-96dc-4c8c-a706-85d9e755c287")
+                .ifPresent(tx -> {
+                    LOG.infof("Found transaction: id=%s, gatewayOrderId=%s, gatewayPaymentId=%s, status=%s", 
+                        tx.id, tx.gatewayOrderId, tx.gatewayPaymentId, tx.status);
+                });
 
             event.isProcessed = true;
             event.processedAt = Date.from(Instant.now());
