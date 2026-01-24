@@ -41,13 +41,8 @@ public class PaymentWebhookResource {
                 razorpayPaymentId, razorpayPaymentLinkId, razorpayPaymentLinkReferenceId, razorpayPaymentLinkStatus);
 
         try {
-            final String payload = "razorpay_payment_id=" + razorpayPaymentId +
-                    "&razorpay_payment_link_id=" + razorpayPaymentLinkId +
-                    "&razorpay_payment_link_reference_id=" + razorpayPaymentLinkReferenceId +
-                    "&razorpay_payment_link_status=" + razorpayPaymentLinkStatus;
+            final String payload = "{ \"razorpay_payment_id\": \"" + razorpayPaymentId + "\", \"razorpay_payment_link_id\": \"" + razorpayPaymentLinkId + "\", \"razorpay_payment_link_reference_id\": \"" + razorpayPaymentLinkReferenceId + "\", \"razorpay_payment_link_status\": \"" + razorpayPaymentLinkStatus + "\"}";
 
-            // For now, just log the webhook and return success
-            // TODO: Enable full webhook processing when ready
             paymentService.processWebhook(PaymentGatewayType.RAZORPAY, payload, signature);
 
             LOG.infof("Webhook processed successfully");

@@ -558,8 +558,9 @@ public class PaymentService {
             if (webhookEvent.gatewayOrderId() != null) {
                 transactionRepository.findByGatewayOrderId(webhookEvent.gatewayOrderId())
                     .ifPresent(tx -> updateTransactionFromWebhook(tx, webhookEvent));
-            } else if (webhookEvent.gatewayPaymentId() != null) {
-                transactionRepository.findByGatewayPaymentId(webhookEvent.gatewayPaymentId())
+            }
+            if (webhookEvent.gatewayPaymentId() != null) {
+                transactionRepository.findByGatewayOrderId(webhookEvent.gatewayPaymentId())
                     .ifPresent(tx -> updateTransactionFromWebhook(tx, webhookEvent));
             }
 
@@ -575,7 +576,7 @@ public class PaymentService {
     private void updateTransactionFromWebhook(final GatewayTransaction tx, final WebhookEvent event) {
         final String eventType = event.eventType().toLowerCase();
 
-        if (eventType.contains("captured") || eventType.contains("succeeded") || eventType.contains("success")) {
+        if (eventType.contains("captured") || eventType.contains("succeeded") || eventType.contains("success") || eventType.contains("paid")) {
             if (tx.status == GatewayTransactionStatus.PENDING || tx.status == GatewayTransactionStatus.AUTHORIZED) {
                 tx.status = GatewayTransactionStatus.CAPTURED;
                 tx.gatewayPaymentId = event.gatewayPaymentId();
