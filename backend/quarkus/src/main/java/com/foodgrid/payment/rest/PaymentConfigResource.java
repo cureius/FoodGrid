@@ -60,10 +60,9 @@ public class PaymentConfigResource {
     }
 
     @GET
-    @Path("/{clientId}")
     @RolesAllowed({"CLIENT_ADMIN", "SUPER_ADMIN", "ADMIN", "TENANT_ADMIN"})
     @Operation(summary = "List configurations", description = "List all payment gateway configurations for the client")
-    public Response listConfigs(@PathParam("clientId") final String clientId, @QueryParam("activeOnly") @DefaultValue("false") final boolean activeOnly) {
+    public Response listConfigs(@QueryParam("clientId") final String clientId, @QueryParam("activeOnly") @DefaultValue("false") final boolean activeOnly) {
         final List<PaymentConfigResponse> configs = activeOnly ?
             configService.getActiveConfigs(clientId) : configService.getConfigs(clientId);
         return Response.ok(configs).build();

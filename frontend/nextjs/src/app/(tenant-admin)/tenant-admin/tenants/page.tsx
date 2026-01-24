@@ -15,6 +15,7 @@ import {
   updatePaymentConfig,
   listPaymentConfigs,
   validatePaymentCredentials,
+  deactivatePaymentConfig,
   type TenantUpsertInput,
   type TenantResponse,
   type PaymentGatewayType,
@@ -25,6 +26,34 @@ import {
 import { Building2, Plus, Edit, Trash2, Search, Power, PowerOff, Mail, CreditCard, Settings, CheckCircle2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { isTenantAdmin, hasAdminRole } from "@/lib/utils/admin";
 
+const defaultPaymentGateway : PaymentGatewayUpdateRequest = {
+  gatewayType: "RAZORPAY",
+  apiKey: "",
+  secretKey: "",
+  webhookSecret: "",
+  merchantId: "",
+  isActive: false,
+  isLiveMode: false,
+  additionalConfig: "",
+  autoCaptureEnabled: false,
+  partialRefundEnabled: false,
+  webhookUrl: ""
+}
+
+const defaultPaymentConfig : PaymentConfigRequest = {
+  gatewayType: "RAZORPAY",
+  apiKey: "",
+  secretKey: "",
+  webhookSecret: "",
+  merchantId: "",
+  isActive: true,
+  isLiveMode: false,
+  additionalConfig: "",
+  autoCaptureEnabled: true,
+  partialRefundEnabled: true,
+  webhookUrl: ""
+}
+
 export default function TenantsPage() {
   useEffect(() => {
     const t = localStorage.getItem("fg_tenant_admin_access_token");
@@ -34,7 +63,7 @@ export default function TenantsPage() {
       }
       return;
     }
-    
+
     // Only tenant admin can access this page
     if (!isTenantAdmin()) {
       if (typeof globalThis !== 'undefined' && globalThis.location) {
@@ -55,16 +84,9 @@ export default function TenantsPage() {
   const [showPaymentGatewayForm, setShowPaymentGatewayForm] = useState(false);
   const [editingPaymentGateway, setEditingPaymentGateway] = useState<TenantResponse | null>(null);
   const [gatewayTypes, setGatewayTypes] = useState<PaymentGatewayType[]>([]);
-  const [paymentGatewayForm, setPaymentGatewayForm] = useState<PaymentGatewayUpdateRequest>({
-    defaultGatewayType: "RAZORPAY",
-    paymentEnabled: false,
-    autoCaptureEnabled: false,
-    partialRefundEnabled: false,
-    webhookUrl: "",
-    paymentGatewayConfig: ""
-  });
+  const [paymentGatewayForm, setPaymentGatewayForm] = useState<PaymentGatewayUpdateRequest>(defaultPaymentGateway);
   const [configJsonError, setConfigJsonError] = useState<string | null>(null);
-  
+
   // Payment Config state
   const [paymentConfigs, setPaymentConfigs] = useState<PaymentConfigResponse[]>([]);
   const [loadingConfigs, setLoadingConfigs] = useState(false);
@@ -74,23 +96,11 @@ export default function TenantsPage() {
   const [showApiKey, setShowApiKey] = useState(false);
   const [showSecretKey, setShowSecretKey] = useState(false);
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
-  const [paymentConfigForm, setPaymentConfigForm] = useState<PaymentConfigRequest>({
-    gatewayType: "RAZORPAY",
-    apiKey: "",
-    secretKey: "",
-    webhookSecret: "",
-    merchantId: "",
-    isActive: true,
-    isLiveMode: false,
-    additionalConfig: "",
-    autoCaptureEnabled: true,
-    partialRefundEnabled: true,
-    webhookUrl: ""
-  });
+  const [paymentConfigForm, setPaymentConfigForm] = useState<PaymentConfigRequest>(defaultPaymentConfig);
   const [paymentConfigJsonError, setPaymentConfigJsonError] = useState<string | null>(null);
 
-  const [form, setForm] = useState<TenantUpsertInput>({ 
-    name: "", 
+  const [form, setForm] = useState<TenantUpsertInput>({
+    name: "",
     contactEmail: "",
     status: "ACTIVE",
     adminEmail: "",
@@ -150,7 +160,7 @@ export default function TenantsPage() {
       console.log("🚀 ~ onCreate ~ result:", result)
       setForm({ name: "", contactEmail: "", status: "ACTIVE", adminEmail: "", adminPassword: "", adminDisplayName: "" });
       setShowForm(false);
-      
+
       // Show success message with admin user info
       if (result.adminEmail) {
         setSuccess({
@@ -163,9 +173,9 @@ export default function TenantsPage() {
           message: `Tenant "${result.name}" created successfully!`
         });
       }
-      
+
       await refresh();
-      
+
       // Clear success message after 10 seconds
       setTimeout(() => setSuccess(null), 10000);
     } catch (e: any) {
@@ -217,7 +227,7 @@ export default function TenantsPage() {
     }
   }
 
-  function startEditPaymentGateway(tenant: TenantResponse) {
+  async function startEditPaymentGateway(tenant: TenantResponse) {
     setEditingPaymentGateway(tenant);
     setConfigJsonError(null);
     setPaymentConfigJsonError(null);
@@ -226,41 +236,37 @@ export default function TenantsPage() {
     setShowApiKey(false);
     setShowSecretKey(false);
     setShowWebhookSecret(false);
-    
-    // Format JSON config for editing if it exists
-    let formattedConfig = "";
-    if (tenant.paymentGatewayConfig) {
-      try {
-        const parsed = JSON.parse(tenant.paymentGatewayConfig);
-        formattedConfig = JSON.stringify(parsed, null, 2);
-      } catch {
-        formattedConfig = tenant.paymentGatewayConfig;
+
+
+    //get client_payment_configs for the tenant
+    const clientPaymentConfigs = await listPaymentConfigs(tenant.id, false);
+    console.log("🚀 ~ startEditPaymentGateway ~ clientPaymentConfigs:", clientPaymentConfigs)
+    if (clientPaymentConfigs.length === 0 || clientPaymentConfigs.length === undefined) {
+     setPaymentGatewayForm(defaultPaymentGateway);
+    }else{
+      const clientPaymentConfig = clientPaymentConfigs.find(c => c.clientId === tenant.id)
+      if(clientPaymentConfig){
+        setPaymentGatewayForm({
+          gatewayType: clientPaymentConfig.gatewayType,
+          apiKey: clientPaymentConfig.apiKey,
+          secretKey: clientPaymentConfig.secretKey,
+          webhookSecret: clientPaymentConfig.webhookSecret,
+          merchantId: clientPaymentConfig.merchantId || "",
+          isActive: clientPaymentConfig.isActive,
+          isLiveMode: clientPaymentConfig.isLiveMode,
+          additionalConfig: clientPaymentConfig.additionalConfig,
+          autoCaptureEnabled: clientPaymentConfig.autoCaptureEnabled,
+          partialRefundEnabled: clientPaymentConfig.partialRefundEnabled,
+          webhookUrl: clientPaymentConfig.webhookUrl || "",
+        });
+      }else{
+        setPaymentGatewayForm(defaultPaymentGateway);
       }
     }
-    setPaymentGatewayForm({
-      defaultGatewayType: tenant.defaultGatewayType || "RAZORPAY",
-      paymentEnabled: tenant.paymentEnabled || false,
-      autoCaptureEnabled: tenant.autoCaptureEnabled || false,
-      partialRefundEnabled: tenant.partialRefundEnabled || false,
-      webhookUrl: tenant.webhookUrl || "",
-      paymentGatewayConfig: formattedConfig
-    });
-    
-    // Reset payment config form
-    setPaymentConfigForm({
-      gatewayType: tenant.defaultGatewayType || "RAZORPAY",
-      apiKey: "",
-      secretKey: "",
-      webhookSecret: "",
-      merchantId: "",
-      isActive: true,
-      isLiveMode: false,
-      additionalConfig: "",
-      autoCaptureEnabled: tenant.autoCaptureEnabled || true,
-      partialRefundEnabled: tenant.partialRefundEnabled || true,
-      webhookUrl: tenant.webhookUrl || ""
-    });
-    
+
+    // Reset payment config form (for adding new credentials)
+    setPaymentConfigForm(defaultPaymentConfig);
+
     setShowPaymentGatewayForm(true);
     // Load existing payment configs
     loadPaymentConfigs(tenant.id);
@@ -274,14 +280,7 @@ export default function TenantsPage() {
     setEditingPaymentConfig(null);
     setShowPaymentCredentials(false);
     setPaymentConfigs([]);
-    setPaymentGatewayForm({
-      defaultGatewayType: "RAZORPAY",
-      paymentEnabled: false,
-      autoCaptureEnabled: false,
-      partialRefundEnabled: false,
-      webhookUrl: "",
-      paymentGatewayConfig: ""
-    });
+    setPaymentGatewayForm(defaultPaymentGateway);
     setPaymentConfigForm({
       gatewayType: "RAZORPAY",
       apiKey: "",
@@ -320,7 +319,7 @@ export default function TenantsPage() {
     setShowPaymentCredentials(false);
     setPaymentConfigJsonError(null);
     setPaymentConfigForm({
-      gatewayType: paymentGatewayForm.defaultGatewayType || "RAZORPAY",
+      gatewayType: paymentGatewayForm.gatewayType || "RAZORPAY",
       apiKey: "",
       secretKey: "",
       webhookSecret: "",
@@ -328,15 +327,15 @@ export default function TenantsPage() {
       isActive: true,
       isLiveMode: false,
       additionalConfig: "",
-      autoCaptureEnabled: paymentGatewayForm.autoCaptureEnabled || true,
-      partialRefundEnabled: paymentGatewayForm.partialRefundEnabled || true,
+      autoCaptureEnabled: paymentGatewayForm.autoCaptureEnabled ?? true,
+      partialRefundEnabled: paymentGatewayForm.partialRefundEnabled ?? true,
       webhookUrl: paymentGatewayForm.webhookUrl || ""
     });
   }
 
   async function onSavePaymentConfig() {
     if (!editingPaymentGateway) return;
-    
+
     // Validate JSON config if provided
     setPaymentConfigJsonError(null);
     let validatedConfig = paymentConfigForm.additionalConfig;
@@ -349,24 +348,42 @@ export default function TenantsPage() {
         return;
       }
     }
-    
+
     if (!paymentConfigForm.apiKey.trim() || !paymentConfigForm.secretKey.trim()) {
       setError("API Key and Secret Key are required");
       return;
     }
-    
+
     try {
       setSaving(true);
       setError(null);
-      
+
+      // If this is the default gateway type, sync settings from paymentGatewayForm
+      const isDefaultGateway = paymentConfigForm.gatewayType === paymentGatewayForm.gatewayType;
+      const finalWebhookUrl = isDefaultGateway && paymentGatewayForm.webhookUrl
+        ? paymentGatewayForm.webhookUrl.trim()
+        : (paymentConfigForm.webhookUrl?.trim() || undefined);
+      const finalAutoCapture = isDefaultGateway
+        ? paymentGatewayForm.autoCaptureEnabled
+        : paymentConfigForm.autoCaptureEnabled;
+      const finalPartialRefund = isDefaultGateway
+        ? paymentGatewayForm.partialRefundEnabled
+        : paymentConfigForm.partialRefundEnabled;
+      const finalAdditionalConfig = isDefaultGateway && paymentGatewayForm.additionalConfig
+        ? paymentGatewayForm.additionalConfig.trim()
+        : validatedConfig;
+
       if (editingPaymentConfig) {
         // Update existing config
         await updatePaymentConfig(editingPaymentConfig.id, {
           ...paymentConfigForm,
           webhookSecret: paymentConfigForm.webhookSecret?.trim() || undefined,
           merchantId: paymentConfigForm.merchantId?.trim() || undefined,
-          webhookUrl: paymentConfigForm.webhookUrl?.trim() || undefined,
-          additionalConfig: validatedConfig || undefined
+          webhookUrl: finalWebhookUrl,
+          additionalConfig: finalAdditionalConfig || undefined,
+          autoCaptureEnabled: finalAutoCapture,
+          partialRefundEnabled: finalPartialRefund,
+          isActive: isDefaultGateway ? paymentGatewayForm.isActive : paymentConfigForm.isActive
         });
         setSuccess({ message: `Payment configuration updated successfully` });
       } else {
@@ -375,16 +392,19 @@ export default function TenantsPage() {
           ...paymentConfigForm,
           webhookSecret: paymentConfigForm.webhookSecret?.trim() || undefined,
           merchantId: paymentConfigForm.merchantId?.trim() || undefined,
-          webhookUrl: paymentConfigForm.webhookUrl?.trim() || undefined,
-          additionalConfig: validatedConfig || undefined
+          webhookUrl: finalWebhookUrl,
+          additionalConfig: finalAdditionalConfig || undefined,
+          autoCaptureEnabled: finalAutoCapture,
+          partialRefundEnabled: finalPartialRefund,
+          isActive: isDefaultGateway ? paymentGatewayForm.isActive : paymentConfigForm.isActive
         });
         setSuccess({ message: `Payment configuration created successfully` });
       }
-      
+
       setEditingPaymentConfig(null);
       setShowPaymentCredentials(false);
       setPaymentConfigForm({
-        gatewayType: paymentGatewayForm.defaultGatewayType || "RAZORPAY",
+        gatewayType: paymentGatewayForm.gatewayType || "RAZORPAY",
         apiKey: "",
         secretKey: "",
         webhookSecret: "",
@@ -392,11 +412,11 @@ export default function TenantsPage() {
         isActive: true,
         isLiveMode: false,
         additionalConfig: "",
-        autoCaptureEnabled: paymentGatewayForm.autoCaptureEnabled || true,
-        partialRefundEnabled: paymentGatewayForm.partialRefundEnabled || true,
+        autoCaptureEnabled: paymentGatewayForm.autoCaptureEnabled ?? true,
+        partialRefundEnabled: paymentGatewayForm.partialRefundEnabled ?? true,
         webhookUrl: paymentGatewayForm.webhookUrl || ""
       });
-      
+
       await loadPaymentConfigs(editingPaymentGateway.id);
       setTimeout(() => setSuccess(null), 5000);
     } catch (e: any) {
@@ -429,12 +449,33 @@ export default function TenantsPage() {
     }
   }
 
-  async function onUpdatePaymentGateway() {
+  async function onDeletePaymentConfig(config: PaymentConfigResponse) {
     if (!editingPaymentGateway) return;
     
+    if (!confirm(`Are you sure you want to delete the ${config.gatewayType} payment configuration? This action cannot be undone.`)) {
+      return;
+    }
+    
+    try {
+      setSaving(true);
+      setError(null);
+      await deactivatePaymentConfig(editingPaymentGateway.id, config.gatewayType);
+      setSuccess({ message: `Payment configuration deleted successfully` });
+      await loadPaymentConfigs(editingPaymentGateway.id);
+      setTimeout(() => setSuccess(null), 5000);
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to delete payment configuration");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function onUpdatePaymentGateway() {
+    if (!editingPaymentGateway) return;
+
     // Validate JSON config if provided
     setConfigJsonError(null);
-    let validatedConfig = paymentGatewayForm.paymentGatewayConfig;
+    let validatedConfig = paymentGatewayForm.additionalConfig;
     if (validatedConfig && validatedConfig.trim()) {
       try {
         const parsed = JSON.parse(validatedConfig);
@@ -444,17 +485,21 @@ export default function TenantsPage() {
         return;
       }
     }
-    
+
     try {
       setSaving(true);
       setError(null);
+
+      // Update via the tenant payment gateway endpoint
       await updateTenantPaymentGateway(editingPaymentGateway.id, {
         ...paymentGatewayForm,
-        paymentGatewayConfig: validatedConfig || undefined
+        additionalConfig: validatedConfig || undefined
       });
+
       setEditingPaymentGateway(null);
       setShowPaymentGatewayForm(false);
       await refresh();
+      await loadPaymentConfigs(editingPaymentGateway.id);
       setSuccess({ message: `Payment gateway settings updated for "${editingPaymentGateway.name}"` });
       setTimeout(() => setSuccess(null), 5000);
     } catch (e: any) {
@@ -487,7 +532,7 @@ export default function TenantsPage() {
   async function onDelete(id: string) {
     const tenant = tenants.find(t => t.id === id);
     const tenantName = tenant?.name || "this tenant";
-    
+
     if (!confirm(`Are you sure you want to permanently delete "${tenantName}"? This action cannot be undone and will also delete the associated admin user.`)) {
       return;
     }
@@ -536,26 +581,26 @@ export default function TenantsPage() {
   }
 
   return (
-    <div style={{ 
-      padding: '32px', 
-      maxWidth: '1400px', 
+    <div style={{
+      padding: '32px',
+      maxWidth: '1400px',
       margin: '0 auto',
       background: 'var(--bg-app)',
       minHeight: '100vh'
     }}>
       {/* Header */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: '32px',
         flexWrap: 'wrap',
         gap: '16px'
       }}>
         <div>
-          <h1 style={{ 
-            fontSize: '32px', 
-            fontWeight: 800, 
+          <h1 style={{
+            fontSize: '32px',
+            fontWeight: 800,
             marginBottom: '8px',
             color: 'var(--text-primary)'
           }}>
@@ -602,8 +647,8 @@ export default function TenantsPage() {
       </div>
 
       {error && (
-        <div style={{ 
-          color: 'var(--status-red)', 
+        <div style={{
+          color: 'var(--status-red)',
           background: 'rgba(239, 68, 68, 0.1)',
           padding: '12px 16px',
           borderRadius: '12px',
@@ -616,8 +661,8 @@ export default function TenantsPage() {
       )}
 
       {success && (
-        <div style={{ 
-          color: 'rgb(34, 197, 94)', 
+        <div style={{
+          color: 'rgb(34, 197, 94)',
           background: 'rgba(34, 197, 94, 0.1)',
           padding: '16px',
           borderRadius: '12px',
@@ -647,7 +692,7 @@ export default function TenantsPage() {
 
       {/* Create/Edit Form */}
       {(showForm || editingTenant) && (
-        <div style={{ 
+        <div style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border-light)',
           padding: '24px',
@@ -655,9 +700,9 @@ export default function TenantsPage() {
           marginBottom: '32px',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)'
         }}>
-          <h3 style={{ 
-            fontSize: '20px', 
-            fontWeight: 700, 
+          <h3 style={{
+            fontSize: '20px',
+            fontWeight: 700,
             marginBottom: '20px',
             display: 'flex',
             alignItems: 'center',
@@ -666,14 +711,14 @@ export default function TenantsPage() {
             <Building2 size={24} color="var(--primary)" />
             {editingTenant ? 'Edit Tenant' : 'Onboard New Tenant'}
           </h3>
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
             gap: '16px',
             marginBottom: '20px'
           }}>
             <div>
-              <label style={{ 
+              <label style={{
                 display: 'block',
                 marginBottom: '8px',
                 fontSize: '14px',
@@ -706,7 +751,7 @@ export default function TenantsPage() {
               />
             </div>
             <div>
-              <label style={{ 
+              <label style={{
                 display: 'block',
                 marginBottom: '8px',
                 fontSize: '14px',
@@ -739,7 +784,7 @@ export default function TenantsPage() {
               />
             </div>
             <div>
-              <label style={{ 
+              <label style={{
                 display: 'block',
                 marginBottom: '8px',
                 fontSize: '14px',
@@ -776,7 +821,7 @@ export default function TenantsPage() {
             </div>
           </div>
           {!editingTenant && (
-            <div style={{ 
+            <div style={{
               marginTop: '20px',
               padding: '16px',
               background: 'rgba(75, 112, 245, 0.05)',
@@ -784,28 +829,28 @@ export default function TenantsPage() {
               border: '1px solid rgba(75, 112, 245, 0.2)',
               marginBottom: '20px'
             }}>
-              <h4 style={{ 
-                fontSize: '14px', 
-                fontWeight: 600, 
+              <h4 style={{
+                fontSize: '14px',
+                fontWeight: 600,
                 marginBottom: '12px',
                 color: 'var(--text-primary)'
               }}>
                 Admin User (Optional)
               </h4>
-              <p style={{ 
-                fontSize: '12px', 
-                color: 'var(--text-muted)', 
-                marginBottom: '16px' 
+              <p style={{
+                fontSize: '12px',
+                color: 'var(--text-muted)',
+                marginBottom: '16px'
               }}>
                 If not provided, a default admin user will be created automatically with a generated email and password.
               </p>
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                 gap: '16px'
               }}>
                 <div>
-                  <label style={{ 
+                  <label style={{
                     display: 'block',
                     marginBottom: '8px',
                     fontSize: '14px',
@@ -838,7 +883,7 @@ export default function TenantsPage() {
                   />
                 </div>
                 <div>
-                  <label style={{ 
+                  <label style={{
                     display: 'block',
                     marginBottom: '8px',
                     fontSize: '14px',
@@ -872,7 +917,7 @@ export default function TenantsPage() {
                   />
                 </div>
                 <div>
-                  <label style={{ 
+                  <label style={{
                     display: 'block',
                     marginBottom: '8px',
                     fontSize: '14px',
@@ -949,8 +994,8 @@ export default function TenantsPage() {
       )}
 
       {/* Payment Gateway Form */}
-      { editingPaymentGateway && isTenantAdmin() && (
-        <div style={{ 
+      {editingPaymentGateway && isTenantAdmin() && (
+        <div style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border-light)',
           padding: '24px',
@@ -958,9 +1003,9 @@ export default function TenantsPage() {
           marginBottom: '32px',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)'
         }}>
-          <h3 style={{ 
-            fontSize: '20px', 
-            fontWeight: 700, 
+          <h3 style={{
+            fontSize: '20px',
+            fontWeight: 700,
             marginBottom: '20px',
             display: 'flex',
             alignItems: 'center',
@@ -970,373 +1015,179 @@ export default function TenantsPage() {
             Payment Gateway Settings - {editingPaymentGateway.name}
           </h3>
 
-          {/* Existing Payment Configurations */}
+          {/* Current Payment Configuration */}
           {loadingConfigs ? (
             <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>
-              Loading payment configurations...
+              Loading payment configuration...
             </div>
-          ) : paymentConfigs.length > 0 && (
+          ) : paymentConfigs.length > 0 ? (
             <div style={{ marginBottom: '20px' }}>
               <h4 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px', color: 'var(--text-primary)' }}>
-                Existing Payment Configurations
+                Current Payment Configuration
               </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {paymentConfigs.map((config) => (
-                  <div key={config.id} style={{
-                    padding: '12px',
-                    background: 'var(--bg-app)',
-                    borderRadius: '8px',
-                    border: '1px solid var(--border-light)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>
-                        {config.gatewayType.replace('_', ' ')}
-                      </div>
-                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        {config.merchantId && `Merchant ID: ${config.merchantId} • `}
-                        {config.isActive ? 'Active' : 'Inactive'} • {config.isLiveMode ? 'Live' : 'Test'}
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={() => onValidatePaymentConfig(config)}
-                        disabled={validatingConfig === config.id}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: '6px',
-                          border: '1px solid var(--border-light)',
-                          background: 'transparent',
-                          color: 'var(--text-primary)',
-                          cursor: validatingConfig === config.id ? 'not-allowed' : 'pointer',
-                          fontSize: '12px',
-                          fontWeight: 500
-                        }}
-                        title="Validate Credentials"
-                      >
-                        {validatingConfig === config.id ? 'Validating...' : 'Validate'}
-                      </button>
-                      <button
-                        onClick={() => startEditPaymentConfig(config)}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: '6px',
-                          border: '1px solid var(--border-light)',
-                          background: 'transparent',
-                          color: 'var(--primary)',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          fontWeight: 500
-                        }}
-                      >
-                        Edit
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Payment Credentials Form */}
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <h4 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                Payment Credentials {editingPaymentConfig ? `(Editing ${editingPaymentConfig.gatewayType.replace('_', ' ')})` : '(New Configuration)'}
-              </h4>
-              <button
-                onClick={() => {
-                  if (showPaymentCredentials) {
-                    cancelPaymentConfigEdit();
-                  } else {
-                    setShowPaymentCredentials(true);
-                    setPaymentConfigForm({
-                      ...paymentConfigForm,
-                      gatewayType: paymentGatewayForm.defaultGatewayType || "RAZORPAY",
-                      autoCaptureEnabled: paymentGatewayForm.autoCaptureEnabled || true,
-                      partialRefundEnabled: paymentGatewayForm.partialRefundEnabled || true,
-                      webhookUrl: paymentGatewayForm.webhookUrl || ""
-                    });
-                  }
-                }}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  border: '1px solid var(--border-light)',
-                  background: showPaymentCredentials ? 'var(--status-red)' : 'var(--primary)',
-                  color: 'white',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  fontWeight: 500
-                }}
-              >
-                {showPaymentCredentials ? 'Cancel' : 'Add Payment Credentials'}
-              </button>
-            </div>
-
-            {showPaymentCredentials && (
               <div style={{
                 padding: '20px',
                 background: 'var(--bg-app)',
                 borderRadius: '12px',
                 border: '1px solid var(--border-light)'
               }}>
-                {editingPaymentConfig && (
-                  <div style={{
-                    marginBottom: '16px',
-                    padding: '12px',
-                    background: 'rgba(245, 158, 11, 0.1)',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(245, 158, 11, 0.2)',
-                    fontSize: '13px',
-                    color: 'var(--text-primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}>
-                    <AlertCircle size={16} color="#f59e0b" />
-                    <span><strong>Note:</strong> For security reasons, API keys and secrets are encrypted and cannot be retrieved. Please re-enter all credentials to update this configuration.</span>
-                  </div>
-                )}
-
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                  gap: '16px',
-                  marginBottom: '16px'
-                }}>
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: '8px',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: 'var(--text-primary)'
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+                  <div style={{ flex: 1, minWidth: '200px' }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '12px',
+                      marginBottom: '12px'
                     }}>
-                      Gateway Type *
-                    </label>
-                    <select
-                      value={paymentConfigForm.gatewayType}
-                      onChange={(e) => setPaymentConfigForm((f) => ({ ...f, gatewayType: e.target.value as PaymentGatewayType }))}
-                      disabled={!!editingPaymentConfig}
+                      <div style={{
+                        padding: '8px 16px',
+                        background: 'var(--primary)',
+                        color: 'white',
+                        borderRadius: '8px',
+                        fontWeight: 600,
+                        fontSize: '14px'
+                      }}>
+                        {paymentConfigs[0].gatewayType.replace('_', ' ')}
+                      </div>
+                      <span style={{
+                        padding: '4px 12px',
+                        borderRadius: '20px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        background: paymentConfigs[0].isActive ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                        color: paymentConfigs[0].isActive ? 'rgb(34, 197, 94)' : 'rgb(239, 68, 68)'
+                      }}>
+                        {paymentConfigs[0].isActive ? 'Active' : 'Inactive'}
+                      </span>
+                      <span style={{
+                        padding: '4px 12px',
+                        borderRadius: '20px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        background: paymentConfigs[0].isLiveMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                        color: paymentConfigs[0].isLiveMode ? 'rgb(59, 130, 246)' : 'rgb(245, 158, 11)'
+                      }}>
+                        {paymentConfigs[0].isLiveMode ? 'Live Mode' : 'Test Mode'}
+                      </span>
+                    </div>
+                    {paymentConfigs[0].merchantId && (
+                      <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                        <strong>Merchant ID:</strong> {paymentConfigs[0].merchantId}
+                      </div>
+                    )}
+                    {paymentConfigs[0].webhookUrl && (
+                      <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                        <strong>Webhook URL:</strong> {paymentConfigs[0].webhookUrl}
+                      </div>
+                    )}
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px' }}>
+                      Created: {new Date(paymentConfigs[0].createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                    <button
+                      onClick={() => onValidatePaymentConfig(paymentConfigs[0])}
+                      disabled={validatingConfig === paymentConfigs[0].id || saving}
                       style={{
-                        width: '100%',
-                        padding: '12px 16px',
-                        borderRadius: '10px',
+                        padding: '10px 20px',
+                        borderRadius: '8px',
                         border: '1px solid var(--border-light)',
-                        fontSize: '14px',
-                        fontFamily: 'inherit',
-                        background: editingPaymentConfig ? 'var(--bg-app)' : 'var(--bg-card)',
+                        background: 'transparent',
                         color: 'var(--text-primary)',
-                        opacity: editingPaymentConfig ? 0.6 : 1
+                        cursor: (validatingConfig === paymentConfigs[0].id || saving) ? 'not-allowed' : 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
                       }}
                     >
-                      {gatewayTypes.map((type) => (
-                        <option key={type} value={type}>
-                          {type.replace('_', ' ')}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: '8px',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: 'var(--text-primary)'
-                    }}>
-                      API Key *
-                    </label>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        type={showApiKey ? "text" : "password"}
-                        placeholder="sk_test_..."
-                        autoComplete="new-password"
-                        value={paymentConfigForm.apiKey}
-                        onChange={(e) => setPaymentConfigForm((f) => ({ ...f, apiKey: e.target.value }))}
-                        style={{
-                          width: '100%',
-                          padding: '12px 16px',
-                          paddingRight: '40px',
-                          borderRadius: '10px',
-                          border: '1px solid var(--border-light)',
-                          fontSize: '14px',
-                          fontFamily: 'inherit'
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowApiKey(!showApiKey)}
-                        style={{
-                          position: 'absolute',
-                          right: '8px',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          background: 'transparent',
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '4px',
-                          display: 'flex',
-                          alignItems: 'center'
-                        }}
-                      >
-                        {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: '8px',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: 'var(--text-primary)'
-                    }}>
-                      Secret Key *
-                    </label>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        type={showSecretKey ? "text" : "password"}
-                        placeholder="sk_test_..."
-                        value={paymentConfigForm.secretKey}
-                        onChange={(e) => setPaymentConfigForm((f) => ({ ...f, secretKey: e.target.value }))}
-                        style={{
-                          width: '100%',
-                          padding: '12px 16px',
-                          paddingRight: '40px',
-                          borderRadius: '10px',
-                          border: '1px solid var(--border-light)',
-                          fontSize: '14px',
-                          fontFamily: 'inherit'
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowSecretKey(!showSecretKey)}
-                        style={{
-                          position: 'absolute',
-                          right: '8px',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          background: 'transparent',
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '4px',
-                          display: 'flex',
-                          alignItems: 'center'
-                        }}
-                      >
-                        {showSecretKey ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: '8px',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: 'var(--text-primary)'
-                    }}>
-                      Webhook Secret
-                    </label>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        type={showWebhookSecret ? "text" : "password"}
-                        placeholder="whsec_..."
-                        value={paymentConfigForm.webhookSecret}
-                        onChange={(e) => setPaymentConfigForm((f) => ({ ...f, webhookSecret: e.target.value }))}
-                        style={{
-                          width: '100%',
-                          padding: '12px 16px',
-                          paddingRight: '40px',
-                          borderRadius: '10px',
-                          border: '1px solid var(--border-light)',
-                          fontSize: '14px',
-                          fontFamily: 'inherit'
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowWebhookSecret(!showWebhookSecret)}
-                        style={{
-                          position: 'absolute',
-                          right: '8px',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          background: 'transparent',
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '4px',
-                          display: 'flex',
-                          alignItems: 'center'
-                        }}
-                      >
-                        {showWebhookSecret ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: '8px',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: 'var(--text-primary)'
-                    }}>
-                      Merchant ID
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="acct_..."
-                      value={paymentConfigForm.merchantId}
-                      onChange={(e) => setPaymentConfigForm((f) => ({ ...f, merchantId: e.target.value }))}
+                      <CheckCircle2 size={16} />
+                      {validatingConfig === paymentConfigs[0].id ? 'Validating...' : 'Validate'}
+                    </button>
+                    <button
+                      onClick={() => onDeletePaymentConfig(paymentConfigs[0])}
+                      disabled={saving}
                       style={{
-                        width: '100%',
-                        padding: '12px 16px',
-                        borderRadius: '10px',
-                        border: '1px solid var(--border-light)',
+                        padding: '10px 20px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        color: 'rgb(239, 68, 68)',
+                        cursor: saving ? 'not-allowed' : 'pointer',
                         fontSize: '14px',
-                        fontFamily: 'inherit'
+                        fontWeight: 500,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
                       }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: '8px',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: 'var(--text-primary)'
-                    }}>
-                      Webhook URL
-                    </label>
-                    <input
-                      type="url"
-                      placeholder="https://your-domain.com/webhooks/payment"
-                      value={paymentConfigForm.webhookUrl}
-                      onChange={(e) => setPaymentConfigForm((f) => ({ ...f, webhookUrl: e.target.value }))}
-                      style={{
-                        width: '100%',
-                        padding: '12px 16px',
-                        borderRadius: '10px',
-                        border: '1px solid var(--border-light)',
-                        fontSize: '14px',
-                        fontFamily: 'inherit'
-                      }}
-                    />
+                    >
+                      <Trash2 size={16} />
+                      Delete
+                    </button>
                   </div>
                 </div>
+                
+                {/* Info message about editing */}
+                <div style={{
+                  marginTop: '16px',
+                  padding: '12px',
+                  background: 'rgba(59, 130, 246, 0.1)',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(59, 130, 246, 0.2)',
+                  fontSize: '13px',
+                  color: 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <AlertCircle size={16} color="#3b82f6" />
+                  <span>To update credentials, delete the current configuration and create a new one. This ensures secure handling of sensitive API keys.</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Show Add Form when no config exists */
+            null
+          )}
 
-                <div style={{ marginBottom: '16px' }}>
+          {/* Payment Credentials Form - Only show when no config exists */}
+          {!loadingConfigs && paymentConfigs.length === 0 && (
+          <div style={{ marginBottom: '20px' }}>
+            <h4 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px', color: 'var(--text-primary)' }}>
+              Add Payment Configuration
+            </h4>
+            <div style={{
+              padding: '20px',
+              background: 'var(--bg-app)',
+              borderRadius: '12px',
+              border: '1px solid var(--border-light)'
+            }}>
+
+              <div style={{
+                marginBottom: '16px',
+                padding: '12px',
+                background: 'rgba(59, 130, 246, 0.1)',
+                borderRadius: '8px',
+                border: '1px solid rgba(59, 130, 246, 0.2)',
+                fontSize: '13px',
+                color: 'var(--text-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <AlertCircle size={16} color="#3b82f6" />
+                <span>Configure your payment gateway credentials below. Each tenant can have one payment configuration at a time.</span>
+              </div>
+
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                gap: '16px',
+                marginBottom: '16px'
+              }}>
+                <div>
                   <label style={{
                     display: 'block',
                     marginBottom: '8px',
@@ -1344,149 +1195,343 @@ export default function TenantsPage() {
                     fontWeight: 600,
                     color: 'var(--text-primary)'
                   }}>
-                    Additional Config (JSON) - Optional
+                    Gateway Type *
                   </label>
-                  <textarea
-                    placeholder='{"refund_policy": "30_days", "max_refund_amount": 50000}'
-                    value={paymentConfigForm.additionalConfig || ""}
-                    onChange={(e) => {
-                      setPaymentConfigForm((f) => ({ ...f, additionalConfig: e.target.value }));
-                      setPaymentConfigJsonError(null);
-                    }}
+                  <select
+                    value={paymentConfigForm.gatewayType}
+                    onChange={(e) => setPaymentConfigForm((f) => ({ ...f, gatewayType: e.target.value as PaymentGatewayType }))}
+                    disabled={!!editingPaymentConfig}
                     style={{
                       width: '100%',
-                      minHeight: '100px',
                       padding: '12px 16px',
                       borderRadius: '10px',
-                      border: paymentConfigJsonError ? '1px solid var(--status-red)' : '1px solid var(--border-light)',
-                      fontSize: '13px',
-                      fontFamily: 'monospace',
-                      background: 'var(--bg-card)',
-                      color: 'var(--text-primary)',
-                      resize: 'vertical'
-                    }}
-                  />
-                  {paymentConfigJsonError && (
-                    <div style={{
-                      marginTop: '8px',
-                      color: 'var(--status-red)',
-                      fontSize: '12px'
-                    }}>
-                      {paymentConfigJsonError}
-                    </div>
-                  )}
-                </div>
-
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                  marginBottom: '16px'
-                }}>
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    color: 'var(--text-primary)'
-                  }}>
-                    <input
-                      type="checkbox"
-                      checked={paymentConfigForm.isActive}
-                      onChange={(e) => setPaymentConfigForm((f) => ({ ...f, isActive: e.target.checked }))}
-                      style={{
-                        width: '18px',
-                        height: '18px',
-                        cursor: 'pointer'
-                      }}
-                    />
-                    <span>Active</span>
-                  </label>
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    color: 'var(--text-primary)'
-                  }}>
-                    <input
-                      type="checkbox"
-                      checked={paymentConfigForm.isLiveMode}
-                      onChange={(e) => setPaymentConfigForm((f) => ({ ...f, isLiveMode: e.target.checked }))}
-                      style={{
-                        width: '18px',
-                        height: '18px',
-                        cursor: 'pointer'
-                      }}
-                    />
-                    <span>Live Mode (Production)</span>
-                  </label>
-                </div>
-
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button
-                    onClick={onSavePaymentConfig}
-                    disabled={saving || !paymentConfigForm.apiKey.trim() || !paymentConfigForm.secretKey.trim()}
-                    style={{
-                      background: (saving || !paymentConfigForm.apiKey.trim() || !paymentConfigForm.secretKey.trim()) ? 'var(--border-light)' : 'var(--primary)',
-                      color: (saving || !paymentConfigForm.apiKey.trim() || !paymentConfigForm.secretKey.trim()) ? 'var(--text-muted)' : 'white',
-                      padding: '12px 24px',
-                      borderRadius: '10px',
-                      fontWeight: 600,
+                      border: '1px solid var(--border-light)',
                       fontSize: '14px',
-                      border: 'none',
-                      cursor: (saving || !paymentConfigForm.apiKey.trim() || !paymentConfigForm.secretKey.trim()) ? 'not-allowed' : 'pointer',
-                      transition: 'all 0.2s ease'
+                      fontFamily: 'inherit',
+                      background: editingPaymentConfig ? 'var(--bg-app)' : 'var(--bg-card)',
+                      color: 'var(--text-primary)',
+                      opacity: editingPaymentConfig ? 0.6 : 1
                     }}
                   >
-                    {saving ? (editingPaymentConfig ? "Updating..." : "Creating...") : (editingPaymentConfig ? "Update Configuration" : "Create Configuration")}
-                  </button>
-                  {editingPaymentConfig && (
-                    <button
-                      onClick={cancelPaymentConfigEdit}
-                      disabled={saving}
+                    {gatewayTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type.replace('_', ' ')}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)'
+                  }}>
+                    API Key *
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showApiKey ? "text" : "password"}
+                      placeholder="sk_test_..."
+                      autoComplete="new-password"
+                      value={paymentConfigForm.apiKey}
+                      onChange={(e) => setPaymentConfigForm((f) => ({ ...f, apiKey: e.target.value }))}
                       style={{
-                        background: 'transparent',
-                        color: 'var(--text-muted)',
-                        padding: '12px 24px',
+                        width: '100%',
+                        padding: '12px 16px',
+                        paddingRight: '40px',
                         borderRadius: '10px',
-                        fontWeight: 600,
-                        fontSize: '14px',
                         border: '1px solid var(--border-light)',
-                        cursor: 'pointer'
+                        fontSize: '14px',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowApiKey(!showApiKey)}
+                      style={{
+                        position: 'absolute',
+                        right: '8px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center'
                       }}
                     >
-                      Cancel
+                      {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
-                  )}
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)'
+                  }}>
+                    Secret Key *
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showSecretKey ? "text" : "password"}
+                      placeholder="sk_test_..."
+                      value={paymentConfigForm.secretKey}
+                      onChange={(e) => setPaymentConfigForm((f) => ({ ...f, secretKey: e.target.value }))}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        paddingRight: '40px',
+                        borderRadius: '10px',
+                        border: '1px solid var(--border-light)',
+                        fontSize: '14px',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSecretKey(!showSecretKey)}
+                      style={{
+                        position: 'absolute',
+                        right: '8px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                    >
+                      {showSecretKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)'
+                  }}>
+                    Webhook Secret
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showWebhookSecret ? "text" : "password"}
+                      placeholder="whsec_..."
+                      value={paymentConfigForm.webhookSecret}
+                      onChange={(e) => setPaymentConfigForm((f) => ({ ...f, webhookSecret: e.target.value }))}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        paddingRight: '40px',
+                        borderRadius: '10px',
+                        border: '1px solid var(--border-light)',
+                        fontSize: '14px',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowWebhookSecret(!showWebhookSecret)}
+                      style={{
+                        position: 'absolute',
+                        right: '8px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                    >
+                      {showWebhookSecret ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)'
+                  }}>
+                    Merchant ID
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="acct_..."
+                    value={paymentConfigForm.merchantId}
+                    onChange={(e) => setPaymentConfigForm((f) => ({ ...f, merchantId: e.target.value }))}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      borderRadius: '10px',
+                      border: '1px solid var(--border-light)',
+                      fontSize: '14px',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)'
+                  }}>
+                    Webhook URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://your-domain.com/webhooks/payment"
+                    value={paymentConfigForm.webhookUrl}
+                    onChange={(e) => setPaymentConfigForm((f) => ({ ...f, webhookUrl: e.target.value }))}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      borderRadius: '10px',
+                      border: '1px solid var(--border-light)',
+                      fontSize: '14px',
+                      fontFamily: 'inherit'
+                    }}
+                  />
                 </div>
               </div>
-            )}
-          </div>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button
-              onClick={onUpdatePaymentGateway}
-              disabled={saving}
-              style={{
-                background: 'var(--primary)',
-                color: 'white',
-                padding: '12px 24px',
-                borderRadius: '10px',
-                fontWeight: 600,
-                fontSize: '14px',
-                border: 'none',
-                cursor: saving ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s ease',
-                opacity: saving ? 0.6 : 1
-              }}
-            >
-              {saving ? "Updating..." : "Update Payment Gateway"}
-            </button>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)'
+                }}>
+                  Additional Config (JSON) - Optional
+                </label>
+                <textarea
+                  placeholder='{"refund_policy": "30_days", "max_refund_amount": 50000}'
+                  value={paymentConfigForm.additionalConfig || ""}
+                  onChange={(e) => {
+                    setPaymentConfigForm((f) => ({ ...f, additionalConfig: e.target.value }));
+                    setPaymentConfigJsonError(null);
+                  }}
+                  style={{
+                    width: '100%',
+                    minHeight: '100px',
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    border: paymentConfigJsonError ? '1px solid var(--status-red)' : '1px solid var(--border-light)',
+                    fontSize: '13px',
+                    fontFamily: 'monospace',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-primary)',
+                    resize: 'vertical'
+                  }}
+                />
+                {paymentConfigJsonError && (
+                  <div style={{
+                    marginTop: '8px',
+                    color: 'var(--status-red)',
+                    fontSize: '12px'
+                  }}>
+                    {paymentConfigJsonError}
+                  </div>
+                )}
+              </div>
+
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                marginBottom: '16px'
+              }}>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: 'var(--text-primary)'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={paymentConfigForm.isActive}
+                    onChange={(e) => setPaymentConfigForm((f) => ({ ...f, isActive: e.target.checked }))}
+                    style={{
+                      width: '18px',
+                      height: '18px',
+                      cursor: 'pointer'
+                    }}
+                  />
+                  <span>Active</span>
+                </label>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: 'var(--text-primary)'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={paymentConfigForm.isLiveMode}
+                    onChange={(e) => setPaymentConfigForm((f) => ({ ...f, isLiveMode: e.target.checked }))}
+                    style={{
+                      width: '18px',
+                      height: '18px',
+                      cursor: 'pointer'
+                    }}
+                  />
+                  <span>Live Mode (Production)</span>
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                <button
+                  onClick={onSavePaymentConfig}
+                  disabled={saving}
+                  style={{
+                    background: 'var(--primary)',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '10px',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    border: 'none',
+                    cursor: saving ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s ease',
+                    opacity: saving ? 0.6 : 1
+                  }}
+                >
+                  {saving ? "Saving..." : "Save Configuration"}
+                </button>
+              </div>
+            </div>
+          </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
             <button
               onClick={cancelPaymentGatewayEdit}
               disabled={saving}
@@ -1502,26 +1547,26 @@ export default function TenantsPage() {
                 transition: 'all 0.2s ease'
               }}
             >
-              Cancel
+              Close
             </button>
           </div>
         </div>
       )}
 
       {/* Search */}
-      <div style={{ 
+      <div style={{
         position: 'relative',
         marginBottom: '24px'
       }}>
-        <Search 
-          size={20} 
-          style={{ 
+        <Search
+          size={20}
+          style={{
             position: 'absolute',
             left: '16px',
             top: '50%',
             transform: 'translateY(-50%)',
             color: 'var(--text-muted)'
-          }} 
+          }}
         />
         <input
           type="text"
@@ -1552,7 +1597,7 @@ export default function TenantsPage() {
       </div>
 
       {/* Tenants List */}
-      <div style={{ 
+      <div style={{
         background: 'var(--bg-card)',
         borderRadius: '16px',
         border: '1px solid var(--border-light)',
@@ -1560,16 +1605,16 @@ export default function TenantsPage() {
         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)'
       }}>
         {loading ? (
-          <div style={{ 
-            padding: '60px', 
+          <div style={{
+            padding: '60px',
             textAlign: 'center',
             color: 'var(--text-muted)'
           }}>
             Loading tenants...
           </div>
         ) : filteredTenants.length === 0 ? (
-          <div style={{ 
-            padding: '60px', 
+          <div style={{
+            padding: '60px',
             textAlign: 'center',
             color: 'var(--text-muted)'
           }}>
@@ -1577,17 +1622,17 @@ export default function TenantsPage() {
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ 
+            <table style={{
               width: '100%',
               borderCollapse: 'collapse'
             }}>
               <thead>
-                <tr style={{ 
+                <tr style={{
                   background: 'var(--bg-app)',
                   borderBottom: '2px solid var(--border-light)'
                 }}>
-                  <th style={{ 
-                    textAlign: 'left', 
+                  <th style={{
+                    textAlign: 'left',
                     padding: '16px 20px',
                     fontSize: '12px',
                     fontWeight: 700,
@@ -1597,8 +1642,8 @@ export default function TenantsPage() {
                   }}>
                     Tenant Name
                   </th>
-                  <th style={{ 
-                    textAlign: 'left', 
+                  <th style={{
+                    textAlign: 'left',
                     padding: '16px 20px',
                     fontSize: '12px',
                     fontWeight: 700,
@@ -1608,8 +1653,8 @@ export default function TenantsPage() {
                   }}>
                     Contact Email
                   </th>
-                  <th style={{ 
-                    textAlign: 'left', 
+                  <th style={{
+                    textAlign: 'left',
                     padding: '16px 20px',
                     fontSize: '12px',
                     fontWeight: 700,
@@ -1619,8 +1664,8 @@ export default function TenantsPage() {
                   }}>
                     Status
                   </th>
-                  <th style={{ 
-                    textAlign: 'left', 
+                  <th style={{
+                    textAlign: 'left',
                     padding: '16px 20px',
                     fontSize: '12px',
                     fontWeight: 700,
@@ -1630,8 +1675,8 @@ export default function TenantsPage() {
                   }}>
                     Admin User
                   </th>
-                  <th style={{ 
-                    textAlign: 'left', 
+                  <th style={{
+                    textAlign: 'left',
                     padding: '16px 20px',
                     fontSize: '12px',
                     fontWeight: 700,
@@ -1641,8 +1686,8 @@ export default function TenantsPage() {
                   }}>
                     Payment Gateway
                   </th>
-                  <th style={{ 
-                    textAlign: 'left', 
+                  <th style={{
+                    textAlign: 'left',
                     padding: '16px 20px',
                     fontSize: '12px',
                     fontWeight: 700,
@@ -1652,8 +1697,8 @@ export default function TenantsPage() {
                   }}>
                     Tenant ID
                   </th>
-                  <th style={{ 
-                    textAlign: 'right', 
+                  <th style={{
+                    textAlign: 'right',
                     padding: '16px 20px',
                     fontSize: '12px',
                     fontWeight: 700,
@@ -1667,9 +1712,9 @@ export default function TenantsPage() {
               </thead>
               <tbody>
                 {filteredTenants.map((tenant, idx) => (
-                  <tr 
+                  <tr
                     key={tenant.id}
-                    style={{ 
+                    style={{
                       borderBottom: idx < filteredTenants.length - 1 ? '1px solid var(--border-light)' : 'none',
                       transition: 'background 0.2s ease',
                       opacity: tenant.status === 'INACTIVE' ? 0.7 : 1
@@ -1681,7 +1726,7 @@ export default function TenantsPage() {
                       e.currentTarget.style.background = 'transparent';
                     }}
                   >
-                    <td style={{ 
+                    <td style={{
                       padding: '20px',
                       fontSize: '15px',
                       fontWeight: 600,
@@ -1689,7 +1734,7 @@ export default function TenantsPage() {
                     }}>
                       {tenant.name}
                     </td>
-                    <td style={{ 
+                    <td style={{
                       padding: '20px',
                       fontSize: '14px',
                       color: 'var(--text-muted)',
@@ -1706,7 +1751,7 @@ export default function TenantsPage() {
                         <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>No email</span>
                       )}
                     </td>
-                    <td style={{ 
+                    <td style={{
                       padding: '20px',
                       fontSize: '14px'
                     }}>
@@ -1715,17 +1760,17 @@ export default function TenantsPage() {
                         borderRadius: '12px',
                         fontSize: '12px',
                         fontWeight: 600,
-                        background: tenant.status === 'ACTIVE' 
-                          ? 'rgba(34, 197, 94, 0.1)' 
+                        background: tenant.status === 'ACTIVE'
+                          ? 'rgba(34, 197, 94, 0.1)'
                           : 'rgba(239, 68, 68, 0.1)',
-                        color: tenant.status === 'ACTIVE' 
-                          ? 'rgb(34, 197, 94)' 
+                        color: tenant.status === 'ACTIVE'
+                          ? 'rgb(34, 197, 94)'
                           : 'rgb(239, 68, 68)'
                       }}>
                         {tenant.status || 'ACTIVE'}
                       </span>
                     </td>
-                    <td style={{ 
+                    <td style={{
                       padding: '20px',
                       fontSize: '14px',
                       color: 'var(--text-primary)'
@@ -1739,7 +1784,7 @@ export default function TenantsPage() {
                         <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>No admin user</span>
                       )}
                     </td>
-                    <td style={{ 
+                    <td style={{
                       padding: '20px',
                       fontSize: '14px',
                       color: 'var(--text-primary)'
@@ -1777,7 +1822,7 @@ export default function TenantsPage() {
                         <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Payments disabled</span>
                       )}
                     </td>
-                    <td style={{ 
+                    <td style={{
                       padding: '20px',
                       fontSize: '13px',
                       color: 'var(--text-muted)',
@@ -1786,12 +1831,12 @@ export default function TenantsPage() {
                     }}>
                       {tenant.id}
                     </td>
-                    <td style={{ 
+                    <td style={{
                       padding: '20px',
                       textAlign: 'right'
                     }}>
-                      <div style={{ 
-                        display: 'flex', 
+                      <div style={{
+                        display: 'flex',
                         gap: '8px',
                         justifyContent: 'flex-end',
                         flexWrap: 'wrap'
@@ -1961,7 +2006,7 @@ export default function TenantsPage() {
       </div>
 
       {!loading && filteredTenants.length > 0 && (
-        <div style={{ 
+        <div style={{
           marginTop: '16px',
           textAlign: 'center',
           color: 'var(--text-muted)',

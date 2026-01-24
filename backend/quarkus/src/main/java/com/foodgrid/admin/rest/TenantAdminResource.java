@@ -3,7 +3,7 @@ package com.foodgrid.admin.rest;
 import com.foodgrid.admin.dto.ClientResponse;
 import com.foodgrid.admin.dto.ClientUpsertRequest;
 import com.foodgrid.admin.service.TenantAdminService;
-import com.foodgrid.payment.model.PaymentGatewayType;
+import com.foodgrid.payment.rest.PaymentGatewayUpdateRequest;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -68,6 +68,14 @@ public class TenantAdminResource {
   @Operation(summary = "Deactivate tenant", description = "Deactivate a tenant/client")
   public ClientResponse deactivate(@PathParam("tenantId") final String tenantId) {
     return tenantAdminService.deactivate(tenantId);
+  }
+
+  @PUT
+  @Path("/{tenantId}/payment-gateway")
+  @RolesAllowed({"ADMIN"})
+  @Operation(summary = "Update payment gateway settings", description = "Update payment gateway settings for a tenant/client")
+  public ClientResponse updatePaymentGateway(@PathParam("tenantId") final String tenantId, @Valid final PaymentGatewayUpdateRequest request) {
+    return tenantAdminService.updatePaymentGateway(tenantId, request);
   }
 
 }

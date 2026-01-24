@@ -12,6 +12,7 @@ import com.foodgrid.common.util.Ids;
 import com.foodgrid.payment.model.ClientPaymentConfig;
 import com.foodgrid.payment.model.PaymentGatewayType;
 import com.foodgrid.payment.repo.ClientPaymentConfigRepository;
+import com.foodgrid.payment.rest.PaymentGatewayUpdateRequest;
 import com.foodgrid.payment.service.PaymentConfigService;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -238,6 +239,43 @@ public class TenantAdminService {
     client.status = Client.Status.INACTIVE;
     client.updatedAt = new Date();
     clientRepository.persist(client);
+    final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
+    return toResponse(client, adminUser, null);
+  }
+
+  @Transactional
+  public ClientResponse updatePaymentGateway(final String clientId, final PaymentGatewayUpdateRequest request) {
+    final String adminId = subject();
+    if (adminId == null || adminId.isBlank()) {
+      throw new BadRequestException("Only authenticated users can update payment gateway settings");
+    }
+
+    final Client client = clientRepository.findByIdOptional(clientId)
+      .orElseThrow(() -> new NotFoundException("Client not found"));
+
+    // Find or create the PaymentConfig for the specified gateway type
+    var paymentConfig = clientPaymentConfigRepository
+      .findActiveByClientAndGateway(clientId, request.defaultGatewayType());
+
+    if (paymentConfig.isEmpty()) {
+      throw new BadRequestException("No payment configuration found for gateway type " + request.defaultGatewayType() + ". Please add payment credentials first.");
+    }
+
+    final var config = paymentConfig.get();
+    
+    // Update settings
+    config.isActive = request.paymentEnabled();
+    config.autoCaptureEnabled = request.autoCaptureEnabled();
+    config.partialRefundEnabled = request.partialRefundEnabled();
+    config.webhookUrl = request.webhookUrl();
+    config.additionalConfig = request.paymentGatewayConfig();
+    config.updatedAt = new Date();
+
+    clientPaymentConfigRepository.persist(config);
+    
+    // Invalidate cache
+    paymentConfigService.invalidateCache(clientId, config.gatewayType);
+
     final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
     return toResponse(client, adminUser, null);
   }

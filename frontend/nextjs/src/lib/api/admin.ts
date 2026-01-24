@@ -200,12 +200,17 @@ export type TenantUpsertInput = {
 };
 
 export type PaymentGatewayUpdateRequest = {
-  defaultGatewayType: PaymentGatewayType;
-  paymentEnabled: boolean;
+  gatewayType: PaymentGatewayType | null;
+  apiKey: string;
+  secretKey: string;
+  webhookSecret: string;
+  merchantId: string;
+  isActive: boolean;
+  isLiveMode: boolean;
+  additionalConfig?: string;
   autoCaptureEnabled: boolean;
   partialRefundEnabled: boolean;
   webhookUrl?: string;
-  paymentGatewayConfig?: string;
 };
 
 export function listTenants() {
@@ -339,11 +344,18 @@ export type PaymentConfigResponse = {
   id: string;
   clientId: string;
   gatewayType: PaymentGatewayType;
+  apiKey: string;
+  secretKey: string;
+  webhookSecret: string;
   merchantId?: string;
   isActive: boolean;
   isLiveMode: boolean;
   createdAt: string;
   updatedAt: string;
+  additionalConfig?: string;
+  autoCaptureEnabled: boolean;
+  partialRefundEnabled: boolean;
+  webhookUrl?: string;
 };
 
 export type GatewayTypeInfo = {
@@ -380,7 +392,7 @@ export function updatePaymentConfig(configId: string, request: PaymentConfigRequ
 
 export function listPaymentConfigs(clientId: string, activeOnly: boolean = false) {
   const queryParam = activeOnly ? "?activeOnly=true" : "";
-  return http<PaymentConfigResponse[]>(`/api/v1/payment-config/${encodeURIComponent(clientId)}${queryParam}`, {
+  return http<PaymentConfigResponse[]>(`/api/v1/payment-config?clientId=${encodeURIComponent(clientId)}${queryParam}`, {
     method: "GET",
     headers: {
       ...adminOnlyAuthHeader()
