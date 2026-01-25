@@ -1061,12 +1061,12 @@ export default function InventoryPage() {
           : 'Search Dish Name Here';
   const addLabel =
     activeTab === 'Ingredients'
-      ? 'Add New Ingredient'
+      ? 'Ingredient'
       : activeTab === 'Categories'
-        ? 'Add New Category'
+        ? 'Category'
         : activeTab === 'Suppliers'
-          ? 'Add New Supplier'
-          : 'Add New Dish';
+          ? 'Supplier'
+          : 'Dish';
 
   return (
     <div className={styles.page}>
@@ -1127,7 +1127,7 @@ export default function InventoryPage() {
             disabled={activeTab === 'Request List'}
           >
             <PlusIcon />
-            {activeTab === 'Units' ? 'Add New Unit' : activeTab === 'Suppliers' ? 'Add New Supplier' : addLabel}
+            {activeTab === 'Units' ? 'Unit' : activeTab === 'Suppliers' ? 'Supplier' : addLabel}
           </button>
         </div>
       </div>
