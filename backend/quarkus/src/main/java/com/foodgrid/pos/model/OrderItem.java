@@ -16,6 +16,10 @@ public class OrderItem extends PanacheEntityBase {
   @Column(name = "order_id", nullable = false, length = 36)
   public String orderId;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "order_id", insertable = false, updatable = false)
+  public Order order;
+
   @Column(name = "item_id", nullable = false, length = 36)
   public String itemId;
 

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "orders")
@@ -61,6 +62,12 @@ public class Order extends PanacheEntityBase {
   @Temporal(TemporalType.TIMESTAMP)
   @Column(name = "updated_at")
   public Date updatedAt;
+
+  @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+  public List<OrderItem> orderItems;
+
+  @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+  public List<Payment> payments;
 
   public enum OrderType {
     DINE_IN,

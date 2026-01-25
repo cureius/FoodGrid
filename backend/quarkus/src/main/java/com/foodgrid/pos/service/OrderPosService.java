@@ -293,6 +293,16 @@ public class OrderPosService {
       .toList();
   }
 
+  @Transactional
+  public void delete(final String orderId) {
+    final Order o = getOrderForOutlet(orderId);
+
+    // Delete the order - cascade delete will automatically delete related entities
+    orderRepository.delete(o);
+
+    audit.record("ORDER_DELETED", o.outletId, "Order", o.id, "Order deleted");
+  }
+
   private void recomputeTotals(final Order o) {
     final List<OrderItem> items = orderItemRepository.listByOrder(o.id);
 

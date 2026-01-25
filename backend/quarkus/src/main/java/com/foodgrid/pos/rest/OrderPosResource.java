@@ -67,4 +67,10 @@ public class OrderPosResource {
   public OrderResponse markServed(@PathParam("orderId") final String orderId) {
     return orderPosService.markServed(orderId);
   }
+
+  @DELETE
+  @Path("/{orderId}")
+  public void delete(@PathParam("orderId") final String orderId) {
+    orderPosService.delete(orderId);
+  }
 }

@@ -3,9 +3,9 @@
 import React, { useMemo, useState, useEffect } from "react";
 import styles from "./Orders.module.css";
 import Card from "@/components/ui/Card";
-import { Plus, Search, ChevronDown, ArrowRight, FileText, X, Timer, CheckCircle2, UtensilsCrossed, Loader2, RefreshCw, Zap, CreditCard, Utensils } from "lucide-react";
+import { Plus, Search, ChevronDown, ArrowRight, FileText, X, Timer, CheckCircle2, UtensilsCrossed, Loader2, RefreshCw, Zap, CreditCard, Utensils, Trash2, CheckSquare, Square } from "lucide-react";
 import Link from "next/link";
-import { listOrders, getOrder, cancelOrderItem, markOrderServed, billOrder, type OrderResponse, type OrderItemResponse } from "@/lib/api/clientAdmin";
+import { listOrders, getOrder, cancelOrderItem, markOrderServed, billOrder, deleteOrder, type OrderResponse, type OrderItemResponse } from "@/lib/api/clientAdmin";
 import { useOutlet } from "@/contexts/OutletContext";
 import { getImageUrl } from "@/lib/api/clientAdmin";
 import Image from "next/image";
@@ -153,6 +153,9 @@ export default function OrderPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { selectedOutletId } = useOutlet();
 
   // Fetch orders function
@@ -195,20 +198,21 @@ export default function OrderPage() {
 
   // Fetch order details when selected
   useEffect(() => {
-    if (selectedOrderId) {
-      async function fetchOrderDetails() {
-        try {
-          const data = await getOrder(selectedOrderId);
-          setSelectedOrderResponse(data);
-        } catch (err: any) {
-          console.error("Failed to fetch order details:", err);
-          setSelectedOrderResponse(null);
-        }
-      }
-      fetchOrderDetails();
-    } else {
+    if (!selectedOrderId) {
       setSelectedOrderResponse(null);
+      return;
     }
+    const orderId: string = selectedOrderId;
+    async function fetchOrderDetails() {
+      try {
+        const data = await getOrder(orderId);
+        setSelectedOrderResponse(data);
+      } catch (err: any) {
+        console.error("Failed to fetch order details:", err);
+        setSelectedOrderResponse(null);
+      }
+    }
+    fetchOrderDetails();
   }, [selectedOrderId]);
 
   const mappedOrders = useMemo(() => orders.map(mapOrderResponse), [orders]);
@@ -311,6 +315,66 @@ export default function OrderPage() {
     }
   };
 
+  const handleToggleSelectOrder = (orderId: string) => {
+    setSelectedOrderIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedOrderIds.size === filteredOrders.length) {
+      setSelectedOrderIds(new Set());
+    } else {
+      setSelectedOrderIds(new Set(filteredOrders.map((o) => o.id)));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedOrderIds.size === 0) return;
+
+    try {
+      setDeleting(true);
+      const deletePromises = Array.from(selectedOrderIds).map((orderId) =>
+        deleteOrder(orderId).catch((err) => {
+          console.error(`Failed to delete order ${orderId}:`, err);
+          return { error: err?.message || "Failed to delete", orderId };
+        })
+      );
+
+      const results = await Promise.allSettled(deletePromises);
+      const errors = results
+        .filter((r) => r.status === "rejected" || (r.status === "fulfilled" && r.value && "error" in r.value))
+        .map((r, idx) => {
+          const orderId = Array.from(selectedOrderIds)[idx];
+          if (r.status === "rejected") {
+            return { orderId, error: r.reason?.message || "Failed to delete" };
+          }
+          return r.value as { orderId: string; error: string };
+        });
+
+      if (errors.length > 0) {
+        const errorMsg = errors.map((e) => `Order ${e.orderId.slice(0, 8)}: ${e.error}`).join("\n");
+        alert(`Some orders could not be deleted:\n${errorMsg}`);
+      } else {
+        // Success - refresh orders
+        await fetchOrders(true);
+        setSelectedOrderIds(new Set());
+        setShowDeleteConfirm(false);
+      }
+    } catch (err: any) {
+      alert(err?.message || "Failed to delete orders");
+      console.error("Failed to delete orders:", err);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const detailItems = useMemo(() => {
     if (!selectedOrderResponse) return [];
     return selectedOrderResponse.items
@@ -365,6 +429,44 @@ export default function OrderPage() {
             </div>
 
             <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+              {selectedOrderIds.size > 0 && (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  disabled={deleting}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "10px 16px",
+                    borderRadius: 12,
+                    border: "none",
+                    background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                    color: "white",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: deleting ? "not-allowed" : "pointer",
+                    transition: "all 0.2s ease",
+                    boxShadow: "0 4px 14px rgba(239, 68, 68, 0.35)",
+                    opacity: deleting ? 0.6 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!deleting) {
+                      e.currentTarget.style.transform = "translateY(-1px)";
+                      e.currentTarget.style.boxShadow = "0 6px 20px rgba(239, 68, 68, 0.45)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 4px 14px rgba(239, 68, 68, 0.35)";
+                  }}
+                >
+                  {deleting ? (
+                    <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Deleting...</>
+                  ) : (
+                    <><Trash2 size={16} /> Delete ({selectedOrderIds.size})</>
+                  )}
+                </button>
+              )}
               <button
                 onClick={() => setAutoRefresh(!autoRefresh)}
                 style={{
@@ -607,8 +709,50 @@ export default function OrderPage() {
         )}
 
         {!loading && !error && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: 24 }}>
-            {filteredOrders.length === 0 ? (
+          <div>
+            {filteredOrders.length > 0 && (
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, padding: "12px 16px", background: "white", borderRadius: 12, border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+                <button
+                  onClick={handleSelectAll}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    border: "1px solid #e2e8f0",
+                    background: "white",
+                    cursor: "pointer",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "#64748b",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#f8fafc";
+                    e.currentTarget.style.borderColor = "#8b5cf6";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "white";
+                    e.currentTarget.style.borderColor = "#e2e8f0";
+                  }}
+                >
+                  {selectedOrderIds.size === filteredOrders.length ? (
+                    <CheckSquare size={18} style={{ color: "#8b5cf6" }} />
+                  ) : (
+                    <Square size={18} />
+                  )}
+                  <span>{selectedOrderIds.size === filteredOrders.length ? "Deselect All" : "Select All"}</span>
+                </button>
+                {selectedOrderIds.size > 0 && (
+                  <span style={{ fontSize: 13, color: "#64748b", fontWeight: 600 }}>
+                    {selectedOrderIds.size} order{selectedOrderIds.size !== 1 ? "s" : ""} selected
+                  </span>
+                )}
+              </div>
+            )}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: 24 }}>
+              {filteredOrders.length === 0 ? (
               <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "60px", background: "white", borderRadius: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
                 <FileText size={48} style={{ color: "#cbd5e1", margin: "0 auto 16px" }} />
                 <h3 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px", color: "#1e293b" }}>No orders found</h3>
@@ -616,8 +760,9 @@ export default function OrderPage() {
                   {query || activeStatus !== "All" ? "Try adjusting your search or filter criteria" : "Get started by creating your first order"}
                 </p>
               </div>
-            ) : (
+              ) : (
               filteredOrders.map((order) => {
+                const isSelected = selectedOrderIds.has(order.id);
                 const getStatusConfig = (status: string) => {
                   switch (status) {
                     case "In Progress":
@@ -637,23 +782,56 @@ export default function OrderPage() {
                   <div
                     key={order.id}
                     style={{
-                      background: "white",
+                      background: isSelected ? "#fef2f2" : "white",
                       borderRadius: 20,
                       padding: 24,
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
-                      border: "1px solid rgba(0,0,0,0.04)",
+                      boxShadow: isSelected ? "0 4px 12px rgba(239, 68, 68, 0.15), 0 8px 20px rgba(0,0,0,0.08)" : "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
+                      border: isSelected ? "2px solid #ef4444" : "1px solid rgba(0,0,0,0.04)",
                       transition: "all 0.3s ease",
                       cursor: "default",
+                      position: "relative",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateY(-4px)";
-                      e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12), 0 16px 32px rgba(0,0,0,0.08)";
+                      if (!isSelected) {
+                        e.currentTarget.style.transform = "translateY(-4px)";
+                        e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12), 0 16px 32px rgba(0,0,0,0.08)";
+                      }
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)";
+                      if (!isSelected) {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)";
+                      }
                     }}
                   >
+                    {/* Checkbox */}
+                    <div style={{ position: "absolute", top: 20, right: 20 }}>
+                      <button
+                        onClick={() => handleToggleSelectOrder(order.id)}
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: 6,
+                          border: isSelected ? "2px solid #ef4444" : "2px solid #cbd5e1",
+                          background: isSelected ? "#ef4444" : "white",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = "#ef4444";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.borderColor = "#cbd5e1";
+                          }
+                        }}
+                      >
+                        {isSelected && <CheckCircle2 size={16} style={{ color: "white" }} />}
+                      </button>
+                    </div>
                     {/* Header */}
                     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -883,6 +1061,111 @@ export default function OrderPage() {
                 );
               })
             )}
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Dialog */}
+        {showDeleteConfirm && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.6)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 3000,
+              padding: 20,
+            }}
+            onClick={() => !deleting && setShowDeleteConfirm(false)}
+          >
+            <div
+              style={{
+                background: "white",
+                borderRadius: 20,
+                padding: 32,
+                maxWidth: 480,
+                width: "100%",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+                border: "1px solid rgba(0,0,0,0.08)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, color: "#1e293b" }}>
+                  Delete {selectedOrderIds.size} order{selectedOrderIds.size !== 1 ? "s" : ""}?
+                </div>
+                <div style={{ fontSize: 14, color: "#64748b", lineHeight: 1.6 }}>
+                  This action cannot be undone. The selected orders will be permanently deleted.
+                  {selectedOrderIds.size > 1 && " Orders with payments cannot be deleted."}
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={deleting}
+                  style={{
+                    padding: "12px 24px",
+                    borderRadius: 12,
+                    border: "1px solid #e2e8f0",
+                    background: "white",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "#64748b",
+                    cursor: deleting ? "not-allowed" : "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!deleting) {
+                      e.currentTarget.style.background = "#f8fafc";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "white";
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteSelected}
+                  disabled={deleting}
+                  style={{
+                    padding: "12px 24px",
+                    borderRadius: 12,
+                    border: "none",
+                    background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: "white",
+                    cursor: deleting ? "not-allowed" : "pointer",
+                    opacity: deleting ? 0.6 : 1,
+                    transition: "all 0.2s ease",
+                    boxShadow: "0 4px 14px rgba(239, 68, 68, 0.35)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!deleting) {
+                      e.currentTarget.style.transform = "translateY(-1px)";
+                      e.currentTarget.style.boxShadow = "0 6px 20px rgba(239, 68, 68, 0.45)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 4px 14px rgba(239, 68, 68, 0.35)";
+                  }}
+                >
+                  {deleting ? (
+                    <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Deleting...</>
+                  ) : (
+                    <><Trash2 size={16} /> Delete</>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

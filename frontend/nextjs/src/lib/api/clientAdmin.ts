@@ -1009,6 +1009,13 @@ export function markOrderServed(orderId: string) {
   });
 }
 
+export function deleteOrder(orderId: string) {
+  return http<void>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}`, {
+    method: "DELETE",
+    headers: { ...clientAdminAuthHeader() }
+  });
+}
+
 export type PaymentCreateInput = {
   method: string; // "CASH" | "CARD" | "UPI" | "GATEWAY"
   amount: number;
