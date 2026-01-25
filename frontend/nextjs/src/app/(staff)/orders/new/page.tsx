@@ -339,7 +339,7 @@ export default function NewOrderPage() {
         await payOrder(currentOrder.id, paymentInput, idempotencyKey);
         
         // Redirect to orders page on success
-        router.push("/client-admin/orders");
+        router.push("/orders");
       }
     } catch (err: any) {
       alert(err?.message || "Failed to process payment");
@@ -466,7 +466,7 @@ export default function NewOrderPage() {
           </div>
         </div>
 
-        <button className={styles.closeBtn} onClick={() => router.push("/client-admin/orders")} aria-label="Close">
+        <button className={styles.closeBtn} onClick={() => router.push("/orders")} aria-label="Close">
           <X size={18} />
         </button>
       </div>

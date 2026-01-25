@@ -1,10 +1,11 @@
 "use client";
 import styled from "styled-components";
-import { LayoutDashboard, ShoppingCart, Tablet, Calendar, History, Box, Bell, ChevronDown } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Tablet, Calendar, History, Box, Bell, ChevronDown, Store } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { COLORS } from "@/lib/constants";
 import Logo from "../Logo";
+import { useOutlet } from "@/contexts/OutletContext";
 
 const Nav = styled.nav`
   top: 0;
@@ -165,8 +166,45 @@ const ProfilePill = styled.div`
   }
 `;
 
+const OutletBadge = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.08) 100%);
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  font-size: 13px;
+  font-weight: 600;
+  color: #7c3aed;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    padding: 6px 10px;
+    font-size: 12px;
+    
+    span {
+      max-width: 80px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  @media (max-width: 480px) {
+    span {
+      display: none;
+    }
+  }
+`;
+
 export const Navbar = () => {
   const pathname = usePathname();
+  const { selectedOutlet } = useOutlet();
+
   return (
     <Nav>
       <LeftWrap>
@@ -204,6 +242,12 @@ export const Navbar = () => {
       </LeftWrap>
 
       <RightWrap>
+        {selectedOutlet && (
+          <OutletBadge>
+            <Store size={16} />
+            <span>{selectedOutlet.name}</span>
+          </OutletBadge>
+        )}
         <BellButton aria-label="Notifications">
           <Bell size={20} />
         </BellButton>

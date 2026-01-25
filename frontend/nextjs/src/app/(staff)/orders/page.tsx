@@ -1465,7 +1465,7 @@ export default function OrderPage() {
                 </div>
                 <div style={{ display: "flex", gap: 12 }}>
                   <Link
-                    href="/client-admin/orders/new"
+                    href="/orders/new"
                     style={{
                       flex: 1,
                       padding: "14px 20px",

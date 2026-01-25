@@ -5,7 +5,7 @@ import StyledComponentsRegistry from "@/lib/registry";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Tenant Admin Dashboard",
+  title: "FoodGrid | Tenant Admin Dashboard",
   description: "FoodGrid Tenant Management System",
 };
 

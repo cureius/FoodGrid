@@ -30,7 +30,7 @@ export default function StaffLoginPage() {
     // Check if already logged in
     const token = typeof window !== "undefined" ? localStorage.getItem("fg_staff_access_token") : null;
     if (token) {
-      router.push("/staff/dashboard");
+      router.push("/dashboard");
       return;
     }
 
@@ -104,7 +104,7 @@ export default function StaffLoginPage() {
         
         // Small delay to show success message
         setTimeout(() => {
-          router.push("/staff/dashboard");
+          router.push("/dashboard");
           router.refresh();
         }, 500);
       } else {
