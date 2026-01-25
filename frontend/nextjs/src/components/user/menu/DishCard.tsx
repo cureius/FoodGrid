@@ -4,9 +4,11 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { getImageUrl, formatPrice, MenuItem } from '@/lib/api/customer';
 import { useCartStore } from '@/stores/cart';
+import { useAuthStore } from '@/stores/auth';
 import VegIndicator from '@/components/user/ui/VegIndicator';
 import QuantityControl from '@/components/user/ui/QuantityControl';
 import DishModal from '@/components/user/menu/DishModal';
+import LoginSheet from '@/components/user/auth/LoginSheet';
 import { Plus, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -15,9 +17,28 @@ interface DishCardProps {
 }
 
 export default function DishCard({ item }: DishCardProps) {
-  const { addItem, updateQuantity, getItemQuantity } = useCartStore();
+  const { addItem, updateQuantity, getItemQuantity, findExistingItem } = useCartStore();
+  const { isAuthenticated } = useAuthStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const quantity = getItemQuantity(item.id);
+
+  const handleAddClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      setIsLoginOpen(true);
+      return;
+    }
+    addItem(item, 1);
+  };
+
+  const handleCardClick = () => {
+    if (!isAuthenticated) {
+      setIsLoginOpen(true);
+      return;
+    }
+    setIsModalOpen(true);
+  };
 
   return (
     <>
@@ -25,7 +46,7 @@ export default function DishCard({ item }: DishCardProps) {
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        onClick={() => setIsModalOpen(true)}
+        onClick={handleCardClick}
         className="dish-card"
       >
         <div className="dish-info">
@@ -76,15 +97,12 @@ export default function DishCard({ item }: DishCardProps) {
               <QuantityControl
                 quantity={quantity}
                 onIncrease={() => addItem(item, 1)}
-                onDecrease={() => updateQuantity(useCartStore.getState().findExistingItem(item.id)?.id!, quantity - 1)}
+                onDecrease={() => updateQuantity(findExistingItem(item.id)?.id!, quantity - 1)}
                 size="md"
               />
             ) : (
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  addItem(item, 1);
-                }}
+                onClick={handleAddClick}
                 className="add-button"
               >
                 ADD
@@ -101,8 +119,9 @@ export default function DishCard({ item }: DishCardProps) {
             gap: 16px;
             padding: 16px 0;
             cursor: pointer;
-            transition: var(--transition-normal);
+            border-bottom: 1px solid var(--border-light);
           }
+          .dish-card:last-child { border-bottom: none; }
           .dish-info {
             flex: 1;
           }
@@ -116,7 +135,7 @@ export default function DishCard({ item }: DishCardProps) {
             align-items: center;
             gap: 4px;
             font-size: 10px;
-            background: rgba(246, 155, 66, 0.1);
+            background: rgba(246, 155, 66, 0.05);
             color: var(--secondary);
             font-weight: 800;
             padding: 2px 6px;
@@ -162,6 +181,7 @@ export default function DishCard({ item }: DishCardProps) {
             overflow: hidden;
             border: 1px solid var(--border-light);
             box-shadow: var(--shadow-sm);
+            background: var(--bg-muted);
           }
           .dish-image {
             object-fit: cover;
@@ -173,7 +193,6 @@ export default function DishCard({ item }: DishCardProps) {
           .placeholder-image {
             width: 100%;
             height: 100%;
-            background: var(--bg-muted);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -221,9 +240,11 @@ export default function DishCard({ item }: DishCardProps) {
           .customizable-text {
             font-size: 9px;
             color: var(--text-light);
-            font-weight: 600;
-            margin-top: 4px;
+            font-weight: 700;
+            margin-top: 6px;
             text-align: center;
+            text-transform: uppercase;
+            letter-spacing: -0.2px;
           }
         `}</style>
       </motion.div>

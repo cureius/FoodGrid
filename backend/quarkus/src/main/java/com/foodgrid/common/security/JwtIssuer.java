@@ -79,4 +79,17 @@ public class JwtIssuer {
 
     return jwt.sign();
   }
+
+  public String issueCustomerAccessToken(final com.foodgrid.auth.model.Customer customer) {
+    final Instant now = Instant.now();
+    return Jwt.issuer("foodgrid")
+      .subject(customer.id)
+      .claim("principalType", "CUSTOMER")
+      .claim("mobileNumber", customer.mobileNumber)
+      .claim("displayName", customer.displayName)
+      .groups(Set.of("CUSTOMER"))
+      .issuedAt(now)
+      .expiresAt(now.plus(Duration.ofDays(30))) // long lived customer sessions
+      .sign();
+  }
 }

@@ -1,36 +1,35 @@
 'use client';
 
-import { ChevronLeft, User, MapPin, CreditCard, Bell, Shield, LogOut, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/stores/auth';
+import { ChevronLeft, User, MapPin, CreditCard, Bell, Shield, LogOut, ChevronRight, Settings, Heart, Gift } from 'lucide-react';
 
 export default function AccountPage() {
   const router = useRouter();
+  const { user, logout } = useAuthStore();
 
-  interface AccountMenuItem {
-    label: string;
-    icon: any;
-    value?: string;
-  }
-
-  interface AccountMenuGroup {
-    title: string;
-    items: AccountMenuItem[];
-  }
-
-  const menuGroups: AccountMenuGroup[] = [
+  const menuGroups = [
     {
-      title: 'My Account',
+      title: 'Personal',
       items: [
-        { label: 'Profile Information', icon: User, value: 'Sourajit' },
-        { label: 'Saved Addresses', icon: MapPin, value: '2 Saved' },
-        { label: 'Payment Methods', icon: CreditCard, value: 'UPI, Visa' },
+        { label: 'Profile Information', icon: User, value: user?.displayName || 'Sourajit' },
+        { label: 'Saved Addresses', icon: MapPin, value: '2 Home, Office' },
+        { label: 'My Favorites', icon: Heart },
       ]
     },
     {
-      title: 'Preferences',
+      title: 'Payments & Rewards',
+      items: [
+        { label: 'Payment Methods', icon: CreditCard, value: 'Visa 4022' },
+        { label: 'Coins & Rewards', icon: Gift, value: '240 Coins' },
+      ]
+    },
+    {
+      title: 'App Settings',
       items: [
         { label: 'Notifications', icon: Bell },
         { label: 'Privacy & Security', icon: Shield },
+        { label: 'App Settings', icon: Settings },
       ]
     }
   ];
@@ -46,24 +45,24 @@ export default function AccountPage() {
 
       <main className="account-main">
         {/* Profile Card */}
-        <div className="profile-card">
-            <div className="profile-header">
+        <div className="profile-card card">
+            <div className="profile-top">
                 <div className="avatar-wrap">
-                    <User size={32} />
+                    <User size={40} />
                 </div>
-                <div className="profile-info">
-                    <h2 className="profile-name">Sourajit</h2>
-                    <p className="profile-meta">sourajit@example.com • 9876543210</p>
+                <div className="user-info">
+                    <h2 className="user-name">{user?.displayName || 'GUEST'}</h2>
+                    <p className="user-phone">+91 {user?.mobileNumber || '9876543210'}</p>
                 </div>
             </div>
 
-            <div className="profile-stats">
-                <div className="stat-box">
-                    <span className="stat-label">Total Orders</span>
+            <div className="stats-row">
+                <div className="stat-item">
+                    <span className="stat-label">Orders</span>
                     <span className="stat-val">12</span>
                 </div>
-                <div className="stat-box">
-                    <span className="stat-label">Member Since</span>
+                <div className="stat-item">
+                    <span className="stat-label">Member</span>
                     <span className="stat-val">2024</span>
                 </div>
             </div>
@@ -74,18 +73,20 @@ export default function AccountPage() {
             {menuGroups.map(group => (
                 <div key={group.title} className="menu-group">
                     <h3 className="group-title">{group.title}</h3>
-                    <div className="group-list">
+                    <div className="group-card card">
                         {group.items.map(item => (
                             <button 
                                 key={item.label}
-                                className="menu-item"
+                                className="menu-row"
                             >
-                                <div className="item-icon-wrap">
+                                <div className="row-icon-wrap">
                                     <item.icon size={18} />
                                 </div>
-                                <span className="item-label">{item.label}</span>
-                                {item.value && <span className="item-val">{item.value}</span>}
-                                <ChevronRight size={16} className="arrow-icon" />
+                                <span className="row-label">{item.label}</span>
+                                {item.value && (
+                                    <span className="row-value">{item.value}</span>
+                                )}
+                                <ChevronRight size={16} className="row-arrow" />
                             </button>
                         ))}
                     </div>
@@ -93,53 +94,59 @@ export default function AccountPage() {
             ))}
         </div>
 
-        {/* Logout */}
-        <button className="logout-btn">
+        <button 
+            onClick={() => { if(confirm('Are you sure?')) logout(); }}
+            className="logout-btn"
+        >
             <LogOut size={20} />
             LOG OUT
         </button>
 
-        <p className="version-info">FoodGrid Customer App v1.0.4</p>
+        <p className="app-version">
+            FoodGrid Customer App v1.0.4 • Build 823
+        </p>
       </main>
 
       <style jsx>{`
         .account-page { background: var(--bg-app); min-height: 100vh; padding-bottom: 96px; }
         .account-header { position: sticky; top: 0; z-index: 40; background: white; border-bottom: 1px solid var(--border-light); height: 64px; display: flex; align-items: center; padding: 0 16px; gap: 16px; }
         .back-btn { padding: 4px; margin-left: -4px; color: var(--navy); }
-        .header-title { font-size: 18px; font-weight: 800; color: var(--navy); }
+        .header-title { font-size: 18px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: 0.5px; }
 
-        .account-main { padding: 16px; display: flex; flex-direction: column; gap: 24px; }
+        .account-main { padding: 16px; display: flex; flex-direction: column; gap: 32px; }
+        .card { background: white; border-radius: 32px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); overflow: hidden; }
         
-        .profile-card { background: white; border-radius: 32px; padding: 24px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
-        .profile-header { display: flex; align-items: center; gap: 20px; margin-bottom: 24px; }
-        .avatar-wrap { width: 64px; height: 64px; background: var(--primary-light); border-radius: 20px; border: 2px solid var(--primary-border); color: var(--primary); display: flex; align-items: center; justify-content: center; }
-        .profile-name { font-size: 20px; font-weight: 800; }
-        .profile-meta { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
-
-        .profile-stats { display: flex; gap: 12px; }
-        .stat-box { flex: 1; background: var(--bg-muted); border-radius: 16px; padding: 12px; text-align: center; }
-        .stat-label { display: block; font-size: 9px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .profile-card { padding: 24px; }
+        .profile-top { display: flex; align-items: center; gap: 20px; margin-bottom: 32px; }
+        .avatar-wrap { width: 80px; height: 80px; background: var(--primary-light); border-radius: 30px; border: 4px solid rgba(75, 112, 245, 0.05); display: flex; align-items: center; justify-content: center; color: var(--primary); box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+        .user-info { display: flex; flex-direction: column; gap: 4px; }
+        .user-name { font-size: 24px; font-weight: 800; color: var(--navy); }
+        .user-phone { font-size: 11px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; }
+        
+        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .stat-item { background: var(--bg-muted); border-radius: 16px; padding: 16px; text-align: center; border: 1px solid rgba(0,0,0,0.02); }
+        .stat-label { display: block; font-size: 9px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
         .stat-val { font-size: 18px; font-weight: 800; color: var(--navy); }
 
-        .menu-groups { display: flex; flex-direction: column; gap: 24px; }
+        .menu-groups { display: flex; flex-direction: column; gap: 32px; }
         .menu-group { display: flex; flex-direction: column; gap: 12px; }
-        .group-title { font-size: 10px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 2px; padding-left: 8px; }
-        .group-list { background: white; border-radius: 24px; border: 1px solid var(--border-light); overflow: hidden; box-shadow: var(--shadow-sm); }
+        .group-title { font-size: 10px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; padding-left: 4px; }
         
-        .menu-item { width: 100%; height: 56px; padding: 0 16px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--border-light); transition: var(--transition-fast); text-align: left; }
-        .menu-item:last-child { border-bottom: none; }
-        .menu-item:hover { background: var(--bg-muted); }
-        .item-icon-wrap { width: 32px; height: 32px; background: var(--bg-muted); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: var(--transition-fast); }
-        .menu-item:hover .item-icon-wrap { color: var(--primary); background: var(--primary-light); }
-        .item-label { flex: 1; font-size: 14px; font-weight: 700; color: var(--navy); }
-        .item-val { font-size: 12px; font-weight: 700; color: var(--text-light); }
-        .arrow-icon { color: var(--border-medium); }
+        .menu-row { width: 100%; height: 64px; padding: 0 20px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--bg-muted); transition: var(--transition-fast); }
+        .menu-row:last-child { border-bottom: none; }
+        .menu-row:active { background: var(--bg-muted); }
+        .row-icon-wrap { width: 36px; height: 36px; background: var(--bg-app); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--text-light); transition: var(--transition-fast); }
+        .menu-row:hover .row-icon-wrap { background: var(--primary-light); color: var(--primary); }
+        .row-label { flex: 1; font-size: 14px; font-weight: 800; color: var(--navy); text-align: left; }
+        .row-value { font-size: 11px; font-weight: 700; color: var(--text-light); }
+        .row-arrow { color: var(--border-medium); transition: var(--transition-fast); }
+        .menu-row:hover .row-arrow { transform: translateX(4px); color: var(--primary); }
 
-        .logout-btn { width: 100%; height: 56px; border: 2px dashed rgba(239, 68, 68, 0.3); border-radius: 20px; color: var(--danger); font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 12px; transition: var(--transition-fast); margin-top: 16px; }
-        .logout-btn:hover { background: rgba(239, 68, 68, 0.05); }
+        .logout-btn { width: 100%; height: 64px; background: white; border: 2px dashed var(--danger-light); border-radius: 32px; display: flex; align-items: center; justify-content: center; gap: 12px; color: var(--danger); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; transition: var(--transition-fast); }
+        .logout-btn:hover { background: var(--danger-light); }
         .logout-btn:active { transform: scale(0.98); }
 
-        .version-info { text-align: center; font-size: 10px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 2px; margin-top: 32px; }
+        .app-version { text-align: center; font-size: 9px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 2.5px; padding-bottom: 32px; }
       `}</style>
     </div>
   );

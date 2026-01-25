@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/stores/cart';
 import { formatPrice, calculateCartTotal } from '@/lib/api/customer';
-import { ChevronLeft, Trash2, ArrowRight, Clock, MapPin, ReceiptText, ChevronRight, Plus, Info } from 'lucide-react';
+import { ChevronLeft, ArrowRight, Clock, MapPin, ReceiptText, ChevronRight, Plus, Info } from 'lucide-react';
 import QuantityControl from '@/components/user/ui/QuantityControl';
 import Image from 'next/image';
 import { getImageUrl } from '@/lib/api/customer';
@@ -29,10 +29,10 @@ export default function CartPage() {
           Browse Menu
         </button>
         <style jsx>{`
-          .empty-cart-page { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; text-align: center; }
-          .empty-cart-image-wrap { position: relative; width: 256px; height: 256px; margin-bottom: 24px; }
-          .empty-cart-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
-          .empty-cart-text { color: var(--text-muted); margin-bottom: 32px; font-weight: 500; }
+          .empty-cart-page { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; text-align: center; background: white; }
+          .empty-cart-image-wrap { position: relative; width: 256px; height: 256px; margin-bottom: 24px; opacity: 0.2; grayscale: 1; }
+          .empty-cart-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; color: var(--navy); }
+          .empty-cart-text { color: var(--text-muted); margin-bottom: 32px; font-weight: 500; max-width: 240px; }
           .empty-cart-btn { background: var(--primary); color: white; font-weight: 800; padding: 12px 32px; border-radius: 12px; box-shadow: 0 8px 20px rgba(75, 112, 245, 0.2); }
         `}</style>
       </div>
@@ -61,7 +61,7 @@ export default function CartPage() {
       {/* Main Content */}
       <main className="cart-main">
         {/* Cart Items */}
-        <section className="items-section">
+        <section className="items-section card">
           <div className="items-list">
             {items.map((item) => (
               <div key={item.id} className="cart-item">
@@ -112,7 +112,7 @@ export default function CartPage() {
         </section>
 
         {/* Delivery Info */}
-        <section className="info-block">
+        <section className="info-block card">
           <div className="info-row">
             <div className="info-icon clock">
                <Clock size={20} />
@@ -136,7 +136,7 @@ export default function CartPage() {
         </section>
 
         {/* Bill Summary */}
-        <section className="bill-section">
+        <section className="bill-section card">
           <div className="bill-header">
              <ReceiptText size={18} />
              <h4 className="bill-title">Bill Summary</h4>
@@ -184,7 +184,6 @@ export default function CartPage() {
                Proceed to Pay
                <ArrowRight size={18} />
             </div>
-            <div className="btn-shimmer" />
          </div>
       </div>
 
@@ -193,62 +192,61 @@ export default function CartPage() {
         .cart-header { position: sticky; top: 0; z-index: 40; background: white; border-bottom: 1px solid var(--border-light); padding: 0 16px; height: 64px; display: flex; align-items: center; gap: 16px; }
         .back-btn { padding: 4px; margin-left: -4px; color: var(--text-main); }
         .header-titles { flex: 1; }
-        .header-title { font-size: 18px; font-weight: 800; line-height: 1; }
+        .header-title { font-size: 18px; font-weight: 800; line-height: 1; color: var(--navy); }
         .header-subtitle { font-size: 10px; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
-        .clear-btn { font-size: 12px; font-weight: 800; color: var(--danger); }
+        .clear-btn { font-size: 11px; font-weight: 800; color: var(--danger); text-transform: uppercase; letter-spacing: 0.5px; }
         
-        .cart-main { display: flex; flex-direction: column; gap: 12px; }
-        .items-section { background: white; padding: 16px; border-bottom: 1px solid var(--border-light); }
+        .cart-main { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
+        .card { background: white; border-radius: 24px; border: 1px solid var(--border-light); shadow-sm: 0 2px 8px rgba(0,0,0,0.04); }
+        
+        .items-section { padding: 20px; }
         .items-list { display: flex; flex-direction: column; gap: 24px; }
         .cart-item { display: flex; gap: 12px; }
-        .item-img-wrap { flex-shrink: 0; width: 48px; height: 48px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-light); }
+        .item-img-wrap { flex-shrink: 0; width: 44px; height: 44px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-light); background: var(--bg-muted); }
         .item-img { object-fit: cover; }
-        .item-img-placeholder { width: 100%; height: 100%; background: var(--bg-muted); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-light); }
+        .item-img-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-light); }
         .item-details { flex: 1; min-width: 0; }
         .item-row { display: flex; justify-content: space-between; align-items: flex-start; }
-        .item-name { font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
+        .item-name { font-size: 14px; font-weight: 800; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
         .item-unit-price { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
         .item-total-price { font-size: 14px; font-weight: 800; color: var(--navy); }
-        .item-instructions { font-size: 10px; color: var(--secondary); font-style: italic; font-weight: 600; margin-top: 4px; }
+        .item-instructions { font-size: 10px; color: var(--secondary); font-style: italic; font-weight: 600; margin-top: 6px; padding: 4px 8px; background: var(--secondary-light); border-radius: 4px; display: inline-block; }
         .item-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
         .customize-btn { font-size: 10px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 4px; opacity: 0.8; }
-        .customize-btn:hover { opacity: 1; }
         
-        .add-more-btn { width: 100%; margin-top: 24px; height: 48px; border: 2px dashed rgba(75, 112, 245, 0.2); border-radius: 12px; color: var(--primary); font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .add-more-btn:hover { background: rgba(75, 112, 245, 0.05); }
+        .add-more-btn { width: 100%; margin-top: 24px; height: 48px; border: 2px dashed var(--primary-border); border-radius: 12px; color: var(--primary); font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: var(--transition-fast); }
+        .add-more-btn:hover { background: var(--primary-light); }
 
-        .info-block { background: white; padding: 24px 16px; border-bottom: 1px solid var(--border-light); display: flex; flex-direction: column; gap: 16px; }
+        .info-block { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
         .info-row { display: flex; align-items: center; gap: 16px; }
-        .info-row.border-top { padding-top: 16px; border-top: 1px solid var(--border-light); }
-        .info-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .info-icon.clock { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-        .info-icon.map { background: rgba(75, 112, 245, 0.1); color: var(--primary); }
+        .info-row.border-top { padding-top: 16px; border-top: 1px solid var(--bg-muted); }
+        .info-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .info-icon.clock { background: var(--success-light); color: var(--success); }
+        .info-icon.map { background: var(--primary-light); color: var(--primary); }
         .info-content { flex: 1; overflow: hidden; }
-        .info-title { font-size: 14px; font-weight: 800; }
-        .info-subtitle { font-size: 12px; color: var(--text-muted); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
-        .change-btn { font-size: 12px; font-weight: 800; color: var(--primary); padding: 4px; }
+        .info-title { font-size: 14px; font-weight: 800; color: var(--navy); }
+        .info-subtitle { font-size: 11px; color: var(--text-muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+        .change-btn { font-size: 11px; font-weight: 800; color: var(--primary); padding: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        .bill-section { background: white; padding: 24px 16px; border-bottom: 1px solid var(--border-light); }
-        .bill-header { display: flex; align-items: center; gap: 8px; color: var(--text-light); margin-bottom: 16px; }
-        .bill-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
+        .bill-section { padding: 20px; }
+        .bill-header { display: flex; align-items: center; gap: 8px; color: var(--text-light); margin-bottom: 20px; }
+        .bill-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
         .bill-lines { display: flex; flex-direction: column; gap: 12px; }
         .bill-line { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; color: var(--text-muted); }
-        .bill-line .dashed { border-bottom: 1px dashed rgba(0,0,0,0.1); padding-bottom: 2px; display: flex; align-items: center; gap: 4px; }
-        .bill-line span.free { color: var(--success); }
-        .bill-divider { height: 1px; background: var(--border-light); margin: 8px 0; }
+        .bill-line .dashed { border-bottom: 1px dashed var(--border-light); padding-bottom: 2px; display: flex; align-items: center; gap: 4px; cursor: help; }
+        .bill-line span.free { color: var(--success); font-weight: 800; }
+        .bill-divider { height: 1px; background: var(--bg-muted); margin: 8px 0; }
         .bill-total { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 800; color: var(--navy); }
         
-        .cancellation-policy { padding: 16px 24px; text-align: center; font-size: 10px; color: var(--text-light); font-weight: 600; line-height: 1.5; }
+        .cancellation-policy { padding: 16px 20px; text-align: center; font-size: 10px; color: var(--text-light); font-weight: 600; line-height: 1.5; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: white; padding: 16px; border-top: 1px solid var(--border-light); box-shadow: 0 -10px 40px rgba(0,0,0,0.08); padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
-        .checkout-btn { max-width: 418px; margin: 0 auto; background: var(--primary); color: white; height: 56px; border-radius: 12px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 8px 24px rgba(75, 112, 245, 0.3); position: relative; overflow: hidden; cursor: pointer; transition: var(--transition-fast); }
+        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: white; padding: 16px; border-top: 1px solid var(--border-light); box-shadow: 0 -8px 24px rgba(0,0,0,0.06); padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+        .checkout-btn { max-width: 418px; margin: 0 auto; background: var(--primary); color: white; height: 56px; border-radius: 16px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 8px 24px rgba(75, 112, 245, 0.25); position: relative; overflow: hidden; transition: var(--transition-fast); }
         .checkout-btn:active { transform: scale(0.98); }
         .btn-total { display: flex; flex-direction: column; gap: 2px; }
-        .total-label { font-size: 10px; font-weight: 700; opacity: 0.8; text-transform: uppercase; }
+        .total-label { font-size: 10px; font-weight: 800; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
         .total-val { font-size: 18px; font-weight: 800; }
         .btn-action { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-        .btn-shimmer { position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); transform: translateX(-100%); animation: shimmerMove 2s infinite; }
-        @keyframes shimmerMove { 100% { transform: translateX(100%); } }
       `}</style>
     </div>
   );

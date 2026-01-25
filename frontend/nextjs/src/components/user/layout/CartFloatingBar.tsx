@@ -18,121 +18,48 @@ export default function CartFloatingBar() {
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
-        className="floating-cart-wrapper"
+        className="floating-bar-root"
       >
         <button
           onClick={() => router.push('/user/cart')}
-          className="floating-cart-btn"
+          className="cart-btn"
         >
-          <div className="cart-info">
-            <div className="cart-icon">
+          <div className="btn-left">
+            <div className="icon-box">
               <ShoppingBag size={20} />
             </div>
-            <div className="cart-text">
-              <span className="item-count">
-                {itemCount} {itemCount === 1 ? 'Item' : 'Items'}
-              </span>
-              <span className="subtotal">
-                {formatPrice(subtotal)}
-                <span className="tax-note">+ taxes</span>
-              </span>
+            <div className="info">
+              <span className="count">{itemCount} {itemCount === 1 ? 'Item' : 'Items'}</span>
+              <span className="price">{formatPrice(subtotal)}</span>
             </div>
           </div>
 
-          <div className="view-cart">
+          <div className="btn-right">
             <span>View Cart</span>
-            <ChevronRight size={18} />
+            <ChevronRight size={18} strokeWidth={3} />
           </div>
 
-          <div className="shimmer-effect" />
+          <motion.div 
+            animate={{ x: ['-100%', '200%'] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="shimmer"
+          />
         </button>
 
         <style jsx>{`
-          .floating-cart-wrapper {
-            position: fixed;
-            bottom: 80px;
-            left: 0;
-            right: 0;
-            z-index: 40;
-            padding: 0 16px;
-          }
-          @media (min-width: 768px) {
-            .floating-cart-wrapper {
-              bottom: 24px;
-            }
-          }
-          .floating-cart-wrapper :global(button) {
-            max-width: 418px; /* max-width of container minus padding */
-            margin: 0 auto;
-            width: 100%;
-            background: var(--primary);
-            color: white;
-            height: 56px;
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-premium);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
-            position: relative;
-            overflow: hidden;
-            border: none;
-            cursor: pointer;
-          }
-          .cart-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-          }
-          .cart-icon {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px;
-            border-radius: 10px;
-            display: flex;
-          }
-          .cart-text {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            line-height: 1;
-          }
-          .item-count {
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.9;
-            margin-bottom: 4px;
-          }
-          .subtotal {
-            font-size: 18px;
-            font-weight: 800;
-          }
-          .tax-note {
-            font-size: 9px;
-            font-weight: 400;
-            opacity: 0.7;
-            margin-left: 4px;
-          }
-          .view-cart {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-weight: 800;
-            text-transform: uppercase;
-            font-size: 13px;
-            letter-spacing: 0.5px;
-          }
-          .shimmer-effect {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-            transform: translateX(-100%);
-            animation: shimmerSlide 2s infinite;
-          }
-          @keyframes shimmerSlide {
-            100% { transform: translateX(100%); }
-          }
+            .floating-bar-root { position: fixed; bottom: 84px; left: 0; right: 0; z-index: 40; padding: 0 16px; }
+            .cart-btn { max-width: 418px; margin: 0 auto; width: 100%; background: var(--primary); color: white; height: 56px; border-radius: 16px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 12px 32px rgba(75, 112, 245, 0.3); overflow: hidden; position: relative; }
+            .cart-btn:active { transform: scale(0.98); }
+            
+            .btn-left { display: flex; align-items: center; gap: 12px; }
+            .icon-box { background: rgba(255, 255, 255, 0.2); width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+            .info { display: flex; flex-direction: column; align-items: flex-start; }
+            .count { font-size: 10px; font-weight: 800; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
+            .price { font-size: 16px; font-weight: 800; }
+
+            .btn-right { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+
+            .shimmer { position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent); pointer-events: none; }
         `}</style>
       </motion.div>
     </AnimatePresence>

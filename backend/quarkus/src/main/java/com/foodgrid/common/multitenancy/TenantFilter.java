@@ -83,13 +83,16 @@ public class TenantFilter implements ContainerRequestFilter {
 
     return p.startsWith("api/v1/auth")
       || p.startsWith("api/v1/admin/auth")
+      || p.startsWith("api/v1/customer/auth")
+      || p.startsWith("api/v1/public")
       || p.startsWith("api/v1/bootstrap")
       || p.startsWith("api/v1/pos/whoami")
       || p.startsWith("api/v1/webhooks/payment")  // Allow public access to payment webhooks
       || p.startsWith("uploads")  // Allow public access to uploaded files (images, etc.)
       || p.startsWith("q/")
       || p.startsWith("openapi")
-      || p.startsWith("health");
+      || p.startsWith("health")
+      || p.startsWith("user");
   }
 
   private static void abort(final ContainerRequestContext ctx, final Response.Status status, final String message) {

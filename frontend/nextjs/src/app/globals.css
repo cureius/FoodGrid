@@ -58,90 +58,43 @@ body {
   font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
   background-color: var(--bg-app);
   color: var(--text-main);
-  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Base Typography */
-h1, h2, h3, h4 {
-  color: var(--navy);
-  font-weight: 800;
-  line-height: 1.1;
-}
-
-/* Layout Utilities */
-.container {
-  max-width: 450px;
-  margin: 0 auto;
-  background: var(--bg-surface);
-  min-height: 100vh;
-  position: relative;
-}
-
-/* Button Reset & Styles */
 button {
-  border: none;
   background: none;
-  font-family: inherit;
+  border: none;
   cursor: pointer;
-  transition: var(--transition-fast);
+  font-family: inherit;
+  outline: none;
 }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 24px;
-  border-radius: var(--radius-md);
-  font-weight: 700;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+input, textarea {
+  font-family: inherit;
 }
 
-.btn-primary {
-  background: var(--primary);
-  color: white;
-  box-shadow: 0 4px 12px rgba(75, 112, 245, 0.2);
-}
-
-.btn-primary:active {
-  transform: scale(0.98);
-  background: var(--primary-hover);
-}
-
-/* Components Patterns */
-.card {
-  background: var(--bg-surface);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-light);
-  padding: 16px;
+a {
+  text-decoration: none;
+  color: inherit;
 }
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
-
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-/* Animations */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-.shimmer {
-  background: linear-gradient(90deg, #f0f0f0 25%, #f8f8f8 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+.container {
+  max-width: 450px;
+  margin: 0 auto;
+  background: white;
+  min-height: 100vh;
+  position: relative;
 }

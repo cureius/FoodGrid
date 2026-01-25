@@ -70,7 +70,7 @@ export default function DishModal({ item, isOpen, onClose }: DishModalProps) {
 
               <div className="modal-body">
                 <div className="modal-header">
-                    <div>
+                    <div className="modal-title-row">
                         <VegIndicator isVeg={item.isVeg} size="md" showText />
                         <h2 className="modal-title">{item.name}</h2>
                     </div>
@@ -187,13 +187,15 @@ export default function DishModal({ item, isOpen, onClose }: DishModalProps) {
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          margin-bottom: 8px;
+          margin-bottom: 24px;
         }
+        .modal-title-row { flex: 1; padding-right: 16px; }
         .modal-title {
           font-size: 24px;
           font-weight: 800;
           margin-top: 8px;
           line-height: 1.1;
+          color: var(--navy);
         }
         .modal-price-wrapper {
           text-align: right;
@@ -218,7 +220,7 @@ export default function DishModal({ item, isOpen, onClose }: DishModalProps) {
           color: var(--text-muted);
           font-size: 14px;
           line-height: 1.6;
-          margin-bottom: 24px;
+          margin-bottom: 32px;
           font-weight: 500;
         }
         .modal-form {
@@ -235,6 +237,7 @@ export default function DishModal({ item, isOpen, onClose }: DishModalProps) {
           font-weight: 800;
           text-transform: uppercase;
           letter-spacing: 1px;
+          color: var(--navy);
         }
         .form-optional {
           font-size: 10px;
@@ -248,14 +251,15 @@ export default function DishModal({ item, isOpen, onClose }: DishModalProps) {
           border-radius: var(--radius-md);
           padding: 16px;
           font-size: 14px;
-          min-height: 80px;
+          min-height: 100px;
           font-family: inherit;
           resize: none;
           outline: none;
           transition: var(--transition-fast);
+          font-weight: 600;
         }
         .form-textarea:focus {
-          box-shadow: 0 0 0 2px rgba(75, 112, 245, 0.2);
+          box-shadow: 0 0 0 2px rgba(75, 112, 245, 0.1);
           background: white;
         }
         .modal-footer {
@@ -265,7 +269,7 @@ export default function DishModal({ item, isOpen, onClose }: DishModalProps) {
           position: sticky;
           bottom: 0;
           background: white;
-          padding-top: 8px;
+          padding-top: 12px;
         }
         .qty-wrapper {
           width: 128px;
@@ -274,7 +278,7 @@ export default function DishModal({ item, isOpen, onClose }: DishModalProps) {
           flex: 1;
           background: var(--primary);
           color: white;
-          height: 48px;
+          height: 52px;
           border-radius: var(--radius-md);
           font-weight: 800;
           font-size: 14px;

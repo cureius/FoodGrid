@@ -1,47 +1,11 @@
 /**
  * Customer-facing API service layer
- * All API calls for the user/customer frontend
+ * Refactored to use centralized Axios api client for automated token management
  */
 
+import api from '@/lib/axios';
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8080";
-
-// ─────────────────────────────────────────────────────────────
-// HTTP Utilities
-// ─────────────────────────────────────────────────────────────
-
-async function http<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {}),
-    },
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    let msg = `Request failed (${res.status})`;
-    try {
-      const body = await res.json();
-      if (body?.message) msg = body.message;
-    } catch {
-      // ignore
-    }
-    throw new Error(msg);
-  }
-
-  const contentType = res.headers.get("content-type");
-  if (!contentType || !contentType.includes("application/json")) return null as T;
-
-  const text = await res.text();
-  if (!text || text.trim().length === 0) return null as T;
-
-  try {
-    return JSON.parse(text) as T;
-  } catch {
-    return null as T;
-  }
-}
 
 /**
  * Converts a relative file path to an absolute URL
@@ -70,7 +34,6 @@ export interface Outlet {
   timezone: string;
   ownerId: string;
   status: 'ACTIVE' | 'INACTIVE';
-  // Extended restaurant info (if available)
   description?: string;
   address?: string;
   phone?: string;
@@ -117,7 +80,6 @@ export interface MenuItem {
   status: 'ACTIVE' | 'INACTIVE';
   images: MenuItemImage[];
   primaryImageUrl: string | null;
-  // Extended fields
   isBestseller?: boolean;
   isPopular?: boolean;
   isAvailable?: boolean;
@@ -150,7 +112,7 @@ export interface MenuItemAddon {
 }
 
 export interface CartItem {
-  id: string; // unique cart item id
+  id: string;
   menuItem: MenuItem;
   quantity: number;
   customizations?: SelectedCustomization[];
@@ -270,65 +232,48 @@ export interface CreateOrderItemInput {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Restaurant / Outlet APIs
+// Restaurant / Outlet APIs (Authenticated)
 // ─────────────────────────────────────────────────────────────
 
-/**
- * Get restaurant/outlet details (public endpoint)
- */
 export async function getOutlet(outletId: string): Promise<Outlet> {
-  return http<Outlet>(`/api/v1/public/outlets/${encodeURIComponent(outletId)}`);
+  const { data } = await api.get<Outlet>(`/api/v1/public/outlets/${encodeURIComponent(outletId)}`);
+  return data;
 }
 
-/**
- * List available outlets (for multi-outlet scenarios)
- */
 export async function listOutlets(): Promise<Outlet[]> {
-  return http<Outlet[]>(`/api/v1/public/outlets`);
+  const { data } = await api.get<Outlet[]>(`/api/v1/public/outlets`);
+  return data;
 }
 
 // ─────────────────────────────────────────────────────────────
-// Menu APIs (Public)
+// Menu APIs (Authenticated)
 // ─────────────────────────────────────────────────────────────
 
-/**
- * Get all menu categories for an outlet
- */
 export async function getMenuCategories(outletId: string): Promise<MenuCategory[]> {
-  return http<MenuCategory[]>(
+  const { data } = await api.get<MenuCategory[]>(
     `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/categories`
   );
+  return data;
 }
 
-/**
- * Get all menu items for an outlet
- */
 export async function getMenuItems(
   outletId: string,
   params?: { categoryId?: string; status?: string }
 ): Promise<MenuItem[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.categoryId) searchParams.set('categoryId', params.categoryId);
-  if (params?.status) searchParams.set('status', params.status);
-  const query = searchParams.toString();
-
-  return http<MenuItem[]>(
-    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/items${query ? `?${query}` : ''}`
+  const { data } = await api.get<MenuItem[]>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/items`,
+    { params }
   );
+  return data;
 }
 
-/**
- * Get a specific menu item with full details
- */
 export async function getMenuItem(outletId: string, itemId: string): Promise<MenuItem> {
-  return http<MenuItem>(
+  const { data } = await api.get<MenuItem>(
     `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/items/${encodeURIComponent(itemId)}`
   );
+  return data;
 }
 
-/**
- * Search menu items by name
- */
 export async function searchMenuItems(outletId: string, query: string): Promise<MenuItem[]> {
   const items = await getMenuItems(outletId, { status: 'ACTIVE' });
   const lowerQuery = query.toLowerCase();
@@ -341,73 +286,63 @@ export async function searchMenuItems(outletId: string, query: string): Promise<
 }
 
 // ─────────────────────────────────────────────────────────────
-// Order APIs (Customer)
+// Order APIs (Authenticated)
 // ─────────────────────────────────────────────────────────────
 
-/**
- * Create a new order (for guest checkout)
- */
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
-  // For customer orders, we'll need a public endpoint
-  // Using the existing POS endpoint structure for now
-  return http<Order>(`/api/v1/pos/orders?outletId=${encodeURIComponent(input.outletId)}`, {
-    method: 'POST',
-    body: JSON.stringify({
-      orderType: input.orderType,
-      tableId: input.tableId,
-      customerName: input.customerName,
-      notes: input.notes,
-    }),
+  const { data } = await api.post<Order>(`/api/v1/pos/orders?outletId=${encodeURIComponent(input.outletId)}`, {
+    orderType: input.orderType,
+    tableId: input.tableId,
+    customerName: input.customerName,
+    notes: input.notes,
+    items: input.items
   });
+  return data;
 }
 
-/**
- * Add item to an existing order
- */
 export async function addOrderItem(
   orderId: string,
   itemId: string,
   qty: number
 ): Promise<Order> {
-  return http<Order>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}/items`, {
-    method: 'POST',
-    body: JSON.stringify({ itemId, qty }),
+  const { data } = await api.post<Order>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}/items`, { 
+    itemId, 
+    qty 
   });
+  return data;
 }
 
-/**
- * Get order details
- */
 export async function getOrder(orderId: string): Promise<Order> {
-  return http<Order>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}`);
+  const { data } = await api.get<Order>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}`);
+  return data;
 }
 
-/**
- * Get order payment status (public endpoint)
- */
-export async function getPaymentStatus(orderId: string): Promise<PaymentStatus> {
-  return http<PaymentStatus>(`/api/v1/public/payments/order/${encodeURIComponent(orderId)}/status`);
-}
-
-/**
- * Get payment info for an order
- */
-export async function getOrderPayment(orderId: string): Promise<PaymentInfo> {
-  return http<PaymentInfo>(`/api/v1/public/payments/order/${encodeURIComponent(orderId)}`);
-}
-
-/**
- * Create payment link for an order
- */
-export async function createPaymentLink(orderId: string): Promise<PaymentInfo> {
-  return http<PaymentInfo>(`/api/v1/payments/order/${encodeURIComponent(orderId)}/link`, {
-    method: 'POST',
+export async function listOrders(limit?: number, outletId?: string): Promise<Order[]> {
+  const { data } = await api.get<Order[]>(`/api/v1/pos/orders`, {
+    params: { limit, outletId }
   });
+  return data;
 }
 
-/**
- * Verify payment after completion
- */
+// ─────────────────────────────────────────────────────────────
+// Payment APIs (Authenticated)
+// ─────────────────────────────────────────────────────────────
+
+export async function getPaymentStatus(orderId: string): Promise<PaymentStatus> {
+  const { data } = await api.get<PaymentStatus>(`/api/v1/customer/payments/order/${encodeURIComponent(orderId)}/status`);
+  return data;
+}
+
+export async function getOrderPayment(orderId: string): Promise<PaymentInfo> {
+  const { data } = await api.get<PaymentInfo>(`/api/v1/customer/payments/order/${encodeURIComponent(orderId)}`);
+  return data;
+}
+
+export async function createPaymentLink(orderId: string): Promise<PaymentInfo> {
+  const { data } = await api.post<PaymentInfo>(`/api/v1/payments/order/${encodeURIComponent(orderId)}/link`);
+  return data;
+}
+
 export async function verifyPayment(params: {
   transactionId: string;
   gatewayPaymentId: string;
@@ -415,30 +350,14 @@ export async function verifyPayment(params: {
   gatewayOrderId: string;
   additionalData?: Record<string, string>;
 }): Promise<{ success: boolean; status: string }> {
-  return http(`/api/v1/public/payments/verify`, {
-    method: 'POST',
-    body: JSON.stringify(params),
-  });
-}
-
-/**
- * List orders for a customer/outlet
- */
-export async function listOrders(limit?: number, outletId?: string): Promise<Order[]> {
-  const params = new URLSearchParams();
-  if (limit) params.append('limit', limit.toString());
-  if (outletId) params.append('outletId', outletId);
-  const queryString = params.toString();
-  return http<Order[]>(`/api/v1/pos/orders${queryString ? `?${queryString}` : ''}`);
+  const { data } = await api.post(`/api/v1/public/payments/verify`, params);
+  return data;
 }
 
 // ─────────────────────────────────────────────────────────────
 // Helper Functions
 // ─────────────────────────────────────────────────────────────
 
-/**
- * Calculate cart total
- */
 export function calculateCartTotal(items: CartItem[]): {
   subtotal: number;
   taxAmount: number;
@@ -447,10 +366,10 @@ export function calculateCartTotal(items: CartItem[]): {
   total: number;
 } {
   const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-  const taxRate = 0.05; // 5% GST - adjust based on backend config
+  const taxRate = 0.05; 
   const taxAmount = subtotal * taxRate;
-  const deliveryFee = 0; // To be fetched from outlet config
-  const discount = 0; // To be calculated based on coupons
+  const deliveryFee = 0; 
+  const discount = 0; 
   const total = subtotal + taxAmount + deliveryFee - discount;
 
   return {
@@ -462,16 +381,10 @@ export function calculateCartTotal(items: CartItem[]): {
   };
 }
 
-/**
- * Format price with currency
- */
 export function formatPrice(price: number, currency: string = '₹'): string {
   return `${currency}${price.toFixed(2)}`;
 }
 
-/**
- * Get order status display info
- */
 export function getOrderStatusInfo(status: OrderStatus): {
   label: string;
   color: string;

@@ -9,57 +9,42 @@ interface VegIndicatorProps {
 }
 
 export default function VegIndicator({ isVeg, size = 'sm', showText = false }: VegIndicatorProps) {
+  const sizeMap = {
+    sm: { box: 12, dot: 4, font: 10 },
+    md: { box: 16, dot: 6, font: 12 },
+    lg: { box: 20, dot: 8, font: 14 }
+  };
+
+  const { box, dot, font } = sizeMap[size];
+  const color = isVeg ? '#10B981' : '#D9534F';
+
   return (
-    <div className={`veg-indicator-container ${size} ${isVeg ? 'veg' : 'non-veg'}`}>
-      <div className="outer-box">
-        <div className="inner-dot" />
+    <div className="veg-wrap">
+      <div className="veg-box">
+        <div className="veg-dot" />
       </div>
       {showText && (
         <span className="veg-text">
           {isVeg ? 'Veg' : 'Non-Veg'}
         </span>
       )}
-
       <style jsx>{`
-        .veg-indicator-container {
-          display: flex;
-          align-items: center;
-          gap: 6px;
+        .veg-wrap { display: flex; align-items: center; gap: 6px; }
+        .veg-box {
+          display: flex; align-items: center; justify-content: center;
+          width: ${box}px; height: ${box}px;
+          border: 1.5px solid ${color};
+          border-radius: 2px; background: white;
+          padding: 2px;
         }
-        .outer-box {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 3px;
-          background: white;
-          border: 1.5px solid transparent;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        .veg-dot {
+          width: ${dot}px; height: ${dot}px;
+          border-radius: 50%; background: ${color};
         }
-        .inner-dot {
-          border-radius: 50%;
+        .veg-text {
+          font-size: ${font}px; font-weight: 800;
+          color: ${color};
         }
-
-        /* Sizes */
-        .sm .outer-box { width: 12px; height: 12px; padding: 2px; }
-        .sm .inner-dot { width: 4px; height: 4px; }
-        .sm .veg-text { font-size: 10px; }
-
-        .md .outer-box { width: 16px; height: 16px; padding: 3px; border-width: 2px; }
-        .md .inner-dot { width: 6px; height: 6px; }
-        .md .veg-text { font-size: 12px; }
-
-        .lg .outer-box { width: 20px; height: 20px; padding: 4px; border-width: 2px; }
-        .lg .inner-dot { width: 8px; height: 8px; }
-        .lg .veg-text { font-size: 14px; }
-
-        /* Types */
-        .veg .outer-box { border-color: var(--success); }
-        .veg .inner-dot { background: var(--success); }
-        .veg .veg-text { color: var(--success); font-weight: 700; }
-
-        .non-veg .outer-box { border-color: #D9534F; }
-        .non-veg .inner-dot { background: #D9534F; }
-        .non-veg .veg-text { color: #D9534F; font-weight: 700; }
       `}</style>
     </div>
   );

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import UserHeader from '@/components/user/layout/UserHeader';
 import BottomNav from '@/components/user/layout/BottomNav';
 import CartFloatingBar from '@/components/user/layout/CartFloatingBar';
+import AuthGuard from '@/components/user/auth/AuthGuard';
 
 export default function UserLayout({
   children,
@@ -22,53 +23,55 @@ export default function UserLayout({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="layout-root">
-        <UserHeader />
-        
-        <main className="layout-main">
-          <div className="layout-container">
-            {children}
+      <AuthGuard>
+        <div className="layout-root">
+          <UserHeader />
+          
+          <main className="layout-main">
+            <div className="layout-container">
+              {children}
+            </div>
+          </main>
+
+          <CartFloatingBar />
+          <div className="mobile-nav-wrapper">
+            <BottomNav />
           </div>
-        </main>
 
-        <CartFloatingBar />
-        <div className="mobile-nav-wrapper">
-          <BottomNav />
-        </div>
-
-        <style jsx>{`
-          .layout-root {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            background-color: var(--bg-app);
-          }
-          .layout-main {
-            flex: 1;
-            padding-bottom: 96px; /* Spacing for bottom nav */
-            overflow-x: hidden;
-          }
-          .layout-container {
-            max-width: 450px;
-            margin: 0 auto;
-            min-height: calc(100vh - 64px);
-            position: relative;
-            background: white;
-            box-shadow: var(--shadow-lg);
-          }
-          @media (min-width: 768px) {
+          <style jsx>{`
+            .layout-root {
+              display: flex;
+              flex-direction: column;
+              min-height: 100vh;
+              background-color: var(--bg-app);
+            }
             .layout-main {
-              padding-bottom: 0;
+              flex: 1;
+              padding-bottom: 96px; 
+              overflow-x: hidden;
             }
             .layout-container {
-              box-shadow: none;
+              max-width: 450px;
+              margin: 0 auto;
+              min-height: calc(100vh - 64px);
+              position: relative;
+              background: white;
+              box-shadow: var(--shadow-lg);
             }
-            .mobile-nav-wrapper {
-              display: none;
+            @media (min-width: 768px) {
+              .layout-main {
+                padding-bottom: 0;
+              }
+              .layout-container {
+                box-shadow: none;
+              }
+              .mobile-nav-wrapper {
+                display: none;
+              }
             }
-          }
-        `}</style>
-      </div>
+          `}</style>
+        </div>
+      </AuthGuard>
     </QueryClientProvider>
   );
 }

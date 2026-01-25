@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { getMenuItems, getMenuCategories, getImageUrl } from '@/lib/api/customer';
+import { getMenuItems, getMenuCategories } from '@/lib/api/customer';
 import { useCartStore } from '@/stores/cart';
 import { Star, Clock, Info, Search, Share2, Heart } from 'lucide-react';
 import DishCard from '@/components/user/menu/DishCard';
@@ -65,9 +65,9 @@ export default function RestaurantLanding() {
         </div>
         <style jsx>{`
           .loading-container { padding: 16px; }
-          .skeleton-banner { height: 180px; background: #eee; border-radius: 16px; margin-bottom: 16px; animation: pulse 1.5s infinite; }
-          .skeleton-title { height: 32px; width: 60%; background: #eee; border-radius: 8px; margin-bottom: 24px; animation: pulse 1.5s infinite; }
-          .skeleton-card { height: 120px; background: #eee; border-radius: 12px; margin-bottom: 16px; animation: pulse 1.5s infinite; }
+          .skeleton-banner { height: 180px; background: var(--bg-muted); border-radius: 16px; margin-bottom: 16px; animation: pulse 1.5s infinite; }
+          .skeleton-title { height: 32px; width: 60%; background: var(--bg-muted); border-radius: 8px; margin-bottom: 24px; animation: pulse 1.5s infinite; }
+          .skeleton-card { height: 120px; background: var(--bg-muted); border-radius: 12px; margin-bottom: 16px; animation: pulse 1.5s infinite; }
           @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         `}</style>
       </div>
@@ -182,47 +182,47 @@ export default function RestaurantLanding() {
         .landing-page { padding-bottom: 96px; }
         .restaurant-header { padding: 24px 16px 16px; }
         .header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-        .restaurant-name { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+        .restaurant-name { font-size: 24px; font-weight: 800; margin-bottom: 4px; color: var(--navy); }
         .restaurant-cuisines { color: var(--text-muted); font-size: 14px; font-weight: 600; }
-        .restaurant-address { color: var(--text-light); font-size: 12px; margin-top: 4px; }
+        .restaurant-address { color: var(--text-light); font-size: 12px; margin-top: 4px; font-weight: 500; }
         .header-actions { display: flex; gap: 8px; }
         .icon-btn { width: 36px; height: 36px; background: white; border: 1px solid var(--border-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); }
         .icon-btn.heart { color: var(--danger); }
         
         .info-badges { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
-        .badge { flex-shrink: 0; display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid transparent; }
-        .badge.success { background: var(--success-light); color: var(--success); border-color: rgba(16, 185, 129, 0.2); }
+        .badge { flex-shrink: 0; display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; border: 1px solid transparent; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge.success { background: var(--success-light); color: var(--success); border-color: rgba(16, 185, 129, 0.1); }
         .badge.primary { background: var(--primary-light); color: var(--primary); border-color: var(--primary-border); }
-        .badge.secondary { background: var(--secondary-light); color: var(--secondary); border-color: rgba(246, 155, 66, 0.2); }
+        .badge.secondary { background: var(--secondary-light); color: var(--secondary); border-color: rgba(246, 155, 66, 0.1); }
 
-        .sticky-filters { position: sticky; top: 64px; z-index: 30; background: white; border-bottom: 1px solid var(--border-light); padding-bottom: 8px; }
+        .sticky-filters { position: sticky; top: 64px; z-index: 30; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-light); padding-bottom: 8px; }
         .filters-row { padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
         .search-box { position: relative; flex: 1; }
         .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light); }
-        .search-input { width: 100%; height: 40px; background: var(--bg-muted); border: none; border-radius: 12px; padding: 0 12px 0 36px; font-size: 14px; font-weight: 600; outline: none; }
-        .search-input:focus { background: white; box-shadow: 0 0 0 2px rgba(75, 112, 245, 0.1); }
+        .search-input { width: 100%; height: 40px; background: var(--bg-muted); border: 2px solid transparent; border-radius: 12px; padding: 0 12px 0 36px; font-size: 14px; font-weight: 600; outline: none; transition: var(--transition-fast); }
+        .search-input:focus { background: white; border-color: var(--primary-border); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         
-        .veg-toggle { display: flex; align-items: center; gap: 6px; padding: 0 12px; height: 40px; border-radius: 12px; border: 1px solid var(--border-light); font-size: 12px; font-weight: 700; color: var(--text-muted); background: white; transition: var(--transition-fast); }
+        .veg-toggle { display: flex; align-items: center; gap: 6px; padding: 0 12px; height: 40px; border-radius: 12px; border: 2px solid var(--border-light); font-size: 11px; font-weight: 800; color: var(--text-muted); background: white; transition: var(--transition-fast); text-transform: uppercase; letter-spacing: 0.5px; }
         .veg-toggle.active { background: var(--success); border-color: var(--success); color: white; }
         .veg-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); transition: var(--transition-fast); }
         .veg-toggle.active .veg-dot { background: white; }
 
         .category-nav { display: flex; gap: 12px; overflow-x: auto; padding: 4px 16px 8px; scroll-behavior: smooth; }
-        .cat-btn { flex-shrink: 0; padding: 8px 16px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--bg-muted); color: var(--text-muted); transition: var(--transition-fast); }
+        .cat-btn { flex-shrink: 0; padding: 8px 16px; border-radius: 999px; font-size: 11px; font-weight: 800; background: var(--bg-muted); color: var(--text-muted); transition: var(--transition-fast); text-transform: uppercase; letter-spacing: 0.8px; }
         .cat-btn.active { background: var(--navy); color: white; box-shadow: var(--shadow-md); }
 
         .menu-list { padding: 24px 16px; }
         .menu-section { scroll-margin-top: 160px; margin-bottom: 32px; }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .section-title { font-size: 20px; font-weight: 800; }
-        .section-count { font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+        .section-title { font-size: 20px; font-weight: 800; color: var(--navy); }
+        .section-count { font-size: 10px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; }
         .section-items { display: flex; flex-direction: column; }
 
         .empty-state { padding: 80px 32px; text-align: center; }
-        .empty-icon-wrap { width: 80px; height: 80px; background: var(--bg-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+        .empty-icon-wrap { width: 80px; height: 80px; background: var(--bg-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
         .empty-icon { color: var(--text-light); }
-        .empty-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
-        .empty-text { color: var(--text-muted); font-size: 14px; line-height: 1.5; }
+        .empty-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; color: var(--navy); }
+        .empty-text { color: var(--text-muted); font-size: 14px; line-height: 1.5; font-weight: 500; }
       `}</style>
     </div>
   );

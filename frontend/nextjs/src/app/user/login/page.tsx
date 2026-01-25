@@ -1,0 +1,401 @@
+'use client';
+
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { ChevronLeft, ShieldCheck, Loader2, ArrowRight } from 'lucide-react';
+import { customerAuthApi } from '@/lib/api/customerAuth';
+import { useAuthStore } from '@/stores/auth';
+import Logo from '@/components/Logo';
+
+function LoginContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const login = useAuthStore((state) => state.login);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  
+  const [step, setStep] = useState<'mobile' | 'otp'>('mobile');
+  const [mobile, setMobile] = useState('');
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [timer, setTimer] = useState(0);
+  
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const redirect = searchParams.get('redirect') || '/user';
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace(redirect);
+    }
+  }, [isAuthenticated, router, redirect]);
+
+  useEffect(() => {
+    if (timer > 0) {
+      const interval = setInterval(() => setTimer((t) => t - 1), 1000);
+      return () => clearInterval(interval);
+    }
+  }, [timer]);
+
+  const handleSendOtp = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (mobile.length !== 10) {
+      setError('Please enter a valid 10-digit mobile number');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      await customerAuthApi.requestOtp(mobile);
+      setStep('otp');
+      setTimer(30);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to send OTP. Try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    const fullOtp = otp.join('');
+    if (fullOtp.length !== 6) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await customerAuthApi.verifyOtp(mobile, fullOtp);
+      login(res.token, res.profile);
+      router.replace(redirect);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Invalid OTP. Please check and try again.');
+      setOtp(['', '', '', '', '', '']);
+      otpRefs.current[0]?.focus();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    console.log("🚀 ~ handleOtpChange ~ value:", value)
+    console.log("🚀 ~ handleOtpChange ~ index:", index)
+    if (!/^\d*$/.test(value)) return;
+    
+    const newOtp = [...otp];
+    newOtp[index] = value.slice(-1);
+    setOtp(newOtp);
+
+    if (value && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+    
+    if (index === 5 && value) {
+        setTimeout(() => handleVerifyOtp(), 100);
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
+
+  if (isAuthenticated) return null;
+
+  return (
+    <div className="login-page">
+      <header className="login-header">
+        <button onClick={() => router.back()} className="back-btn">
+          <ChevronLeft size={24} />
+        </button>
+        <Logo />
+        <div className="spacer" />
+      </header>
+
+      <main className="login-content">
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="login-card"
+        >
+          {step === 'mobile' ? (
+            <div className="step-content">
+              <h1 className="title">Login / Signup</h1>
+              <p className="subtitle">Enter your mobile number to enjoy the best deals and track your orders.</p>
+
+              <form onSubmit={handleSendOtp} className="form">
+                <div className="input-group">
+                  <div className="country-code">
+                    <span>+91</span>
+                  </div>
+                  <input
+                    type="tel"
+                    value={mobile}
+                    onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="Mobile Number"
+                    className="mobile-input"
+                    autoFocus
+                  />
+                </div>
+
+                {error && <p className="error-msg">{error}</p>}
+
+                <button
+                  type="submit"
+                  disabled={loading || mobile.length !== 10}
+                  className="submit-btn"
+                >
+                  {loading ? <Loader2 className="spinner" /> : 'GET OTP'}
+                  <ArrowRight size={20} />
+                </button>
+              </form>
+
+              <p className="terms">
+                By continuing, you agree to our <span>Terms of Service</span> and <span>Privacy Policy</span>
+              </p>
+            </div>
+          ) : (
+            <div className="step-content">
+              <div className="otp-header">
+                  <h1 className="title">Verify OTP</h1>
+                  <p className="subtitle">Sent to <strong>+91 {mobile}</strong></p>
+              </div>
+
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleVerifyOtp();
+                }} 
+                className="otp-form"
+              >
+                <div className="otp-inputs">
+                  {otp.map((digit, i) => (
+                    <input
+                      key={i}
+                      ref={(el) => (otpRefs.current[i] = el)}
+                      type="tel"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(i, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(i, e)}
+                      className="otp-field"
+                    />
+                  ))}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading || otp.join('').length !== 6}
+                  className="submit-btn verify-btn"
+                >
+                  {loading ? <Loader2 className="spinner" /> : 'VERIFY OTP'}
+                  <ArrowRight size={20} />
+                </button>
+              </form>
+
+              {error && <p className="error-msg center">{error}</p>}
+
+              <div className="timer-box">
+                {timer > 0 ? (
+                  <p className="resend-text">Resend OTP in <strong>{timer}s</strong></p>
+                ) : (
+                  <button onClick={handleSendOtp} className="resend-btn">RESEND OTP</button>
+                )}
+              </div>
+
+              <div className="secure-badge">
+                <ShieldCheck size={18} />
+                <span>Secure 6-digit OTP login</span>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </main>
+
+      <style jsx>{`
+        .login-page {
+          min-height: 100vh;
+          background: white;
+          display: flex;
+          flex-direction: column;
+        }
+        .login-header {
+          height: 64px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 16px;
+          border-bottom: 1px solid var(--border-light);
+        }
+        .back-btn {
+          padding: 8px;
+          color: var(--navy);
+        }
+        .spacer { width: 40px; }
+        
+        .login-content {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+        }
+        .login-card {
+          width: 100%;
+          max-width: 400px;
+        }
+        .step-content {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+        .title {
+          font-size: 28px;
+          font-weight: 800;
+          color: var(--navy);
+          letter-spacing: -0.5px;
+        }
+        .subtitle {
+          color: var(--text-muted);
+          font-weight: 600;
+          font-size: 15px;
+          line-height: 1.5;
+        }
+        .form {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .input-group {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+        .country-code {
+          position: absolute;
+          left: 16px;
+          border-right: 1px solid var(--border-light);
+          padding-right: 12px;
+          font-weight: 800;
+          color: var(--navy);
+          font-size: 15px;
+        }
+        .mobile-input {
+          width: 100%;
+          background: var(--bg-muted);
+          border: 2px solid transparent;
+          border-radius: var(--radius-lg);
+          padding: 16px 16px 16px 64px;
+          font-size: 18px;
+          font-weight: 800;
+          outline: none;
+          transition: var(--transition-fast);
+        }
+        .mobile-input:focus {
+          border-color: rgba(75, 112, 245, 0.2);
+          background: white;
+          box-shadow: 0 4px 12px rgba(75, 112, 245, 0.05);
+        }
+        .submit-btn {
+          width: 100%;
+          height: 56px;
+          background: var(--primary);
+          color: white;
+          border-radius: var(--radius-lg);
+          font-weight: 800;
+          font-size: 15px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          box-shadow: 0 8px 24px rgba(75, 112, 245, 0.25);
+          transition: var(--transition-fast);
+        }
+        .submit-btn:disabled {
+          opacity: 0.5;
+          box-shadow: none;
+        }
+        .submit-btn:active {
+          transform: scale(0.98);
+        }
+        .error-msg {
+          color: var(--danger);
+          font-size: 12px;
+          font-weight: 700;
+          text-align: left;
+        }
+        .error-msg.center { text-align: center; }
+        
+        .otp-form {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+        .otp-inputs {
+          display: flex;
+          justify-content: space-between;
+          gap: 8px;
+        }
+        .otp-field {
+          width: 48px;
+          height: 56px;
+          text-align: center;
+          background: var(--bg-muted);
+          border: 2px solid transparent;
+          border-radius: var(--radius-md);
+          font-size: 20px;
+          font-weight: 800;
+          outline: none;
+          transition: var(--transition-fast);
+        }
+        .otp-field:focus {
+          border-color: var(--primary);
+          background: white;
+        }
+        .verify-btn {
+            margin-top: 8px;
+        }
+        
+        .timer-box { text-align: center; }
+        .resend-text { font-size: 14px; color: var(--text-light); font-weight: 500; }
+        .resend-btn { font-size: 14px; font-weight: 800; color: var(--primary); }
+        .resend-btn:hover { text-decoration: underline; }
+        
+        .secure-badge {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          color: var(--success);
+          opacity: 0.7;
+          margin-top: 16px;
+        }
+        .secure-badge span {
+          font-size: 10px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+        .terms {
+          font-size: 11px;
+          text-align: center;
+          color: var(--text-light);
+          line-height: 1.6;
+          padding: 0 20px;
+        }
+        .terms span { color: var(--primary); text-decoration: underline; font-weight: 600; }
+        
+        .spinner { animation: spin 0.8s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+      `}</style>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Loading auth...</div>}>
+      <LoginContent />
+    </Suspense>
+  )
+}
