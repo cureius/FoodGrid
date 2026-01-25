@@ -17,4 +17,9 @@ public class EmployeeRepository implements PanacheRepositoryBase<Employee, Strin
     return find("email = ?1 and outletId = ?2 and status = ?3", email, outletId, Employee.EmployeeStatus.ACTIVE)
       .firstResultOptional();
   }
+
+  public Optional<Employee> findByEmail(String email) {
+    return find("email = ?1 and status = ?2", email, Employee.EmployeeStatus.ACTIVE)
+      .firstResultOptional();
+  }
 }

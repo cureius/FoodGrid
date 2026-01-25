@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/ui/Navbar';
+import { StaffProvider } from '@/contexts/StaffContext';
 
 export default function StaffRootLayout({
   children,
@@ -13,7 +14,7 @@ export default function StaffRootLayout({
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   
   // Don't require auth on login page
-  const isLoginPage = pathname === '/staff-login' || pathname === '/staff/staff-login';
+  const isLoginPage = pathname === '/staff-login';
 
   useEffect(() => {
     if (isLoginPage) {
@@ -67,14 +68,16 @@ export default function StaffRootLayout({
     );
   }
 
-  // Login page doesn't need the navbar layout
+  // Login page doesn't need the navbar layout or context
   if (isLoginPage) {
     return <>{children}</>;
   }
 
-  // All other pages get the navbar layout
-  return <>
-    <Navbar/>
-    {children}
-  </>;
+  // All other pages get the navbar layout and staff context
+  return (
+    <StaffProvider>
+      <Navbar/>
+      {children}
+    </StaffProvider>
+  );
 }

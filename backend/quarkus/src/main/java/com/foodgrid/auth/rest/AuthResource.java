@@ -18,12 +18,12 @@ public class AuthResource {
   @Path("/login-context")
   public LoginContextResponse getLoginContext(
     @QueryParam("deviceId") String deviceId,
-    @QueryParam("outletId") String outletId
+    @QueryParam("email") String email
   ) {
     if (deviceId == null || deviceId.isBlank()) {
       throw new BadRequestException("deviceId is required");
     }
-    return authService.getLoginContext(deviceId, outletId);
+    return authService.getLoginContext(deviceId, email);
   }
 
   @POST

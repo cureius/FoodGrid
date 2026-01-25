@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getLoginContext, requestPinOtp, verifyPinOtp, loginWithPin } from "@/lib/api/auth";
+import { getLoginContext, loginWithEmail } from "@/lib/api/auth";
 import { Mail, Lock, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 
 // Helper to get deviceId from localStorage or use default
@@ -22,9 +22,6 @@ export default function StaffLoginPage() {
   const [email, setEmail] = useState("");
   const [pin, setPin] = useState("");
   const [deviceId, setDeviceId] = useState("");
-  const [outletId, setOutletId] = useState<string | null>(null);
-  const [challengeId, setChallengeId] = useState<string | null>(null);
-  const [employeeId, setEmployeeId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -41,13 +38,11 @@ export default function StaffLoginPage() {
     const devId = getDeviceId();
     setDeviceId(devId);
 
-    // Try to get login context to validate device
+    // Try to get login context to validate device (optional)
     async function initDevice() {
       try {
-        const context = await getLoginContext(devId);
-        if (context?.outlet?.id) {
-          setOutletId(context.outlet.id);
-        }
+        await getLoginContext(devId, email);
+        // Device is configured
       } catch (err) {
         console.warn("Could not initialize device context:", err);
         // Continue anyway - device will be auto-registered on first login
@@ -63,58 +58,27 @@ export default function StaffLoginPage() {
       return;
     }
 
-    try {
-      setLoading(true);
-      setError(null);
-      setSuccess(null);
-
-      // Get login context to get outlet and employee list
-      const context = await getLoginContext(deviceId);
-      if (!context?.outlet?.id) {
-        setError("Device not configured. Please contact administrator.");
-        return;
-      }
-
-      setOutletId(context.outlet.id);
-
-      // Request PIN OTP to validate email exists for this outlet
-      // This will send an OTP email, but we'll use it to validate email exists
-      try {
-        const otpResponse = await requestPinOtp({
-          email: email.trim(),
-          deviceId: deviceId,
-        });
-
-        if (otpResponse?.challengeId) {
-          setChallengeId(otpResponse.challengeId);
-          setSuccess(`Email verified. Please enter your 6-digit PIN.`);
-          setStep("pin");
-        } else {
-          setError("Failed to verify email. Please try again.");
-        }
-      } catch (otpErr: any) {
-        // If OTP request fails, email might not exist
-        setError(otpErr?.message || "Invalid email or employee not found for this device");
-        console.error("Email verification failed:", otpErr);
-      }
-    } catch (err: any) {
-      setError(err?.message || "Failed to initialize device. Please try again.");
-      console.error("Device initialization failed:", err);
-    } finally {
-      setLoading(false);
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setError("Please enter a valid email address");
+      return;
     }
+
+    // Move to PIN step
+    setError(null);
+    setSuccess(null);
+    console.log("🚀 ~ handleEmailSubmit ~ email:", email)
+    setStep("pin");
   };
 
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pin || pin.length !== 6 || !deviceId) {
+    console.log("🚀 ~ handlePinSubmit ~ deviceId:", deviceId)
+    console.log("🚀 ~ handlePinSubmit ~ email:", email)
+    console.log("🚀 ~ handlePinSubmit ~ pin:", pin)
+    if (!pin || pin.length !== 6 || !deviceId || !email.trim()) {
       setError("Please enter a valid 6-digit PIN");
-      return;
-    }
-
-    if (!challengeId || !outletId) {
-      setError("Session expired. Please start over.");
-      setStep("email");
       return;
     }
 
@@ -123,50 +87,47 @@ export default function StaffLoginPage() {
       setError(null);
       setSuccess(null);
 
-      // Get login context to get list of employees
-      const context = await getLoginContext(deviceId);
-      if (!context?.employees || context.employees.length === 0) {
-        setError("No employees found for this device. Please contact administrator.");
-        return;
-      }
+      // Use loginWithEmail which handles the entire flow
+      const loginResponse = await loginWithEmail({
+        email: email.trim(),
+        pin: pin,
+        deviceId: deviceId,
+      });
 
-      // Try PIN login for each employee until we find a match
-      // This is necessary because we can't get employeeId from email directly
-      let loginSuccess = false;
-      let lastError: any = null;
-
-      for (const employee of context.employees) {
-        try {
-          const loginResponse = await loginWithPin({
-            employeeId: employee.id,
-            pin: pin,
-            deviceId: deviceId,
-          });
-
-          if (loginResponse?.accessToken) {
-            // Success! Store tokens and redirect
-            localStorage.setItem("fg_staff_access_token", loginResponse.accessToken);
-            if (loginResponse.refreshToken) {
-              localStorage.setItem("fg_staff_refresh_token", loginResponse.refreshToken);
-            }
-            loginSuccess = true;
-            router.push("/staff/dashboard");
-            return;
-          }
-        } catch (pinErr: any) {
-          // Continue trying other employees
-          lastError = pinErr;
-          continue;
+      if (loginResponse?.accessToken) {
+        // Success! Store tokens and redirect
+        localStorage.setItem("fg_staff_access_token", loginResponse.accessToken);
+        if (loginResponse.refreshToken) {
+          localStorage.setItem("fg_staff_refresh_token", loginResponse.refreshToken);
         }
-      }
-
-      // If we get here, PIN didn't match any employee
-      if (!loginSuccess) {
-        setError(lastError?.message || "Invalid PIN. Please try again.");
+        setSuccess("Login successful! Redirecting...");
+        
+        // Small delay to show success message
+        setTimeout(() => {
+          router.push("/staff/dashboard");
+          router.refresh();
+        }, 500);
+      } else {
+        setError("Login failed. Please try again.");
       }
     } catch (err: any) {
-      setError(err?.message || "Login failed. Please try again.");
-      console.error("PIN login failed:", err);
+      const errorMessage = err?.message || "Login failed. Please check your credentials.";
+      setError(errorMessage);
+      console.error("Login failed:", err);
+      
+      // If it's a device registration error, stay on PIN step but show clear message
+      if (errorMessage.includes("Device not registered") || errorMessage.includes("device")) {
+        // Keep on PIN step but show error
+        return;
+      }
+      
+      // If it's an email validation error, go back to email step
+      if (errorMessage.includes("email") || errorMessage.includes("not found") || errorMessage.includes("Invalid email")) {
+        setTimeout(() => {
+          setStep("email");
+          setPin("");
+        }, 2000);
+      }
     } finally {
       setLoading(false);
     }
@@ -177,7 +138,6 @@ export default function StaffLoginPage() {
     setPin("");
     setError(null);
     setSuccess(null);
-    setChallengeId(null);
   };
 
   return (
@@ -276,6 +236,7 @@ export default function StaffLoginPage() {
           <form onSubmit={handleEmailSubmit}>
             <div style={{ marginBottom: 20 }}>
               <label
+                htmlFor="email-input"
                 style={{
                   display: "block",
                   fontSize: 13,
@@ -299,6 +260,7 @@ export default function StaffLoginPage() {
                   }}
                 />
                 <input
+                  id="email-input"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -385,6 +347,7 @@ export default function StaffLoginPage() {
           <form onSubmit={handlePinSubmit}>
             <div style={{ marginBottom: 20 }}>
               <label
+                htmlFor="pin-input"
                 style={{
                   display: "block",
                   fontSize: 13,
@@ -408,6 +371,7 @@ export default function StaffLoginPage() {
                   }}
                 />
                 <input
+                  id="pin-input"
                   type="password"
                   value={pin}
                   onChange={(e) => {
@@ -559,6 +523,9 @@ export default function StaffLoginPage() {
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+          animation: spin 1s linear infinite;
         }
       `}</style>
     </div>

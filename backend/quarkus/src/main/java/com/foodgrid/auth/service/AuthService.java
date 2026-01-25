@@ -39,14 +39,16 @@ public class AuthService {
   @Inject AuditLogService audit;
 
   @Transactional
-  public LoginContextResponse getLoginContext(final String deviceCode, final String outletId) {
+  public LoginContextResponse getLoginContext(final String deviceCode, final String email) {
+    // Find employee by email to determine outlet
+    final Employee employee = employeeRepository.findByEmail(email)
+      .orElseThrow(() -> new NotFoundException("Employee not found with email: " + email));
+    
+    final String outletId = employee.outletId;
+
     final PosDevice device = deviceRepository.findByDeviceCode(deviceCode)
       .orElseGet(() -> {
-        if (outletId == null || outletId.isBlank()) {
-          throw new NotFoundException("Unknown device");
-        }
-
-        // Validate outlet exists, then auto-register device
+        // Auto-register device for the employee's outlet
         outletRepository.findByIdOptional(outletId)
           .orElseThrow(() -> new NotFoundException("Outlet not found"));
 
@@ -59,14 +61,19 @@ public class AuthService {
         return d;
       });
 
-    final Outlet outlet = outletRepository.findByIdOptional(device.outletId)
+    // Ensure device is associated with the employee's outlet
+    if (!device.outletId.equals(outletId)) {
+      throw new ForbiddenException("Device is registered to a different outlet");
+    }
+
+    final Outlet outlet = outletRepository.findByIdOptional(outletId)
       .orElseThrow(() -> new NotFoundException("Outlet not found"));
 
     final ZoneId zone = ZoneId.of(outlet.timezone);
 
-    final List<EmployeeListItem> employees = employeeRepository.listByOutlet(device.outletId).stream()
+    final List<EmployeeListItem> employees = employeeRepository.listByOutlet(outletId).stream()
       .map(e -> {
-        final var schedule = scheduleRepository.findTodaySchedule(e.id, device.outletId).orElse(null);
+        final var schedule = scheduleRepository.findTodaySchedule(e.id, outletId).orElse(null);
         ShiftTimeRange tr = null;
         if (schedule != null) {
           final String startTime = schedule.startAt.toInstant().atZone(zone).toLocalTime().toString();
@@ -134,18 +141,26 @@ public class AuthService {
 
   @Transactional
   public PinOtpRequestResponse requestPinOtp(final PinOtpRequest request) {
+    // Find employee by email to determine outlet
+    final Employee employee = employeeRepository.findByEmail(request.email())
+      .orElseThrow(() -> new NotFoundException("Employee not found with email: " + request.email()));
+    
+    final String outletId = employee.outletId;
+
     final PosDevice device = deviceRepository.findByDeviceCode(request.deviceId())
       .orElseThrow(() -> new NotFoundException("Unknown device"));
 
-    final Employee employee = employeeRepository.findByEmailAndOutlet(request.email(), device.outletId)
-      .orElseThrow(() -> new NotFoundException("Employee not found"));
+    // Ensure device is associated with the employee's outlet
+    if (!device.outletId.equals(outletId)) {
+      throw new ForbiddenException("Device is registered to a different outlet");
+    }
 
     final String otp = otpService.generateOtp(PIN_LENGTH);
 
     final PinOtpChallenge ch = new PinOtpChallenge();
     ch.id = com.foodgrid.common.util.Ids.uuid();
     ch.employeeId = employee.id;
-    ch.outletId = device.outletId;
+    ch.outletId = outletId;
     ch.otpHash = pinHasher.hash(otp);
     ch.expiresAt = java.util.Date.from(Instant.now().plus(OTP_TTL));
     ch.createdAt = java.util.Date.from(Instant.now());
