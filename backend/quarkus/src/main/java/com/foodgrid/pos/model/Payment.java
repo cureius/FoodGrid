@@ -16,10 +16,6 @@ public class Payment extends PanacheEntityBase {
   @Column(name = "order_id", nullable = false, length = 36)
   public String orderId;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "order_id", insertable = false, updatable = false)
-  public Order order;
-
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   public Method method;

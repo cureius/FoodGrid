@@ -297,7 +297,19 @@ public class OrderPosService {
   public void delete(final String orderId) {
     final Order o = getOrderForOutlet(orderId);
 
-    // Delete the order - cascade delete will automatically delete related entities
+    // Delete related order items first
+    final List<OrderItem> items = orderItemRepository.listByOrder(o.id);
+    for (final OrderItem item : items) {
+      orderItemRepository.delete(item);
+    }
+
+    // Delete related payments
+    final List<Payment> payments = paymentRepository.listByOrder(o.id);
+    for (final Payment payment : payments) {
+      paymentRepository.delete(payment);
+    }
+
+    // Delete the order
     orderRepository.delete(o);
 
     audit.record("ORDER_DELETED", o.outletId, "Order", o.id, "Order deleted");

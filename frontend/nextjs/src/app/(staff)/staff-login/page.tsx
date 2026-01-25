@@ -1,25 +1,566 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { getLoginContext, requestPinOtp, verifyPinOtp, loginWithPin } from "@/lib/api/auth";
+import { Mail, Lock, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 
-export default function Page() {
-  const [employeeCode, setEmployeeCode] = useState("");
+// Helper to get deviceId from localStorage or use default
+function getDeviceId(): string {
+  if (typeof window === "undefined") return "";
+  const stored = localStorage.getItem("fg_staff_device_id");
+  if (stored) return stored;
+  // Generate a default device ID based on browser/device
+  const defaultId = `web-${typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 20).replace(/\s/g, "-") : "browser"}-${Date.now()}`;
+  localStorage.setItem("fg_staff_device_id", defaultId);
+  return defaultId;
+}
+
+export default function StaffLoginPage() {
+  const router = useRouter();
+  const [step, setStep] = useState<"email" | "pin">("email");
+  const [email, setEmail] = useState("");
+  const [pin, setPin] = useState("");
+  const [deviceId, setDeviceId] = useState("");
+  const [outletId, setOutletId] = useState<string | null>(null);
+  const [challengeId, setChallengeId] = useState<string | null>(null);
+  const [employeeId, setEmployeeId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check if already logged in
+    const token = typeof window !== "undefined" ? localStorage.getItem("fg_staff_access_token") : null;
+    if (token) {
+      router.push("/staff/dashboard");
+      return;
+    }
+
+    // Initialize device ID
+    const devId = getDeviceId();
+    setDeviceId(devId);
+
+    // Try to get login context to validate device
+    async function initDevice() {
+      try {
+        const context = await getLoginContext(devId);
+        if (context?.outlet?.id) {
+          setOutletId(context.outlet.id);
+        }
+      } catch (err) {
+        console.warn("Could not initialize device context:", err);
+        // Continue anyway - device will be auto-registered on first login
+      }
+    }
+    initDevice();
+  }, [router]);
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !deviceId) {
+      setError("Email is required");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+
+      // Get login context to get outlet and employee list
+      const context = await getLoginContext(deviceId);
+      if (!context?.outlet?.id) {
+        setError("Device not configured. Please contact administrator.");
+        return;
+      }
+
+      setOutletId(context.outlet.id);
+
+      // Request PIN OTP to validate email exists for this outlet
+      // This will send an OTP email, but we'll use it to validate email exists
+      try {
+        const otpResponse = await requestPinOtp({
+          email: email.trim(),
+          deviceId: deviceId,
+        });
+
+        if (otpResponse?.challengeId) {
+          setChallengeId(otpResponse.challengeId);
+          setSuccess(`Email verified. Please enter your 6-digit PIN.`);
+          setStep("pin");
+        } else {
+          setError("Failed to verify email. Please try again.");
+        }
+      } catch (otpErr: any) {
+        // If OTP request fails, email might not exist
+        setError(otpErr?.message || "Invalid email or employee not found for this device");
+        console.error("Email verification failed:", otpErr);
+      }
+    } catch (err: any) {
+      setError(err?.message || "Failed to initialize device. Please try again.");
+      console.error("Device initialization failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePinSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pin || pin.length !== 6 || !deviceId) {
+      setError("Please enter a valid 6-digit PIN");
+      return;
+    }
+
+    if (!challengeId || !outletId) {
+      setError("Session expired. Please start over.");
+      setStep("email");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+
+      // Get login context to get list of employees
+      const context = await getLoginContext(deviceId);
+      if (!context?.employees || context.employees.length === 0) {
+        setError("No employees found for this device. Please contact administrator.");
+        return;
+      }
+
+      // Try PIN login for each employee until we find a match
+      // This is necessary because we can't get employeeId from email directly
+      let loginSuccess = false;
+      let lastError: any = null;
+
+      for (const employee of context.employees) {
+        try {
+          const loginResponse = await loginWithPin({
+            employeeId: employee.id,
+            pin: pin,
+            deviceId: deviceId,
+          });
+
+          if (loginResponse?.accessToken) {
+            // Success! Store tokens and redirect
+            localStorage.setItem("fg_staff_access_token", loginResponse.accessToken);
+            if (loginResponse.refreshToken) {
+              localStorage.setItem("fg_staff_refresh_token", loginResponse.refreshToken);
+            }
+            loginSuccess = true;
+            router.push("/staff/dashboard");
+            return;
+          }
+        } catch (pinErr: any) {
+          // Continue trying other employees
+          lastError = pinErr;
+          continue;
+        }
+      }
+
+      // If we get here, PIN didn't match any employee
+      if (!loginSuccess) {
+        setError(lastError?.message || "Invalid PIN. Please try again.");
+      }
+    } catch (err: any) {
+      setError(err?.message || "Login failed. Please try again.");
+      console.error("PIN login failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBack = () => {
+    setStep("email");
+    setPin("");
+    setError(null);
+    setSuccess(null);
+    setChallengeId(null);
+  };
 
   return (
-    <div style={{ padding: 24, maxWidth: 480 }}>
-      <h1>Staff Login</h1>
-      <div style={{ color: "#666", marginBottom: 12 }}>
-        Staff login flow is separate from tenant-admin and client-admin.
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        padding: "20px",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "440px",
+          background: "white",
+          borderRadius: 24,
+          boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+          padding: "40px",
+        }}
+      >
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: 16,
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 16px",
+              boxShadow: "0 8px 24px rgba(102, 126, 234, 0.4)",
+            }}
+          >
+            <Lock size={32} style={{ color: "white" }} />
+          </div>
+          <h1
+            style={{
+              fontSize: 28,
+              fontWeight: 800,
+              margin: "0 0 8px",
+              color: "#1e293b",
+            }}
+          >
+            Staff Login
+          </h1>
+          <p style={{ fontSize: 14, color: "#64748b", margin: 0 }}>
+            {step === "email" ? "Enter your email to continue" : "Enter your 6-digit PIN"}
+          </p>
+        </div>
+
+        {error && (
+          <div
+            style={{
+              padding: "12px 16px",
+              borderRadius: 12,
+              background: "rgba(239, 68, 68, 0.1)",
+              border: "1px solid rgba(239, 68, 68, 0.2)",
+              color: "#dc2626",
+              marginBottom: 20,
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              fontSize: 14,
+            }}
+          >
+            <AlertCircle size={18} />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {success && (
+          <div
+            style={{
+              padding: "12px 16px",
+              borderRadius: 12,
+              background: "rgba(16, 185, 129, 0.1)",
+              border: "1px solid rgba(16, 185, 129, 0.2)",
+              color: "#10b981",
+              marginBottom: 20,
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              fontSize: 14,
+            }}
+          >
+            <CheckCircle2 size={18} />
+            <span>{success}</span>
+          </div>
+        )}
+
+        {step === "email" ? (
+          <form onSubmit={handleEmailSubmit}>
+            <div style={{ marginBottom: 20 }}>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#64748b",
+                  marginBottom: 8,
+                }}
+              >
+                Email Address
+              </label>
+              <div style={{ position: "relative" }}>
+                <Mail
+                  size={18}
+                  style={{
+                    position: "absolute",
+                    left: 16,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "#94a3b8",
+                    pointerEvents: "none",
+                  }}
+                />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="employee@example.com"
+                  required
+                  disabled={loading}
+                  style={{
+                    width: "100%",
+                    padding: "14px 16px 14px 44px",
+                    borderRadius: 12,
+                    border: "1px solid #e2e8f0",
+                    background: "#f8fafc",
+                    fontSize: 14,
+                    outline: "none",
+                    boxSizing: "border-box",
+                    transition: "all 0.2s ease",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = "#667eea";
+                    e.currentTarget.style.background = "white";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "#e2e8f0";
+                    e.currentTarget.style.background = "#f8fafc";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || !email.trim()}
+              style={{
+                width: "100%",
+                height: 52,
+                borderRadius: 12,
+                background:
+                  loading || !email.trim()
+                    ? "#e2e8f0"
+                    : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                color: loading || !email.trim() ? "#94a3b8" : "white",
+                fontWeight: 700,
+                fontSize: 15,
+                border: "none",
+                cursor: loading || !email.trim() ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                boxShadow:
+                  loading || !email.trim()
+                    ? "none"
+                    : "0 4px 14px rgba(102, 126, 234, 0.35)",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                if (!loading && email.trim()) {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 6px 20px rgba(102, 126, 234, 0.45)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow =
+                  loading || !email.trim()
+                    ? "none"
+                    : "0 4px 14px rgba(102, 126, 234, 0.35)";
+              }}
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" /> Verifying...
+                </>
+              ) : (
+                <>
+                  Continue <Lock size={18} />
+                </>
+              )}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handlePinSubmit}>
+            <div style={{ marginBottom: 20 }}>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#64748b",
+                  marginBottom: 8,
+                }}
+              >
+                6-Digit PIN
+              </label>
+              <div style={{ position: "relative" }}>
+                <Lock
+                  size={18}
+                  style={{
+                    position: "absolute",
+                    left: 16,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "#94a3b8",
+                    pointerEvents: "none",
+                  }}
+                />
+                <input
+                  type="password"
+                  value={pin}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
+                    setPin(value);
+                  }}
+                  placeholder="000000"
+                  required
+                  disabled={loading}
+                  maxLength={6}
+                  style={{
+                    width: "100%",
+                    padding: "14px 16px 14px 44px",
+                    borderRadius: 12,
+                    border: "1px solid #e2e8f0",
+                    background: "#f8fafc",
+                    fontSize: 18,
+                    letterSpacing: "8px",
+                    textAlign: "center",
+                    fontFamily: "monospace",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    transition: "all 0.2s ease",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = "#667eea";
+                    e.currentTarget.style.background = "white";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "#e2e8f0";
+                    e.currentTarget.style.background = "#f8fafc";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                />
+              </div>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "#64748b",
+                  marginTop: 8,
+                  textAlign: "center",
+                }}
+              >
+                Logging in as: <strong>{email}</strong>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                type="button"
+                onClick={handleBack}
+                disabled={loading}
+                style={{
+                  flex: 1,
+                  height: 52,
+                  borderRadius: 12,
+                  border: "1px solid #e2e8f0",
+                  background: "white",
+                  color: "#64748b",
+                  fontWeight: 600,
+                  fontSize: 14,
+                  cursor: loading ? "not-allowed" : "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading) {
+                    e.currentTarget.style.background = "#f8fafc";
+                    e.currentTarget.style.borderColor = "#cbd5e1";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "white";
+                  e.currentTarget.style.borderColor = "#e2e8f0";
+                }}
+              >
+                Back
+              </button>
+              <button
+                type="submit"
+                disabled={loading || pin.length !== 6}
+                style={{
+                  flex: 2,
+                  height: 52,
+                  borderRadius: 12,
+                  background:
+                    loading || pin.length !== 6
+                      ? "#e2e8f0"
+                      : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  color: loading || pin.length !== 6 ? "#94a3b8" : "white",
+                  fontWeight: 700,
+                  fontSize: 15,
+                  border: "none",
+                  cursor: loading || pin.length !== 6 ? "not-allowed" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 10,
+                  boxShadow:
+                    loading || pin.length !== 6
+                      ? "none"
+                      : "0 4px 14px rgba(102, 126, 234, 0.35)",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading && pin.length === 6) {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(102, 126, 234, 0.45)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow =
+                    loading || pin.length !== 6
+                      ? "none"
+                      : "0 4px 14px rgba(102, 126, 234, 0.35)";
+                }}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 size={20} className="animate-spin" /> Logging in...
+                  </>
+                ) : (
+                  <>
+                    Login <Lock size={18} />
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        )}
+
+        <div
+          style={{
+            marginTop: 24,
+            paddingTop: 24,
+            borderTop: "1px solid #f1f5f9",
+            textAlign: "center",
+          }}
+        >
+          <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>
+            Device ID: <code style={{ fontSize: 11 }}>{deviceId.slice(0, 20)}...</code>
+          </p>
+        </div>
       </div>
-      <input
-        placeholder="Employee code / email"
-        value={employeeCode}
-        onChange={(e) => setEmployeeCode(e.target.value)}
-        style={{ width: "100%", padding: 12 }}
-      />
-      <button style={{ marginTop: 12, padding: "10px 14px" }} disabled>
-        Continue
-      </button>
+
+      {/* Global Styles */}
+      <style jsx global>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
