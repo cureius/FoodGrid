@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import styles from './TopNav.module.css';
 import { cn } from '@/lib/utils';
+import Logo from '../Logo';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
@@ -34,7 +35,9 @@ const TopNav = () => {
         <div className={styles.logoIcon}>
           <Utensils size={20} />
         </div>
-        <span>CloudPos</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <Logo size={20} />
+        <span>FoodGrid</span>
       </div>
 
       <div className={styles.navCenter}>

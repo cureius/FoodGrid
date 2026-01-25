@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/ui/Navbar';
 import { StaffProvider } from '@/contexts/StaffContext';
+import { OutletProvider } from '@/contexts/OutletContext';
 
 export default function StaffRootLayout({
   children,
@@ -12,7 +13,7 @@ export default function StaffRootLayout({
 }) {
   const pathname = usePathname();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
-  
+
   // Don't require auth on login page
   const isLoginPage = pathname === '/staff-login';
 
@@ -39,32 +40,34 @@ export default function StaffRootLayout({
   // Show nothing while checking auth
   if (isAuthorized === null) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: '#f8fafc',
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: 40,
-            height: 40,
-            border: '4px solid #e2e8f0',
-            borderTopColor: '#8b5cf6',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 16px',
-          }} />
-          <p style={{ color: '#64748b', fontSize: 14 }}>Loading...</p>
-        </div>
-        <style jsx>{`
+      <OutletProvider>
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#f8fafc',
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{
+              width: 40,
+              height: 40,
+              border: '4px solid #e2e8f0',
+              borderTopColor: '#8b5cf6',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 16px',
+            }} />
+            <p style={{ color: '#64748b', fontSize: 14 }}>Loading...</p>
+          </div>
+          <style jsx>{`
           @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
           }
         `}</style>
-      </div>
+        </div>
+      </OutletProvider>
     );
   }
 
@@ -75,9 +78,11 @@ export default function StaffRootLayout({
 
   // All other pages get the navbar layout and staff context
   return (
-    <StaffProvider>
-      <Navbar/>
-      {children}
-    </StaffProvider>
+    <OutletProvider>
+      <StaffProvider>
+        <Navbar />
+        {children}
+      </StaffProvider>
+    </OutletProvider>
   );
 }

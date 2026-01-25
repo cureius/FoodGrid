@@ -4,9 +4,9 @@ import { LayoutDashboard, ShoppingCart, Tablet, Calendar, History, Box, Bell, Ch
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { COLORS } from "@/lib/constants";
+import Logo from "../Logo";
 
 const Nav = styled.nav`
-  position: fixed;
   top: 0;
   left: 0;
   right: 0;
@@ -16,7 +16,6 @@ const Nav = styled.nav`
   padding: 16px 0;
   background: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
 
   @media (max-width: 640px) {
     /* tighter navbar for phones */
@@ -172,10 +171,7 @@ export const Navbar = () => {
     <Nav>
       <LeftWrap>
         <Brand>
-          <div style={{ color: COLORS.primary }}>
-            <Box size={24} fill="currentColor" />
-          </div>
-          <span>CloudPos</span>
+          <Logo size={34} />
         </Brand>
 
         <Tabs aria-label="Primary navigation">

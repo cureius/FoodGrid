@@ -1,7 +1,7 @@
 export const COLORS = {
   bg: "#F8F9FD",
   white: "#FFFFFF",
-  primary: "#4B8BFF", // The signature CloudPos Blue
+  primary: "#4B8BFF",
   textMain: "#111827",
   textMuted: "#9CA3AF",
   border: "#c0bfbf87",
