@@ -86,6 +86,12 @@
       <artifactId>s3</artifactId>
       <version>2.29.51</version>
     </dependency>
+
+    <!-- Quarkus Mail for SMTP support -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-mailer</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

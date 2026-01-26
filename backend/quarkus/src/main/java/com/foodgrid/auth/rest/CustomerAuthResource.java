@@ -26,9 +26,23 @@ public class CustomerAuthResource {
     }
 
     @POST
+    @Path("/request-email-otp")
+    @Operation(summary = "Request Email OTP", description = "Send a 6-digit OTP to the customer email address")
+    public void requestEmailOtp(@Valid RequestEmailOtpRequest request) {
+        customerAuthService.requestEmailOtp(request);
+    }
+
+    @POST
     @Path("/verify-otp")
     @Operation(summary = "Verify OTP", description = "Verify OTP and return customer access token")
     public CustomerLoginResponse verifyOtp(@Valid VerifyOtpRequest request) {
         return customerAuthService.verifyOtp(request);
+    }
+
+    @POST
+    @Path("/verify-email-otp")
+    @Operation(summary = "Verify Email OTP", description = "Verify Email OTP and return customer access token")
+    public CustomerLoginResponse verifyEmailOtp(@Valid VerifyEmailOtpRequest request) {
+        return customerAuthService.verifyEmailOtp(request);
     }
 }

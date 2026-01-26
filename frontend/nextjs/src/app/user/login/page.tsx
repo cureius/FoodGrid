@@ -14,8 +14,10 @@ function LoginContent() {
   const login = useAuthStore((state) => state.login);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   
-  const [step, setStep] = useState<'mobile' | 'otp'>('mobile');
+  const [step, setStep] = useState<'identifier' | 'otp'>('identifier');
+  const [loginMode, setLoginMode] = useState<'mobile' | 'email'>('mobile');
   const [mobile, setMobile] = useState('');
+  const [email, setEmail] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,15 +41,23 @@ function LoginContent() {
 
   const handleSendOtp = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (mobile.length !== 10) {
+    if (loginMode === 'mobile' && mobile.length !== 10) {
       setError('Please enter a valid 10-digit mobile number');
+      return;
+    }
+    if (loginMode === 'email' && !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+      setError('Please enter a valid email address');
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
-      await customerAuthApi.requestOtp(mobile);
+      if (loginMode === 'mobile') {
+        await customerAuthApi.requestOtp(mobile);
+      } else {
+        await customerAuthApi.requestEmailOtp(email);
+      }
       setStep('otp');
       setTimer(30);
     } catch (err: any) {
@@ -64,7 +74,12 @@ function LoginContent() {
     try {
       setLoading(true);
       setError(null);
-      const res = await customerAuthApi.verifyOtp(mobile, fullOtp);
+      let res;
+      if (loginMode === 'mobile') {
+        res = await customerAuthApi.verifyOtp(mobile, fullOtp);
+      } else {
+        res = await customerAuthApi.verifyEmailOtp(email, fullOtp);
+      }
       login(res.token, res.profile);
       router.replace(redirect);
     } catch (err: any) {
@@ -77,8 +92,6 @@ function LoginContent() {
   };
 
   const handleOtpChange = (index: number, value: string) => {
-    console.log("🚀 ~ handleOtpChange ~ value:", value)
-    console.log("🚀 ~ handleOtpChange ~ index:", index)
     if (!/^\d*$/.test(value)) return;
     
     const newOtp = [...otp];
@@ -118,31 +131,59 @@ function LoginContent() {
             animate={{ opacity: 1, y: 0 }}
             className="login-card"
         >
-          {step === 'mobile' ? (
+          {step === 'identifier' ? (
             <div className="step-content">
               <h1 className="title">Login / Signup</h1>
-              <p className="subtitle">Enter your mobile number to enjoy the best deals and track your orders.</p>
+              <p className="subtitle">Enter your {loginMode === 'mobile' ? 'mobile number' : 'email'} to enjoy the best deals and track your orders.</p>
 
               <form onSubmit={handleSendOtp} className="form">
-                <div className="input-group">
-                  <div className="country-code">
-                    <span>+91</span>
+                <div className="mode-toggle">
+                  <button 
+                    type="button"
+                    onClick={() => { setLoginMode('mobile'); setError(null); }}
+                    className={`mode-btn ${loginMode === 'mobile' ? 'active' : ''}`}
+                  >
+                    Mobile
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => { setLoginMode('email'); setError(null); }}
+                    className={`mode-btn ${loginMode === 'email' ? 'active' : ''}`}
+                  >
+                    Email
+                  </button>
+                </div>
+
+                {loginMode === 'mobile' ? (
+                  <div className="input-group">
+                    <div className="country-code">
+                      <span>+91</span>
+                    </div>
+                    <input
+                      type="tel"
+                      value={mobile}
+                      onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      placeholder="Mobile Number"
+                      className="login-input with-prefix"
+                      autoFocus
+                    />
                   </div>
+                ) : (
                   <input
-                    type="tel"
-                    value={mobile}
-                    onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    placeholder="Mobile Number"
-                    className="mobile-input"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email Address"
+                    className="login-input"
                     autoFocus
                   />
-                </div>
+                )}
 
                 {error && <p className="error-msg">{error}</p>}
 
                 <button
                   type="submit"
-                  disabled={loading || mobile.length !== 10}
+                  disabled={loading || (loginMode === 'mobile' ? mobile.length !== 10 : !email)}
                   className="submit-btn"
                 >
                   {loading ? <Loader2 className="spinner" /> : 'GET OTP'}
@@ -158,7 +199,13 @@ function LoginContent() {
             <div className="step-content">
               <div className="otp-header">
                   <h1 className="title">Verify OTP</h1>
-                  <p className="subtitle">Sent to <strong>+91 {mobile}</strong></p>
+                  <p className="subtitle">Sent to <strong>{loginMode === 'mobile' ? `+91 ${mobile}` : email}</strong></p>
+                  <button 
+                    onClick={() => setStep('identifier')}
+                    className="change-id-btn"
+                  >
+                    Change {loginMode === 'mobile' ? 'Number' : 'Email'}
+                  </button>
               </div>
 
               <form 
@@ -172,7 +219,7 @@ function LoginContent() {
                   {otp.map((digit, i) => (
                     <input
                       key={i}
-                      ref={(el) => (otpRefs.current[i] = el)}
+                      ref={(el) => { otpRefs.current[i] = el; }}
                       type="tel"
                       maxLength={1}
                       value={digit}
@@ -261,10 +308,34 @@ function LoginContent() {
           font-size: 15px;
           line-height: 1.5;
         }
+        .mode-toggle {
+          display: flex;
+          background: var(--bg-muted);
+          padding: 4px;
+          border-radius: var(--radius-lg);
+          gap: 4px;
+        }
+        .mode-btn {
+          flex: 1;
+          height: 48px;
+          border-radius: 12px;
+          border: none;
+          background: transparent;
+          color: var(--text-muted);
+          font-weight: 800;
+          font-size: 14px;
+          cursor: pointer;
+          transition: var(--transition-fast);
+        }
+        .mode-btn.active {
+          background: white;
+          color: var(--primary);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
         .form {
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 20px;
         }
         .input-group {
           position: relative;
@@ -279,19 +350,24 @@ function LoginContent() {
           font-weight: 800;
           color: var(--navy);
           font-size: 15px;
+          z-index: 10;
         }
-        .mobile-input {
+        .login-input {
           width: 100%;
           background: var(--bg-muted);
           border: 2px solid transparent;
           border-radius: var(--radius-lg);
-          padding: 16px 16px 16px 64px;
+          padding: 16px 20px;
           font-size: 18px;
           font-weight: 800;
           outline: none;
           transition: var(--transition-fast);
+          color: var(--navy);
         }
-        .mobile-input:focus {
+        .login-input.with-prefix {
+          padding-left: 64px;
+        }
+        .login-input:focus {
           border-color: rgba(75, 112, 245, 0.2);
           background: white;
           box-shadow: 0 4px 12px rgba(75, 112, 245, 0.05);
@@ -310,10 +386,13 @@ function LoginContent() {
           gap: 10px;
           box-shadow: 0 8px 24px rgba(75, 112, 245, 0.25);
           transition: var(--transition-fast);
+          border: none;
+          cursor: pointer;
         }
         .submit-btn:disabled {
           opacity: 0.5;
           box-shadow: none;
+          cursor: not-allowed;
         }
         .submit-btn:active {
           transform: scale(0.98);
@@ -323,8 +402,26 @@ function LoginContent() {
           font-size: 12px;
           font-weight: 700;
           text-align: left;
+          margin-top: -8px;
         }
-        .error-msg.center { text-align: center; }
+        .error-msg.center { text-align: center; margin-top: 0; }
+        
+        .otp-header {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .change-id-btn {
+            align-self: flex-start;
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--primary);
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+        .change-id-btn:hover { text-decoration: underline; }
         
         .otp-form {
           display: flex;

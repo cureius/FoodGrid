@@ -27,3 +27,14 @@ Thumbs.db
 
 # uploads
 uploads/
+frontend/nextjs/node_modules/
+frontend/nextjs/.next/
+frontend/nextjs/dist/
+frontend/nextjs/.env
+frontend/nextjs/.env.local
+
+node_modules/
+frontend/nextjs/node_modules/
+.next/
+dist/
+.env

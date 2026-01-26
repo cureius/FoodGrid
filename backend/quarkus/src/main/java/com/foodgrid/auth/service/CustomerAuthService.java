@@ -30,6 +30,8 @@ public class CustomerAuthService {
         
         CustomerOtpChallenge challenge = new CustomerOtpChallenge();
         challenge.mobileNumber = request.mobileNumber;
+        challenge.email = null; // Not used for mobile OTP
+        challenge.challengeType = "MOBILE";
         challenge.otpHash = pinHasher.hash(otp);
         challenge.expiresAt = Date.from(Instant.now().plus(OTP_TTL));
         challenge.persist();
@@ -40,8 +42,25 @@ public class CustomerAuthService {
     }
 
     @Transactional
+    public void requestEmailOtp(RequestEmailOtpRequest request) {
+        String otp = otpService.generateOtp(OTP_LENGTH);
+        
+        CustomerOtpChallenge challenge = new CustomerOtpChallenge();
+        challenge.mobileNumber = null; // Not used for email OTP
+        challenge.email = request.email;
+        challenge.challengeType = "EMAIL";
+        challenge.otpHash = pinHasher.hash(otp);
+        challenge.expiresAt = Date.from(Instant.now().plus(OTP_TTL));
+        challenge.persist();
+
+        // Send OTP via email
+        System.out.println("DEBUG: Email OTP for customer " + request.email + " is " + otp);
+        otpService.sendOtpEmail(request.email, otp);
+    }
+
+    @Transactional
     public CustomerLoginResponse verifyOtp(VerifyOtpRequest request) {
-        CustomerOtpChallenge challenge = CustomerOtpChallenge.findLatest(request.mobileNumber);
+        CustomerOtpChallenge challenge = CustomerOtpChallenge.findLatestByMobile(request.mobileNumber);
         
         if (challenge == null) {
             throw new NotFoundException("No active OTP request found for this number");
@@ -77,6 +96,52 @@ public class CustomerAuthService {
         response.profile = new CustomerProfile();
         response.profile.id = customer.id;
         response.profile.mobileNumber = customer.mobileNumber;
+        response.profile.email = customer.email;
+        response.profile.displayName = customer.displayName;
+        response.profile.avatarUrl = customer.avatarUrl;
+
+        return response;
+    }
+
+    @Transactional
+    public CustomerLoginResponse verifyEmailOtp(VerifyEmailOtpRequest request) {
+        CustomerOtpChallenge challenge = CustomerOtpChallenge.findLatestByEmail(request.email);
+        
+        if (challenge == null) {
+            throw new NotFoundException("No active OTP request found for this email");
+        }
+
+        if (challenge.expiresAt.before(new Date())) {
+            throw new BadRequestException("OTP expired");
+        }
+
+        if (!pinHasher.matches(request.otp, challenge.otpHash)) {
+            throw new ForbiddenException("Invalid OTP");
+        }
+
+        challenge.consumedAt = new Date();
+        challenge.persist();
+
+        // Find or create customer
+        Customer customer = Customer.findByEmail(request.email);
+        if (customer == null) {
+            customer = new Customer();
+            customer.email = request.email;
+            customer.displayName = "Customer " + request.email.substring(0, request.email.indexOf('@'));
+            customer.persist();
+        }
+
+        customer.lastLoginAt = new Date();
+        customer.persist();
+
+        String token = jwtIssuer.issueCustomerAccessToken(customer);
+        
+        CustomerLoginResponse response = new CustomerLoginResponse();
+        response.token = token;
+        response.profile = new CustomerProfile();
+        response.profile.id = customer.id;
+        response.profile.mobileNumber = customer.mobileNumber;
+        response.profile.email = customer.email;
         response.profile.displayName = customer.displayName;
         response.profile.avatarUrl = customer.avatarUrl;
 

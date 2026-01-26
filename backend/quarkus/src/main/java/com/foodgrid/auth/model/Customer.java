@@ -16,11 +16,11 @@ public class Customer extends PanacheEntityBase {
     @Column(unique = true, nullable = false, length = 15)
     public String mobileNumber;
 
+    @Column(unique = true, length = 255)
+    public String email;
+
     @Column(length = 100)
     public String displayName;
-
-    @Column(length = 255)
-    public String email;
 
     @Column(length = 255)
     public String avatarUrl;
@@ -42,5 +42,9 @@ public class Customer extends PanacheEntityBase {
 
     public static Customer findByMobile(String mobileNumber) {
         return find("mobileNumber", mobileNumber).firstResult();
+    }
+
+    public static Customer findByEmail(String email) {
+        return find("email", email).firstResult();
     }
 }

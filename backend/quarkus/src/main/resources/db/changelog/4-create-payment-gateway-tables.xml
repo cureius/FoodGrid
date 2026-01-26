@@ -8,6 +8,12 @@
 
   <!-- Client Payment Gateway Configuration -->
   <changeSet id="4-create-client-payment-config" author="dev">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="client_payment_configs"/>
+      </not>
+    </preConditions>
+    
     <createTable tableName="client_payment_configs">
       <column name="id" type="varchar(36)">
         <constraints primaryKey="true" nullable="false"/>
@@ -55,6 +61,12 @@
 
   <!-- Gateway Transactions Table -->
   <changeSet id="4-create-gateway-transactions" author="dev">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="gateway_transactions"/>
+      </not>
+    </preConditions>
+    
     <createTable tableName="gateway_transactions">
       <column name="id" type="varchar(36)">
         <constraints primaryKey="true" nullable="false"/>
@@ -117,6 +129,12 @@
 
   <!-- Gateway Refunds Table -->
   <changeSet id="4-create-gateway-refunds" author="dev">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="gateway_refunds"/>
+      </not>
+    </preConditions>
+    
     <createTable tableName="gateway_refunds">
       <column name="id" type="varchar(36)">
         <constraints primaryKey="true" nullable="false"/>
@@ -151,6 +169,12 @@
 
   <!-- Webhook Events Log -->
   <changeSet id="4-create-webhook-events" author="dev">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="gateway_webhook_events"/>
+      </not>
+    </preConditions>
+    
     <createTable tableName="gateway_webhook_events">
       <column name="id" type="varchar(36)">
         <constraints primaryKey="true" nullable="false"/>
