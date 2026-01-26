@@ -20,12 +20,11 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     setIsInitialized(true);
     
     // Page list that requiring auth
-    const protectedRoutes = ['/user/checkout', '/user/orders', '/user/account'];
-    const isProtected = protectedRoutes.some(route => pathname.startsWith(route));
+    const isPublic = pathname === '/user/login';
+    const isUserRoute = pathname.startsWith('/user');
 
-    if (isProtected && !isAuthenticated) {
-        // Trigger the visual sheet
-        setShowLogin(true);
+    if (isUserRoute && !isPublic && !isAuthenticated) {
+        router.replace(`/user/login?redirect=${pathname}`);
     }
   }, [isAuthenticated, pathname, router]);
 
@@ -35,9 +34,8 @@ export default function AuthGuard({ children }: AuthGuardProps) {
 
   const handleClose = () => {
     setShowLogin(false);
-    const protectedRoutes = ['/user/checkout', '/user/orders', '/user/account'];
-    if (protectedRoutes.some(route => pathname.startsWith(route))) {
-      router.replace('/user');
+    if (!isAuthenticated) {
+      router.replace('/user/login');
     }
   };
 

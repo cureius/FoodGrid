@@ -22,7 +22,7 @@ function LoginContent() {
   const [timer, setTimer] = useState(0);
   
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const redirect = searchParams.get('redirect') || '/user';
+  const redirect = searchParams.get('redirect') || '/user/outlets';
 
   useEffect(() => {
     if (isAuthenticated) {

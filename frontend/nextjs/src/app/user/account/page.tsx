@@ -1,12 +1,23 @@
-'use client';
-
+"use client";
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth';
 import { ChevronLeft, User, MapPin, CreditCard, Bell, Shield, LogOut, ChevronRight, Settings, Heart, Gift } from 'lucide-react';
 
 export default function AccountPage() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, logout, isAuthenticated } = useAuthStore();
+  const [isMounting, setIsMounting] = useState(true);
+
+  useEffect(() => {
+     setIsMounting(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounting && !isAuthenticated) {
+      router.replace('/user');
+    }
+  }, [isAuthenticated, router, isMounting]);
 
   const menuGroups = [
     {
@@ -109,7 +120,7 @@ export default function AccountPage() {
 
       <style jsx>{`
         .account-page { background: var(--bg-app); min-height: 100vh; padding-bottom: 96px; }
-        .account-header { position: sticky; top: 0; z-index: 40; background: white; border-bottom: 1px solid var(--border-light); height: 64px; display: flex; align-items: center; padding: 0 16px; gap: 16px; }
+        .account-header { top: 0; z-index: 40; background: white; border-bottom: 1px solid var(--border-light); height: 64px; display: flex; align-items: center; padding: 0 16px; gap: 16px; }
         .back-btn { padding: 4px; margin-left: -4px; color: var(--navy); }
         .header-title { font-size: 18px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: 0.5px; }
 

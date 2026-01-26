@@ -40,6 +40,7 @@ export default function DishCard({ item }: DishCardProps) {
     setIsModalOpen(true);
   };
 
+            console.log("🚀 ~ DishCard ~ item:", item)
   return (
     <>
       <motion.div 
@@ -48,6 +49,10 @@ export default function DishCard({ item }: DishCardProps) {
         viewport={{ once: true }}
         onClick={handleCardClick}
         className="dish-card"
+        style={{
+          flexDirection: 'row',
+          display: 'flex',
+        }}
       >
         <div className="dish-info">
           <div className="dish-indicators">
@@ -71,9 +76,9 @@ export default function DishCard({ item }: DishCardProps) {
 
         <div className="dish-image-wrapper" onClick={(e) => e.stopPropagation()}>
           <div className="image-container">
-            {item.primaryImageUrl ? (
+            {item.images.length > 0 ? (
               <Image
-                src={getImageUrl(item.primaryImageUrl)!}
+                src={getImageUrl(item.images[0].imageUrl)!}
                 alt={item.name}
                 fill
                 className="dish-image"
@@ -109,13 +114,13 @@ export default function DishCard({ item }: DishCardProps) {
                 <Plus size={14} strokeWidth={3} className="plus-icon" />
               </button>
             )}
-            <span className="customizable-text">Customizable</span>
           </div>
         </div>
 
         <style jsx>{`
           .dish-card {
             display: flex;
+            flex-direction: row;
             gap: 16px;
             padding: 16px 0;
             cursor: pointer;

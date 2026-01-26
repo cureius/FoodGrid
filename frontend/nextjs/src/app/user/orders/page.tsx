@@ -2,15 +2,18 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { listOrders, formatPrice, getOrderStatusInfo } from '@/lib/api/customer';
+import { useCartStore } from '@/stores/cart';
 import { ChevronLeft, ChevronRight, ShoppingBag, Receipt, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function OrdersHistoryPage() {
   const router = useRouter();
+  const { outletId } = useCartStore();
   
   const { data: orders, isLoading } = useQuery({
-    queryKey: ['orders-history'],
-    queryFn: () => listOrders(20, '3a100b7d-4f55-42b1-849e-8fde1283cadf'), 
+    queryKey: ['orders-history', outletId],
+    queryFn: () => listOrders(20, outletId || undefined), 
+    enabled: true // Fetch all if no outlet selected, or filter if selected
   });
 
   if (isLoading) {

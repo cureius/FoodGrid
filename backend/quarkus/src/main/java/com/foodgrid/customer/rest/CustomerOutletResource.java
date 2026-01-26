@@ -2,6 +2,8 @@ package com.foodgrid.customer.rest;
 
 import com.foodgrid.admin.dto.OutletResponse;
 import com.foodgrid.admin.service.OutletAdminService;
+import com.foodgrid.customer.service.MenuCustomerService;
+import com.foodgrid.customer.service.OutletCustomerService;
 import com.foodgrid.pos.dto.MenuCategoryResponse;
 import com.foodgrid.pos.dto.MenuItemResponse;
 import com.foodgrid.pos.dto.ImageUploadResponse;
@@ -22,14 +24,14 @@ import java.util.List;
 @Tag(name = "Customer Outlets", description = "Public/Customer-facing outlet and menu information")
 public class CustomerOutletResource {
 
-    @Inject OutletAdminService outletAdminService;
-    @Inject MenuAdminService menuAdminService;
+    @Inject OutletCustomerService outletCustomerService;
+    @Inject MenuCustomerService menuCustomerService;
     @Inject com.foodgrid.common.storage.ImageUploadService imageUploadService;
 
     @GET
     @Operation(summary = "List all outlets", description = "Get a list of all active outlets for customers to browse")
     public List<OutletResponse> list() {
-        return outletAdminService.list();
+        return outletCustomerService.list();
     }
 
     @GET
@@ -37,14 +39,14 @@ public class CustomerOutletResource {
     @Operation(summary = "Get outlet details", description = "Get details of a specific outlet")
     public OutletResponse get(@PathParam("outletId") final String outletId) {
         // Here we'd ideally filter just for what customers need, but reusing admin response for simplicity
-        return outletAdminService.get(outletId);
+        return outletCustomerService.get(outletId);
     }
 
     @GET
     @Path("/{outletId}/menu/categories")
     @Operation(summary = "List menu categories", description = "Get all menu categories for an outlet")
     public List<MenuCategoryResponse> listCategories(@PathParam("outletId") final String outletId) {
-        return menuAdminService.listCategories(outletId);
+        return menuCustomerService.listCategories(outletId);
     }
 
     @GET
@@ -53,7 +55,7 @@ public class CustomerOutletResource {
     public List<MenuItemResponse> listItems(
             @PathParam("outletId") final String outletId,
             @QueryParam("categoryId") final String categoryId) {
-        return menuAdminService.listItems(outletId, categoryId);
+        return menuCustomerService.listItems(outletId, categoryId);
     }
 
     @GET

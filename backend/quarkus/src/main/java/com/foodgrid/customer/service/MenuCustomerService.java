@@ -1,13 +1,13 @@
-package com.foodgrid.pos.service;
+package com.foodgrid.customer.service;
 
-import com.foodgrid.common.util.Ids;
 import com.foodgrid.common.storage.ImageUploadService;
+import com.foodgrid.common.util.Ids;
 import com.foodgrid.pos.dto.*;
 import com.foodgrid.pos.model.*;
 import com.foodgrid.pos.repo.MenuCategoryRepository;
-import com.foodgrid.pos.repo.MenuItemRepository;
 import com.foodgrid.pos.repo.MenuItemImageRepository;
 import com.foodgrid.pos.repo.MenuItemRecipeRepository;
+import com.foodgrid.pos.repo.MenuItemRepository;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -20,11 +20,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
-public class MenuAdminService {
+public class MenuCustomerService {
 
   @Inject MenuCategoryRepository categoryRepository;
   @Inject MenuItemRepository itemRepository;
@@ -35,49 +34,7 @@ public class MenuAdminService {
 
   public List<MenuCategoryResponse> listCategories(final String outletId) {
     enforceOutlet(outletId);
-    return categoryRepository.listByOutlet(outletId).stream().map(MenuAdminService::toResponse).toList();
-  }
-
-  @Transactional
-  public MenuCategoryResponse createCategory(final String outletId, final MenuCategoryUpsertRequest req) {
-    enforceOutlet(outletId);
-
-    final MenuCategory c = new MenuCategory();
-    c.id = Ids.uuid();
-    c.outletId = outletId;
-    c.name = req.name();
-    c.sortOrder = req.sortOrder() == null ? 0 : req.sortOrder();
-    c.status = parseCategoryStatus(req.status());
-    c.createdAt = Date.from(Instant.now());
-    c.updatedAt = Date.from(Instant.now());
-
-    categoryRepository.persist(c);
-    return toResponse(c);
-  }
-
-  @Transactional
-  public MenuCategoryResponse updateCategory(final String outletId, final String categoryId, final MenuCategoryUpsertRequest req) {
-    enforceOutlet(outletId);
-
-    final MenuCategory c = categoryRepository.findByIdAndOutlet(categoryId, outletId)
-      .orElseThrow(() -> new NotFoundException("Category not found"));
-
-    c.name = req.name();
-    c.sortOrder = req.sortOrder() == null ? c.sortOrder : req.sortOrder();
-    c.status = parseCategoryStatus(req.status());
-    c.updatedAt = Date.from(Instant.now());
-    categoryRepository.persist(c);
-
-    return toResponse(c);
-  }
-
-  @Transactional
-  public void deleteCategory(final String outletId, final String categoryId) {
-    enforceOutlet(outletId);
-
-    final MenuCategory c = categoryRepository.findByIdAndOutlet(categoryId, outletId)
-      .orElseThrow(() -> new NotFoundException("Category not found"));
-    categoryRepository.delete(c);
+    return categoryRepository.listByOutlet(outletId).stream().map(MenuCustomerService::toResponse).toList();
   }
 
   public List<MenuItemResponse> listItems(final String outletId, final String categoryId) {
@@ -133,76 +90,6 @@ public class MenuAdminService {
       .toList();
   }
 
-  @Transactional
-  public MenuItemResponse createItem(final String outletId, final MenuItemUpsertRequest req) {
-    enforceOutlet(outletId);
-
-    String categoryName = null;
-    if (req.categoryId() != null && !req.categoryId().isBlank()) {
-      final MenuCategory cat = categoryRepository.findByIdAndOutlet(req.categoryId(), outletId)
-        .orElseThrow(() -> new BadRequestException("Invalid categoryId"));
-      categoryName = cat.name;
-    }
-
-    final MenuItem i = new MenuItem();
-    i.id = Ids.uuid();
-    i.outletId = outletId;
-    i.categoryId = (req.categoryId() == null || req.categoryId().isBlank()) ? null : req.categoryId();
-    i.name = req.name();
-    i.description = req.description();
-    i.isVeg = req.isVeg() != null && req.isVeg();
-    i.basePrice = req.basePrice();
-    i.status = parseItemStatus(req.status());
-    i.createdAt = Date.from(Instant.now());
-    i.updatedAt = Date.from(Instant.now());
-
-    itemRepository.persist(i);
-    
-    // Handle images
-    final List<MenuItemImage> savedImages = saveImages(i.id, req.images());
-    
-    // Load recipes
-    final List<MenuItemRecipe> recipes = recipeRepository.findByMenuItemId(i.id);
-
-    return toResponse(i, categoryName, savedImages, recipes, imageUploadService);
-  }
-
-  @Transactional
-  public MenuItemResponse updateItem(final String outletId, final String itemId, final MenuItemUpsertRequest req) {
-    enforceOutlet(outletId);
-
-    final MenuItem i = itemRepository.findByIdAndOutlet(itemId, outletId)
-      .orElseThrow(() -> new NotFoundException("Item not found"));
-
-    String categoryName = null;
-    if (req.categoryId() != null && !req.categoryId().isBlank()) {
-      final MenuCategory cat = categoryRepository.findByIdAndOutlet(req.categoryId(), outletId)
-        .orElseThrow(() -> new BadRequestException("Invalid categoryId"));
-      i.categoryId = req.categoryId();
-      categoryName = cat.name;
-    } else {
-      i.categoryId = null;
-    }
-
-    i.name = req.name();
-    i.description = req.description();
-    i.isVeg = req.isVeg() != null && req.isVeg();
-    i.basePrice = req.basePrice();
-    i.status = parseItemStatus(req.status());
-    i.updatedAt = Date.from(Instant.now());
-
-    itemRepository.persist(i);
-    
-    // Delete existing images and save new ones
-    imageRepository.deleteByMenuItem(itemId);
-    final List<MenuItemImage> savedImages = saveImages(itemId, req.images());
-    
-    // Load recipes
-    final List<MenuItemRecipe> recipes = recipeRepository.findByMenuItemId(itemId);
-
-    return toResponse(i, categoryName, savedImages, recipes, imageUploadService);
-  }
-
   public MenuItemResponse getItem(final String outletId, final String itemId) {
     enforceOutlet(outletId);
     
@@ -222,40 +109,6 @@ public class MenuAdminService {
     return toResponse(i, categoryName, images, recipes, imageUploadService);
   }
 
-  @Transactional
-  public void deleteItem(final String outletId, final String itemId) {
-    enforceOutlet(outletId);
-
-    final MenuItem i = itemRepository.findByIdAndOutlet(itemId, outletId)
-      .orElseThrow(() -> new NotFoundException("Item not found"));
-    
-    // Delete images first
-    imageRepository.deleteByMenuItem(itemId);
-    itemRepository.delete(i);
-  }
-
-  private List<MenuItemImage> saveImages(final String menuItemId, final List<MenuItemImageUpsertRequest> images) {
-    if (images == null || images.isEmpty()) {
-      return List.of();
-    }
-    
-    final List<MenuItemImage> savedImages = new ArrayList<>();
-    for (int idx = 0; idx < images.size(); idx++) {
-      final MenuItemImageUpsertRequest imgReq = images.get(idx);
-      if (imgReq.imageUrl() == null || imgReq.imageUrl().isBlank()) continue;
-      
-      final MenuItemImage img = new MenuItemImage();
-      img.id = Ids.uuid();
-      img.menuItemId = menuItemId;
-      img.imageUrl = imgReq.imageUrl();
-      img.sortOrder = imgReq.sortOrder();
-      img.isPrimary = imgReq.isPrimary();
-      imageRepository.persist(img);
-      savedImages.add(img);
-    }
-    return savedImages;
-  }
-
   private void enforceOutlet(final String outletId) {
     final String tokenOutletId = claim("outletId");
     if (tokenOutletId != null && !tokenOutletId.equals(outletId)) {
@@ -266,24 +119,6 @@ public class MenuAdminService {
   private String claim(final String name) {
     final Object v = identity.getAttributes().get(name);
     return v == null ? null : v.toString();
-  }
-
-  private static MenuCategory.Status parseCategoryStatus(final String status) {
-    if (status == null || status.isBlank()) return MenuCategory.Status.ACTIVE;
-    try {
-      return MenuCategory.Status.valueOf(status);
-    } catch (final IllegalArgumentException ex) {
-      throw new BadRequestException("Invalid status");
-    }
-  }
-
-  private static MenuItem.Status parseItemStatus(final String status) {
-    if (status == null || status.isBlank()) return MenuItem.Status.ACTIVE;
-    try {
-      return MenuItem.Status.valueOf(status);
-    } catch (final IllegalArgumentException ex) {
-      throw new BadRequestException("Invalid status");
-    }
   }
 
   private static MenuCategoryResponse toResponse(final MenuCategory c) {
