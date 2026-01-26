@@ -464,7 +464,7 @@ export default function HistoryPage() {
                       >
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                           <div style={{ fontSize: 14, fontWeight: 700, color: "#1e293b" }}>
-                            Order# <span style={{ color: "#8b5cf6" }}>{o.id.slice(0, 12)}</span>
+                            Order# <span style={{ color: "#8b5cf6" }}>{o.id.slice(-4).toUpperCase()}</span>
                           </div>
                           <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>
                             {formatOrderTime(o.createdAt || null)}
@@ -535,7 +535,7 @@ export default function HistoryPage() {
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, color: "#1e293b" }}>
-                        Order #{selectedOrder.id.slice(0, 12)}
+                        Order #{selectedOrder.id.slice(-4).toUpperCase()}
                       </div>
                       <div style={{ fontSize: 13, color: "#64748b" }}>
                         {mapOrderType(selectedOrder.orderType)}

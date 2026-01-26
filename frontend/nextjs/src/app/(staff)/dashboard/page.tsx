@@ -569,7 +569,7 @@ export default function DashboardPage() {
                             </div>
                             <div>
                               <div style={{ fontWeight: 700, fontSize: 14, color: "#1e293b" }}>
-                                Order #{order.id.slice(0, 8)}
+                                Order #{order.id.slice(-4).toUpperCase()}
                               </div>
                               <div style={{ fontSize: 12, color: "#64748b" }}>
                                 {mapOrderType(order.orderType)}
@@ -727,7 +727,7 @@ export default function DashboardPage() {
                             </div>
                             <div>
                               <div style={{ fontWeight: 700, fontSize: 14, color: "#1e293b" }}>
-                                Order #{order.id.slice(0, 8)}
+                                Order #{order.id.slice(-4).toUpperCase()}
                               </div>
                               <div style={{ fontSize: 12, color: "#64748b" }}>
                                 {mapOrderType(order.orderType)}

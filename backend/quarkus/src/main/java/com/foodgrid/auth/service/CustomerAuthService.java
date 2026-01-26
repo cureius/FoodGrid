@@ -36,7 +36,7 @@ public class CustomerAuthService {
 
         // In production, send via SMS gateway. For now, log to console.
         System.out.println("DEBUG: OTP for customer " + request.mobileNumber + " is " + otp);
-        // otpService.sendOtpSms(request.mobileNumber, otp);
+        otpService.sendOtpSms(request.mobileNumber, otp);
     }
 
     @Transactional

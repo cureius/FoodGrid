@@ -19,5 +19,6 @@ public record OrderResponse(
   BigDecimal grandTotal,
   String notes,
   Date createdAt,
+  String outletName, // Added
   List<OrderItemResponse> items
 ) {}

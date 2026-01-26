@@ -855,7 +855,7 @@ export default function OrderPage() {
                           </span>
                         </div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: "#1e293b", marginBottom: 4 }}>
-                          Order #{order.id.slice(0, 8)}
+                          Order #{order.id.slice(-4).toUpperCase()}
                         </div>
                         <div style={{ fontSize: 12, color: "#64748b" }}>{order.time}</div>
                       </div>

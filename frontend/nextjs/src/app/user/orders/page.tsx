@@ -51,6 +51,16 @@ export default function OrdersHistoryPage() {
                 <div className="group-header">Recent Orders</div>
                 {orders.map((order) => {
                     const statusInfo = getOrderStatusInfo(order.status as any);
+                    const formattedDate = new Date(order.createdAt).toLocaleDateString('en-GB', { 
+                        day: '2-digit', 
+                        month: 'short', 
+                        year: 'numeric' 
+                    });
+                    const formattedTime = new Date(order.createdAt).toLocaleTimeString('en-GB', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
                     return (
                         <div 
                             key={order.id}
@@ -60,15 +70,18 @@ export default function OrdersHistoryPage() {
                             <div className="order-item-top">
                                 <div className="item-main-info">
                                     <div className="store-icon">
-                                        <ShoppingBag size={24} />
+                                        <ShoppingBag size={22} strokeWidth={2.5} />
                                     </div>
                                     <div className="store-details">
-                                        <h3 className="store-name">Burger House</h3>
+                                        <h3 className="store-name">{order.outletName || 'FoodGrid Restaurant'}</h3>
+                                        <div className="order-type-tag">
+                                            {order.orderType === 'DELIVERY' ? 'Home Delivery' : (order.orderType === 'TAKEAWAY' ? 'Takeaway' : 'Dine-in')}
+                                        </div>
                                         <p className="order-items-summary">
-                                            {order.items.map(i => i.itemName).join(', ')}
+                                            {order.items.map(i => `${i.qty}x ${i.itemName}`).join(', ')}
                                         </p>
                                         <div className="order-meta">
-                                            <span>{new Date(order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                                            <span className="date">{formattedDate} • {formattedTime}</span>
                                             <div className="dot-sep" />
                                             <span className="order-price">{formatPrice(order.grandTotal)}</span>
                                         </div>
@@ -85,7 +98,7 @@ export default function OrdersHistoryPage() {
                             <div className="order-card-footer">
                                 <span className="order-id-tag">#{order.id.slice(-6).toUpperCase()}</span>
                                 <div className="footer-btns">
-                                    {(order.status === 'OPEN' || order.status === 'BILLED') && (
+                                    {(order.status === 'OPEN' || order.status === 'BILLED' || order.status === 'PLACED') && (
                                         <button 
                                             className="history-pay-btn"
                                             onClick={async (e) => {
@@ -98,11 +111,11 @@ export default function OrdersHistoryPage() {
                                                 }
                                             }}
                                         >
-                                            PAY
+                                            PAY NOW
                                         </button>
                                     )}
                                     <button className="view-link">
-                                        Details
+                                        TRACK
                                         <ChevronRight size={14} strokeWidth={4} />
                                     </button>
                                 </div>
@@ -148,6 +161,7 @@ export default function OrdersHistoryPage() {
         .store-icon { width: 44px; height: 44px; border-radius: 12px; background: #EEF2FE; display: flex; align-items: center; justify-content: center; color: #4B70F5; flex-shrink: 0; }
         .store-details { flex: 1; min-width: 0; }
         .store-name { font-size: 15px; font-weight: 800; color: var(--navy); margin-bottom: 2px; }
+        .order-type-tag { font-size: 10px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; margin-bottom: 4px; }
         .order-items-summary { font-size: 12px; color: var(--text-muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .order-meta { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; color: var(--text-light); margin-top: 4px; }
         .dot-sep { width: 3px; height: 3px; background: var(--border-light); border-radius: 50%; }

@@ -64,7 +64,7 @@ export default function OrderDetailsPage() {
         </button>
         <div className="header-info">
           <h1 className="header-title">Track Order</h1>
-          <p className="order-id-label">Order #{order.id.slice(-6).toUpperCase()}</p>
+          <p className="order-id-label">Order #{order.id.slice(-4).toUpperCase()}</p>
         </div>
       </header>
 
@@ -120,7 +120,7 @@ export default function OrderDetailsPage() {
 
         {/* Address & Payment Info */}
         <section className="card info-card">
-            <div className="info-row">
+            {/* <div className="info-row">
                 <div className="icon-box pin">
                     <MapPin size={18} />
                 </div>
@@ -128,7 +128,7 @@ export default function OrderDetailsPage() {
                     <h3 className="row-title">Delivery Address</h3>
                     <p className="row-text">402, Skyline residency, 4th cross, Koramangala...</p>
                 </div>
-            </div>
+            </div> */}
             <div className="info-row">
                 <div className="icon-box wallet">
                     <ReceiptText size={18} />

@@ -3,6 +3,7 @@ package com.foodgrid.customer.service;
 import com.foodgrid.pos.dto.*;
 import com.foodgrid.pos.model.*;
 import com.foodgrid.pos.repo.*;
+import com.foodgrid.auth.repo.OutletRepository;
 import com.foodgrid.common.util.Ids;
 import com.foodgrid.pos.service.IngredientService;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -27,6 +28,7 @@ public class OrderCustomerService {
     @Inject MenuItemRecipeRepository recipeRepository;
     @Inject IngredientService ingredientService;
     @Inject SecurityIdentity identity;
+    @Inject OutletRepository outletRepository;
 
     @Transactional
     public OrderResponse create(final OrderCreateRequest req, final String outletId, final String customerId) {
@@ -209,7 +211,11 @@ public class OrderCustomerService {
         return new OrderItemResponse(i.id, i.itemId, i.itemName, i.qty, i.unitPrice, i.lineTotal, i.status.name());
     }
 
-    private static OrderResponse toResponse(final Order o, final List<OrderItemResponse> items) {
+    private OrderResponse toResponse(final Order o, final List<OrderItemResponse> items) {
+        final String outletName = outletRepository.findByIdOptional(o.outletId)
+            .map(outlet -> outlet.name)
+            .orElse("Unknown Store");
+
         return new OrderResponse(
             o.id,
             o.outletId,
@@ -225,6 +231,7 @@ public class OrderCustomerService {
             o.grandTotal,
             o.notes,
             o.createdAt,
+            outletName,
             items
         );
     }

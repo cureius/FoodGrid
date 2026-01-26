@@ -2,6 +2,7 @@ package com.foodgrid.pos.service;
 
 import com.foodgrid.auth.model.ShiftSession;
 import com.foodgrid.auth.repo.ShiftSessionRepository;
+import com.foodgrid.auth.repo.OutletRepository;
 import com.foodgrid.common.audit.AuditLogService;
 import com.foodgrid.common.idempotency.IdempotencyService;
 import com.foodgrid.common.idempotency.RequestHash;
@@ -44,6 +45,7 @@ public class OrderPosService {
   @Inject IdempotencyService idempotency;
   @Inject AuditLogService audit;
   @Inject JsonWebToken jwt;
+  @Inject OutletRepository outletRepository;
 
   @Transactional
   public OrderResponse create(final OrderCreateRequest req, final String outletIdParam) {
@@ -432,7 +434,11 @@ public class OrderPosService {
     return new OrderItemResponse(i.id, i.itemId, i.itemName, i.qty, i.unitPrice, i.lineTotal, i.status.name());
   }
 
-  private static OrderResponse toResponse(final Order o, final List<OrderItemResponse> items) {
+  private OrderResponse toResponse(final Order o, final List<OrderItemResponse> items) {
+    final String outletName = outletRepository.findByIdOptional(o.outletId)
+        .map(outlet -> outlet.name)
+        .orElse("Unknown Store");
+
     return new OrderResponse(
       o.id,
       o.outletId,
@@ -448,6 +454,7 @@ public class OrderPosService {
       o.grandTotal,
       o.notes,
       o.createdAt,
+      outletName,
       items
     );
   }

@@ -148,6 +148,7 @@ export interface Order {
   grandTotal: number;
   notes: string | null;
   createdAt: string;
+  outletName?: string;
   items: OrderItem[];
   customerName?: string;
   customerPhone?: string;

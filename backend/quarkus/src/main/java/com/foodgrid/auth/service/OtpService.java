@@ -23,6 +23,17 @@ public class OtpService {
     LOG.infof("Sending OTP to %s: %s", toEmail, otp);
   }
 
+  public void sendOtpSms(String mobileNumber, String otp) {
+    // Stub: replace with real SMS gateway integration (e.g., Twilio, AWS SNS, etc.)
+    // For now, log to console for development
+    LOG.infof("Sending OTP SMS to %s: %s", mobileNumber, otp);
+    
+    // Example SMS gateway integration (commented out):
+    // TwilioSmsService.sendSms(mobileNumber, String.format("Your FoodGrid OTP is: %s. Valid for 5 minutes.", otp));
+    // or
+    // AwsSnsService.publishSms(mobileNumber, String.format("Your FoodGrid OTP is: %s. Valid for 5 minutes.", otp));
+  }
+
   public String maskEmail(String email) {
     int at = email.indexOf('@');
     if (at <= 1) return "***";
