@@ -72,6 +72,14 @@ public class CustomerOrderResource {
         return orderCustomerService.addItem(orderId, request, customerId);
     }
 
+    @GET
+    @Path("/{orderId}/items")
+    @Operation(summary = "Get order items", description = "Get all items for a specific order owned by the customer")
+    public List<OrderItemResponse> getItems(@PathParam("orderId") final String orderId) {
+        final String customerId = securityContext.getUserPrincipal().getName();
+        return orderCustomerService.getOrderItems(orderId, customerId);
+    }
+
     @POST
     @Path("/{orderId}/payment-link")
     @Operation(summary = "Create payment link", description = "Create a payment link for the order")

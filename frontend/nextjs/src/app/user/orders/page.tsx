@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { listOrders, formatPrice, getOrderStatusInfo } from '@/lib/api/customer';
+import { listOrders, formatPrice, getOrderStatusInfo, createPaymentLink } from '@/lib/api/customer';
 import { useCartStore } from '@/stores/cart';
 import { ChevronLeft, ChevronRight, ShoppingBag, Receipt, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -85,6 +85,22 @@ export default function OrdersHistoryPage() {
                             <div className="order-card-footer">
                                 <span className="order-id-tag">#{order.id.slice(-6).toUpperCase()}</span>
                                 <div className="footer-btns">
+                                    {(order.status === 'OPEN' || order.status === 'BILLED') && (
+                                        <button 
+                                            className="history-pay-btn"
+                                            onClick={async (e) => {
+                                                e.stopPropagation();
+                                                try {
+                                                    const link = await createPaymentLink(order.id);
+                                                    if (link.paymentLink) window.open(link.paymentLink, '_blank');
+                                                } catch (err) {
+                                                    alert('Failed to generate payment link');
+                                                }
+                                            }}
+                                        >
+                                            PAY
+                                        </button>
+                                    )}
                                     <button className="view-link">
                                         Details
                                         <ChevronRight size={14} strokeWidth={4} />
@@ -141,7 +157,8 @@ export default function OrdersHistoryPage() {
         
         .order-card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; border-top: 1px solid var(--bg-muted); }
         .order-id-tag { font-size: 10px; font-weight: 800; color: var(--text-light); opacity: 0.6; }
-        .footer-btns { display: flex; gap: 12px; }
+        .footer-btns { display: flex; gap: 12px; align-items: center; }
+        .history-pay-btn { padding: 4px 12px; background: var(--primary); color: white; border-radius: 6px; font-size: 10px; font-weight: 800; border: none; cursor: pointer; }
         .view-link { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
 
         .empty-history { padding: 80px 32px; text-align: center; display: flex; flex-direction: column; align-items: center; }

@@ -116,7 +116,7 @@ export const useCartStore = create<CartState>()(
       // Initial State
       outletId: null,
       items: [],
-      orderType: 'DINE_IN',
+      orderType: 'TAKEAWAY',
       tableId: null,
       itemCount: 0,
       subtotal: 0,

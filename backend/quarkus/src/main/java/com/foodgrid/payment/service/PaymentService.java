@@ -331,14 +331,14 @@ public class PaymentService {
                                                  final String orderId, final String idempotencyKey) {
         // Check if order exists and is billed
         final Order order = orderRepository.findById(orderId);
-        final String adminUserId;
         String derivedClientId;
         if (order == null) {
             throw new NotFoundException("Order not found");
         }
 
-        if (order.status != Order.Status.BILLED && order.status != Order.Status.PAID) {
-            throw new BadRequestException("Order must be billed before creating payment link");
+
+        if (order.orderType != Order.OrderType.TAKEAWAY && order.status != Order.Status.BILLED && order.status != Order.Status.PAID) {
+            throw new BadRequestException("Order must be billed before creating payment link for take away orders");
         }
 
         if(outletId == null){
@@ -347,10 +347,27 @@ public class PaymentService {
 
         if(clientId == null){
             //find the admin id of the outletId -> outlet to adminuser -> adminuser to client
-            derivedClientId = outletRepository.findById(outletId).clientId;
+            final var outlet = outletRepository.findById(outletId);
+            if (outlet == null) {
+                throw new NotFoundException("Outlet not found: " + outletId);
+            }
+            
+            derivedClientId = outlet.clientId;
             if(derivedClientId == null){
-                adminUserId = outletRepository.findById(outletId).ownerId;
-                derivedClientId = adminUserRepository.findById(adminUserId).clientId;
+                final String adminUserId = outlet.ownerId;
+                if (adminUserId == null) {
+                    throw new BadRequestException("Outlet has no owner");
+                }
+                
+                final var adminUser = adminUserRepository.findById(adminUserId);
+                if (adminUser == null) {
+                    throw new NotFoundException("Admin user not found: " + adminUserId);
+                }
+                
+                derivedClientId = adminUser.clientId;
+                if (derivedClientId == null) {
+                    throw new BadRequestException("Admin user has no clientId");
+                }
             }
         }else{
             derivedClientId = clientId;
@@ -442,10 +459,32 @@ public class PaymentService {
             throw new NotFoundException("Order not found");
         }
 
-        // Derive context from order/outlet
+        // Derive context from order/outlet with proper null checks
         final String outletId = order.outletId;
-        final String adminUserId = outletRepository.findById(outletId).ownerId;
-        final String clientId = adminUserRepository.findById(adminUserId).clientId;
+        if (outletId == null) {
+            throw new BadRequestException("Order has no outletId");
+        }
+        
+        final var outlet = outletRepository.findById(outletId);
+        if (outlet == null) {
+            throw new NotFoundException("Outlet not found: " + outletId);
+        }
+        
+        final String adminUserId = outlet.ownerId;
+        if (adminUserId == null) {
+            throw new BadRequestException("Outlet has no owner");
+        }
+        
+        final var adminUser = adminUserRepository.findById(adminUserId);
+        if (adminUser == null) {
+            throw new NotFoundException("Admin user not found: " + adminUserId);
+        }
+        
+        final String clientId = adminUser.clientId;
+        if (clientId == null) {
+            throw new BadRequestException("Admin user has no clientId");
+        }
+        
         // Tenant ID is usually the clientId in our multi-tenant model
         final String tenantId = clientId;
 

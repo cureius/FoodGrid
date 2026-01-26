@@ -296,7 +296,7 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
     tableId: input.tableId,
     customerName: input.customerName,
     notes: input.notes,
-    items: input.items
+    orderItems: input.items // Changed from items to orderItems to match backend DTO
   });
   return data;
 }

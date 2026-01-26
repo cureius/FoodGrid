@@ -52,7 +52,33 @@ public class OrderCustomerService {
 
         orderRepository.persist(o);
 
-        return toResponse(o, List.of());
+        // Process items if provided
+        if (req.orderItems() != null && !req.orderItems().isEmpty()) {
+            for (final OrderAddItemRequest itemReq : req.orderItems()) {
+                final MenuItem mi = menuItemRepository.findByIdAndOutlet(itemReq.itemId(), o.outletId)
+                    .orElseThrow(() -> new BadRequestException("Invalid itemId: " + itemReq.itemId()));
+
+                if (mi.status != MenuItem.Status.ACTIVE) {
+                    throw new BadRequestException("Item inactive: " + mi.name);
+                }
+
+                final OrderItem oi = new OrderItem();
+                oi.id = Ids.uuid();
+                oi.orderId = o.id;
+                oi.itemId = mi.id;
+                oi.itemName = mi.name;
+                oi.qty = itemReq.qty();
+                oi.unitPrice = mi.basePrice;
+                oi.lineTotal = money(itemReq.qty().multiply(mi.basePrice));
+                oi.status = OrderItem.Status.OPEN;
+                oi.createdAt = Date.from(Instant.now());
+
+                orderItemRepository.persist(oi);
+            }
+            recomputeTotals(o);
+        }
+
+        return get(o.id, customerId);
     }
 
     @Transactional
@@ -94,6 +120,13 @@ public class OrderCustomerService {
           .map(OrderCustomerService::toResponse)
           .toList();
         return toResponse(o, items);
+    }
+
+    public List<OrderItemResponse> getOrderItems(final String orderId, final String customerId) {
+        final Order o = getOrderForCustomer(orderId, customerId);
+        return orderItemRepository.listByOrder(o.id).stream()
+          .map(OrderCustomerService::toResponse)
+          .toList();
     }
 
     public List<OrderResponse> listByCustomer(final String customerId, final Integer limit, final String outletId) {

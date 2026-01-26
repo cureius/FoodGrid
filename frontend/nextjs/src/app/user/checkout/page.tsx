@@ -5,25 +5,51 @@ import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/stores/cart';
 import { createOrder, formatPrice, calculateCartTotal, createPaymentLink } from '@/lib/api/customer';
 import { ChevronLeft, ShieldCheck, Wallet, CreditCard, Landmark, CheckCircle2, Loader2, Lock, ExternalLink } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import { getPaymentStatus } from '@/lib/api/customer';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, outletId, orderType, clearCart } = useCartStore();
+  console.log("🚀 ~ CheckoutPage ~ orderType:", orderType)
   const [selectedMethod, setSelectedMethod] = useState<'UPI'|'CARD'|'NB'|'CASH'>('UPI');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [paymentLink, setPaymentLink] = useState<string | null>(null);
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
+  const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { total } = calculateCartTotal(items);
+
+  // Polling for Payment Status
+  const { data: payStatus } = useQuery({
+    queryKey: ['check-payment', createdOrderId],
+    queryFn: () => getPaymentStatus(createdOrderId!),
+    enabled: !!createdOrderId && !isSuccess,
+    refetchInterval: 3000, // Poll every 3s
+  });
+
+  // Watch status changes
+  useEffect(() => {
+    if (payStatus?.orderStatus === 'PAID') {
+        setIsSuccess(true);
+        setPaymentLink(null);
+        setTimeout(() => {
+            clearCart();
+            router.replace(`/user/orders/${createdOrderId}`);
+        }, 2500);
+    }
+  }, [payStatus, createdOrderId, clearCart, router]);
 
   const orderMutation = useMutation({
     mutationFn: async (data: any) => {
         const order = await createOrder(data);
+        setCreatedOrderId(order.id);
         
         // If not CASH, create a payment link
-        if (selectedMethod !== 'CASH' || selectedMethod !== 'UPI' || selectedMethod !== 'CARD' || selectedMethod !== 'NB') {
+        if (selectedMethod !== 'CASH') {
             try {
                 const linkInfo = await createPaymentLink(order.id);
                 return { ...order, paymentLink: linkInfo.paymentLink };
@@ -39,8 +65,8 @@ export default function CheckoutPage() {
       
       if (order.paymentLink) {
         setPaymentLink(order.paymentLink);
-        // In a real mobile app, we might redirect immediately or show a button
-        // window.location.href = order.paymentLink; 
+        // Open link in new tab immediately
+        window.open(order.paymentLink, '_blank');
       } else {
         setIsSuccess(true);
         setTimeout(() => {

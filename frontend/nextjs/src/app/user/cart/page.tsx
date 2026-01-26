@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/stores/cart';
 import { useQuery } from '@tanstack/react-query';
-import { formatPrice, calculateCartTotal, listOrders, getOrderStatusInfo, getImageUrl } from '@/lib/api/customer';
+import { formatPrice, calculateCartTotal, listOrders, getOrderStatusInfo, getImageUrl, createPaymentLink } from '@/lib/api/customer';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ArrowRight, Clock, ReceiptText, ChevronRight, Plus, Info } from 'lucide-react';
 import QuantityControl from '@/components/user/ui/QuantityControl';
@@ -111,6 +111,8 @@ export default function CartPage() {
               <div className="active-orders-list">
                  {activeOrders.map(order => {
                     const statusInfo = getOrderStatusInfo(order.status);
+                    const isUnpaid = order.status === 'OPEN' || order.status === 'BILLED';
+                    
                     return (
                         <div 
                           key={order.id} 
@@ -118,12 +120,30 @@ export default function CartPage() {
                           onClick={() => router.push(`/user/orders/${order.id}`)}
                         >
                            <div className="order-main">
-                              <div>
+                              <div className="order-meta-info">
                                  <h4 className="order-number">Order #{order.id.slice(-4).toUpperCase()}</h4>
                                  <p className="order-items">{order.items.length} items • {formatPrice(order.grandTotal)}</p>
                               </div>
-                              <div className="status-badge" style={{ background: statusInfo.bgColor, color: statusInfo.color }}>
-                                 {statusInfo.label}
+                              <div className="status-and-pay">
+                                 <div className="status-badge" style={{ background: statusInfo.bgColor, color: statusInfo.color }}>
+                                    {statusInfo.label}
+                                 </div>
+                                 {isUnpaid && (
+                                     <button 
+                                        className="inline-pay-btn"
+                                        onClick={async (e) => {
+                                            e.stopPropagation();
+                                            try {
+                                                const link = await createPaymentLink(order.id);
+                                                if (link.paymentLink) window.open(link.paymentLink, '_blank');
+                                            } catch (err) {
+                                                alert('Failed to generate payment link');
+                                            }
+                                        }}
+                                     >
+                                         PAY NOW
+                                     </button>
+                                 )}
                               </div>
                            </div>
                            <ChevronRight size={18} className="text-light" />
@@ -267,6 +287,10 @@ export default function CartPage() {
         .order-main { flex: 1; display: flex; justify-content: space-between; align-items: center; margin-right: 12px; }
         .order-number { font-size: 13px; font-weight: 800; color: var(--navy); }
         .order-items { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+        .order-meta-info { flex: 1; }
+        .status-and-pay { display: flex; align-items: center; gap: 8px; }
+        .inline-pay-btn { padding: 4px 10px; background: var(--primary); color: white; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; border: none; cursor: pointer; transition: 0.2s; }
+        .inline-pay-btn:active { transform: scale(0.95); }
         .status-badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
 
         .items-section { padding: 20px; }
