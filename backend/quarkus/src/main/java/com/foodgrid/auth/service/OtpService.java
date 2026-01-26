@@ -2,6 +2,7 @@ package com.foodgrid.auth.service;
 
 import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.Mailer;
+import io.quarkus.mailer.runtime.BlockingMailerImpl;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -35,7 +36,7 @@ public class OtpService {
     try {
       final String subject = "FoodGrid - Your OTP Code";
       final String htmlContent = buildEmailTemplate(otp);
-      
+
       final Mail mail = Mail.withHtml(toEmail, subject, htmlContent)
         .setFrom(fromEmail);
 
@@ -83,7 +84,8 @@ public class OtpService {
                   margin-bottom: 10px;
               }
               .otp-box {
-                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  /* Note the DOUBLE %% below to escape them for Java Formatter */
+                  background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
                   color: white;
                   font-size: 32px;
                   font-weight: bold;
@@ -154,7 +156,7 @@ public class OtpService {
     // Stub: replace with real SMS gateway integration (e.g., Twilio, AWS SNS, etc.)
     // For now, log to console for development
     LOG.infof("Sending OTP SMS to %s: %s", mobileNumber, otp);
-    
+
     // Example SMS gateway integration (commented out):
     // TwilioSmsService.sendSms(mobileNumber, String.format("Your FoodGrid OTP is: %s. Valid for 5 minutes.", otp));
     // or
