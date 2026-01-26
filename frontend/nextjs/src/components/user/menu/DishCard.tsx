@@ -89,13 +89,14 @@ export default function DishCard({ item }: DishCardProps) {
               />
             ) : (
               <div className="placeholder-image">
-                <Image 
-                  src="/res/burger_placeholder.png" 
-                  alt="placeholder" 
-                  width={64} 
-                  height={64} 
-                  className="placeholder-icon"
-                />
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="placeholder-icon">
+                  <path d="M12 2v2" />
+                  <path d="M7 2a1 1 0 0 0-1 1v1" />
+                  <path d="M17 2a1 1 0 0 1 1 1v1" />
+                  <path d="M2 12h20" />
+                  <path d="m20 12-1.3 7.82a2 2 0 0 1-1.96 1.68H7.26a2 2 0 0 1-1.96-1.68L4 12" />
+                  <path d="M5 12V9a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3" />
+                </svg>
               </div>
             )}
           </div>

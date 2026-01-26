@@ -47,7 +47,7 @@ export default function CartFloatingBar() {
         </button>
 
         <style jsx>{`
-            .floating-bar-root { position: fixed; bottom: 84px; left: 0; right: 0; z-index: 40; padding: 0 16px; }
+            .floating-bar-root { position: fixed; bottom: calc(84px + env(safe-area-inset-bottom)); left: 0; right: 0; z-index: 60; padding: 0 16px; }
             .cart-btn { max-width: 418px; margin: 0 auto; width: 100%; background: var(--primary); color: white; height: 56px; border-radius: 16px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 12px 32px rgba(75, 112, 245, 0.3); overflow: hidden; position: relative; }
             .cart-btn:active { transform: scale(0.98); }
             

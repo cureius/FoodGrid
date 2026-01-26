@@ -32,8 +32,6 @@ export default function UserLayout({
               {children}
             </div>
           </main>
-
-          <CartFloatingBar />
           <div className="mobile-nav-wrapper">
             <BottomNav />
           </div>

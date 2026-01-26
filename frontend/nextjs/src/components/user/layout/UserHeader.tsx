@@ -13,21 +13,6 @@ export default function UserHeader() {
             <Logo />
           </Link>
         </div>
-
-        <div className="address-section">
-          <div className="address-label">
-            <MapPin size={14} />
-            <span className="truncate">Home</span>
-            <ChevronDown size={14} />
-          </div>
-          <div className="address-text">
-            Koramangala 4th Block...
-          </div>
-        </div>
-
-        <button className="search-btn">
-          <Search size={22} strokeWidth={2.5} />
-        </button>
       </div>
 
       <style jsx>{`

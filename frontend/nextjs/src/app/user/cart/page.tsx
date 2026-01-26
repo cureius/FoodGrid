@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/stores/cart';
 import { useQuery } from '@tanstack/react-query';
 import { formatPrice, calculateCartTotal, listOrders, getOrderStatusInfo, getImageUrl } from '@/lib/api/customer';
+import { motion } from 'framer-motion';
 import { ChevronLeft, ArrowRight, Clock, ReceiptText, ChevronRight, Plus, Info } from 'lucide-react';
 import QuantityControl from '@/components/user/ui/QuantityControl';
 import Image from 'next/image';
@@ -28,7 +29,35 @@ export default function CartPage() {
     return (
       <div className="empty-cart-page">
         <div className="empty-cart-image-wrap">
-          <Image src="/res/empty_cart.png" alt="Empty Cart" fill className="empty-img" />
+          <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
+            <circle cx="60" cy="60" r="60" fill="var(--bg-app)" />
+            <path 
+              d="M40 45H80L75 75H45L40 45Z" 
+              stroke="var(--primary)" 
+              strokeWidth="2.5" 
+              strokeLinejoin="round" 
+              opacity="0.8"
+            />
+            <path 
+              d="M50 45V38C50 32.4772 54.4772 28 60 28C65.5228 28 70 32.4772 70 38V45" 
+              stroke="var(--primary)" 
+              strokeWidth="2.5" 
+              opacity="0.8"
+            />
+            <circle cx="52" cy="82" r="3" fill="var(--primary)" opacity="0.6" />
+            <circle cx="68" cy="82" r="3" fill="var(--primary)" opacity="0.6" />
+            
+            <motion.path
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                d="M50 55L70 65"
+                stroke="var(--primary)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                opacity="0.3"
+            />
+          </svg>
         </div>
         <h2 className="empty-cart-title">Your cart is empty</h2>
         <p className="empty-cart-text">Good food is always just a few taps away. Explore our menu now!</p>
@@ -271,7 +300,7 @@ export default function CartPage() {
         .no-items-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; font-weight: 500; }
         .browse-mini-btn { padding: 10px 24px; background: var(--primary); color: white; border-radius: 10px; font-weight: 800; font-size: 13px; }
 
-        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: white; padding: 16px; border-top: 1px solid var(--border-light); box-shadow: 0 -8px 24px rgba(0,0,0,0.06); padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+        .bottom-bar { position: fixed; bottom: 72px; left: 0; right: 0; z-index: 50; background: white; padding: 16px; border-top: 1px solid var(--border-light); box-shadow: 0 -8px 24px rgba(0,0,0,0.06); padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
         .checkout-btn { max-width: 418px; margin: 0 auto; background: var(--primary); color: white; height: 56px; border-radius: 16px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 12px 24px rgba(75, 112, 245, 0.25); position: relative; overflow: hidden; transition: 0.2s; }
         .checkout-btn:active { transform: scale(0.98); }
         .btn-total { display: flex; flex-direction: column; gap: 2px; }

@@ -230,7 +230,7 @@ export default function CheckoutPage() {
         .security-tag { font-size: 10px; font-weight: 800; color: var(--success); text-transform: uppercase; letter-spacing: 1px; }
         .security-desc { font-size: 11px; font-weight: 600; color: var(--success); opacity: 0.8; line-height: 1.5; }
 
-        .payment-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: white; padding: 16px; border-top: 1px solid var(--border-light); padding-bottom: calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 32px rgba(0,0,0,0.06); }
+        .payment-bar { position: fixed; bottom: 72px; left: 0; right: 0; z-index: 50; background: white; padding: 16px; border-top: 1px solid var(--border-light); padding-bottom: calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 32px rgba(0,0,0,0.06); }
         .pay-btn { max-width: 418px; margin: 0 auto; width: 100%; height: 56px; background: var(--navy); color: white; border-radius: 16px; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 12px; transition: var(--transition-fast); box-shadow: 0 12px 24px rgba(0,0,0,0.1); cursor: pointer; }
         .pay-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .pay-btn:active { transform: scale(0.98); }
