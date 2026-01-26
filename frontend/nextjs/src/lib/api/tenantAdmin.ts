@@ -34,7 +34,7 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
   }
 }
 
-function tenantAdminAuthHeader() {
+function tenantAdminAuthHeader(): Record<string, string> {
   const token = typeof window !== "undefined" ? localStorage.getItem("fg_tenant_admin_access_token") : null;
   return token ? { Authorization: `Bearer ${token}` } : {};
 }

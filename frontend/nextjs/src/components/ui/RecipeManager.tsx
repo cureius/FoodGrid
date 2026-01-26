@@ -114,11 +114,11 @@ export default function RecipeManager({ outletId, menuItemId, disabled = false }
       ingredientName: ingredient.name,
       unitId: newRecipe.unitId,
       unitName: unit.name,
-      unitAbbreviation: unit.abbreviation,
+      unitAbbreviation: unit.abbreviation || '',
       quantity: newRecipe.quantity,
-      notes: newRecipe.notes,
-      isOptional: newRecipe.isOptional,
-      sortOrder: newRecipe.sortOrder,
+      notes: newRecipe.notes ?? '',
+      isOptional: newRecipe.isOptional ?? false,
+      sortOrder: newRecipe.sortOrder ?? 0,
     }]);
     
     setIngredientSearch(''); // Clear search after adding

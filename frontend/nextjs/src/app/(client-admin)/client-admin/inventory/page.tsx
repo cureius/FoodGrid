@@ -1863,7 +1863,7 @@ export default function InventoryPage() {
                 {/* Recipe */}
                 <div className={styles.field}>
                   <RecipeManager
-                    selectedOutletId={selectedOutletId || ''}
+                    outletId={selectedOutletId || ''}
                     menuItemId={editingMenuItem?.id || null}
                     disabled={menuItemSubmitting}
                   />

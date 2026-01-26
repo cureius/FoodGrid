@@ -8,8 +8,9 @@ import { verifyPinOtp } from "@/lib/api/auth";
 
 const LEN = 6;
 
-function VerifyOtpInner({ searchParams }: { searchParams: URLSearchParams }) {
+function VerifyOtpInner() {
   const deviceId = process.env.NEXT_PUBLIC_DEVICE_ID ?? "dev-device";
+  const searchParams = useSearchParams();
   const challengeId = searchParams.get("challengeId") ?? "";
 
   const [otp, setOtp] = useState("");
@@ -68,7 +69,7 @@ function VerifyOtpInner({ searchParams }: { searchParams: URLSearchParams }) {
 export default function Page() {
   return (
     <Suspense fallback={<div style={{ padding: 24 }}>Loading…</div>}>
-      <VerifyOtpInner searchParams={new URLSearchParams(window.location.search)} />
+      <VerifyOtpInner />
     </Suspense>
   );
 }

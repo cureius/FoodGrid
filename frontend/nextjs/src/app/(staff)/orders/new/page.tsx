@@ -121,6 +121,7 @@ export default function NewOrderPage() {
         if (categoryId && categoryId !== "all") {
           params.categoryId = categoryId;
         }
+        if(!selectedOutletId) return;
         const data = await listMenuItems(selectedOutletId, params);
         setMenuItems(data || []);
       } catch (err) {
@@ -137,6 +138,7 @@ export default function NewOrderPage() {
     if (!selectedOutletId || orderType !== "DINE_IN") return;
     async function fetchTables() {
       try {
+        if(!selectedOutletId) return;
         const data = await listTables(selectedOutletId);
         setTables(data || []);
       } catch (err) {

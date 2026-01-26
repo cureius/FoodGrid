@@ -34,7 +34,7 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
   }
 }
 
-function staffAuthHeader() {
+function staffAuthHeader(): Record<string, string> {
   const token = typeof window !== "undefined" ? localStorage.getItem("fg_staff_access_token") : null;
   return token ? { Authorization: `Bearer ${token}` } : {};
 }

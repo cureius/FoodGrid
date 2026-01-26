@@ -146,6 +146,7 @@ export default function DashboardPage() {
         setLoading(true);
         setError(null);
         
+        if(!selectedOutletId) return;
         const [ordersData, tablesData, menuData] = await Promise.all([
           listOrders(100, selectedOutletId),
           listTables(selectedOutletId),

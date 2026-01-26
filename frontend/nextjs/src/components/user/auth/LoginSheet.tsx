@@ -183,7 +183,7 @@ export default function LoginSheet({ isOpen, onClose, onSuccess }: LoginSheetPro
                     {otp.map((digit, i) => (
                       <input
                         key={i}
-                        ref={(el) => (otpRefs.current[i] = el)}
+                        ref={(el) => { otpRefs.current[i] = el; }}
                         type="tel"
                         maxLength={1}
                         value={digit}

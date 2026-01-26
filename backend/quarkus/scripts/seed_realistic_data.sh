@@ -16,7 +16,8 @@ set -euo pipefail
 # - Sample orders and payments
 ###############################################################################
 
-BASE_URL="${BASE_URL:-http://localhost:8080}"
+
+BASE_URL="${BASE_URL:-https://foodgrid-production-064c.up.railway.app}"
 
 # Configuration for seeding volume
 NUM_CLIENTS=${NUM_CLIENTS:-3}

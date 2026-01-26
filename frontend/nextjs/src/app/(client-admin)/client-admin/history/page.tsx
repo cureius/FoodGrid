@@ -95,6 +95,7 @@ export default function HistoryPage() {
         setLoading(true);
         setError(null);
         // Fetch paid/billed orders for history
+        if (!selectedOutletId) return;
         const data = await listOrders(500, selectedOutletId);
         // Filter only paid/billed orders
         const paidOrders = data.filter(o => o.status === "PAID" || o.status === "BILLED");
@@ -114,6 +115,7 @@ export default function HistoryPage() {
     if (selectedId) {
       async function fetchOrderDetails() {
         try {
+          if (!selectedId) return;
           const data = await getOrder(selectedId);
           setSelectedOrder(data);
         } catch (err: any) {

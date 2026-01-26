@@ -9,6 +9,7 @@ import {
   reactivatePaymentConfig,
   validatePaymentCredentials,
   getSupportedGateways,
+  getSupportedGatewayTypes,
   listTenants,
   type PaymentConfigRequest,
   type PaymentConfigResponse,

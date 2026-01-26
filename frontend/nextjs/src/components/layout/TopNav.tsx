@@ -3,12 +3,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  LayoutDashboard, 
-  ShoppingCart, 
-  Utensils, 
-  CalendarDays, 
-  History, 
+import {
+  LayoutDashboard,
+  ShoppingCart,
+  Utensils,
+  CalendarDays,
+  History,
   Package,
   Bell,
   Settings,
@@ -36,16 +36,17 @@ const TopNav = () => {
           <Utensils size={20} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <Logo size={20} />
-        <span>FoodGrid</span>
+          <Logo size={20} />
+          <span>FoodGrid</span>
+        </div>
       </div>
 
       <div className={styles.navCenter}>
         {navItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           return (
-            <Link 
-              key={item.href} 
+            <Link
+              key={item.href}
               href={item.href}
               className={cn(styles.navItem, isActive && styles.navItemActive)}
             >

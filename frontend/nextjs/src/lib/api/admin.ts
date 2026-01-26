@@ -40,19 +40,19 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
   }
 }
 
-function adminAuthHeader() {
+function adminAuthHeader(): Record<string, string> {
   const token = typeof window !== "undefined" ? localStorage.getItem("fg_admin_access_token") : null;
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-function tenantAdminAuthHeader() {
+function tenantAdminAuthHeader(): Record<string, string> {
   const token = typeof window !== "undefined" ? localStorage.getItem("fg_tenant_admin_access_token") : null;
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 // For ADMIN-only endpoints, try tenant admin token first (as TENANT_ADMIN users may have ADMIN role),
 // then fall back to admin token
-function adminOnlyAuthHeader() {
+function adminOnlyAuthHeader(): Record<string, string> {
   const tenantAdminToken = typeof window !== "undefined" ? localStorage.getItem("fg_tenant_admin_access_token") : null;
   if (tenantAdminToken) {
     return { Authorization: `Bearer ${tenantAdminToken}` };
