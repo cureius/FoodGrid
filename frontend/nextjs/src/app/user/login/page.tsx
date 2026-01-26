@@ -8,6 +8,8 @@ import { customerAuthApi } from '@/lib/api/customerAuth';
 import { useAuthStore } from '@/stores/auth';
 import Logo from '@/components/Logo';
 
+const COMMON_DOMAINS = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com'];
+
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -15,9 +17,11 @@ function LoginContent() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   
   const [step, setStep] = useState<'identifier' | 'otp'>('identifier');
-  const [loginMode, setLoginMode] = useState<'mobile' | 'email'>('mobile');
+  const [loginMode, setLoginMode] = useState<'mobile' | 'email'>('email');
   const [mobile, setMobile] = useState('');
   const [email, setEmail] = useState('');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +35,32 @@ function LoginContent() {
       router.replace(redirect);
     }
   }, [isAuthenticated, router, redirect]);
+
+  useEffect(() => {
+    if (loginMode === 'email' && email.length > 0 && !email.includes(' ')) {
+      const [local, domain] = email.split('@');
+      let filtered: string[] = [];
+      
+      if (domain !== undefined) {
+        // User has typed @, filter domains
+        filtered = COMMON_DOMAINS
+          .filter(d => d.startsWith(domain.toLowerCase()))
+          .map(d => `${local}@${d}`);
+      } else {
+        // User hasn't typed @, show all common domains
+        filtered = COMMON_DOMAINS.map(d => `${email}@${d}`);
+      }
+      
+      // Hide if the first suggestion is exactly what user typed
+      if (filtered.length === 1 && filtered[0] === email) {
+        setSuggestions([]);
+      } else {
+        setSuggestions(filtered);
+      }
+    } else {
+      setSuggestions([]);
+    }
+  }, [email, loginMode]);
 
   useEffect(() => {
     if (timer > 0) {
@@ -137,7 +167,7 @@ function LoginContent() {
               <p className="subtitle">Enter your {loginMode === 'mobile' ? 'mobile number' : 'email'} to enjoy the best deals and track your orders.</p>
 
               <form onSubmit={handleSendOtp} className="form">
-                <div className="mode-toggle">
+                {/* <div className="mode-toggle">
                   <button 
                     type="button"
                     onClick={() => { setLoginMode('mobile'); setError(null); }}
@@ -152,7 +182,7 @@ function LoginContent() {
                   >
                     Email
                   </button>
-                </div>
+                </div> */}
 
                 {loginMode === 'mobile' ? (
                   <div className="input-group">
@@ -169,14 +199,42 @@ function LoginContent() {
                     />
                   </div>
                 ) : (
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email Address"
-                    className="login-input"
-                    autoFocus
-                  />
+                  <div className="email-input-container">
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setShowSuggestions(true);
+                      }}
+                      onFocus={() => setShowSuggestions(true)}
+                      onBlur={() => {
+                        // Delay hiding so clicks on suggestions work
+                        setTimeout(() => setShowSuggestions(false), 200);
+                      }}
+                      placeholder="Email Address"
+                      className="login-input"
+                      autoFocus
+                    />
+                    {showSuggestions && suggestions.length > 0 && (
+                      <div className="suggestions-dropdown">
+                        {suggestions.map((sug) => (
+                          <button
+                            key={sug}
+                            type="button"
+                            className="suggestion-item"
+                            onClick={() => {
+                              setEmail(sug);
+                              setSuggestions([]);
+                              setShowSuggestions(false);
+                            }}
+                          >
+                            {sug}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 {error && <p className="error-msg">{error}</p>}
@@ -371,6 +429,39 @@ function LoginContent() {
           border-color: rgba(75, 112, 245, 0.2);
           background: white;
           box-shadow: 0 4px 12px rgba(75, 112, 245, 0.05);
+        }
+        .email-input-container {
+          position: relative;
+        }
+        .suggestions-dropdown {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: white;
+          border: 1px solid var(--border-light);
+          border-radius: var(--radius-md);
+          margin-top: 4px;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+          z-index: 100;
+          overflow: hidden;
+        }
+        .suggestion-item {
+          width: 100%;
+          padding: 12px 16px;
+          text-align: left;
+          background: none;
+          border: none;
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--navy);
+          cursor: pointer;
+          transition: var(--transition-fast);
+          display: block;
+        }
+        .suggestion-item:hover {
+          background: var(--bg-muted);
+          color: var(--primary);
         }
         .submit-btn {
           width: 100%;
