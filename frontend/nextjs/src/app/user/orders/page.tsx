@@ -44,68 +44,66 @@ export default function OrdersHistoryPage() {
 
       <main className="history-main">
         {orders && orders.length > 0 ? (
-            orders.map((order) => {
-                const statusInfo = getOrderStatusInfo(order.status as any);
-                return (
-                    <div 
-                        key={order.id}
-                        onClick={() => router.push(`/user/orders/${order.id}`)}
-                        className="order-item-card"
-                    >
-                        <div className="order-item-top">
-                            <div className="item-main-info">
-                                <div className="store-icon">
-                                    <ShoppingBag size={24} />
-                                </div>
-                                <div className="store-details">
-                                    <h3 className="store-name">Burger House</h3>
-                                    <p className="order-items-summary">
-                                        {order.items.map(i => i.itemName).join(', ')}
-                                    </p>
-                                    <div className="order-meta">
-                                        <span>{new Date(order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</span>
-                                        <div className="dot-sep" />
-                                        <span className="order-price">{formatPrice(order.grandTotal)}</span>
+            <div className="orders-groups">
+                <div className="group-header">Recent Orders</div>
+                {orders.map((order) => {
+                    const statusInfo = getOrderStatusInfo(order.status as any);
+                    return (
+                        <div 
+                            key={order.id}
+                            onClick={() => router.push(`/user/orders/${order.id}`)}
+                            className="order-item-card"
+                        >
+                            <div className="order-item-top">
+                                <div className="item-main-info">
+                                    <div className="store-icon">
+                                        <ShoppingBag size={24} />
+                                    </div>
+                                    <div className="store-details">
+                                        <h3 className="store-name">Burger House</h3>
+                                        <p className="order-items-summary">
+                                            {order.items.map(i => i.itemName).join(', ')}
+                                        </p>
+                                        <div className="order-meta">
+                                            <span>{new Date(order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                                            <div className="dot-sep" />
+                                            <span className="order-price">{formatPrice(order.grandTotal)}</span>
+                                        </div>
                                     </div>
                                 </div>
+                                <div 
+                                    className="status-badge"
+                                    style={{ backgroundColor: statusInfo.bgColor, color: statusInfo.color }}
+                                >
+                                    {statusInfo.label}
+                                </div>
                             </div>
-                            <div 
-                                className="status-badge"
-                                style={{ backgroundColor: statusInfo.bgColor, color: statusInfo.color, borderColor: statusInfo.color + '40' }}
-                            >
-                                {statusInfo.label}
+
+                            <div className="order-card-footer">
+                                <span className="order-id-tag">#{order.id.slice(-6).toUpperCase()}</span>
+                                <div className="footer-btns">
+                                    <button className="view-link">
+                                        Details
+                                        <ChevronRight size={14} strokeWidth={4} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
-
-                        <div className="card-divider" />
-
-                        <div className="order-card-footer">
-                             <button className="view-link">
-                                View Details
-                                <ChevronRight size={14} strokeWidth={4} />
-                             </button>
-                             <button 
-                                onClick={(e) => { e.stopPropagation(); }}
-                                className="reorder-btn"
-                             >
-                                REORDER
-                             </button>
-                        </div>
-                    </div>
-                );
-            })
+                    );
+                })}
+            </div>
         ) : (
             <div className="empty-history">
                 <div className="empty-icon-wrap">
                     <Receipt size={36} />
                 </div>
                 <h2 className="empty-title">No orders yet</h2>
-                <p className="empty-text">You haven't placed any orders yet. Delicious food is just a click away!</p>
+                <p className="empty-text">You haven't placed any orders yet. Try something delicious today!</p>
                 <button 
                   onClick={() => router.push('/user')}
                   className="start-btn"
                 >
-                    Start Ordering
+                    Order Now
                     <ArrowRight size={20} />
                 </button>
             </div>
@@ -114,38 +112,41 @@ export default function OrdersHistoryPage() {
 
       <style jsx>{`
         .orders-history-page { background: var(--bg-app); min-height: 100vh; padding-bottom: 96px; }
-        .history-header { position: sticky; top: 0; z-index: 40; background: white; border-bottom: 1px solid var(--border-light); height: 64px; display: flex; align-items: center; padding: 0 16px; gap: 16px; }
-        .back-btn { padding: 4px; margin-left: -4px; color: var(--navy); }
-        .header-title { font-size: 18px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: 0.5px; }
+        .history-header { position: sticky; top: 0; z-index: 40; background: white; border-bottom: 1px solid var(--border-light); height: 64px; display: flex; align-items: center; padding: 0 16px; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .back-btn { padding: 8px; margin-left: -8px; color: var(--navy); border-radius: 50%; }
+        .back-btn:active { background: var(--bg-muted); }
+        .header-title { font-size: 18px; font-weight: 800; color: var(--navy); letter-spacing: -0.5px; }
 
-        .history-main { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+        .history-main { padding: 16px; max-width: 450px; margin: 0 auto; }
+        .group-header { font-size: 11px; font-weight: 900; color: var(--text-light); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; padding-left: 4px; }
         
-        .order-item-card { background: white; border-radius: 32px; padding: 20px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); cursor: pointer; transition: var(--transition-fast); }
-        .order-item-card:active { transform: scale(0.98); }
+        .orders-groups { display: flex; flex-direction: column; gap: 12px; }
+        .order-item-card { background: white; border-radius: 28px; padding: 20px; border: 1px solid var(--border-light); box-shadow: 0 4px 12px rgba(0,0,0,0.03); cursor: pointer; transition: 0.2s; }
+        .order-item-card:active { transform: scale(0.98); border-color: var(--primary-border); }
         
-        .order-item-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+        .order-item-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
         .item-main-info { display: flex; gap: 16px; flex: 1; min-width: 0; }
-        .store-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--primary-light); border: 1px solid var(--primary-border); display: flex; align-items: center; justify-content: center; color: var(--primary); flex-shrink: 0; }
-        .store-details { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-        .store-name { font-size: 15px; font-weight: 800; color: var(--navy); }
-        .order-items-summary { font-size: 11px; color: var(--text-light); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; letter-spacing: 0.5px; }
-        .order-meta { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; color: var(--text-muted); margin-top: 4px; }
-        .dot-sep { width: 4px; height: 4px; background: var(--border-light); border-radius: 50%; }
-        .order-price { color: var(--navy); }
+        .store-icon { width: 44px; height: 44px; border-radius: 12px; background: #EEF2FE; display: flex; align-items: center; justify-content: center; color: #4B70F5; flex-shrink: 0; }
+        .store-details { flex: 1; min-width: 0; }
+        .store-name { font-size: 15px; font-weight: 800; color: var(--navy); margin-bottom: 2px; }
+        .order-items-summary { font-size: 12px; color: var(--text-muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .order-meta { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; color: var(--text-light); margin-top: 4px; }
+        .dot-sep { width: 3px; height: 3px; background: var(--border-light); border-radius: 50%; }
+        .order-price { color: var(--navy); font-weight: 800; }
 
-        .status-badge { flex-shrink: 0; padding: 4px 10px; border-radius: 8px; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid transparent; }
+        .status-badge { flex-shrink: 0; padding: 4px 10px; border-radius: 8px; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
         
-        .card-divider { height: 1px; background: var(--bg-muted); margin-bottom: 20px; }
-        
-        .order-card-footer { display: flex; align-items: center; justify-content: space-between; }
-        .view-link { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; transition: var(--transition-fast); }
-        .reorder-btn { height: 36px; padding: 0 20px; background: var(--navy); color: white; border-radius: 10px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .order-card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; border-top: 1px solid var(--bg-muted); }
+        .order-id-tag { font-size: 10px; font-weight: 800; color: var(--text-light); opacity: 0.6; }
+        .footer-btns { display: flex; gap: 12px; }
+        .view-link { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
 
         .empty-history { padding: 80px 32px; text-align: center; display: flex; flex-direction: column; align-items: center; }
-        .empty-icon-wrap { width: 80px; height: 80px; background: var(--bg-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-light); margin-bottom: 32px; }
-        .empty-title { font-size: 24px; font-weight: 800; color: var(--navy); margin-bottom: 12px; }
-        .empty-text { font-size: 14px; color: var(--text-muted); font-weight: 500; line-height: 1.5; margin-bottom: 40px; max-width: 240px; }
-        .start-btn { height: 56px; padding: 0 40px; background: var(--primary); color: white; border-radius: 16px; font-weight: 800; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 12px; box-shadow: 0 12px 32px rgba(75, 112, 245, 0.2); }
+        .empty-icon-wrap { width: 80px; height: 80px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-light); margin-bottom: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); }
+        .empty-title { font-size: 22px; font-weight: 800; color: var(--navy); margin-bottom: 12px; }
+        .empty-text { font-size: 14px; color: var(--text-muted); font-weight: 500; line-height: 1.6; margin-bottom: 32px; max-width: 240px; }
+        .start-btn { height: 56px; padding: 0 40px; background: var(--primary); color: white; border-radius: 16px; font-weight: 800; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 12px; box-shadow: 0 12px 24px rgba(75, 112, 245, 0.2); transition: 0.2s; }
+        .start-btn:active { transform: scale(0.98); }
       `}</style>
     </div>
   );

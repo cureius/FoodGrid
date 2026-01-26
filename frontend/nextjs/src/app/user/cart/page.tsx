@@ -2,19 +2,29 @@
 
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/stores/cart';
-import { formatPrice, calculateCartTotal } from '@/lib/api/customer';
-import { ChevronLeft, ArrowRight, Clock, MapPin, ReceiptText, ChevronRight, Plus, Info } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { formatPrice, calculateCartTotal, listOrders, getOrderStatusInfo, getImageUrl } from '@/lib/api/customer';
+import { ChevronLeft, ArrowRight, Clock, ReceiptText, ChevronRight, Plus, Info } from 'lucide-react';
 import QuantityControl from '@/components/user/ui/QuantityControl';
 import Image from 'next/image';
-import { getImageUrl } from '@/lib/api/customer';
 
 export default function CartPage() {
   const router = useRouter();
-  const { items, updateQuantity, clearCart, subtotal } = useCartStore();
+  const { items, updateQuantity, clearCart, subtotal, outletId } = useCartStore();
   
-  const { taxAmount, deliveryFee, total } = calculateCartTotal(items);
+  const { taxAmount, total } = calculateCartTotal(items);
 
-  if (items.length === 0) {
+  const { data: orders } = useQuery({
+    queryKey: ['active-orders', outletId],
+    queryFn: () => listOrders(10, outletId || undefined),
+    enabled: !!outletId
+  });
+
+  const activeOrders = orders?.filter(o => 
+    !['PAID', 'CANCELLED', 'DELIVERED', 'SERVED'].includes(o.status)
+  ) || [];
+
+  if (items.length === 0 && activeOrders.length === 0) {
     return (
       <div className="empty-cart-page">
         <div className="empty-cart-image-wrap">
@@ -47,158 +57,189 @@ export default function CartPage() {
           <ChevronLeft size={24} />
         </button>
         <div className="header-titles">
-          <h1 className="header-title">Checkout</h1>
-          <p className="header-subtitle">{items.length} Items • BURGER HOUSE</p>
+          <h1 className="header-title">My Cart</h1>
+          <p className="header-subtitle">{items.length} Items in cart</p>
         </div>
-        <button 
-          onClick={() => { if(confirm('Clear entire cart?')) clearCart(); }}
-          className="clear-btn"
-        >
-          CLEAR ALL
-        </button>
+        {items.length > 0 && (
+          <button 
+            onClick={() => { if(confirm('Clear entire cart?')) clearCart(); }}
+            className="clear-btn"
+          >
+            CLEAR
+          </button>
+        )}
       </header>
 
       {/* Main Content */}
       <main className="cart-main">
-        {/* Cart Items */}
-        <section className="items-section card">
-          <div className="items-list">
-            {items.map((item) => (
-              <div key={item.id} className="cart-item">
-                <div className="item-img-wrap">
-                  {item.menuItem.primaryImageUrl ? (
-                      <Image src={getImageUrl(item.menuItem.primaryImageUrl)!} alt={item.menuItem.name} width={48} height={48} className="item-img" />
-                  ) : (
-                      <div className="item-img-placeholder">IMG</div>
-                  )}
-                </div>
-                <div className="item-details">
-                  <div className="item-row">
-                    <div className="item-info">
-                      <h3 className="item-name">{item.menuItem.name}</h3>
-                      <p className="item-unit-price">{formatPrice(item.unitPrice)}</p>
-                    </div>
-                    <span className="item-total-price">{formatPrice(item.totalPrice)}</span>
-                  </div>
-                  
-                  {item.specialInstructions && (
-                    <p className="item-instructions">"{item.specialInstructions}"</p>
-                  )}
+        {/* Active Orders Section */}
+        {activeOrders.length > 0 && (
+           <section className="active-orders-section card">
+              <div className="section-header">
+                  <Clock size={16} className="text-primary" />
+                  <h2 className="section-title">Orders in Progress</h2>
+              </div>
+              <div className="active-orders-list">
+                 {activeOrders.map(order => {
+                    const statusInfo = getOrderStatusInfo(order.status);
+                    return (
+                        <div 
+                          key={order.id} 
+                          className="active-order-card"
+                          onClick={() => router.push(`/user/orders/${order.id}`)}
+                        >
+                           <div className="order-main">
+                              <div>
+                                 <h4 className="order-number">Order #{order.id.slice(-4).toUpperCase()}</h4>
+                                 <p className="order-items">{order.items.length} items • {formatPrice(order.grandTotal)}</p>
+                              </div>
+                              <div className="status-badge" style={{ background: statusInfo.bgColor, color: statusInfo.color }}>
+                                 {statusInfo.label}
+                              </div>
+                           </div>
+                           <ChevronRight size={18} className="text-light" />
+                        </div>
+                    )
+                 })}
+              </div>
+           </section>
+        )}
 
-                  <div className="item-actions">
-                       <button className="customize-btn">
-                          Add Customization <ChevronRight size={10} />
-                       </button>
-                       <QuantityControl 
-                          quantity={item.quantity}
-                          onIncrease={() => updateQuantity(item.id, item.quantity + 1)}
-                          onDecrease={() => updateQuantity(item.id, item.quantity - 1)}
-                          size="sm"
-                          showDelete
-                      />
+        {items.length > 0 ? (
+          <>
+            {/* Cart Items */}
+            <section className="items-section card">
+              <div className="items-list">
+                {items.map((item) => (
+                  <div key={item.id} className="cart-item">
+                    <div className="item-img-wrap">
+                      {item.menuItem.primaryImageUrl ? (
+                          <Image src={getImageUrl(item.menuItem.primaryImageUrl)!} alt={item.menuItem.name} width={48} height={48} className="item-img" />
+                      ) : (
+                          <div className="item-img-placeholder">IMG</div>
+                      )}
+                    </div>
+                    <div className="item-details">
+                      <div className="item-row">
+                        <div className="item-info">
+                          <h3 className="item-name">{item.menuItem.name}</h3>
+                          <p className="item-unit-price">{formatPrice(item.unitPrice)}</p>
+                        </div>
+                        <span className="item-total-price">{formatPrice(item.totalPrice)}</span>
+                      </div>
+                      
+                      {item.specialInstructions && (
+                        <p className="item-instructions">"{item.specialInstructions}"</p>
+                      )}
+
+                      <div className="item-actions">
+                          <button className="customize-btn">
+                              Customized <ChevronRight size={10} />
+                          </button>
+                          <QuantityControl 
+                              quantity={item.quantity}
+                              onIncrease={() => updateQuantity(item.id, item.quantity + 1)}
+                              onDecrease={() => updateQuantity(item.id, item.quantity - 1)}
+                              size="sm"
+                              showDelete
+                          />
+                      </div>
+                    </div>
                   </div>
+                ))}
+              </div>
+
+              <button 
+                onClick={() => router.push('/user')}
+                className="add-more-btn"
+              >
+                <Plus size={18} />
+                Add more items
+              </button>
+            </section>
+
+            {/* Bill Summary */}
+            <section className="bill-section card">
+              <div className="bill-header">
+                <ReceiptText size={18} />
+                <h4 className="bill-title">Bill Summary</h4>
+              </div>
+              
+              <div className="bill-lines">
+                <div className="bill-line">
+                    <span>Item Total</span>
+                    <span>{formatPrice(subtotal)}</span>
+                </div>
+                <div className="bill-line">
+                    <span className="dashed">Taxes & Charges <Info size={12} /></span>
+                    <span>{formatPrice(taxAmount)}</span>
+                </div>
+                
+                <div className="bill-divider" />
+                
+                <div className="bill-total">
+                    <span>To Pay</span>
+                    <span>{formatPrice(total)}</span>
                 </div>
               </div>
-            ))}
+            </section>
+          </>
+        ) : (
+          <div className="no-items-card card">
+              <p>Nothing in cart. Check your active orders above or browse the menu.</p>
+              <button 
+                onClick={() => router.push('/user')}
+                className="browse-mini-btn"
+              >
+                Browse Menu
+              </button>
           </div>
-
-          <button 
-             onClick={() => router.push('/user')}
-             className="add-more-btn"
-          >
-             <Plus size={18} />
-             Add more items
-          </button>
-        </section>
-
-        {/* Delivery Info */}
-        <section className="info-block card">
-          <div className="info-row">
-            <div className="info-icon clock">
-               <Clock size={20} />
-            </div>
-            <div className="info-content">
-               <h4 className="info-title">Delivery in 25-30 mins</h4>
-               <p className="info-subtitle">Arriving via Burger House Fleet</p>
-            </div>
-          </div>
-
-          <div className="info-row border-top">
-            <div className="info-icon map">
-               <MapPin size={20} />
-            </div>
-            <div className="info-content">
-               <h4 className="info-title">Delivering to Home</h4>
-               <p className="info-subtitle">402, Skyline Residency, Koramangala...</p>
-            </div>
-            <button className="change-btn">CHANGE</button>
-          </div>
-        </section>
-
-        {/* Bill Summary */}
-        <section className="bill-section card">
-          <div className="bill-header">
-             <ReceiptText size={18} />
-             <h4 className="bill-title">Bill Summary</h4>
-          </div>
-          
-          <div className="bill-lines">
-             <div className="bill-line">
-                <span>Item Total</span>
-                <span>{formatPrice(subtotal)}</span>
-             </div>
-             <div className="bill-line">
-                <span className="dashed">Taxes & Charges <Info size={12} /></span>
-                <span>{formatPrice(taxAmount)}</span>
-             </div>
-             <div className="bill-line">
-                <span>Delivery Fee</span>
-                <span className={deliveryFee === 0 ? 'free' : ''}>
-                  {deliveryFee === 0 ? 'FREE' : formatPrice(deliveryFee)}
-                </span>
-             </div>
-             
-             <div className="bill-divider" />
-             
-             <div className="bill-total">
-                <span>To Pay</span>
-                <span>{formatPrice(total)}</span>
-             </div>
-          </div>
-        </section>
-
-        <p className="cancellation-policy">Review your order carefully before paying. 100% cancellation fee applies once order is accepted by restaurant.</p>
+        )}
       </main>
 
       {/* Bottom Action */}
-      <div className="bottom-bar">
-         <div 
-            className="checkout-btn"
-            onClick={() => router.push('/user/checkout')}
-          >
-            <div className="btn-total">
-               <span className="total-label">Total to Pay</span>
-               <span className="total-val">{formatPrice(total)}</span>
-            </div>
-            <div className="btn-action">
-               Proceed to Pay
-               <ArrowRight size={18} />
-            </div>
-         </div>
-      </div>
+      {items.length > 0 && (
+        <div className="bottom-bar">
+          <div 
+              className="checkout-btn"
+              onClick={() => router.push('/user/checkout')}
+            >
+              <div className="btn-total">
+                <span className="total-label">Subtotal</span>
+                <span className="total-val">{formatPrice(total)}</span>
+              </div>
+              <div className="btn-action">
+                Checkout
+                <ArrowRight size={18} />
+              </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         .cart-page { background: var(--bg-app); min-height: 100vh; padding-bottom: 120px; }
         .cart-header { position: sticky; top: 0; z-index: 40; background: white; border-bottom: 1px solid var(--border-light); padding: 0 16px; height: 64px; display: flex; align-items: center; gap: 16px; }
-        .back-btn { padding: 4px; margin-left: -4px; color: var(--text-main); }
+        .back-btn { padding: 4px; margin-left: -4px; color: var(--navy); }
         .header-titles { flex: 1; }
         .header-title { font-size: 18px; font-weight: 800; line-height: 1; color: var(--navy); }
         .header-subtitle { font-size: 10px; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
         .clear-btn { font-size: 11px; font-weight: 800; color: var(--danger); text-transform: uppercase; letter-spacing: 0.5px; }
         
-        .cart-main { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
-        .card { background: white; border-radius: 24px; border: 1px solid var(--border-light); shadow-sm: 0 2px 8px rgba(0,0,0,0.04); }
+        .cart-main { display: flex; flex-direction: column; gap: 12px; padding: 12px; max-width: 450px; margin: 0 auto; }
+        .card { background: white; border-radius: 24px; border: 1px solid var(--border-light); box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
         
+        .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 0 4px; }
+        .section-title { font-size: 14px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .active-orders-section { padding: 20px; }
+        .active-orders-list { display: flex; flex-direction: column; gap: 12px; }
+        .active-order-card { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-app); border-radius: 16px; cursor: pointer; transition: 0.2s; }
+        .active-order-card:active { transform: scale(0.98); }
+        .order-main { flex: 1; display: flex; justify-content: space-between; align-items: center; margin-right: 12px; }
+        .order-number { font-size: 13px; font-weight: 800; color: var(--navy); }
+        .order-items { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+        .status-badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+
         .items-section { padding: 20px; }
         .items-list { display: flex; flex-direction: column; gap: 24px; }
         .cart-item { display: flex; gap: 12px; }
@@ -210,43 +251,39 @@ export default function CartPage() {
         .item-name { font-size: 14px; font-weight: 800; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
         .item-unit-price { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
         .item-total-price { font-size: 14px; font-weight: 800; color: var(--navy); }
-        .item-instructions { font-size: 10px; color: var(--secondary); font-style: italic; font-weight: 600; margin-top: 6px; padding: 4px 8px; background: var(--secondary-light); border-radius: 4px; display: inline-block; }
+        .item-instructions { font-size: 10px; color: #4B70F5; font-style: italic; font-weight: 600; margin-top: 6px; padding: 4px 8px; background: #EEF2FE; border-radius: 4px; display: inline-block; }
         .item-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
         .customize-btn { font-size: 10px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 4px; opacity: 0.8; }
         
-        .add-more-btn { width: 100%; margin-top: 24px; height: 48px; border: 2px dashed var(--primary-border); border-radius: 12px; color: var(--primary); font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: var(--transition-fast); }
-        .add-more-btn:hover { background: var(--primary-light); }
-
-        .info-block { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-        .info-row { display: flex; align-items: center; gap: 16px; }
-        .info-row.border-top { padding-top: 16px; border-top: 1px solid var(--bg-muted); }
-        .info-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .info-icon.clock { background: var(--success-light); color: var(--success); }
-        .info-icon.map { background: var(--primary-light); color: var(--primary); }
-        .info-content { flex: 1; overflow: hidden; }
-        .info-title { font-size: 14px; font-weight: 800; color: var(--navy); }
-        .info-subtitle { font-size: 11px; color: var(--text-muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
-        .change-btn { font-size: 11px; font-weight: 800; color: var(--primary); padding: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .add-more-btn { width: 100%; margin-top: 24px; height: 48px; border: 2px dashed var(--border-light); border-radius: 12px; color: var(--primary); font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+        .add-more-btn:hover { background: var(--bg-app); }
 
         .bill-section { padding: 20px; }
         .bill-header { display: flex; align-items: center; gap: 8px; color: var(--text-light); margin-bottom: 20px; }
         .bill-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
         .bill-lines { display: flex; flex-direction: column; gap: 12px; }
         .bill-line { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; color: var(--text-muted); }
-        .bill-line .dashed { border-bottom: 1px dashed var(--border-light); padding-bottom: 2px; display: flex; align-items: center; gap: 4px; cursor: help; }
-        .bill-line span.free { color: var(--success); font-weight: 800; }
-        .bill-divider { height: 1px; background: var(--bg-muted); margin: 8px 0; }
+        .bill-line .dashed { border-bottom: 1px dashed var(--border-light); padding-bottom: 2px; display: flex; align-items: center; gap: 4px; }
+        .bill-divider { height: 1px; background: var(--border-light); margin: 8px 0; }
         .bill-total { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 800; color: var(--navy); }
         
-        .cancellation-policy { padding: 16px 20px; text-align: center; font-size: 10px; color: var(--text-light); font-weight: 600; line-height: 1.5; text-transform: uppercase; letter-spacing: 0.5px; }
+        .no-items-card { padding: 40px 20px; text-align: center; }
+        .no-items-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; font-weight: 500; }
+        .browse-mini-btn { padding: 10px 24px; background: var(--primary); color: white; border-radius: 10px; font-weight: 800; font-size: 13px; }
 
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: white; padding: 16px; border-top: 1px solid var(--border-light); box-shadow: 0 -8px 24px rgba(0,0,0,0.06); padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
-        .checkout-btn { max-width: 418px; margin: 0 auto; background: var(--primary); color: white; height: 56px; border-radius: 16px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 8px 24px rgba(75, 112, 245, 0.25); position: relative; overflow: hidden; transition: var(--transition-fast); }
+        .checkout-btn { max-width: 418px; margin: 0 auto; background: var(--primary); color: white; height: 56px; border-radius: 16px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 12px 24px rgba(75, 112, 245, 0.25); position: relative; overflow: hidden; transition: 0.2s; }
         .checkout-btn:active { transform: scale(0.98); }
         .btn-total { display: flex; flex-direction: column; gap: 2px; }
         .total-label { font-size: 10px; font-weight: 800; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
         .total-val { font-size: 18px; font-weight: 800; }
         .btn-action { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+
+        .empty-cart-page { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; text-align: center; background: white; }
+        .empty-cart-image-wrap { position: relative; width: 256px; height: 256px; margin-bottom: 24px; opacity: 0.2; }
+        .empty-cart-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; color: var(--navy); }
+        .empty-cart-text { color: var(--text-muted); margin-bottom: 32px; font-weight: 500; max-width: 240px; }
+        .empty-cart-btn { background: var(--primary); color: white; font-weight: 800; padding: 12px 32px; border-radius: 12px; box-shadow: 0 8px 20px rgba(75, 112, 245, 0.2); }
       `}</style>
     </div>
   );

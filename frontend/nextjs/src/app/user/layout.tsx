@@ -47,7 +47,6 @@ export default function UserLayout({
             }
             .layout-main {
               flex: 1;
-              padding-bottom: 96px; 
               overflow-x: hidden;
             }
             .layout-container {

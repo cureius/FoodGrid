@@ -99,7 +99,7 @@ function RestaurantView({ outletId, onBack }: { outletId: string; onBack: () => 
                 </div>
                 <div className="badge primary">
                     <Clock size={12} />
-                    <span>30 mins</span>
+                    <span>10-15 mins</span>
                 </div>
                 <div className="badge info">
                     <Info size={12} />
@@ -113,7 +113,6 @@ function RestaurantView({ outletId, onBack }: { outletId: string; onBack: () => 
       <div className="sticky-filters">
         <div className="filters-row">
           <div className="search-box">
-            <Search className="search-icon" size={16} />
             <input 
               type="text" 
               placeholder="Search dishes..." 

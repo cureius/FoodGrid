@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, ShoppingBag, User } from 'lucide-react';
+import { Home, ShoppingCart, ShoppingBag, User } from 'lucide-react';
 import { useCartStore } from '@/stores/cart';
 
 export default function BottomNav() {
@@ -11,7 +11,7 @@ export default function BottomNav() {
 
   const navItems = [
     { label: 'Home', icon: Home, href: '/user' },
-    { label: 'Search', icon: Search, href: '/user/search' },
+    { label: 'Cart', icon: ShoppingCart, href: '/user/cart' },
     { label: 'Orders', icon: ShoppingBag, href: '/user/orders' },
     { label: 'Account', icon: User, href: '/user/account' },
   ];
@@ -31,7 +31,7 @@ export default function BottomNav() {
             >
               <div className="icon-box">
                 <Icon size={22} />
-                {item.label === 'Orders' && itemCount > 0 && (
+                {item.label === 'Cart' && itemCount > 0 && (
                   <span className="badge">{itemCount}</span>
                 )}
               </div>

@@ -52,6 +52,9 @@ export default function DishCard({ item }: DishCardProps) {
         style={{
           flexDirection: 'row',
           display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '40px',
         }}
       >
         <div className="dish-info">
@@ -125,6 +128,7 @@ export default function DishCard({ item }: DishCardProps) {
             padding: 16px 0;
             cursor: pointer;
             border-bottom: 1px solid var(--border-light);
+            margin-bottom: 16px;
           }
           .dish-card:last-child { border-bottom: none; }
           .dish-info {
@@ -241,15 +245,6 @@ export default function DishCard({ item }: DishCardProps) {
           }
           .add-button:hover .plus-icon {
             transform: rotate(90deg);
-          }
-          .customizable-text {
-            font-size: 9px;
-            color: var(--text-light);
-            font-weight: 700;
-            margin-top: 6px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: -0.2px;
           }
         `}</style>
       </motion.div>
