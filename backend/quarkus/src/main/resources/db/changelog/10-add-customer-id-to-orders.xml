@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+      http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+  <changeSet id="10-add-customer-id-to-orders" author="dev">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="orders"/>
+      <not>
+        <columnExists tableName="orders" columnName="customer_id"/>
+      </not>
+    </preConditions>
+
+    <!-- Add customer_id column to orders table -->
+    <addColumn tableName="orders">
+      <column name="customer_id" type="VARCHAR(36)">
+        <constraints nullable="true"/>
+      </column>
+    </addColumn>
+
+    <!-- Add index for better query performance on customer_id -->
+    <createIndex tableName="orders" indexName="idx_orders_customer_id">
+      <column name="customer_id"/>
+    </createIndex>
+
+    <!-- Add composite index for customer_id + outlet_id for common queries -->
+    <createIndex tableName="orders" indexName="idx_orders_customer_outlet">
+      <column name="customer_id"/>
+      <column name="outlet_id"/>
+    </createIndex>
+
+    <rollback>
+      <dropIndex tableName="orders" indexName="idx_orders_customer_outlet"/>
+      <dropIndex tableName="orders" indexName="idx_orders_customer_id"/>
+      <dropColumn tableName="orders" columnName="customer_id"/>
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>

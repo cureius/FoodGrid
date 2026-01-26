@@ -80,18 +80,6 @@ export default function OutletsPage() {
 
   return (
     <div className="explorer-page">
-      {/* Header */}
-      <header className="explorer-header">
-        <div className="header-left">
-          <MapPin size={20} className="pin-icon" />
-          <div>
-            <span className="loc-label">Current Location</span>
-            <span className="loc-val">Bangalore, Koramangala</span>
-          </div>
-        </div>
-        <div className="user-avatar">S</div>
-      </header>
-
       {/* List */}
       <main className="explorer-main">
         <h2 className="section-title">All Restaurants</h2>

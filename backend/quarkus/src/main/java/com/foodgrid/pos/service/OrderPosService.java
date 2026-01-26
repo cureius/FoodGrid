@@ -61,6 +61,7 @@ public class OrderPosService {
     o.deviceId = isAdminAccess ? "admin-device" : ss.deviceId;
     o.shiftId = isAdminAccess ? "admin-shift" : ss.shiftId;
     o.employeeId = isAdminAccess ? "admin" : employeeId();
+    o.customerId = null; // POS orders don't have customerId
     o.tableId = (req.tableId() == null || req.tableId().isBlank()) ? null : req.tableId();
     o.orderType = parseOrderType(req.orderType());
     o.status = Order.Status.OPEN;

@@ -306,9 +306,9 @@ export async function getOrder(orderId: string): Promise<Order> {
   return data;
 }
 
-export async function listOrders(limit?: number, outletId?: string): Promise<Order[]> {
+export async function listOrders(limit?: number, outletId?: string, customerId?: string): Promise<Order[]> {
   const { data } = await api.get<Order[]>(`/api/v1/customer/orders`, {
-    params: { limit, outletId }
+    params: { limit, outletId, customerId}
   });
   return data;
 }

@@ -80,7 +80,7 @@ export default function OrderDetailsPage() {
             
             <h2 className="eta-title">Estimated delivery in</h2>
             <div className="eta-timer">
-                <span className="eta-val">25</span>
+                <span className="eta-val">15</span>
                 <span className="eta-unit">mins</span>
             </div>
 
@@ -193,7 +193,7 @@ export default function OrderDetailsPage() {
         .header-title { font-size: 18px; font-weight: 800; color: var(--navy); line-height: 1; }
         .order-id-label { font-size: 10px; color: var(--text-light); font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; }
 
-        .track-main { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+        .track-main { padding: 12px; display: flex; flex-direction: column; gap: 12px;, margin-bottom: 72px; }
         .card { background: white; border-radius: 32px; padding: 24px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
         
         .status-badge { display: inline-flex; padding: 4px 12px; border-radius: 999px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 24px; }

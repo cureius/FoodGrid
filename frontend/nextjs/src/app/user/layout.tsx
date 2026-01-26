@@ -6,6 +6,7 @@ import UserHeader from '@/components/user/layout/UserHeader';
 import BottomNav from '@/components/user/layout/BottomNav';
 import CartFloatingBar from '@/components/user/layout/CartFloatingBar';
 import AuthGuard from '@/components/user/auth/AuthGuard';
+import { CustomerProvider } from '@/contexts/CustomerContext';
 
 export default function UserLayout({
   children,
@@ -23,8 +24,9 @@ export default function UserLayout({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthGuard>
-        <div className="layout-root">
+      <CustomerProvider>
+        <AuthGuard>
+          <div className="layout-root">
           <UserHeader />
           
           <main className="layout-main">
@@ -59,16 +61,11 @@ export default function UserLayout({
               .layout-main {
                 padding-bottom: 0;
               }
-              .layout-container {
-                box-shadow: none;
-              }
-              .mobile-nav-wrapper {
-                display: none;
-              }
             }
           `}</style>
         </div>
       </AuthGuard>
+      </CustomerProvider>
     </QueryClientProvider>
   );
 }

@@ -16,4 +16,12 @@ public class OrderRepository implements PanacheRepositoryBase<Order, String> {
   public List<Order> listRecentByOutlet(String outletId, int limit) {
     return find("outletId = ?1 order by createdAt desc", outletId).page(0, limit).list();
   }
+
+  public List<Order> listByCustomer(String customerId, int limit) {
+    return find("customerId = ?1 order by createdAt desc", customerId).page(0, limit).list();
+  }
+
+  public List<Order> listByCustomerAndOutlet(String customerId, String outletId, int limit) {
+    return find("customerId = ?1 and outletId = ?2 order by createdAt desc", customerId, outletId).page(0, limit).list();
+  }
 }

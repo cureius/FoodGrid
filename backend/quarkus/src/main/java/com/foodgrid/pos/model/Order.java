@@ -28,6 +28,9 @@ public class Order extends PanacheEntityBase {
   @Column(name = "employee_id", nullable = true, length = 36)
   public String employeeId;
 
+  @Column(name = "customer_id", nullable = true, length = 36)
+  public String customerId;
+
   @Column(name = "table_id", length = 36)
   public String tableId;
 
