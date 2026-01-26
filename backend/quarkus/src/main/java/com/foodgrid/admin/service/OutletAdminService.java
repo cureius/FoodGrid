@@ -31,6 +31,12 @@ public class OutletAdminService {
     return outletRepository.listAll().stream().map(OutletAdminService::toResponse).toList();
   }
 
+  public OutletResponse get(final String outletId) {
+    return outletRepository.findByIdOptional(outletId)
+      .map(OutletAdminService::toResponse)
+      .orElseThrow(() -> new NotFoundException("Outlet not found"));
+  }
+
   @Transactional
   public OutletResponse create(final OutletUpsertRequest req) {
     final String adminId = subject();

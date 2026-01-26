@@ -10,7 +10,7 @@ export default function OrdersHistoryPage() {
   
   const { data: orders, isLoading } = useQuery({
     queryKey: ['orders-history'],
-    queryFn: () => listOrders(20, '1'), 
+    queryFn: () => listOrders(20, '3a100b7d-4f55-42b1-849e-8fde1283cadf'), 
   });
 
   if (isLoading) {

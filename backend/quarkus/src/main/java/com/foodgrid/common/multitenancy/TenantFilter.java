@@ -83,7 +83,7 @@ public class TenantFilter implements ContainerRequestFilter {
 
     return p.startsWith("api/v1/auth")
       || p.startsWith("api/v1/admin/auth")
-      || p.startsWith("api/v1/customer/auth")
+      || p.startsWith("api/v1/customer")
       || p.startsWith("api/v1/public")
       || p.startsWith("api/v1/bootstrap")
       || p.startsWith("api/v1/pos/whoami")

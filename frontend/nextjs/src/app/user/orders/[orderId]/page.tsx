@@ -1,10 +1,9 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { getOrder, getOrderStatusInfo, formatPrice } from '@/lib/api/customer';
-import { ChevronLeft, Phone, CheckCircle2, Circle, MessageSquare } from 'lucide-react';
+import { getOrder, getOrderStatusInfo, formatPrice, getPaymentStatus } from '@/lib/api/customer';
+import { ChevronLeft, Phone, CheckCircle2, Circle, MessageSquare, Clock, MapPin, ReceiptText } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
-import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
 export default function OrderDetailsPage() {
@@ -17,140 +16,241 @@ export default function OrderDetailsPage() {
     refetchInterval: 10000, 
   });
 
+  const { data: payStatus } = useQuery({
+    queryKey: ['payment-status', orderId],
+    queryFn: () => getPaymentStatus(orderId as string),
+    enabled: !!order && (order.status === 'OPEN' || order.status === 'BILLED'),
+    refetchInterval: 5000,
+  });
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white">
-        <div className="h-48 bg-slate-100 animate-pulse rounded-b-[40px]" />
-        <div className="p-6 space-y-6">
-          <div className="h-10 w-1/2 bg-slate-50 rounded-lg animate-pulse" />
-          <div className="h-32 w-full bg-slate-50 rounded-[32px] animate-pulse" />
-          <div className="h-48 w-full bg-slate-50 rounded-[32px] animate-pulse" />
+      <div className="loading-page">
+        <div className="skeleton-hero" />
+        <div className="skeleton-content">
+          <div className="skeleton-card large" />
+          <div className="skeleton-card medium" />
         </div>
+        <style jsx>{`
+            .loading-page { min-height: 100vh; background: white; }
+            .skeleton-hero { height: 180px; background: var(--bg-muted); border-radius: 0 0 40px 40px; animation: pulse 1.5s infinite; }
+            .skeleton-content { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+            .skeleton-card { background: var(--bg-muted); border-radius: 32px; animation: pulse 1.5s infinite; }
+            .skeleton-card.large { height: 240px; }
+            .skeleton-card.medium { height: 160px; }
+            @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        `}</style>
       </div>
     );
   }
 
-  if (!order) return <div className="p-20 text-center font-bold text-slate-400">Order not found</div>;
+  if (!order) return <div className="error-state">Order not found</div>;
 
   const statusInfo = getOrderStatusInfo(order.status as any);
 
   const steps = [
-    { key: 'PLACED', label: 'Order Placed', time: '10:45 AM' },
-    { key: 'ACCEPTED', label: 'Accepted', time: '10:47 AM' },
-    { key: 'PREPARING', label: 'Cooking', time: '10:55 AM' },
-    { key: 'READY', label: 'Ready', time: '11:05 AM' },
-    { key: 'DELIVERED', label: 'Delivered', time: '--:--' },
+    { key: 'PLACED', label: 'Order Placed' },
+    { key: 'ACCEPTED', label: 'Accepted' },
+    { key: 'PREPARING', label: 'Cooking' },
+    { key: 'READY', label: 'Ready for delivery' },
+    { key: 'DELIVERED', label: 'Delivered' },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-12">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-16 flex items-center px-4 gap-4">
-        <button onClick={() => router.push('/user/orders')} className="p-2 -ml-2 text-navy hover:bg-slate-50 rounded-full transition-colors">
+    <div className="order-details-page">
+      <header className="track-header">
+        <button onClick={() => router.push('/user/orders')} className="back-btn">
           <ChevronLeft size={24} strokeWidth={3} />
         </button>
-        <div className="flex-1">
-          <h1 className="text-lg font-black text-navy leading-none">Track Order</h1>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1.5">Order #{order.id.slice(-6).toUpperCase()}</p>
+        <div className="header-info">
+          <h1 className="header-title">Track Order</h1>
+          <p className="order-id-label">Order #{order.id.slice(-6).toUpperCase()}</p>
         </div>
       </header>
 
-      <main className="p-3 space-y-3">
+      <main className="track-main">
         {/* Progress Card */}
-        <div className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-100">
+        <section className="card status-card">
             <div 
-                className="inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-6"
+                className="status-badge"
                 style={{ backgroundColor: statusInfo.bgColor, color: statusInfo.color }}
             >
                 {statusInfo.label}
             </div>
             
-            <h2 className="text-2xl font-black text-navy mb-1 leading-tight tracking-tight">Estimated delivery in</h2>
-            <div className="flex items-baseline gap-2 mb-10">
-                <span className="text-5xl font-black text-navy tracking-tighter">25</span>
-                <span className="text-lg font-bold text-slate-400 uppercase tracking-widest leading-none">mins</span>
+            <h2 className="eta-title">Estimated delivery in</h2>
+            <div className="eta-timer">
+                <span className="eta-val">25</span>
+                <span className="eta-unit">mins</span>
             </div>
 
             {/* Timeline */}
-            <div className="relative pl-10 space-y-10">
-                <div className="absolute left-[13px] top-2 bottom-2 w-0.5 bg-slate-100" />
+            <div className="timeline">
+                <div className="timeline-line" />
 
                 {steps.map((step, idx) => {
                     const isCompleted = statusInfo.step >= idx + 1 || (idx === 0 && order.status !== 'CANCELLED');
                     const isCurrent = statusInfo.step === idx;
                     
                     return (
-                        <div key={step.key} className="relative flex items-center group">
-                            <div className={cn(
-                                'absolute -left-10 w-7 h-7 rounded-full border-2 flex items-center justify-center z-10 transition-all duration-500 scale-90 group-hover:scale-100',
-                                isCompleted ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-100' : 'bg-white border-slate-100 text-slate-300'
-                            )}>
+                        <div key={step.key} className={`timeline-item ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}`}>
+                            <div className="dot-wrap">
                                 {isCompleted ? (
                                     <CheckCircle2 size={16} strokeWidth={3} />
                                 ) : (
-                                    <Circle size={10} fill="currentColor" />
+                                    <div className="dot-inner" />
                                 )}
                                 {isCurrent && (
                                     <motion.div 
-                                        animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+                                        animate={{ scale: [1, 1.8, 1], opacity: [0.5, 0, 0.5] }}
                                         transition={{ duration: 2, repeat: Infinity }}
-                                        className="absolute inset-0 bg-emerald-500 rounded-full"
+                                        className="pulse-ring"
                                     />
                                 )}
                             </div>
-                            <div className="flex-1 flex justify-between items-center">
-                                <span className={cn(
-                                    'text-sm font-bold uppercase tracking-widest transition-colors',
-                                    isCompleted ? 'text-navy' : 'text-slate-300'
-                                )}>
-                                    {step.label}
-                                </span>
-                                <span className="text-[10px] font-black text-slate-300">{step.time}</span>
+                            <div className="item-label-wrap">
+                                <span className="item-label">{step.label}</span>
+                                {isCurrent && <span className="time-tag">JUST NOW</span>}
                             </div>
                         </div>
                     );
                 })}
             </div>
-        </div>
+        </section>
 
-        {/* Order Items Summary */}
-        <div className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-100">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b border-slate-50 pb-4">Order Summary</h3>
-            <div className="space-y-4">
+        {/* Address & Payment Info */}
+        <section className="card info-card">
+            <div className="info-row">
+                <div className="icon-box pin">
+                    <MapPin size={18} />
+                </div>
+                <div className="row-content">
+                    <h3 className="row-title">Delivery Address</h3>
+                    <p className="row-text">402, Skyline residency, 4th cross, Koramangala...</p>
+                </div>
+            </div>
+            <div className="info-row">
+                <div className="icon-box wallet">
+                    <ReceiptText size={18} />
+                </div>
+                <div className="row-content">
+                    <h3 className="row-title">Payment Mode</h3>
+                    <p className="row-text">{order.status === 'PAID' ? 'Amount Paid' : 'Pay via UPI/Cash'} • {formatPrice(order.grandTotal)}</p>
+                </div>
+                {order.status !== 'PAID' && order.status !== 'CANCELLED' && (
+                    <div className="unpaid-alert">PENDING</div>
+                )}
+            </div>
+        </section>
+
+        {/* Order Items */}
+        <section className="card summary-card">
+            <h3 className="section-title">Order Summary</h3>
+            <div className="items-list">
                 {order.items.map(item => (
-                    <div key={item.id} className="flex justify-between items-center text-sm font-bold text-slate-500">
-                        <span className="truncate pr-4 flex items-center gap-2">
-                            <span className="w-5 font-black text-navy">1x</span> {item.itemName}
-                        </span>
-                        <span className="font-extrabold text-navy whitespace-nowrap">{formatPrice(item.lineTotal)}</span>
+                    <div key={item.id} className="summary-item">
+                        <div className="item-left">
+                            <span className="qty-tag">{item.qty}x</span>
+                            <span className="name-tag">{item.itemName}</span>
+                        </div>
+                        <span className="price-tag">{formatPrice(item.lineTotal)}</span>
                     </div>
                 ))}
             </div>
-            <div className="mt-8 pt-6 border-t border-dashed border-slate-100 flex justify-between items-center">
-                <span className="text-base font-black text-navy uppercase tracking-widest">Total Paid</span>
-                <span className="text-xl font-black text-primary tracking-tight">{formatPrice(order.grandTotal)}</span>
+            <div className="bill-divider" />
+            <div className="total-row">
+                <span className="total-label">Total Amount</span>
+                <span className="total-val">{formatPrice(order.grandTotal)}</span>
             </div>
-        </div>
+        </section>
 
         {/* Help Actions */}
-        <div className="grid grid-cols-2 gap-3 pt-4">
-            <button className="h-16 bg-white border border-slate-100 rounded-[24px] flex items-center justify-center gap-3 text-navy font-black text-xs uppercase tracking-widest shadow-sm hover:bg-slate-50 active:scale-[0.98] transition-all">
-                <div className="p-2 bg-primary/10 text-primary rounded-xl">
+        <div className="actions-grid">
+            <button className="action-btn secondary">
+                <div className="icon-wrap color-primary">
                     <Phone size={18} strokeWidth={2.5} />
                 </div>
                 Support
             </button>
             <button 
                 onClick={() => router.push('/user')}
-                className="h-16 bg-navy text-white rounded-[24px] flex items-center justify-center gap-3 font-black text-xs uppercase tracking-widest shadow-lg shadow-slate-200 active:scale-[0.98] transition-all"
+                className="action-btn primary"
             >
-                <div className="p-2 bg-white/10 text-white rounded-xl">
+                <div className="icon-wrap color-white">
                     <MessageSquare size={18} strokeWidth={2.5} />
                 </div>
                 Message
             </button>
         </div>
       </main>
+
+      <style jsx>{`
+        .order-details-page { min-height: 100vh; background: var(--bg-app); pb-12; }
+        .track-header { position: sticky; top: 0; z-index: 40; background: white; border-bottom: 1px solid var(--border-light); height: 64px; display: flex; align-items: center; px-16; gap: 16px; padding: 0 16px; }
+        .back-btn { padding: 8px; margin-left: -8px; color: var(--navy); border-radius: 50%; transition: var(--transition-fast); }
+        .back-btn:hover { background: var(--bg-muted); }
+        .header-info { flex: 1; }
+        .header-title { font-size: 18px; font-weight: 800; color: var(--navy); line-height: 1; }
+        .order-id-label { font-size: 10px; color: var(--text-light); font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; }
+
+        .track-main { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+        .card { background: white; border-radius: 32px; padding: 24px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
+        
+        .status-badge { display: inline-flex; padding: 4px 12px; border-radius: 999px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 24px; }
+        .eta-title { font-size: 24px; font-weight: 800; color: var(--navy); margin-bottom: 4px; letter-spacing: -0.5px; }
+        .eta-timer { display: flex; align-items: baseline; gap: 8px; margin-bottom: 40px; }
+        .eta-val { font-size: 48px; font-weight: 900; color: var(--navy); letter-spacing: -2px; }
+        .eta-unit { font-size: 18px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; }
+
+        .timeline { position: relative; padding-left: 40px; display: flex; flex-direction: column; gap: 40px; }
+        .timeline-line { position: absolute; left: 13px; top: 8px; bottom: 8px; width: 2px; background: var(--bg-muted); }
+        
+        .timeline-item { position: relative; display: flex; align-items: center; justify-content: space-between; }
+        .dot-wrap { position: absolute; left: -40px; width: 28px; height: 28px; background: white; border: 2px solid var(--bg-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; color: var(--text-light); }
+        .timeline-item.completed .dot-wrap { background: var(--success); border-color: var(--success); color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
+        .timeline-item.current .dot-wrap { border-color: var(--success); }
+        .dot-inner { width: 8px; height: 8px; background: currentColor; border-radius: 50%; }
+        .pulse-ring { position: absolute; inset: 0; background: var(--success); border-radius: 50%; opacity: 0.3; }
+
+        .item-label { font-size: 14px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; transition: var(--transition-fast); }
+        .timeline-item.completed .item-label { color: var(--navy); }
+        .item-label-wrap { flex: 1; display: flex; justify-content: space-between; align-items: center; }
+        .time-tag { font-size: 9px; font-weight: 900; color: var(--success); text-transform: uppercase; letter-spacing: 1px; animation: blink 2s infinite; }
+        
+        .info-card { display: flex; flex-direction: column; gap: 24px; }
+        .info-row { display: flex; align-items: flex-start; gap: 16px; position: relative; }
+        .icon-box { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .icon-box.pin { background: var(--primary-light); color: var(--primary); }
+        .icon-box.wallet { background: var(--secondary-light); color: var(--secondary); }
+        .row-title { font-size: 14px; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+        .row-text { font-size: 12px; color: var(--text-muted); font-weight: 600; line-height: 1.4; }
+        .unpaid-alert { position: absolute; right: 0; top: 0; font-size: 9px; font-weight: 900; background: var(--danger-light); color: var(--danger); padding: 4px 8px; border-radius: 6px; letter-spacing: 0.5px; }
+
+        .summary-card { padding-top: 24px; }
+        .section-title { font-size: 11px; font-weight: 900; color: var(--text-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px; border-bottom: 1px solid var(--bg-muted); padding-bottom: 12px; }
+        .items-list { display: flex; flex-direction: column; gap: 16px; }
+        .summary-item { display: flex; justify-content: space-between; align-items: center; }
+        .item-left { display: flex; align-items: center; gap: 12px; }
+        .qty-tag { font-size: 13px; font-weight: 900; color: var(--navy); min-width: 24px; }
+        .name-tag { font-size: 13px; font-weight: 700; color: var(--text-muted); }
+        .price-tag { font-size: 14px; font-weight: 800; color: var(--navy); }
+        .bill-divider { height: 1px; border-top: 1px dashed var(--border-light); margin: 24px 0; }
+        .total-row { display: flex; justify-content: space-between; align-items: center; }
+        .total-label { font-size: 14px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: 1px; }
+        .total-val { font-size: 20px; font-weight: 900; color: var(--primary); }
+
+        .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+        .action-btn { height: 64px; border-radius: 20px; border: none; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; transition: var(--transition-fast); box-shadow: var(--shadow-sm); cursor: pointer; }
+        .action-btn.secondary { background: white; color: var(--navy); border: 1px solid var(--border-light); }
+        .action-btn.primary { background: var(--navy); color: white; }
+        .action-btn:active { transform: scale(0.98); }
+        .icon-wrap { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .color-primary { background: var(--primary-light); color: var(--primary); }
+        .color-white { background: rgba(255,255,255,0.1); color: white; }
+
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        .error-state { padding: 100px 32px; text-align: center; font-weight: 800; color: var(--text-light); }
+      `}</style>
     </div>
   );
 }

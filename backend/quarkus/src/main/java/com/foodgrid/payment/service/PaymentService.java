@@ -435,6 +435,22 @@ public class PaymentService {
             paymentLink, order.grandTotal, "INR", transaction.status
         );
     }
+    @Transactional
+    public PaymentLinkResponse createPaymentLinkForCustomer(final String orderId, final String idempotencyKey) {
+        final Order order = orderRepository.findById(orderId);
+        if (order == null) {
+            throw new NotFoundException("Order not found");
+        }
+
+        // Derive context from order/outlet
+        final String outletId = order.outletId;
+        final String adminUserId = outletRepository.findById(outletId).ownerId;
+        final String clientId = adminUserRepository.findById(adminUserId).clientId;
+        // Tenant ID is usually the clientId in our multi-tenant model
+        final String tenantId = clientId;
+
+        return createPaymentLink(tenantId, clientId, outletId, orderId, idempotencyKey);
+    }
 
     /**
      * Extract payment link from transaction gatewayResponse.

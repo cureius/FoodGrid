@@ -232,26 +232,26 @@ export interface CreateOrderItemInput {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Restaurant / Outlet APIs (Authenticated)
+// Restaurant / Outlet APIs (Public/Customer)
 // ─────────────────────────────────────────────────────────────
 
 export async function getOutlet(outletId: string): Promise<Outlet> {
-  const { data } = await api.get<Outlet>(`/api/v1/public/outlets/${encodeURIComponent(outletId)}`);
+  const { data } = await api.get<Outlet>(`/api/v1/customer/outlets/${encodeURIComponent(outletId)}`);
   return data;
 }
 
 export async function listOutlets(): Promise<Outlet[]> {
-  const { data } = await api.get<Outlet[]>(`/api/v1/public/outlets`);
+  const { data } = await api.get<Outlet[]>(`/api/v1/customer/outlets`);
   return data;
 }
 
 // ─────────────────────────────────────────────────────────────
-// Menu APIs (Authenticated)
+// Menu APIs (Public/Customer)
 // ─────────────────────────────────────────────────────────────
 
 export async function getMenuCategories(outletId: string): Promise<MenuCategory[]> {
   const { data } = await api.get<MenuCategory[]>(
-    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/categories`
+    `/api/v1/customer/outlets/${encodeURIComponent(outletId)}/menu/categories`
   );
   return data;
 }
@@ -261,17 +261,18 @@ export async function getMenuItems(
   params?: { categoryId?: string; status?: string }
 ): Promise<MenuItem[]> {
   const { data } = await api.get<MenuItem[]>(
-    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/items`,
+    `/api/v1/customer/outlets/${encodeURIComponent(outletId)}/menu/items`,
     { params }
   );
   return data;
 }
 
 export async function getMenuItem(outletId: string, itemId: string): Promise<MenuItem> {
-  const { data } = await api.get<MenuItem>(
-    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/items/${encodeURIComponent(itemId)}`
-  );
-  return data;
+  // Directly fetching items for now, but in future might need single item API
+  const items = await getMenuItems(outletId);
+  const item = items.find(i => i.id === itemId);
+  if (!item) throw new Error('Item not found');
+  return item;
 }
 
 export async function searchMenuItems(outletId: string, query: string): Promise<MenuItem[]> {
@@ -286,11 +287,11 @@ export async function searchMenuItems(outletId: string, query: string): Promise<
 }
 
 // ─────────────────────────────────────────────────────────────
-// Order APIs (Authenticated)
+// Order APIs (Authenticated - RolesAllowed: CUSTOMER)
 // ─────────────────────────────────────────────────────────────
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
-  const { data } = await api.post<Order>(`/api/v1/pos/orders?outletId=${encodeURIComponent(input.outletId)}`, {
+  const { data } = await api.post<Order>(`/api/v1/customer/orders?outletId=${encodeURIComponent(input.outletId)}`, {
     orderType: input.orderType,
     tableId: input.tableId,
     customerName: input.customerName,
@@ -300,32 +301,20 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
   return data;
 }
 
-export async function addOrderItem(
-  orderId: string,
-  itemId: string,
-  qty: number
-): Promise<Order> {
-  const { data } = await api.post<Order>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}/items`, { 
-    itemId, 
-    qty 
-  });
-  return data;
-}
-
 export async function getOrder(orderId: string): Promise<Order> {
-  const { data } = await api.get<Order>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}`);
+  const { data } = await api.get<Order>(`/api/v1/customer/orders/${encodeURIComponent(orderId)}`);
   return data;
 }
 
 export async function listOrders(limit?: number, outletId?: string): Promise<Order[]> {
-  const { data } = await api.get<Order[]>(`/api/v1/pos/orders`, {
+  const { data } = await api.get<Order[]>(`/api/v1/customer/orders`, {
     params: { limit, outletId }
   });
   return data;
 }
 
 // ─────────────────────────────────────────────────────────────
-// Payment APIs (Authenticated)
+// Payment APIs (Partially Public / Partially Authenticated)
 // ─────────────────────────────────────────────────────────────
 
 export async function getPaymentStatus(orderId: string): Promise<PaymentStatus> {
@@ -339,7 +328,7 @@ export async function getOrderPayment(orderId: string): Promise<PaymentInfo> {
 }
 
 export async function createPaymentLink(orderId: string): Promise<PaymentInfo> {
-  const { data } = await api.post<PaymentInfo>(`/api/v1/payments/order/${encodeURIComponent(orderId)}/link`);
+  const { data } = await api.post<PaymentInfo>(`/api/v1/customer/payments/order/${encodeURIComponent(orderId)}/link`);
   return data;
 }
 

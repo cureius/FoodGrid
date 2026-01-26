@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { getMenuItems, getMenuCategories } from '@/lib/api/customer';
+import { getMenuItems, getMenuCategories, getOutlet } from '@/lib/api/customer';
 import { useCartStore } from '@/stores/cart';
 import { Star, Clock, Info, Search, Share2, Heart } from 'lucide-react';
 import DishCard from '@/components/user/menu/DishCard';
@@ -13,7 +13,12 @@ export default function RestaurantLanding() {
   const [searchQuery, setSearchQuery] = useState('');
   const categoryNavRef = useRef<HTMLDivElement>(null);
   
-  const outletId = '1'; 
+  const outletId = '3a100b7d-4f55-42b1-849e-8fde1283cadf'; 
+
+  const { data: outlet, isLoading: outletLoading } = useQuery({
+    queryKey: ['outlet', outletId],
+    queryFn: () => getOutlet(outletId),
+  });
 
   const { data: categories, isLoading: catLoading } = useQuery({
     queryKey: ['categories', outletId],
@@ -53,7 +58,7 @@ export default function RestaurantLanding() {
     setStoreOutlet(outletId);
   }, [outletId, setStoreOutlet]);
 
-  if (catLoading || itemsLoading) {
+  if (catLoading || itemsLoading || outletLoading) {
     return (
       <div className="loading-container">
         <div className="skeleton-banner" />
@@ -80,7 +85,7 @@ export default function RestaurantLanding() {
       <section className="restaurant-header">
         <div className="header-top">
           <div className="header-info">
-            <h1 className="restaurant-name">Burger House</h1>
+            <h1 className="restaurant-name">{outlet?.name || 'Burger House'}</h1>
             <p className="restaurant-cuisines">Burgers • American • Fast Food</p>
             <p className="restaurant-address">Koramangala 4th Block, Bangalore</p>
           </div>
@@ -186,7 +191,7 @@ export default function RestaurantLanding() {
         .restaurant-cuisines { color: var(--text-muted); font-size: 14px; font-weight: 600; }
         .restaurant-address { color: var(--text-light); font-size: 12px; margin-top: 4px; font-weight: 500; }
         .header-actions { display: flex; gap: 8px; }
-        .icon-btn { width: 36px; height: 36px; background: white; border: 1px solid var(--border-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); }
+        .icon-btn { width: 36px; height: 36px; background: white; border: 1px solid var(--border-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); cursor: pointer; }
         .icon-btn.heart { color: var(--danger); }
         
         .info-badges { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
@@ -202,13 +207,13 @@ export default function RestaurantLanding() {
         .search-input { width: 100%; height: 40px; background: var(--bg-muted); border: 2px solid transparent; border-radius: 12px; padding: 0 12px 0 36px; font-size: 14px; font-weight: 600; outline: none; transition: var(--transition-fast); }
         .search-input:focus { background: white; border-color: var(--primary-border); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         
-        .veg-toggle { display: flex; align-items: center; gap: 6px; padding: 0 12px; height: 40px; border-radius: 12px; border: 2px solid var(--border-light); font-size: 11px; font-weight: 800; color: var(--text-muted); background: white; transition: var(--transition-fast); text-transform: uppercase; letter-spacing: 0.5px; }
+        .veg-toggle { display: flex; align-items: center; gap: 6px; padding: 0 12px; height: 40px; border-radius: 12px; border: 2px solid var(--border-light); font-size: 11px; font-weight: 800; color: var(--text-muted); background: white; transition: var(--transition-fast); text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; }
         .veg-toggle.active { background: var(--success); border-color: var(--success); color: white; }
         .veg-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); transition: var(--transition-fast); }
         .veg-toggle.active .veg-dot { background: white; }
 
         .category-nav { display: flex; gap: 12px; overflow-x: auto; padding: 4px 16px 8px; scroll-behavior: smooth; }
-        .cat-btn { flex-shrink: 0; padding: 8px 16px; border-radius: 999px; font-size: 11px; font-weight: 800; background: var(--bg-muted); color: var(--text-muted); transition: var(--transition-fast); text-transform: uppercase; letter-spacing: 0.8px; }
+        .cat-btn { flex-shrink: 0; padding: 8px 16px; border-radius: 999px; font-size: 11px; font-weight: 800; background: var(--bg-muted); color: var(--text-muted); transition: var(--transition-fast); text-transform: uppercase; letter-spacing: 0.8px; cursor: pointer; }
         .cat-btn.active { background: var(--navy); color: white; box-shadow: var(--shadow-md); }
 
         .menu-list { padding: 24px 16px; }
@@ -223,6 +228,9 @@ export default function RestaurantLanding() {
         .empty-icon { color: var(--text-light); }
         .empty-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; color: var(--navy); }
         .empty-text { color: var(--text-muted); font-size: 14px; line-height: 1.5; font-weight: 500; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
   );
