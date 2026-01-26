@@ -8,9 +8,12 @@
 
   <changeSet id="1-create-admin-user-roles" author="dev">
     <preConditions onFail="MARK_RAN">
-      <not>
-        <tableExists tableName="admin_user_roles"/>
-      </not>
+      <and>
+        <not>
+          <tableExists tableName="admin_user_roles"/>
+        </not>
+        <tableExists tableName="admin_users"/>
+      </and>
     </preConditions>
 
     <createTable tableName="admin_user_roles">

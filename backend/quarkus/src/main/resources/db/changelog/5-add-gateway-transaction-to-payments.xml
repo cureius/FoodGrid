@@ -9,9 +9,12 @@
   <!-- Add gateway_transaction_id column to payments table -->
   <changeSet id="5-add-gateway-transaction-to-payments" author="dev">
     <preConditions onFail="MARK_RAN">
-      <not>
-        <columnExists tableName="payments" columnName="gateway_transaction_id"/>
-      </not>
+      <and>
+        <tableExists tableName="payments"/>
+        <not>
+          <columnExists tableName="payments" columnName="gateway_transaction_id"/>
+        </not>
+      </and>
     </preConditions>
     
     <addColumn tableName="payments">

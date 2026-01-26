@@ -8,9 +8,12 @@
 
   <changeSet id="2-add-client-to-outlets" author="dev">
     <preConditions onFail="MARK_RAN">
-      <not>
-        <columnExists tableName="outlets" columnName="client_id"/>
-      </not>
+      <and>
+        <tableExists tableName="outlets"/>
+        <not>
+          <columnExists tableName="outlets" columnName="client_id"/>
+        </not>
+      </and>
     </preConditions>
 
     <!-- Add client_id column to outlets -->

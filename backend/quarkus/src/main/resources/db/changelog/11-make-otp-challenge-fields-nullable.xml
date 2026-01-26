@@ -5,6 +5,10 @@
                    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
   <changeSet id="11-make-otp-challenge-fields-nullable" author="foodgrid">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="customer_otp_challenges"/>
+    </preConditions>
+    
     <!-- Make mobileNumber nullable -->
     <modifyDataType 
         tableName="customer_otp_challenges" 
