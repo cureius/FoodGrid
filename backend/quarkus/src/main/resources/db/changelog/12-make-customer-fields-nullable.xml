@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+<changeSet id="12-make-customer-fields-nullable" author="foodgrid">
+    <!-- Make mobileNumber nullable -->
+    <modifyDataType 
+        tableName="customers" 
+        columnName="mobileNumber" 
+        newDataType="VARCHAR(15)"/>
+    
+    <!-- Make email nullable -->
+    <modifyDataType 
+        tableName="customers" 
+        columnName="email" 
+        newDataType="VARCHAR(255)"/>
+    
+    <!-- Add comments to clarify the purpose -->
+    <comment>
+      These changes allow the customers table to store both mobile-based
+      and email-based customer records. For mobile customers, email will be null.
+      For email customers, mobileNumber will be null.
+    </comment>
+  </changeSet>
+
+</databaseChangeLog>
