@@ -2,13 +2,15 @@ package com.foodgrid.auth.rest;
 
 import com.foodgrid.auth.dto.CustomerAuthDto.*;
 import com.foodgrid.auth.service.CustomerAuthService;
-import io.smallrye.common.annotation.Blocking;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import io.smallrye.mutiny.Uni;
+import java.util.Map;
 
 @Path("/api/v1/customer/auth")
 @Produces(MediaType.APPLICATION_JSON)
@@ -17,7 +19,8 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Tag(name = "Customer Auth", description = "Mobile + OTP based authentication for customers")
 public class CustomerAuthResource {
 
-    @Inject CustomerAuthService customerAuthService;
+    @Inject
+    CustomerAuthService customerAuthService;
 
     @POST
     @Path("/request-otp")
@@ -29,9 +32,14 @@ public class CustomerAuthResource {
     @POST
     @Path("/request-email-otp")
     @Operation(summary = "Request Email OTP", description = "Send a 6-digit OTP to the customer email address")
-    @Blocking
-    public void requestEmailOtp(@Valid final RequestEmailOtpRequest request) {
-        customerAuthService.requestEmailOtp(request);
+    public Uni<Response> requestEmailOtp(@Valid final RequestEmailOtpRequest request) {
+        return customerAuthService.requestEmailOtp(request)
+                // Use Map.of for a clean JSON response: {"message": "OTP sent successfully"}
+                .map(v -> Response.ok().entity(Map.of("message", "OTP sent successfully")).build())
+                .onFailure().recoverWithItem(e -> {
+                    // Return success even on failure to prevent email enumeration attacks
+                    return Response.ok().entity(Map.of("message", "OTP sent successfully")).build();
+                });
     }
 
     @POST

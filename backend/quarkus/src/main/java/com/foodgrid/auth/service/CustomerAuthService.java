@@ -4,7 +4,6 @@ import com.foodgrid.auth.dto.CustomerAuthDto.*;
 import com.foodgrid.auth.model.Customer;
 import com.foodgrid.auth.model.CustomerOtpChallenge;
 import com.foodgrid.common.security.JwtIssuer;
-import io.smallrye.common.annotation.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -14,6 +13,7 @@ import jakarta.ws.rs.NotFoundException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import io.smallrye.mutiny.Uni;
 
 @ApplicationScoped
 public class CustomerAuthService {
@@ -43,7 +43,7 @@ public class CustomerAuthService {
     }
 
     @Transactional
-    public void requestEmailOtp(final RequestEmailOtpRequest request) {
+    public Uni<Void> requestEmailOtp(final RequestEmailOtpRequest request) {
         final String otp = otpService.generateOtp(OTP_LENGTH);
         
         final CustomerOtpChallenge challenge = new CustomerOtpChallenge();
@@ -54,9 +54,14 @@ public class CustomerAuthService {
         challenge.expiresAt = Date.from(Instant.now().plus(OTP_TTL));
         challenge.persist();
 
-        // Send OTP via email
+        // Send OTP via email asynchronously after transaction commits
         System.out.println("DEBUG: Email OTP for customer " + request.email + " is " + otp);
-        otpService.sendOtpEmail(request.email, otp);
+        return otpService.sendOtpEmail(request.email, otp)
+            .onFailure().invoke(e -> {
+                // Log error but don't fail the entire request
+                System.err.println("Failed to send OTP email: " + e.getMessage());
+            })
+            .replaceWithVoid();
     }
 
     @Transactional

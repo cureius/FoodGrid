@@ -573,8 +573,11 @@ function LoginContent() {
         }
         .terms span { color: var(--primary); text-decoration: underline; font-weight: 600; }
         
-        .spinner { animation: spin 0.8s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        :global(.spinner) { animation: spin 0.8s linear infinite; }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
       `}</style>
     </div>
   );

@@ -2,14 +2,14 @@ package com.foodgrid.auth.service;
 
 import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.Mailer;
-import io.quarkus.mailer.runtime.BlockingMailerImpl;
-import io.smallrye.common.annotation.Blocking;
+import io.smallrye.mutiny.infrastructure.Infrastructure;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import java.security.SecureRandom;
+import io.smallrye.mutiny.Uni;
 
 @ApplicationScoped
 public class OtpService {
@@ -33,21 +33,16 @@ public class OtpService {
     return sb.toString();
   }
 
-  public void sendOtpEmail(final String toEmail, final String otp) {
-    try {
+  public Uni<Object> sendOtpEmail(final String toEmail, final String otp) {
+    return Uni.createFrom().item(() -> {
       final String subject = "FoodGrid - Your OTP Code";
       final String htmlContent = buildEmailTemplate(otp);
 
       final Mail mail = Mail.withHtml(toEmail, subject, htmlContent)
-        .setFrom(fromEmail);
-
+              .setFrom(fromEmail);
       mailer.send(mail);
-      LOG.infof("OTP email sent successfully to %s", toEmail);
-    } catch (final Exception e) {
-      LOG.errorf("Failed to send OTP email to %s: %s", toEmail, e.getMessage());
-      // Fallback to console logging for development
-      LOG.infof("FALLBACK: OTP for customer %s is %s", toEmail, otp);
-    }
+      return null;
+    }).runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
   }
 
   private String buildEmailTemplate(final String otp) {
