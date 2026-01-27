@@ -1,6 +1,7 @@
 package com.foodgrid.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.smallrye.common.annotation.Blocking;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
@@ -20,6 +21,7 @@ import java.util.Map;
 
 @Provider
 @Priority(5000)
+@Blocking
 public class EventLaggingFilter implements ContainerRequestFilter, ContainerResponseFilter {
     private static final Logger LOG = Logger.getLogger(EventLaggingFilter.class);
     private static final String START_TIME = EventLaggingFilter.class.getName() + ".startTime";
