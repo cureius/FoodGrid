@@ -21,9 +21,10 @@ import {
   Banknote,
   Smartphone,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   createOrder,
+  getOrder,
   addOrderItem,
   billOrder,
   payOrder,
@@ -96,7 +97,29 @@ export default function NewOrderPage() {
   // Quick add mode - add item directly without modal
   const [quickAddMode, setQuickAddMode] = useState(true);
 
+  const searchParams = useSearchParams();
+  const orderIdParam = searchParams.get("orderId");
   const outletId = selectedOutletId || "";
+
+  // Load existing order if orderId is provided
+  useEffect(() => {
+    if (orderIdParam) {
+      async function loadExistingOrder() {
+        try {
+          const order = await getOrder(orderIdParam!);
+          setCurrentOrder(order);
+          setStep(2); // Start from select menu
+          setOrderType(order.orderType as any);
+          setSelectedTableId(order.tableId);
+          setOrderNotes(order.notes || "");
+        } catch (err) {
+          console.error("Failed to load existing order:", err);
+          router.push("/client-admin/orders");
+        }
+      }
+      loadExistingOrder();
+    }
+  }, [orderIdParam, router]);
   // Fetch menu categories
   useEffect(() => {
     if (!selectedOutletId) return;

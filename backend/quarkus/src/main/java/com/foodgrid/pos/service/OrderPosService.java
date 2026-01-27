@@ -248,7 +248,7 @@ public class OrderPosService {
   public OrderResponse bill(final String orderId) {
     final Order o = getOrderForOutlet(orderId);
 
-    if (o.status != Order.Status.OPEN && o.status != Order.Status.KOT_SENT && o.status != Order.Status.SERVED) {
+    if (o.status == Order.Status.PAID || o.status == Order.Status.CANCELLED) {
       throw new BadRequestException("Order cannot be billed");
     }
 
@@ -389,7 +389,7 @@ public class OrderPosService {
     final List<OrderItem> items = orderItemRepository.listByOrder(o.id);
 
     final BigDecimal subtotal = items.stream()
-      .filter(i -> i.status == OrderItem.Status.OPEN)
+      .filter(i -> i.status != OrderItem.Status.CANCELLED)
       .map(i -> i.lineTotal)
       .reduce(moneyZero(), BigDecimal::add);
 
@@ -403,7 +403,7 @@ public class OrderPosService {
   }
 
   private void ensureCanEdit(final Order o) {
-    if (o.status != Order.Status.OPEN) {
+    if (o.status == Order.Status.PAID || o.status == Order.Status.CANCELLED) {
       throw new BadRequestException("Order is not editable");
     }
   }

@@ -1551,7 +1551,7 @@ export default function OrderPage() {
                 </div>
                 <div style={{ display: "flex", gap: 12 }}>
                   <Link
-                    href="/client-admin/orders/new"
+                    href={`/client-admin/orders/new?orderId=${selectedOrder.id}`}
                     style={{
                       flex: 1,
                       padding: "14px 20px",
@@ -1577,7 +1577,7 @@ export default function OrderPage() {
                       e.currentTarget.style.background = "white";
                     }}
                   >
-                    <Plus size={18} /> New Order
+                    <Plus size={18} /> Add Items
                   </Link>
                   {(selectedOrder.status === "Open" || selectedOrder.status === "KOT Sent") && (
                     <button
