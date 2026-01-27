@@ -30,7 +30,7 @@ public class OtpService {
   @Inject
   Mailer mailer;
 
-  @ConfigProperty(name = "app.email.from", defaultValue = "noreply@foodgrid.com")
+  @ConfigProperty(name = "app.email.from", defaultValue = "theblueman9900@gmail.com")
   String fromEmail;
 
   @ConfigProperty(name = "app.email.from-name", defaultValue = "FoodGrid")
