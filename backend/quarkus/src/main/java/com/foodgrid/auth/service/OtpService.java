@@ -7,9 +7,16 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
-
-import java.security.SecureRandom;
 import io.smallrye.mutiny.Uni;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
+import java.util.HashMap;
+import java.security.SecureRandom;
 
 @ApplicationScoped
 public class OtpService {
@@ -25,6 +32,12 @@ public class OtpService {
   @ConfigProperty(name = "app.email.from-name", defaultValue = "FoodGrid")
   String fromName;
 
+  @ConfigProperty(name = "resend.api.key")
+  String resendApiKey;
+
+  private final Client httpClient = ClientBuilder.newClient();
+  private final ObjectMapper objectMapper = new ObjectMapper();
+
   public String generateOtp(final int length) {
     final StringBuilder sb = new StringBuilder(length);
     for (int i = 0; i < length; i++) {
@@ -36,22 +49,61 @@ public class OtpService {
   public Uni<Object> sendOtpEmail(final String toEmail, final String otp) {
     return Uni.createFrom().item(() -> {
       try {
+        // Use Resend API directly via HTTP
         final String subject = "FoodGrid - Your OTP Code";
         final String htmlContent = buildEmailTemplate(otp);
 
-        final Mail mail = Mail.withHtml(toEmail, subject, htmlContent)
-                .setFrom(fromEmail);
-        
-        // Use non-blocking send with proper error handling
-        mailer.send(mail);
-        LOG.infof("OTP email sent successfully to %s", maskEmail(toEmail));
-        return null;
-      } catch (Exception e) {
-        LOG.errorf("Failed to send OTP email to %s: %s", maskEmail(toEmail), e.getMessage());
-        throw new RuntimeException("Email service unavailable", e);
+        // Create request body
+        final Map<String, Object> emailRequest = new HashMap<>();
+        emailRequest.put("from", fromEmail);
+        emailRequest.put("to", toEmail);
+        emailRequest.put("subject", subject);
+        emailRequest.put("html", htmlContent);
+
+        // Make HTTP request to Resend API
+        final Response response = httpClient.target("https://api.resend.com/emails")
+                .request(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + resendApiKey)
+                .post(Entity.json(emailRequest));
+
+        if (response.getStatus() == 200) {
+          // Parse response
+          final Map<String, Object> responseBody = response.readEntity(Map.class);
+          final String responseId = (String) responseBody.get("id");
+          LOG.infof("OTP email sent successfully to %s via Resend API. Response ID: %s", maskEmail(toEmail), responseId);
+          return null;
+        } else {
+          final String errorBody = response.readEntity(String.class);
+          LOG.errorf("Failed to send OTP email to %s via Resend API. Status: %d, Error: %s", 
+              maskEmail(toEmail), response.getStatus(), errorBody);
+          // Fallback to SMTP if Resend fails
+          return sendOtpEmailViaSmtp(toEmail, otp);
+        }
+      } catch (final Exception e) {
+        LOG.errorf("Failed to send OTP email to %s via Resend API: %s", maskEmail(toEmail), e.getMessage());
+        // Fallback to SMTP if Resend fails
+        return sendOtpEmailViaSmtp(toEmail, otp);
       }
     }).runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
       .onFailure().invoke(e -> LOG.errorf("Email service error: %s", e.getMessage()));
+  }
+
+  private Object sendOtpEmailViaSmtp(final String toEmail, final String otp) {
+    try {
+      final String subject = "FoodGrid - Your OTP Code";
+      final String htmlContent = buildEmailTemplate(otp);
+
+      final Mail mail = Mail.withHtml(toEmail, subject, htmlContent)
+              .setFrom(fromEmail);
+      
+      // Use non-blocking send with proper error handling
+      mailer.send(mail);
+      LOG.infof("OTP email sent successfully to %s via SMTP fallback", maskEmail(toEmail));
+      return null;
+    } catch (final Exception e) {
+      LOG.errorf("Failed to send OTP email to %s via SMTP fallback: %s", maskEmail(toEmail), e.getMessage());
+      throw new RuntimeException("Email service unavailable", e);
+    }
   }
 
   private String buildEmailTemplate(final String otp) {
