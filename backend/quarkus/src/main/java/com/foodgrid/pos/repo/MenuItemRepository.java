@@ -20,4 +20,8 @@ public class MenuItemRepository implements PanacheRepositoryBase<MenuItem, Strin
   public List<MenuItem> listByOutletAndCategory(String outletId, String categoryId) {
     return list("outletId = ?1 and categoryId = ?2", outletId, categoryId);
   }
+
+  public long deleteByIdsAndOutlet(List<String> ids, String outletId) {
+    return delete("id in ?1 and outletId = ?2", ids, outletId);
+  }
 }

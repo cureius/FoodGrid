@@ -290,6 +290,19 @@ export function deleteMenuCategory(outletId: string, categoryId: string) {
   );
 }
 
+export function deleteMenuCategoriesBatch(outletId: string, categoryIds: string[]) {
+  return http<void>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/categories/delete-batch`,
+    {
+      method: "POST",
+      headers: {
+        ...clientAdminAuthHeader()
+      },
+      body: JSON.stringify(categoryIds)
+    }
+  );
+}
+
 // ─────────────────────────────────────────────────────────────
 // Menu Items
 // ─────────────────────────────────────────────────────────────
@@ -408,6 +421,17 @@ export function deleteMenuItem(outletId: string, itemId: string) {
     {
       method: "DELETE",
       headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+export function deleteMenuItemsBatch(outletId: string, itemIds: string[]) {
+  return http<void>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/menu/items/delete-batch`,
+    {
+      method: "POST",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(itemIds)
     }
   );
 }
@@ -603,6 +627,17 @@ export function deleteIngredientCategory(outletId: string, categoryId: string) {
   );
 }
 
+export function deleteIngredientCategoriesBatch(outletId: string, categoryIds: string[]) {
+  return http<void>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/categories/delete-batch`,
+    {
+      method: "POST",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(categoryIds)
+    }
+  );
+}
+
 // ─────────────────────────────────────────────────────────────
 // Units of Measure
 // ─────────────────────────────────────────────────────────────
@@ -664,6 +699,17 @@ export function deleteUnitOfMeasure(outletId: string, unitId: string) {
     {
       method: "DELETE",
       headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+export function deleteUnitsOfMeasureBatch(outletId: string, unitIds: string[]) {
+  return http<void>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/units/delete-batch`,
+    {
+      method: "POST",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(unitIds)
     }
   );
 }
@@ -731,6 +777,17 @@ export function deleteSupplier(outletId: string, supplierId: string) {
     {
       method: "DELETE",
       headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+export function deleteSuppliersBatch(outletId: string, supplierIds: string[]) {
+  return http<void>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/suppliers/delete-batch`,
+    {
+      method: "POST",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(supplierIds)
     }
   );
 }
@@ -842,6 +899,17 @@ export function deleteIngredient(outletId: string, ingredientId: string) {
     {
       method: "DELETE",
       headers: { ...clientAdminAuthHeader() }
+    }
+  );
+}
+
+export function deleteIngredientsBatch(outletId: string, ingredientIds: string[]) {
+  return http<void>(
+    `/api/v1/admin/outlets/${encodeURIComponent(outletId)}/inventory/ingredients/delete-batch`,
+    {
+      method: "POST",
+      headers: { ...clientAdminAuthHeader() },
+      body: JSON.stringify(ingredientIds)
     }
   );
 }

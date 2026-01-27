@@ -30,6 +30,12 @@ import {
   deleteSupplier,
   uploadMenuItemImage,
   getImageUrl,
+  deleteMenuCategoriesBatch,
+  deleteMenuItemsBatch,
+  deleteIngredientCategoriesBatch,
+  deleteUnitsOfMeasureBatch,
+  deleteSuppliersBatch,
+  deleteIngredientsBatch,
   type MenuCategoryResponse,
   type MenuCategoryUpsertInput,
   type MenuItemResponse,
@@ -365,6 +371,35 @@ export default function InventoryPage() {
   
   // Pending file uploads (files to be uploaded after menu item creation)
   const [pendingImageUploads, setPendingImageUploads] = useState<File[]>([]);
+
+  // Multiselect state
+  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
+  // Reset selection when tab changes
+  useEffect(() => {
+    setSelectedItemIds(new Set());
+  }, [activeTab]);
+
+  const toggleItemSelection = (id: string) => {
+    setSelectedItemIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAll = (ids: string[]) => {
+    if (selectedItemIds.size === ids.length) {
+      setSelectedItemIds(new Set());
+    } else {
+      setSelectedItemIds(new Set(ids));
+    }
+  };
 
   const dishes = useMemo(() => dishesSeed, []);
 
@@ -753,6 +788,42 @@ export default function InventoryPage() {
       alert(err?.message || 'Failed to delete supplier');
     } finally {
       setDeletingSupplierId(null);
+    }
+  };
+  const handleBulkDelete = async () => {
+    if (!selectedOutletId || selectedItemIds.size === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedItemIds.size} selected items?`)) return;
+
+    setIsBulkDeleting(true);
+    const ids = Array.from(selectedItemIds);
+    try {
+      switch (activeTab) {
+        case 'Menu':
+          await deleteMenuItemsBatch(selectedOutletId, ids);
+          fetchMenuItems();
+          break;
+        case 'Ingredients':
+          await deleteIngredientsBatch(selectedOutletId, ids);
+          fetchIngredients();
+          break;
+        case 'Categories':
+          await deleteMenuCategoriesBatch(selectedOutletId, ids);
+          fetchMenuCategories();
+          break;
+        case 'Units':
+          await deleteUnitsOfMeasureBatch(selectedOutletId, ids);
+          fetchUnits();
+          break;
+        case 'Suppliers':
+          await deleteSuppliersBatch(selectedOutletId, ids);
+          fetchSuppliers();
+          break;
+      }
+      setSelectedItemIds(new Set());
+    } catch (err: any) {
+      alert(err?.message || 'Failed to delete items');
+    } finally {
+      setIsBulkDeleting(false);
     }
   };
 
@@ -1338,29 +1409,62 @@ export default function InventoryPage() {
 
         <section className={activeTab === 'Categories' || activeTab === 'Units' || activeTab === 'Suppliers' ? styles.contentCardFull : styles.contentCard}>
           <div className={styles.contentHeader}>
-            <div className={styles.contentTitle}>
-              {activeTab === 'Menu' ? 'Menu List' : activeTab === 'Ingredients' ? 'Ingredients List' : activeTab === 'Categories' ? 'Categories List' : activeTab === 'Units' ? 'Units of Measure' : activeTab === 'Suppliers' ? 'Suppliers List' : 'Request List'}
-              {activeTab === 'Menu' && (
-                <span> ({filteredMenuItems.length})</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {activeTab !== 'Request List' && (
+                <input
+                  type="checkbox"
+                  className={styles.selectAllCheckbox}
+                  checked={
+                    activeTab === 'Menu' ? (filteredMenuItems.length > 0 && Array.from(selectedItemIds).filter(id => filteredMenuItems.some(item => item.id === id)).length === filteredMenuItems.length) :
+                    activeTab === 'Ingredients' ? (filteredIngredients.length > 0 && Array.from(selectedItemIds).filter(id => filteredIngredients.some(item => item.id === id)).length === filteredIngredients.length) :
+                    activeTab === 'Categories' ? (filteredMenuCategories.length > 0 && Array.from(selectedItemIds).filter(id => filteredMenuCategories.some(item => item.id === id)).length === filteredMenuCategories.length) :
+                    activeTab === 'Suppliers' ? (filteredSuppliers.length > 0 && Array.from(selectedItemIds).filter(id => filteredSuppliers.some(item => item.id === id)).length === filteredSuppliers.length) :
+                    activeTab === 'Units' ? (units.length > 0 && Array.from(selectedItemIds).filter(id => units.some(item => item.id === id)).length === units.length) : false
+                  }
+                  onChange={() => {
+                    const ids = 
+                      activeTab === 'Menu' ? filteredMenuItems.map(i => i.id) :
+                      activeTab === 'Ingredients' ? filteredIngredients.map(i => i.id) :
+                      activeTab === 'Categories' ? filteredMenuCategories.map(i => i.id) :
+                      activeTab === 'Suppliers' ? filteredSuppliers.map(i => i.id) :
+                      activeTab === 'Units' ? units.map(i => i.id) : [];
+                    handleSelectAll(ids);
+                  }}
+                />
               )}
-              {activeTab === 'Ingredients' && (
-                <span> ({filteredIngredients.length})</span>
-              )}
-              {activeTab === 'Categories' && (
-                <span> ({filteredMenuCategories.length})</span>
-              )}
-              {activeTab === 'Units' && (
-                <span> ({units.length})</span>
-              )}
-              {activeTab === 'Suppliers' && (
-                <span> ({filteredSuppliers.length})</span>
-              )}
-              {activeTab === 'Request List' && (
-                <span> ({filteredSuppliers.length})</span>
-              )}
+              <div className={styles.contentTitle}>
+                {activeTab === 'Menu' ? 'Menu List' : activeTab === 'Ingredients' ? 'Ingredients List' : activeTab === 'Categories' ? 'Categories List' : activeTab === 'Units' ? 'Units of Measure' : activeTab === 'Suppliers' ? 'Suppliers List' : 'Request List'}
+                {activeTab === 'Menu' && (
+                  <span> ({filteredMenuItems.length})</span>
+                )}
+                {activeTab === 'Ingredients' && (
+                  <span> ({filteredIngredients.length})</span>
+                )}
+                {activeTab === 'Categories' && (
+                  <span> ({filteredMenuCategories.length})</span>
+                )}
+                {activeTab === 'Units' && (
+                  <span> ({units.length})</span>
+                )}
+                {activeTab === 'Suppliers' && (
+                  <span> ({filteredSuppliers.length})</span>
+                )}
+                {activeTab === 'Request List' && (
+                  <span> ({filteredSuppliers.length})</span>
+                )}
+              </div>
             </div>
+            {selectedItemIds.size > 0 && (
+              <button
+                type="button"
+                className={styles.bulkDeleteBtn}
+                onClick={handleBulkDelete}
+                disabled={isBulkDeleting}
+              >
+                {isBulkDeleting ? 'Deleting...' : `Delete Selected (${selectedItemIds.size})`}
+              </button>
+            )}
           </div>
-
           {activeTab === 'Menu' && (
             <div className={styles.dishGrid}>
               {menuItemsLoading && <div className={styles.loadingText}>Loading menu items...</div>}
@@ -1370,6 +1474,17 @@ export default function InventoryPage() {
               )}
               {!menuItemsLoading && !menuItemsError && filteredMenuItems.map((item) => (
                 <div key={item.id} className={styles.dishCard}>
+                  <div className={styles.dishSelectionOverlay}>
+                    <input
+                      type="checkbox"
+                      checked={selectedItemIds.has(item.id)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        toggleItemSelection(item.id);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
                   <div className={styles.dishImageWrap}>
                     {item.images.length > 0  ? (
                       <Image
@@ -1451,6 +1566,12 @@ export default function InventoryPage() {
                 const displayStatus = stockStatusToDisplay(i.stockStatus);
                 return (
                   <div key={i.id} className={styles.ingRow}>
+                    <input
+                      type="checkbox"
+                      checked={selectedItemIds.has(i.id)}
+                      onChange={() => toggleItemSelection(i.id)}
+                      className={styles.rowCheckbox}
+                    />
                     <div className={styles.ingLeft}>
                       {i.imageUrl ? (
                         <img className={styles.ingImg} src={i.imageUrl} alt={i.name} loading="lazy" />
@@ -1511,6 +1632,12 @@ export default function InventoryPage() {
               )}
               {!menuCategoriesLoading && !menuCategoryError && filteredMenuCategories.map((cat) => (
                 <div key={cat.id} className={styles.categoryMgmtRow}>
+                  <input
+                    type="checkbox"
+                    checked={selectedItemIds.has(cat.id)}
+                    onChange={() => toggleItemSelection(cat.id)}
+                    className={styles.rowCheckbox}
+                  />
                   <div className={styles.categoryMgmtLeft}>
                     <div className={styles.categoryMgmtIcon}>🏷️</div>
                     <div>
@@ -1544,6 +1671,12 @@ export default function InventoryPage() {
                 .filter((u) => !query || u.name.toLowerCase().includes(query.toLowerCase()) || u.abbreviation.toLowerCase().includes(query.toLowerCase()))
                 .map((unit) => (
                   <div key={unit.id} className={styles.categoryMgmtRow}>
+                    <input
+                      type="checkbox"
+                      checked={selectedItemIds.has(unit.id)}
+                      onChange={() => toggleItemSelection(unit.id)}
+                      className={styles.rowCheckbox}
+                    />
                     <div className={styles.categoryMgmtLeft}>
                       <div className={styles.categoryMgmtIcon}>📏</div>
                       <div>
@@ -1578,6 +1711,12 @@ export default function InventoryPage() {
               )}
               {!suppliersLoading && !suppliersError && filteredSuppliers.map((supplier) => (
                 <div key={supplier.id} className={styles.categoryMgmtRow}>
+                  <input
+                    type="checkbox"
+                    checked={selectedItemIds.has(supplier.id)}
+                    onChange={() => toggleItemSelection(supplier.id)}
+                    className={styles.rowCheckbox}
+                  />
                   <div className={styles.categoryMgmtLeft}>
                     <div className={styles.categoryMgmtIcon}>🏢</div>
                     <div>

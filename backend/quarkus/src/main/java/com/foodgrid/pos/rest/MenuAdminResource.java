@@ -48,6 +48,12 @@ public class MenuAdminResource {
     menuAdminService.deleteCategory(outletId, categoryId);
   }
 
+  @POST
+  @Path("/categories/delete-batch")
+  public void deleteBatchCategories(@PathParam("outletId") final String outletId, final List<String> categoryIds) {
+    menuAdminService.deleteCategories(outletId, categoryIds);
+  }
+
   @GET
   @Path("/items")
   public List<MenuItemResponse> listItems(@PathParam("outletId") final String outletId,
@@ -86,6 +92,12 @@ public class MenuAdminResource {
   @Path("/items/{itemId}")
   public void deleteItem(@PathParam("outletId") final String outletId, @PathParam("itemId") final String itemId) {
     menuAdminService.deleteItem(outletId, itemId);
+  }
+
+  @POST
+  @Path("/items/delete-batch")
+  public void deleteBatchItems(@PathParam("outletId") final String outletId, final List<String> itemIds) {
+    menuAdminService.deleteItems(outletId, itemIds);
   }
 
   // ==================== RECIPE MANAGEMENT ====================

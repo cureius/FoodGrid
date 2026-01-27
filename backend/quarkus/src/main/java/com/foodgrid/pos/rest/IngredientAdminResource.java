@@ -50,6 +50,14 @@ public class IngredientAdminResource {
     ingredientService.deleteCategory(outletId, categoryId);
   }
 
+  @POST
+  @Path("/categories/delete-batch")
+  public void deleteBatchCategories(
+      @PathParam("outletId") String outletId,
+      List<String> categoryIds) {
+    ingredientService.deleteCategories(outletId, categoryIds);
+  }
+
   // ==================== UNITS OF MEASURE ====================
 
   @GET
@@ -83,6 +91,14 @@ public class IngredientAdminResource {
     ingredientService.deleteUnit(outletId, unitId);
   }
 
+  @POST
+  @Path("/units/delete-batch")
+  public void deleteBatchUnits(
+      @PathParam("outletId") String outletId,
+      List<String> unitIds) {
+    ingredientService.deleteUnits(outletId, unitIds);
+  }
+
   // ==================== SUPPLIERS ====================
 
   @GET
@@ -114,6 +130,14 @@ public class IngredientAdminResource {
       @PathParam("outletId") String outletId,
       @PathParam("supplierId") String supplierId) {
     ingredientService.deleteSupplier(outletId, supplierId);
+  }
+
+  @POST
+  @Path("/suppliers/delete-batch")
+  public void deleteBatchSuppliers(
+      @PathParam("outletId") String outletId,
+      List<String> supplierIds) {
+    ingredientService.deleteSuppliers(outletId, supplierIds);
   }
 
   // ==================== INGREDIENTS ====================
@@ -164,6 +188,14 @@ public class IngredientAdminResource {
       @PathParam("outletId") String outletId,
       @PathParam("ingredientId") String ingredientId) {
     ingredientService.deleteIngredient(outletId, ingredientId);
+  }
+
+  @POST
+  @Path("/ingredients/delete-batch")
+  public void deleteBatchIngredients(
+      @PathParam("outletId") String outletId,
+      List<String> ingredientIds) {
+    ingredientService.deleteIngredients(outletId, ingredientIds);
   }
 
   // ==================== STOCK MOVEMENTS ====================

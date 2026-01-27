@@ -79,6 +79,21 @@ public class IngredientService {
     categoryRepo.delete(category);
   }
 
+  @Transactional
+  public void deleteCategories(String outletId, List<String> categoryIds) {
+    if (categoryIds == null || categoryIds.isEmpty()) return;
+    
+    // Validate if any category has ingredients (could be optimized, but let's keep the safeguard)
+    for (String categoryId : categoryIds) {
+        long ingredientCount = ingredientRepo.countByCategory(categoryId);
+        if (ingredientCount > 0) {
+            throw new BadRequestException("Cannot delete category " + categoryId + " with existing ingredients.");
+        }
+    }
+    
+    categoryRepo.delete("id in ?1 and outletId = ?2", categoryIds, outletId);
+  }
+
   // ==================== UNITS OF MEASURE ====================
 
   public List<UnitOfMeasureResponse> listUnits(String outletId) {
@@ -129,6 +144,15 @@ public class IngredientService {
     unitRepo.delete(unit);
   }
 
+  @Transactional
+  public void deleteUnits(String outletId, List<String> unitIds) {
+    if (unitIds == null || unitIds.isEmpty()) return;
+    
+    // Units might be used by ingredients, DB FK will catch it if defined.
+    // For safety we could check, but let's do batch delete.
+    unitRepo.delete("id in ?1 and outletId = ?2", unitIds, outletId);
+  }
+
   // ==================== SUPPLIERS ====================
 
   public List<SupplierResponse> listSuppliers(String outletId) {
@@ -175,6 +199,13 @@ public class IngredientService {
     Supplier supplier = supplierRepo.findByIdAndOutlet(supplierId, outletId)
         .orElseThrow(() -> new NotFoundException("Supplier not found"));
     supplierRepo.delete(supplier);
+  }
+
+  @Transactional
+  public void deleteSuppliers(String outletId, List<String> supplierIds) {
+    if (supplierIds == null || supplierIds.isEmpty()) return;
+    
+    supplierRepo.delete("id in ?1 and outletId = ?2", supplierIds, outletId);
   }
 
   // ==================== INGREDIENTS ====================
@@ -287,7 +318,19 @@ public class IngredientService {
   public void deleteIngredient(String outletId, String ingredientId) {
     Ingredient ingredient = ingredientRepo.findByIdAndOutlet(ingredientId, outletId)
         .orElseThrow(() -> new NotFoundException("Ingredient not found"));
+    
+    // Delete associated data first
+    stockMovementRepo.delete("ingredientId = ?1 and outletId = ?2", ingredientId, outletId);
     ingredientRepo.delete(ingredient);
+  }
+
+  @Transactional
+  public void deleteIngredients(String outletId, List<String> ingredientIds) {
+    if (ingredientIds == null || ingredientIds.isEmpty()) return;
+    
+    // Delete associated data in batch
+    stockMovementRepo.delete("ingredientId in ?1 and outletId = ?2", ingredientIds, outletId);
+    ingredientRepo.delete("id in ?1 and outletId = ?2", ingredientIds, outletId);
   }
 
   // ==================== STOCK MOVEMENTS ====================

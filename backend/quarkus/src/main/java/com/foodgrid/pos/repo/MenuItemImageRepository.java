@@ -15,4 +15,8 @@ public class MenuItemImageRepository implements PanacheRepositoryBase<MenuItemIm
   public void deleteByMenuItem(String menuItemId) {
     delete("menuItemId = ?1", menuItemId);
   }
+
+  public void deleteByMenuItemIds(List<String> menuItemIds) {
+    delete("menuItemId in ?1", menuItemIds);
+  }
 }

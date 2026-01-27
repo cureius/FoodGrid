@@ -80,6 +80,16 @@ public class MenuAdminService {
     categoryRepository.delete(c);
   }
 
+  @Transactional
+  public void deleteCategories(final String outletId, final List<String> categoryIds) {
+    if (categoryIds == null || categoryIds.isEmpty()) return;
+    enforceOutlet(outletId);
+
+    // No associated data for categories except items (which we probably shouldn't auto-delete)
+    // The DB will fail if there are items linked to these categories.
+    categoryRepository.delete("id in ?1 and outletId = ?2", categoryIds, outletId);
+  }
+
   public List<MenuItemResponse> listItems(final String outletId, final String categoryId) {
     enforceOutlet(outletId);
     final List<MenuItem> items;
@@ -229,9 +239,23 @@ public class MenuAdminService {
     final MenuItem i = itemRepository.findByIdAndOutlet(itemId, outletId)
       .orElseThrow(() -> new NotFoundException("Item not found"));
     
-    // Delete images first
+    // Delete associated data first
     imageRepository.deleteByMenuItem(itemId);
+    recipeRepository.deleteByMenuItemId(itemId);
     itemRepository.delete(i);
+  }
+
+  @Transactional
+  public void deleteItems(final String outletId, final List<String> itemIds) {
+    if (itemIds == null || itemIds.isEmpty()) return;
+    enforceOutlet(outletId);
+    
+    // Delete associated data in batch
+    imageRepository.deleteByMenuItemIds(itemIds);
+    recipeRepository.deleteByMenuItemIds(itemIds);
+    
+    // Delete items in batch (enforcing outletId)
+    itemRepository.deleteByIdsAndOutlet(itemIds, outletId);
   }
 
   private List<MenuItemImage> saveImages(final String menuItemId, final List<MenuItemImageUpsertRequest> images) {

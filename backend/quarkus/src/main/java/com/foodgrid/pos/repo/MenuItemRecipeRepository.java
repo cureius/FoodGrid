@@ -16,6 +16,10 @@ public class MenuItemRecipeRepository implements PanacheRepositoryBase<MenuItemR
     delete("menuItemId = ?1", menuItemId);
   }
 
+  public void deleteByMenuItemIds(List<String> menuItemIds) {
+    delete("menuItemId in ?1", menuItemIds);
+  }
+
   public MenuItemRecipe findByMenuItemAndIngredient(String menuItemId, String ingredientId) {
     return find("menuItemId = ?1 AND ingredientId = ?2", menuItemId, ingredientId).firstResult();
   }
