@@ -10,12 +10,14 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import io.smallrye.mutiny.Uni;
+import io.smallrye.common.annotation.Blocking;
 import java.util.Map;
 
 @Path("/api/v1/customer/auth")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @jakarta.annotation.security.PermitAll
+@Blocking
 @Tag(name = "Customer Auth", description = "Mobile + OTP based authentication for customers")
 public class CustomerAuthResource {
 
