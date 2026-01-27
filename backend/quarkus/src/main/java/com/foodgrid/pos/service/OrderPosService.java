@@ -223,13 +223,18 @@ public class OrderPosService {
   }
 
   @Transactional
-  public OrderResponse updateStatus(final String orderId, final String statusVal) {
+  public OrderResponse updateStatus(final String orderId, String statusVal) {
+    if (statusVal == null || statusVal.isBlank()) {
+      throw new BadRequestException("Status is required");
+    }
+    
     final Order o = getOrderForOutlet(orderId);
+    statusVal = statusVal.trim().toUpperCase();
     
     try {
       final Order.Status newStatus = Order.Status.valueOf(statusVal);
       
-      // Basic transitions validation if needed, but let's allow flexibility for Admin
+      // Basic transitions validation
       if (newStatus == Order.Status.SERVED && o.status != Order.Status.SERVED) {
         deductIngredientsFromStock(o);
       }
@@ -242,7 +247,7 @@ public class OrderPosService {
       
       return get(orderId);
     } catch (final IllegalArgumentException e) {
-      throw new BadRequestException("Invalid status: " + statusVal);
+      throw new BadRequestException("Invalid status: '" + statusVal + "'. Expected one of: OPEN, KOT_SENT, SERVED, BILLED, PAID, CANCELLED");
     }
   }
 

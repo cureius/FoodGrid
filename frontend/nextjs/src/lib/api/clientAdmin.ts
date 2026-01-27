@@ -1078,8 +1078,8 @@ export function markOrderServed(orderId: string) {
 }
 
 export function updateOrderStatus(orderId: string, status: string) {
-  return http<OrderResponse>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}/status?status=${encodeURIComponent(status)}`, {
-    method: "PATCH",
+  return http<OrderResponse>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}/status/${encodeURIComponent(status)}`, {
+    method: "POST",
     headers: { ...clientAdminAuthHeader() }
   });
 }
