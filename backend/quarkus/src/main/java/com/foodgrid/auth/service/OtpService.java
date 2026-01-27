@@ -35,14 +35,23 @@ public class OtpService {
 
   public Uni<Object> sendOtpEmail(final String toEmail, final String otp) {
     return Uni.createFrom().item(() -> {
-      final String subject = "FoodGrid - Your OTP Code";
-      final String htmlContent = buildEmailTemplate(otp);
+      try {
+        final String subject = "FoodGrid - Your OTP Code";
+        final String htmlContent = buildEmailTemplate(otp);
 
-      final Mail mail = Mail.withHtml(toEmail, subject, htmlContent)
-              .setFrom(fromEmail);
-      mailer.send(mail);
-      return null;
-    }).runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
+        final Mail mail = Mail.withHtml(toEmail, subject, htmlContent)
+                .setFrom(fromEmail);
+        
+        // Use non-blocking send with proper error handling
+        mailer.send(mail);
+        LOG.infof("OTP email sent successfully to %s", maskEmail(toEmail));
+        return null;
+      } catch (Exception e) {
+        LOG.errorf("Failed to send OTP email to %s: %s", maskEmail(toEmail), e.getMessage());
+        throw new RuntimeException("Email service unavailable", e);
+      }
+    }).runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+      .onFailure().invoke(e -> LOG.errorf("Email service error: %s", e.getMessage()));
   }
 
   private String buildEmailTemplate(final String otp) {
