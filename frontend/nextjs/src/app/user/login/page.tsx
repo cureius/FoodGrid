@@ -180,93 +180,16 @@ function LoginContent() {
           {step === 'identifier' ? (
             <div className="step-content">
               <h1 className="title">Login / Signup</h1>
-              <p className="subtitle">Enter your {loginMode === 'mobile' ? 'mobile number' : 'email'} to enjoy the best deals and track your orders.</p>
+              <p className="subtitle">Sign in with your Google account to enjoy the best deals and track your orders.</p>
 
-              <form onSubmit={handleSendOtp} className="form">
-                {/* <div className="mode-toggle">
-                  <button 
-                    type="button"
-                    onClick={() => { setLoginMode('mobile'); setError(null); }}
-                    className={`mode-btn ${loginMode === 'mobile' ? 'active' : ''}`}
-                  >
-                    Mobile
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={() => { setLoginMode('email'); setError(null); }}
-                    className={`mode-btn ${loginMode === 'email' ? 'active' : ''}`}
-                  >
-                    Email
-                  </button>
-                </div> */}
-
-                {loginMode === 'mobile' ? (
-                  <div className="input-group">
-                    <div className="country-code">
-                      <span>+91</span>
-                    </div>
-                    <input
-                      type="tel"
-                      value={mobile}
-                      onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      placeholder="Mobile Number"
-                      className="login-input with-prefix"
-                      autoFocus
-                    />
-                  </div>
-                ) : (
-                  <div className="email-input-container">
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        setShowSuggestions(true);
-                      }}
-                      onFocus={() => setShowSuggestions(true)}
-                      onBlur={() => {
-                        // Delay hiding so clicks on suggestions work
-                        setTimeout(() => setShowSuggestions(false), 200);
-                      }}
-                      placeholder="Email Address"
-                      className="login-input"
-                      autoFocus
-                    />
-                    {showSuggestions && suggestions.length > 0 && (
-                      <div className="suggestions-dropdown">
-                        {suggestions.map((sug) => (
-                          <button
-                            key={sug}
-                            type="button"
-                            className="suggestion-item"
-                            onClick={() => {
-                              setEmail(sug);
-                              setSuggestions([]);
-                              setShowSuggestions(false);
-                            }}
-                          >
-                            {sug}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {error && <p className="error-msg">{error}</p>}
-
-                <button
-                  type="submit"
-                  disabled={loading || (loginMode === 'mobile' ? mobile.length !== 10 : !email)}
-                  className="submit-btn"
-                >
-                  {loading ? <Loader2 className="spinner" /> : 'GET OTP'}
-                  <ArrowRight size={20} />
-                </button>
-              </form>
-
-              <div className="divider">
-                <span>OR</span>
+              {/* Hide internal login for now */}
+              <div style={{ display: 'none' }}>
+                <form onSubmit={handleSendOtp} className="form">
+                  {/* ... existing form content ... */}
+                </form>
+                <div className="divider">
+                  <span>OR</span>
+                </div>
               </div>
 
               <div className="google-login-wrapper">
@@ -279,6 +202,8 @@ function LoginContent() {
                   width="100%"
                 />
               </div>
+
+              {error && <p className="error-msg center">{error}</p>}
 
               <p className="terms">
                 By continuing, you agree to our <span>Terms of Service</span> and <span>Privacy Policy</span>
