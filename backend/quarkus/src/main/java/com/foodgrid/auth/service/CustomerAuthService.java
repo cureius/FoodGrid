@@ -14,6 +14,13 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import io.smallrye.mutiny.Uni;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import jakarta.ws.rs.NotAuthorizedException;
+import java.util.Collections;
 
 @ApplicationScoped
 public class CustomerAuthService {
@@ -24,6 +31,9 @@ public class CustomerAuthService {
     @Inject OtpService otpService;
     @Inject PinHasher pinHasher;
     @Inject JwtIssuer jwtIssuer;
+
+    @ConfigProperty(name = "google.client.id")
+    String googleClientId;
 
     @Transactional
     public void requestOtp(final RequestOtpRequest request) {
@@ -134,6 +144,64 @@ public class CustomerAuthService {
             customer = new Customer();
             customer.email = request.email;
             customer.displayName = "Customer " + request.email.substring(0, request.email.indexOf('@'));
+            customer.persist();
+        }
+
+        customer.lastLoginAt = new Date();
+        customer.persist();
+
+        final String token = jwtIssuer.issueCustomerAccessToken(customer);
+        
+        final CustomerLoginResponse response = new CustomerLoginResponse();
+        response.token = token;
+        response.profile = new CustomerProfile();
+        response.profile.id = customer.id;
+        response.profile.mobileNumber = customer.mobileNumber;
+        response.profile.email = customer.email;
+        response.profile.displayName = customer.displayName;
+        response.profile.avatarUrl = customer.avatarUrl;
+
+        return response;
+    }
+
+    @Transactional
+    public CustomerLoginResponse verifyGoogleToken(final VerifyGoogleTokenRequest request) {
+        final GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                .setAudience(Collections.singletonList(googleClientId))
+                .build();
+
+        final GoogleIdToken idToken;
+        try {
+            idToken = verifier.verify(request.idToken);
+        } catch (Exception e) {
+            throw new NotAuthorizedException("Failed to verify Google Token", "Bearer");
+        }
+
+        if (idToken == null) {
+            throw new NotAuthorizedException("Invalid Google Token", "Bearer");
+        }
+
+        final GoogleIdToken.Payload payload = idToken.getPayload();
+        
+        // Email verification check
+        if (!Boolean.TRUE.equals(payload.getEmailVerified())) {
+            throw new ForbiddenException("Email not verified by Google");
+        }
+
+        final String email = payload.getEmail();
+        final String name = (String) payload.get("name");
+        final String googleSub = payload.getSubject();
+        final String pictureUrl = (String) payload.get("picture");
+
+        // Find existing user by email
+        Customer customer = Customer.findByEmail(email);
+        if (customer == null) {
+            customer = new Customer();
+            customer.email = email;
+            customer.displayName = name;
+            customer.provider = "GOOGLE";
+            customer.providerUserId = googleSub;
+            customer.avatarUrl = pictureUrl;
             customer.persist();
         }
 

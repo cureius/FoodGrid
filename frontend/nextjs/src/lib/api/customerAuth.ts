@@ -39,4 +39,11 @@ export const customerAuthApi = {
     });
     return data;
   },
+
+  googleLogin: async (idToken: string): Promise<VerifyOtpResponse> => {
+    const { data } = await api.post<VerifyOtpResponse>('/api/v1/customer/auth/google', {
+      idToken,
+    });
+    return data;
+  },
 };

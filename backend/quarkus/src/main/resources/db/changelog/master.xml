@@ -23,5 +23,7 @@
   <include file="db/changelog/10-add-customer-id-to-orders.xml"/>
   <include file="db/changelog/11-make-otp-challenge-fields-nullable.xml"/>
   <include file="db/changelog/12-make-customer-fields-nullable.xml"/>
+  <include file="db/changelog/13-add-customer-auth-provider-fields.xml"/>
+  <include file="db/changelog/14-fix-customer-nullability.xml"/>
 
 </databaseChangeLog>

@@ -57,4 +57,11 @@ public class CustomerAuthResource {
     public CustomerLoginResponse verifyEmailOtp(@Valid final VerifyEmailOtpRequest request) {
         return customerAuthService.verifyEmailOtp(request);
     }
+
+    @POST
+    @Path("/google")
+    @Operation(summary = "Google Login", description = "Verify Google ID Token and return customer access token")
+    public CustomerLoginResponse googleLogin(@Valid final VerifyGoogleTokenRequest request) {
+        return customerAuthService.verifyGoogleToken(request);
+    }
 }

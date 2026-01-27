@@ -7,6 +7,7 @@ import { ChevronLeft, ShieldCheck, Loader2, ArrowRight } from 'lucide-react';
 import { customerAuthApi } from '@/lib/api/customerAuth';
 import { useAuthStore } from '@/stores/auth';
 import Logo from '@/components/Logo';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const COMMON_DOMAINS = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com'];
 
@@ -143,6 +144,21 @@ function LoginContent() {
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    if (!credentialResponse.credential) return;
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await customerAuthApi.googleLogin(credentialResponse.credential);
+      login(res.token, res.profile);
+      router.replace(redirect);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Google login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (isAuthenticated) return null;
 
   return (
@@ -248,6 +264,21 @@ function LoginContent() {
                   <ArrowRight size={20} />
                 </button>
               </form>
+
+              <div className="divider">
+                <span>OR</span>
+              </div>
+
+              <div className="google-login-wrapper">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError('Google login failed')}
+                  useOneTap
+                  theme="outline"
+                  shape="rectangular"
+                  width="100%"
+                />
+              </div>
 
               <p className="terms">
                 By continuing, you agree to our <span>Terms of Service</span> and <span>Privacy Policy</span>
@@ -578,15 +609,43 @@ function LoginContent() {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
+
+        .divider {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          margin: 8px 0;
+          color: var(--text-muted);
+          font-size: 12px;
+          font-weight: 700;
+        }
+        .divider::before, .divider::after {
+          content: "";
+          flex: 1;
+          height: 1px;
+          background: var(--border-light);
+        }
+        .google-login-wrapper {
+          display: flex;
+          justify-content: center;
+          width: 100%;
+        }
+        :global(.google-login-wrapper > div) {
+          width: 100% !important;
+        }
       `}</style>
     </div>
   );
 }
 
 export default function LoginPage() {
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+  
   return (
-    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Loading auth...</div>}>
-      <LoginContent />
-    </Suspense>
+    <GoogleOAuthProvider clientId={clientId}>
+      <Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Loading auth...</div>}>
+        <LoginContent />
+      </Suspense>
+    </GoogleOAuthProvider>
   )
 }

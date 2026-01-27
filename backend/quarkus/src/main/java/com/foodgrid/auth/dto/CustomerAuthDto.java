@@ -38,6 +38,11 @@ public class CustomerAuthDto {
         public String otp;
     }
 
+    public static class VerifyGoogleTokenRequest {
+        @NotBlank
+        public String idToken;
+    }
+
     public static class CustomerLoginResponse {
         public String token;
         public CustomerProfile profile;

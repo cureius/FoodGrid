@@ -13,10 +13,10 @@ public class Customer extends PanacheEntityBase {
     @Column(length = 36)
     public String id;
 
-    @Column(unique = true, nullable = false, length = 15)
+    @Column(unique = true, nullable = true, length = 15)
     public String mobileNumber;
 
-    @Column(unique = true, length = 255)
+    @Column(unique = true, nullable = true, length = 255)
     public String email;
 
     @Column(length = 100)
@@ -34,6 +34,12 @@ public class Customer extends PanacheEntityBase {
 
     @Temporal(TemporalType.TIMESTAMP)
     public Date lastLoginAt;
+
+    @Column(length = 20)
+    public String provider = "LOCAL";
+
+    @Column(length = 255)
+    public String providerUserId;
 
     public Customer() {
         this.id = UUID.randomUUID().toString();
