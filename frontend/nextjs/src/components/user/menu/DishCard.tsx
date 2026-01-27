@@ -250,11 +250,11 @@ export default function DishCard({ item }: DishCardProps) {
         `}</style>
       </motion.div>
 
-      <DishModal 
+      {/* <DishModal 
         item={item} 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-      />
+      /> */}
     </>
   );
 }

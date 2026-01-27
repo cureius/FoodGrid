@@ -73,4 +73,10 @@ public class OrderPosResource {
   public void delete(@PathParam("orderId") final String orderId) {
     orderPosService.delete(orderId);
   }
+
+  @PATCH
+  @Path("/{orderId}/status")
+  public OrderResponse updateStatus(@PathParam("orderId") final String orderId, @QueryParam("status") final String status) {
+    return orderPosService.updateStatus(orderId, status);
+  }
 }

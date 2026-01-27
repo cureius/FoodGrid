@@ -5,12 +5,12 @@ import styles from "./Orders.module.css";
 import Card from "@/components/ui/Card";
 import { Plus, Search, ChevronDown, ArrowRight, FileText, X, Timer, CheckCircle2, UtensilsCrossed, Loader2, RefreshCw, Zap, CreditCard, Utensils, Trash2, CheckSquare, Square } from "lucide-react";
 import Link from "next/link";
-import { listOrders, getOrder, cancelOrderItem, markOrderServed, billOrder, deleteOrder, type OrderResponse, type OrderItemResponse } from "@/lib/api/clientAdmin";
+import { listOrders, getOrder, cancelOrderItem, markOrderServed, billOrder, deleteOrder, updateOrderStatus, type OrderResponse, type OrderItemResponse } from "@/lib/api/clientAdmin";
 import { useOutlet } from "@/contexts/OutletContext";
 import { getImageUrl } from "@/lib/api/clientAdmin";
 import Image from "next/image";
 
-type OrderStatus = "All" | "In Progress" | "Ready to Served" | "Waiting for Payment";
+type OrderStatus = "All" | "Open" | "KOT Sent" | "Served" | "Billed" | "Paid" | "Cancelled";
 
 type Order = {
   id: string;
@@ -56,18 +56,37 @@ function mapOrderType(orderType: string): "Dine In" | "Take Away" {
 function mapOrderStatus(status: string): Exclude<OrderStatus, "All"> {
   switch (status) {
     case "OPEN":
+      return "Open";
     case "KOT_SENT":
-      return "In Progress";
+      return "KOT Sent";
     case "SERVED":
-      return "Ready to Served";
+      return "Served";
     case "BILLED":
-      return "Waiting for Payment";
+      return "Billed";
     case "PAID":
-      return "Waiting for Payment"; // Already paid, but show as waiting for payment
+      return "Paid";
     case "CANCELLED":
-      return "In Progress"; // Show cancelled orders as in progress for now
+      return "Cancelled";
     default:
-      return "In Progress";
+      return "Open";
+  }
+}
+
+// Map display status back to backend status
+function mapStatusToBackend(status: Exclude<OrderStatus, "All">): string {
+  switch (status) {
+    case "Open":
+      return "OPEN";
+    case "KOT Sent":
+      return "KOT_SENT";
+    case "Served":
+      return "SERVED";
+    case "Billed":
+      return "BILLED";
+    case "Paid":
+      return "PAID";
+    case "Cancelled":
+      return "CANCELLED";
   }
 }
 
@@ -222,15 +241,21 @@ export default function OrderPage() {
   const statusFilters: { label: OrderStatus; count: number }[] = useMemo(() => {
     const counts = {
       All: mappedOrders.length,
-      "In Progress": mappedOrders.filter((o) => o.status === "In Progress").length,
-      "Ready to Served": mappedOrders.filter((o) => o.status === "Ready to Served").length,
-      "Waiting for Payment": mappedOrders.filter((o) => o.status === "Waiting for Payment").length,
+      "Open": mappedOrders.filter((o) => o.status === "Open").length,
+      "KOT Sent": mappedOrders.filter((o) => o.status === "KOT Sent").length,
+      "Served": mappedOrders.filter((o) => o.status === "Served").length,
+      "Billed": mappedOrders.filter((o) => o.status === "Billed").length,
+      "Paid": mappedOrders.filter((o) => o.status === "Paid").length,
+      "Cancelled": mappedOrders.filter((o) => o.status === "Cancelled").length,
     };
     return [
       { label: "All", count: counts.All },
-      { label: "In Progress", count: counts["In Progress"] },
-      { label: "Ready to Served", count: counts["Ready to Served"] },
-      { label: "Waiting for Payment", count: counts["Waiting for Payment"] },
+      { label: "Open", count: counts["Open"] },
+      { label: "KOT Sent", count: counts["KOT Sent"] },
+      { label: "Served", count: counts["Served"] },
+      { label: "Billed", count: counts["Billed"] },
+      { label: "Paid", count: counts["Paid"] },
+      { label: "Cancelled", count: counts["Cancelled"] },
     ];
   }, [mappedOrders]);
 
@@ -310,6 +335,26 @@ export default function OrderPage() {
     } catch (err: any) {
       alert(err?.message || "Failed to bill order");
       console.error("Failed to bill order:", err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleStatusChange = async (orderId: string, newStatus: Exclude<OrderStatus, "All">) => {
+    if (!selectedOutletId) return;
+    try {
+      setActionLoading(`status-${orderId}`);
+      const backendStatus = mapStatusToBackend(newStatus);
+      await updateOrderStatus(orderId, backendStatus);
+      await fetchOrders(true);
+      // Refresh selected order if it's the same
+      if (selectedOrderId === orderId) {
+        const orderData = await getOrder(orderId);
+        setSelectedOrderResponse(orderData);
+      }
+    } catch (err: any) {
+      alert(err?.message || "Failed to update status");
+      console.error("Failed to update status:", err);
     } finally {
       setActionLoading(null);
     }
@@ -617,12 +662,16 @@ export default function OrderPage() {
             const isActive = f.label === activeStatus;
             const getStatusColor = (label: OrderStatus) => {
               switch (label) {
-                case "In Progress":
+                case "Open":
+                case "KOT Sent":
                   return { bg: "rgba(59, 130, 246, 0.1)", color: "#3b82f6", border: "rgba(59, 130, 246, 0.2)" };
-                case "Ready to Served":
+                case "Served":
                   return { bg: "rgba(16, 185, 129, 0.1)", color: "#10b981", border: "rgba(16, 185, 129, 0.2)" };
-                case "Waiting for Payment":
+                case "Billed":
+                case "Paid":
                   return { bg: "rgba(245, 158, 11, 0.1)", color: "#f59e0b", border: "rgba(245, 158, 11, 0.2)" };
+                case "Cancelled":
+                  return { bg: "rgba(239, 68, 68, 0.1)", color: "#ef4444", border: "rgba(239, 68, 68, 0.2)" };
                 default:
                   return { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b", border: "rgba(100, 116, 139, 0.2)" };
               }
@@ -763,14 +812,18 @@ export default function OrderPage() {
               ) : (
               filteredOrders.map((order) => {
                 const isSelected = selectedOrderIds.has(order.id);
-                const getStatusConfig = (status: string) => {
+                const getStatusConfig = (status: Exclude<OrderStatus, "All">) => {
                   switch (status) {
-                    case "In Progress":
+                    case "Open":
+                    case "KOT Sent":
                       return { bg: "rgba(59, 130, 246, 0.1)", color: "#3b82f6", icon: Timer };
-                    case "Ready to Served":
+                    case "Served":
                       return { bg: "rgba(16, 185, 129, 0.1)", color: "#10b981", icon: Utensils };
-                    case "Waiting for Payment":
+                    case "Billed":
+                    case "Paid":
                       return { bg: "rgba(245, 158, 11, 0.1)", color: "#f59e0b", icon: CreditCard };
+                    case "Cancelled":
+                      return { bg: "rgba(239, 68, 68, 0.1)", color: "#ef4444", icon: X };
                     default:
                       return { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b", icon: FileText };
                   }
@@ -976,86 +1029,88 @@ export default function OrderPage() {
                       >
                         <FileText size={16} /> Details
                       </button>
-                      {order.status === "Ready to Served" && (
-                        <button
-                          onClick={() => handleMarkServed(order.id)}
-                          disabled={actionLoading === `serve-${order.id}`}
-                          style={{
-                            flex: 1,
-                            padding: "12px 18px",
-                            borderRadius: 12,
-                            border: "none",
-                            background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 8,
-                            cursor: actionLoading === `serve-${order.id}` ? "not-allowed" : "pointer",
-                            fontSize: 14,
-                            fontWeight: 700,
-                            color: "white",
-                            boxShadow: "0 4px 14px rgba(16, 185, 129, 0.35)",
-                            transition: "all 0.2s ease",
-                            opacity: actionLoading === `serve-${order.id}` ? 0.6 : 1,
-                          }}
-                          onMouseEnter={(e) => {
-                            if (actionLoading !== `serve-${order.id}`) {
-                              e.currentTarget.style.transform = "translateY(-1px)";
-                              e.currentTarget.style.boxShadow = "0 6px 20px rgba(16, 185, 129, 0.45)";
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = "translateY(0)";
-                            e.currentTarget.style.boxShadow = "0 4px 14px rgba(16, 185, 129, 0.35)";
-                          }}
-                        >
-                          {actionLoading === `serve-${order.id}` ? (
-                            <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Processing...</>
-                          ) : (
-                            <><Utensils size={16} /> Mark Served</>
-                          )}
-                        </button>
-                      )}
-                      {order.status === "Waiting for Payment" && (
-                        <button
-                          onClick={() => handleBillOrder(order.id)}
-                          disabled={actionLoading === `bill-${order.id}`}
-                          style={{
-                            flex: 1,
-                            padding: "12px 18px",
-                            borderRadius: 12,
-                            border: "none",
-                            background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 8,
-                            cursor: actionLoading === `bill-${order.id}` ? "not-allowed" : "pointer",
-                            fontSize: 14,
-                            fontWeight: 700,
-                            color: "white",
-                            boxShadow: "0 4px 14px rgba(245, 158, 11, 0.35)",
-                            transition: "all 0.2s ease",
-                            opacity: actionLoading === `bill-${order.id}` ? 0.6 : 1,
-                          }}
-                          onMouseEnter={(e) => {
-                            if (actionLoading !== `bill-${order.id}`) {
-                              e.currentTarget.style.transform = "translateY(-1px)";
-                              e.currentTarget.style.boxShadow = "0 6px 20px rgba(245, 158, 11, 0.45)";
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = "translateY(0)";
-                            e.currentTarget.style.boxShadow = "0 4px 14px rgba(245, 158, 11, 0.35)";
-                          }}
-                        >
-                          {actionLoading === `bill-${order.id}` ? (
-                            <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Processing...</>
-                          ) : (
-                            <><CreditCard size={16} /> Bill Order</>
-                          )}
-                        </button>
-                      )}
+                      <div style={{ display: "flex", gap: 10, width: "100%", marginTop: "auto" }}>
+                        <div style={{ position: "relative", flex: 1 }}>
+                          <select
+                            value={order.status}
+                            onChange={(e) => handleStatusChange(order.id, e.target.value as Exclude<OrderStatus, "All">)}
+                            disabled={actionLoading === `status-${order.id}`}
+                            style={{
+                              width: "100%",
+                              padding: "10px 32px 10px 12px",
+                              borderRadius: 12,
+                              border: "1px solid #e2e8f0",
+                              background: "white",
+                              fontSize: 13,
+                              fontWeight: 700,
+                              color: "#1e293b",
+                              cursor: "pointer",
+                              outline: "none",
+                              appearance: "none",
+                              transition: "all 0.2s ease",
+                            }}
+                            onFocus={(e) => e.currentTarget.style.borderColor = "#8b5cf6"}
+                            onBlur={(e) => e.currentTarget.style.borderColor = "#e2e8f0"}
+                          >
+                            {(["Open", "KOT Sent", "Served", "Billed", "Paid", "Cancelled"] as const).map(s => (
+                              <option key={s} value={s}>{s}</option>
+                            ))}
+                          </select>
+                          <ChevronDown size={14} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#64748b" }} />
+                        </div>
+                        
+                        {(order.status === "Open" || order.status === "KOT Sent") && (
+                          <button
+                            onClick={() => handleStatusChange(order.id, "Served")}
+                            disabled={actionLoading === `status-${order.id}`}
+                            style={{
+                              padding: "10px 16px",
+                              borderRadius: 12,
+                              border: "none",
+                              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: 6,
+                              cursor: actionLoading === `status-${order.id}` ? "not-allowed" : "pointer",
+                              fontSize: 13,
+                              fontWeight: 700,
+                              color: "white",
+                              boxShadow: "0 4px 14px rgba(16, 185, 129, 0.35)",
+                              transition: "all 0.2s ease",
+                            }}
+                          >
+                            {actionLoading === `status-${order.id}` ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                            Serve
+                          </button>
+                        )}
+
+                        {order.status === "Served" && (
+                          <button
+                            onClick={() => handleStatusChange(order.id, "Billed")}
+                            disabled={actionLoading === `status-${order.id}`}
+                            style={{
+                              padding: "10px 16px",
+                              borderRadius: 12,
+                              border: "none",
+                              background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: 6,
+                              cursor: actionLoading === `status-${order.id}` ? "not-allowed" : "pointer",
+                              fontSize: 13,
+                              fontWeight: 700,
+                              color: "white",
+                              boxShadow: "0 4px 14px rgba(245, 158, 11, 0.35)",
+                              transition: "all 0.2s ease",
+                            }}
+                          >
+                            {actionLoading === `status-${order.id}` ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
+                            Bill
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -1493,10 +1548,10 @@ export default function OrderPage() {
                   >
                     <Plus size={18} /> New Order
                   </Link>
-                  {selectedOrder.status === "Ready to Served" && (
+                  {(selectedOrder.status === "Open" || selectedOrder.status === "KOT Sent") && (
                     <button
-                      onClick={() => handleMarkServed(selectedOrder.id)}
-                      disabled={actionLoading === `serve-${selectedOrder.id}`}
+                      onClick={() => handleStatusChange(selectedOrder.id, "Served")}
+                      disabled={actionLoading === `status-${selectedOrder.id}`}
                       style={{
                         flex: 1,
                         padding: "14px 20px",
@@ -1506,8 +1561,8 @@ export default function OrderPage() {
                         fontSize: 14,
                         fontWeight: 700,
                         color: "white",
-                        cursor: actionLoading === `serve-${selectedOrder.id}` ? "not-allowed" : "pointer",
-                        opacity: actionLoading === `serve-${selectedOrder.id}` ? 0.6 : 1,
+                        cursor: actionLoading === `status-${selectedOrder.id}` ? "not-allowed" : "pointer",
+                        opacity: actionLoading === `status-${selectedOrder.id}` ? 0.6 : 1,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -1515,28 +1570,18 @@ export default function OrderPage() {
                         boxShadow: "0 4px 14px rgba(16, 185, 129, 0.35)",
                         transition: "all 0.2s ease",
                       }}
-                      onMouseEnter={(e) => {
-                        if (actionLoading !== `serve-${selectedOrder.id}`) {
-                          e.currentTarget.style.transform = "translateY(-1px)";
-                          e.currentTarget.style.boxShadow = "0 6px 20px rgba(16, 185, 129, 0.45)";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "translateY(0)";
-                        e.currentTarget.style.boxShadow = "0 4px 14px rgba(16, 185, 129, 0.35)";
-                      }}
                     >
-                      {actionLoading === `serve-${selectedOrder.id}` ? (
+                      {actionLoading === `status-${selectedOrder.id}` ? (
                         <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> Processing...</>
                       ) : (
                         <><Utensils size={18} /> Mark as Served</>
                       )}
                     </button>
                   )}
-                  {selectedOrder.status === "Waiting for Payment" && (
+                  {selectedOrder.status === "Served" && (
                     <button
-                      onClick={() => handleBillOrder(selectedOrder.id)}
-                      disabled={actionLoading === `bill-${selectedOrder.id}`}
+                      onClick={() => handleStatusChange(selectedOrder.id, "Billed")}
+                      disabled={actionLoading === `status-${selectedOrder.id}`}
                       style={{
                         flex: 1,
                         padding: "14px 20px",
@@ -1546,8 +1591,8 @@ export default function OrderPage() {
                         fontSize: 14,
                         fontWeight: 700,
                         color: "white",
-                        cursor: actionLoading === `bill-${selectedOrder.id}` ? "not-allowed" : "pointer",
-                        opacity: actionLoading === `bill-${selectedOrder.id}` ? 0.6 : 1,
+                        cursor: actionLoading === `status-${selectedOrder.id}` ? "not-allowed" : "pointer",
+                        opacity: actionLoading === `status-${selectedOrder.id}` ? 0.6 : 1,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -1555,18 +1600,8 @@ export default function OrderPage() {
                         boxShadow: "0 4px 14px rgba(245, 158, 11, 0.35)",
                         transition: "all 0.2s ease",
                       }}
-                      onMouseEnter={(e) => {
-                        if (actionLoading !== `bill-${selectedOrder.id}`) {
-                          e.currentTarget.style.transform = "translateY(-1px)";
-                          e.currentTarget.style.boxShadow = "0 6px 20px rgba(245, 158, 11, 0.45)";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "translateY(0)";
-                        e.currentTarget.style.boxShadow = "0 4px 14px rgba(245, 158, 11, 0.35)";
-                      }}
                     >
-                      {actionLoading === `bill-${selectedOrder.id}` ? (
+                      {actionLoading === `status-${selectedOrder.id}` ? (
                         <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> Processing...</>
                       ) : (
                         <><CreditCard size={18} /> Proceed to Payment</>

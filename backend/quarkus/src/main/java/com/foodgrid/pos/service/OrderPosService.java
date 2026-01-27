@@ -223,6 +223,30 @@ public class OrderPosService {
   }
 
   @Transactional
+  public OrderResponse updateStatus(final String orderId, final String statusVal) {
+    final Order o = getOrderForOutlet(orderId);
+    
+    try {
+      final Order.Status newStatus = Order.Status.valueOf(statusVal);
+      
+      // Basic transitions validation if needed, but let's allow flexibility for Admin
+      if (newStatus == Order.Status.SERVED && o.status != Order.Status.SERVED) {
+        deductIngredientsFromStock(o);
+      }
+      
+      o.status = newStatus;
+      o.updatedAt = Date.from(Instant.now());
+      orderRepository.persist(o);
+      
+      audit.record("ORDER_STATUS_UPDATED", o.outletId, "Order", o.id, "Status changed to " + statusVal);
+      
+      return get(orderId);
+    } catch (final IllegalArgumentException e) {
+      throw new BadRequestException("Invalid status: " + statusVal);
+    }
+  }
+
+  @Transactional
   public PaymentResponse pay(final String orderId, final PaymentCreateRequest req) {
     return payWithIdempotency(orderId, req, null);
   }

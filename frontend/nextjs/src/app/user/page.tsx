@@ -91,7 +91,7 @@ function RestaurantView({ outletId, onBack }: { outletId: string; onBack: () => 
 
         <div className="header-info">
             <h1 className="restaurant-name">{outlet?.name || 'Restaurant'}</h1>
-            <p className="restaurant-cuisines">Burgers • American • Fast Food</p>
+            <p className="restaurant-cuisines">Indian • Chinese • Fast Food</p>
             <div className="info-badges no-scrollbar">
                 <div className="badge success">
                     <Star size={12} fill="currentColor" />
