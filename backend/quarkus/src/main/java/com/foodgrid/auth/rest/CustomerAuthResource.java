@@ -2,6 +2,7 @@ package com.foodgrid.auth.rest;
 
 import com.foodgrid.auth.dto.CustomerAuthDto.*;
 import com.foodgrid.auth.service.CustomerAuthService;
+import io.smallrye.common.annotation.Blocking;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -21,28 +22,29 @@ public class CustomerAuthResource {
     @POST
     @Path("/request-otp")
     @Operation(summary = "Request OTP", description = "Send a 6-digit OTP to the customer mobile number")
-    public void requestOtp(@Valid RequestOtpRequest request) {
+    public void requestOtp(@Valid final RequestOtpRequest request) {
         customerAuthService.requestOtp(request);
     }
 
     @POST
     @Path("/request-email-otp")
     @Operation(summary = "Request Email OTP", description = "Send a 6-digit OTP to the customer email address")
-    public void requestEmailOtp(@Valid RequestEmailOtpRequest request) {
+    @Blocking
+    public void requestEmailOtp(@Valid final RequestEmailOtpRequest request) {
         customerAuthService.requestEmailOtp(request);
     }
 
     @POST
     @Path("/verify-otp")
     @Operation(summary = "Verify OTP", description = "Verify OTP and return customer access token")
-    public CustomerLoginResponse verifyOtp(@Valid VerifyOtpRequest request) {
+    public CustomerLoginResponse verifyOtp(@Valid final VerifyOtpRequest request) {
         return customerAuthService.verifyOtp(request);
     }
 
     @POST
     @Path("/verify-email-otp")
     @Operation(summary = "Verify Email OTP", description = "Verify Email OTP and return customer access token")
-    public CustomerLoginResponse verifyEmailOtp(@Valid VerifyEmailOtpRequest request) {
+    public CustomerLoginResponse verifyEmailOtp(@Valid final VerifyEmailOtpRequest request) {
         return customerAuthService.verifyEmailOtp(request);
     }
 }

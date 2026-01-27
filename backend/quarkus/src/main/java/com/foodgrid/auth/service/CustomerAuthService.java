@@ -4,6 +4,7 @@ import com.foodgrid.auth.dto.CustomerAuthDto.*;
 import com.foodgrid.auth.model.Customer;
 import com.foodgrid.auth.model.CustomerOtpChallenge;
 import com.foodgrid.common.security.JwtIssuer;
+import io.smallrye.common.annotation.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -25,10 +26,10 @@ public class CustomerAuthService {
     @Inject JwtIssuer jwtIssuer;
 
     @Transactional
-    public void requestOtp(RequestOtpRequest request) {
-        String otp = otpService.generateOtp(OTP_LENGTH);
+    public void requestOtp(final RequestOtpRequest request) {
+        final String otp = otpService.generateOtp(OTP_LENGTH);
         
-        CustomerOtpChallenge challenge = new CustomerOtpChallenge();
+        final CustomerOtpChallenge challenge = new CustomerOtpChallenge();
         challenge.mobileNumber = request.mobileNumber;
         challenge.email = null; // Not used for mobile OTP
         challenge.challengeType = "MOBILE";
@@ -42,10 +43,10 @@ public class CustomerAuthService {
     }
 
     @Transactional
-    public void requestEmailOtp(RequestEmailOtpRequest request) {
-        String otp = otpService.generateOtp(OTP_LENGTH);
+    public void requestEmailOtp(final RequestEmailOtpRequest request) {
+        final String otp = otpService.generateOtp(OTP_LENGTH);
         
-        CustomerOtpChallenge challenge = new CustomerOtpChallenge();
+        final CustomerOtpChallenge challenge = new CustomerOtpChallenge();
         challenge.mobileNumber = null; // Not used for email OTP
         challenge.email = request.email;
         challenge.challengeType = "EMAIL";
@@ -59,8 +60,8 @@ public class CustomerAuthService {
     }
 
     @Transactional
-    public CustomerLoginResponse verifyOtp(VerifyOtpRequest request) {
-        CustomerOtpChallenge challenge = CustomerOtpChallenge.findLatestByMobile(request.mobileNumber);
+    public CustomerLoginResponse verifyOtp(final VerifyOtpRequest request) {
+        final CustomerOtpChallenge challenge = CustomerOtpChallenge.findLatestByMobile(request.mobileNumber);
         
         if (challenge == null) {
             throw new NotFoundException("No active OTP request found for this number");
@@ -89,9 +90,9 @@ public class CustomerAuthService {
         customer.lastLoginAt = new Date();
         customer.persist();
 
-        String token = jwtIssuer.issueCustomerAccessToken(customer);
+        final String token = jwtIssuer.issueCustomerAccessToken(customer);
         
-        CustomerLoginResponse response = new CustomerLoginResponse();
+        final CustomerLoginResponse response = new CustomerLoginResponse();
         response.token = token;
         response.profile = new CustomerProfile();
         response.profile.id = customer.id;
@@ -104,8 +105,8 @@ public class CustomerAuthService {
     }
 
     @Transactional
-    public CustomerLoginResponse verifyEmailOtp(VerifyEmailOtpRequest request) {
-        CustomerOtpChallenge challenge = CustomerOtpChallenge.findLatestByEmail(request.email);
+    public CustomerLoginResponse verifyEmailOtp(final VerifyEmailOtpRequest request) {
+        final CustomerOtpChallenge challenge = CustomerOtpChallenge.findLatestByEmail(request.email);
         
         if (challenge == null) {
             throw new NotFoundException("No active OTP request found for this email");
@@ -134,9 +135,9 @@ public class CustomerAuthService {
         customer.lastLoginAt = new Date();
         customer.persist();
 
-        String token = jwtIssuer.issueCustomerAccessToken(customer);
+        final String token = jwtIssuer.issueCustomerAccessToken(customer);
         
-        CustomerLoginResponse response = new CustomerLoginResponse();
+        final CustomerLoginResponse response = new CustomerLoginResponse();
         response.token = token;
         response.profile = new CustomerProfile();
         response.profile.id = customer.id;
