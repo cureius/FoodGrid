@@ -155,7 +155,11 @@
   background: rgba(255, 255, 255, 0.75);
   box-shadow: var(--shadow-card);
   padding: 14px;
-  min-height: 680px;
+  position: sticky;
+  top: 12px;
+  max-height: calc(100vh - 125px);
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .filterTitle {
@@ -293,6 +297,9 @@
 
 .contentHeader {
   padding: 6px 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .contentTitle {
@@ -359,7 +366,7 @@
 /* Menu grid */
 .dishGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 16px;
   max-height: calc(100vh - 220px);
   min-height: 400px;

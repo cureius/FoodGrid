@@ -647,7 +647,7 @@ export default function TablesPage() {
             </div>
           </Card>
         ) : viewMode === "grid" ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 24 }}>
             {filteredTables.map((table) => {
               const statusColors = getStatusColor(table.status);
               return (

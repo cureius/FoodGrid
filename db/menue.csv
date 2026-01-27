@@ -1,0 +1,174 @@
+Category,Item Name,Rate,IsVeg
+Sandwich Item Veg,Open Paneer Cheese Chilli Sandwich,170,Yes
+Sandwich Item Veg,Open Pizza Cheese Sandwich,180,Yes
+Sandwich Item Veg,Paneer Cheese Chilli Sandwich,152,Yes
+Sandwich Item Veg,Paneer Cheese Grill Sandwich,152,Yes
+Sandwich Item Veg,Paneer Tandoori Masala Cheese Sandwich,168,Yes
+Sandwich Item Veg,Paneer Tandoori Masala Sandwich,150,Yes
+Sandwich Item Veg,Veg Cheese Grill Sandwich,96,Yes
+Sandwich Item Veg,Veg Grill Sandwich,75,Yes
+Sandwiches,Aloo Cheese Sandwich,86,Yes
+Sandwiches,Boiled Egg Sandwich,108,No
+Sandwiches,Boiled Sandwich,86,Yes
+Sandwiches,Bread Butter Grill,44,Yes
+Sandwiches,Bread Butter Jam,54,Yes
+Sandwiches,Cheese Chilli Sandwich,108,Yes
+Sandwich Item (Non-Veg),Chicken Masala Cheese Sandwich,157,No
+Sandwich Item (Non-Veg),Chicken Cheese Mayo Sandwich,157,No
+Sandwich Item (Non-Veg),Chicken Masala Sandwich,128,No
+Sandwich Item (Non-Veg),Chicken Tandoori Masala Cheese,168,No
+Sandwich Item (Non-Veg),Chicken Tandoori Masala Sandwich,150,No
+Sandwich Item (Non-Veg),Chatni Cheese Sandwich,86,Yes
+Sandwich Item (Non-Veg),Kaun Sandwich Cheese Sandwich,131,Yes
+Sandwich Item (Non-Veg),Omelette Cheese Sandwich,108,No
+Sandwich Item (Non-Veg),Egg Omlet Sandwich,86,No
+Sandwich Item (Non-Veg),Mumbai Masala Cheese Grill,105,Yes
+Sandwich Item (Non-Veg),Open Cheese Chilli Sandwich,168,Yes
+Sandwich Item (Non-Veg),Open Cheese Sandwich,189,Yes
+Panini Sandwich Veg,Paneer Mexican Panini,193,Yes
+Panini Sandwich Veg,Paneer Cheese Chilli Panini,193,Yes
+Panini Sandwich Veg,Paneer College Panini,193,Yes
+Panini Sandwich Veg,Paneer College Panini,194,Yes
+Panini Sandwich Veg,Paneer Tandoori Paneer,194,Yes
+Sandwich Item Non-Veg (Panini),Chicken Mexican Panini,215,No
+Sandwich Item Non-Veg (Panini),Chicken Tandoori Panini,215,No
+Pasta With Choice of sauce,Spaghetti Alle Olive,162,Yes
+Pasta With Choice of sauce,Veg Fusli Formaggio,162,Yes
+Pasta With Choice of sauce,Veg Penne Arranita,162,Yes
+Pasta With Choice of sauce,Veg Spaghetti With Red Sauce,162,Yes
+Pasta With (Non-Veg),Chicken Panne Arabia,183,No
+Pasta With (Non-Veg),Chicken Fusli Formaggio,183,No
+Pasta With (Non-Veg),Chicken Spagheet Alle Olive,183,No
+Flavoured Sweet Corn,Butter Sweet Corn,44,Yes
+Flavoured Sweet Corn,Cheese Chilli Sweet Corn,54,Yes
+Flavoured Sweet Corn,Masala Sweet Corn,44,Yes
+Dosa Variety,Butter Cheese Masala Dosa,108,Yes
+Dosa Variety,Butter Cheese Sada Dosa,86,Yes
+Dosa Variety,Butter Masala Dosa,86,Yes
+Dosa Variety,Butter Sada Dosa,75,Yes
+Dosa Variety,Cheese Chilli Dosa,86,Yes
+Dosa Variety,Cheese Sada Dosa,86,Yes
+Dosa Variety,Jini Dosa,194,Yes
+Dosa Variety,Masala Dosa,86,Yes
+Dosa Variety,Mysore Cheese Masala Dosa,108,Yes
+Dosa Variety,Mysore Cheese Sada Dosa,86,Yes
+Dosa Variety,Mysore Masala Dosa,96,Yes
+Dosa Variety,Mysore Sada Dosa,86,Yes
+Dosa & Uttapa Variety,Onion Tomato Utappa,96,Yes
+Dosa & Uttapa Variety,Onion Uttappa,96,Yes
+Dosa & Uttapa Variety,Paneer Cheese Dosa,216,Yes
+Dosa & Uttapa Variety,Sada Dosa,67,Yes
+Dosa & Uttapa Variety,Cheese Masala,108,Yes
+Dosa & Uttapa Variety,Schezwan Cheese Sada Dosa,96,Yes
+Dosa & Uttapa Variety,Schezwan Masala Dosa,86,Yes
+Dosa & Uttapa Variety,Schezwan Sada Dosa,86,Yes
+Dosa & Uttapa Variety,Sultan Dosa,194,Yes
+Dosa & Uttapa Variety,Vegetable Cheese Dosa,194,Yes
+Dosa & Uttapa Variety,Extra Butter,21,Yes
+Dosa & Uttapa Variety,Extra Cheese,31,Yes
+Dosa & Uttapa Variety,Dil Khush Dosa,190,Yes
+Egg Counter,Bhurji Pav,75,No
+Egg Counter,Boiled,54,No
+Egg Counter,Chicken Masala Omelette Pav,142,No
+Egg Counter,Egg Kolhapuri Bhurji Pav,86,No
+Egg Counter,Extra Egg (1 Piece),31,No
+Egg Counter,Extra Pav,11,Yes
+Egg Counter,Half Fry Pav,65,No
+Egg Counter,Masala Omelette Pav,75,No
+Egg Counter,Omelette Pav,65,No
+Egg Counter,Spinach Omelette,75,No
+Frankie Rolls,Chicken Frankie,141,No
+Frankie Rolls,Egg Frankie,86,No
+Frankie Rolls,Paneer Frankie,131,Yes
+Frankie Rolls,Veg Frankie,75,Yes
+Fruit Box,Cut Fruit Box,108,Yes
+Evening Snacks,Green Moong Chilla With Green Chutney,84,Yes
+Atta Maggi,Cheese Maggi,75,Yes
+Atta Maggi,Chicken Maggi,108,No
+Atta Maggi,Corn Cheese Maggi,86,Yes
+Atta Maggi,Corn Maggi,65,Yes
+Atta Maggi,Mix Veg Maggi,54,Yes
+Atta Maggi,Paneer Maggi,86,Yes
+Atta Maggi,Plain Maggi,44,Yes
+Atta Maggi,Paneer Vegetable Maggi,86,Yes
+Atta Maggi (Fried),Chicken Fried Maggi,162,No
+Atta Maggi (Fried),Veg Fried Maggi,108,Yes
+Atta Maggi (Fried),Egg Fried Maggi,141,No
+Beverages,Banana Chocolate Milkshake,107,Yes
+Beverages,Banana Milk Shake,96,Yes
+Beverages,Buttermilk,44,Yes
+Beverages,Chocolate Milk Shake,96,Yes
+Beverages,Cold Coffee,96,Yes
+Beverages,Strawberry Milk Shake,109,Yes
+Beverages,Oreo Chocolate Milkshake,108,Yes
+Beverages,Rose Milk Shake,98,Yes
+Beverages,Sweet Lassi,65,Yes
+Mocktails,Fresh Lime Soda,69,Yes
+Mocktails,Green Apple Soda,105,Yes
+Mocktails,Jeera Masala Soda,69,Yes
+Mocktails,Kala Khatta,93,Yes
+Mocktails,Lichi Soda,105,Yes
+Mocktails,Rose Soda,104,Yes
+Mocktails,Strawberry Lemoned,115,Yes
+Juices,Cucumber Spinach Juice,110,Yes
+Juices,Fresh lime Juice,65,Yes
+Juices,Freshlime Mint Juice,65,Yes
+Juices,Orange Juice,110,Yes
+Juices,Pineapple Juice,110,Yes
+Juices,Papaya Juice,99,Yes
+Juices,Kokum Juice,79,Yes
+Juices,Cucumber Mint Juicy,99,Yes
+Juices,Watermelon Juice,99,Yes
+Oats,Masala Oats,47,Yes
+Oats,Vegetables Masala Oats,55,Yes
+Lunch,Non-veg Lunch,231,No
+Lunch,Pav Bhaji,142,Yes
+Lunch,Steam Rice,66,Yes
+Lunch,Veg Biryani,163,Yes
+Lunch,Veg Lunch,163,Yes
+Lunch,Festival Veg Lunch,242,Yes
+Lunch,Festival Non Veg Lunch,263,No
+Lunch (Sides/Other),Butter Milk,44,Yes
+Lunch (Sides/Other),Chapati,11,Yes
+Lunch (Sides/Other),Chicken Tikka Masala With Paratha,184,No
+Lunch (Sides/Other),Daal Khichdi with Raita,142,Yes
+Lunch (Sides/Other),Dal Rice,132,Yes
+Lunch (Sides/Other),Dal Tadka,73,Yes
+Lunch (Sides/Other),Extra Pav,11,Yes
+Lunch (Sides/Other),Paratha,33,Yes
+Lunch (Sides/Other),Lassi,65,Yes
+Lunch (Sides/Other),Fresh Lime Water,65,Yes
+Chat Counter,Bhelpuri,75,Yes
+Chat Counter,Corn Chat,86,Yes
+Chat Counter,Dahi Papdi Chat,108,Yes
+Chat Counter,Dahi Puri,86,Yes
+Chat Counter,Dry bhel,75,Yes
+Chat Counter,Manchurian Chinese Bhel,105,Yes
+Chat Counter,Masala Puri,76,Yes
+Chat Counter,Moong Daal Namkin Chat,87,Yes
+Chat Counter,Papdi Chat,86,Yes
+Chat Counter,Roasted Chana Chaat,87,Yes
+Chat Counter,Sevpuri,75,Yes
+Breakfast,Aloo Paratha,84,Yes
+Breakfast,Poori Bhaji,74,Yes
+Breakfast,Green Moong Chilla,84,Yes
+Breakfast,Idli Sambar,75,Yes
+Breakfast,Misal Pav,86,Yes
+Breakfast,Poha With Coconut Chutney,65,Yes
+Breakfast,Sabudana Khichdi,85,Yes
+Breakfast,Veg Upma,65,Yes
+Chinese Items,Chicken Combination With Gravy,236,No
+Chinese Items,Chicken Fried Rice,215,No
+Chinese Items,Chicken Hakka Noodles With Gravy,215,No
+Chinese Items,Chicken Manchow Soup,153,No
+Chinese Items,Chicken Triple Rice With Gravy,257,No
+Chinese Items,Chicken Sinagapore Rice With Gravy,226,No
+Chinese Items,Egg Combination With Gravy,195,No
+Chinese Items,Egg Fried Rice With Gravy,184,No
+Chinese Items,Egg Hakka Noodles With Gravy,184,No
+Chinese Items,Egg Singapore Rice With Gravy,195,No
+Chinese Items,Veg Combination Rice With Gravy,184,Yes
+Chinese Items,Veg Fried Rice With Gravy,173,Yes
+Chinese Items,Veg Hakka Noodles With Gravy,174,Yes
+Chinese Items,Veg Manchow Soup,131,Yes
+Chinese Items,Veg Sinagapore Rice With Gravy,184,Yes

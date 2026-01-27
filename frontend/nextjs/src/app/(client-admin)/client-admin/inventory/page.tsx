@@ -188,8 +188,8 @@ function XIcon() {
 function VegIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="2" y="2" width="20" height="20" rx="2" stroke="#16a34a" strokeWidth="2"/>
-      <circle cx="12" cy="12" r="5" fill="#16a34a"/>
+      <rect x="2" y="2" width="20" height="20" rx="2" stroke="#16a34a" strokeWidth="2" />
+      <circle cx="12" cy="12" r="5" fill="#16a34a" />
     </svg>
   );
 }
@@ -197,8 +197,8 @@ function VegIcon() {
 function NonVegIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="2" y="2" width="20" height="20" rx="2" stroke="#dc2626" strokeWidth="2"/>
-      <polygon points="12,7 17,17 7,17" fill="#dc2626"/>
+      <rect x="2" y="2" width="20" height="20" rx="2" stroke="#dc2626" strokeWidth="2" />
+      <polygon points="12,7 17,17 7,17" fill="#dc2626" />
     </svg>
   );
 }
@@ -368,7 +368,7 @@ export default function InventoryPage() {
 
   // Image URL input state
   const [imageUrlInput, setImageUrlInput] = useState('');
-  
+
   // Pending file uploads (files to be uploaded after menu item creation)
   const [pendingImageUploads, setPendingImageUploads] = useState<File[]>([]);
 
@@ -943,7 +943,7 @@ export default function InventoryPage() {
   const removeImage = (index: number) => {
     const images = menuItemForm.images || [];
     const imageToRemove = images[index];
-    
+
     // If it's a preview URL (data URL), also remove from pending uploads
     if (imageToRemove?.imageUrl?.startsWith('data:')) {
       // Find the corresponding file index (they should be in the same order)
@@ -952,7 +952,7 @@ export default function InventoryPage() {
         .filter((img) => img.imageUrl?.startsWith('data:')).length;
       setPendingImageUploads((prev) => prev.filter((_, i) => i !== previewIndex));
     }
-    
+
     const newImages = images.filter((_, i) => i !== index);
     // If we removed the primary, make the first one primary
     if (newImages.length > 0 && !newImages.some((img) => img.isPrimary)) {
@@ -975,7 +975,7 @@ export default function InventoryPage() {
           isPrimary: currentImageCount === 0,
           sortOrder: currentImageCount,
         });
-        
+
         // Refresh menu item data to get updated images
         const updatedItem = await getMenuItem(selectedOutletId, editingMenuItem.id);
         setMenuItemForm({
@@ -986,7 +986,7 @@ export default function InventoryPage() {
             isPrimary: img.isPrimary,
           })) || [],
         });
-        
+
         return response.imageUrl;
       } catch (err: any) {
         throw new Error(err?.message || 'Failed to upload image');
@@ -994,7 +994,7 @@ export default function InventoryPage() {
     } else {
       // If creating a new item, store file for later upload and show preview
       setPendingImageUploads((prev) => [...prev, file]);
-      
+
       // Return a preview URL and add to images array temporarily
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -1409,25 +1409,25 @@ export default function InventoryPage() {
 
         <section className={activeTab === 'Categories' || activeTab === 'Units' || activeTab === 'Suppliers' ? styles.contentCardFull : styles.contentCard}>
           <div className={styles.contentHeader}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
               {activeTab !== 'Request List' && (
                 <input
                   type="checkbox"
                   className={styles.selectAllCheckbox}
                   checked={
                     activeTab === 'Menu' ? (filteredMenuItems.length > 0 && Array.from(selectedItemIds).filter(id => filteredMenuItems.some(item => item.id === id)).length === filteredMenuItems.length) :
-                    activeTab === 'Ingredients' ? (filteredIngredients.length > 0 && Array.from(selectedItemIds).filter(id => filteredIngredients.some(item => item.id === id)).length === filteredIngredients.length) :
-                    activeTab === 'Categories' ? (filteredMenuCategories.length > 0 && Array.from(selectedItemIds).filter(id => filteredMenuCategories.some(item => item.id === id)).length === filteredMenuCategories.length) :
-                    activeTab === 'Suppliers' ? (filteredSuppliers.length > 0 && Array.from(selectedItemIds).filter(id => filteredSuppliers.some(item => item.id === id)).length === filteredSuppliers.length) :
-                    activeTab === 'Units' ? (units.length > 0 && Array.from(selectedItemIds).filter(id => units.some(item => item.id === id)).length === units.length) : false
+                      activeTab === 'Ingredients' ? (filteredIngredients.length > 0 && Array.from(selectedItemIds).filter(id => filteredIngredients.some(item => item.id === id)).length === filteredIngredients.length) :
+                        activeTab === 'Categories' ? (filteredMenuCategories.length > 0 && Array.from(selectedItemIds).filter(id => filteredMenuCategories.some(item => item.id === id)).length === filteredMenuCategories.length) :
+                          activeTab === 'Suppliers' ? (filteredSuppliers.length > 0 && Array.from(selectedItemIds).filter(id => filteredSuppliers.some(item => item.id === id)).length === filteredSuppliers.length) :
+                            activeTab === 'Units' ? (units.length > 0 && Array.from(selectedItemIds).filter(id => units.some(item => item.id === id)).length === units.length) : false
                   }
                   onChange={() => {
-                    const ids = 
+                    const ids =
                       activeTab === 'Menu' ? filteredMenuItems.map(i => i.id) :
-                      activeTab === 'Ingredients' ? filteredIngredients.map(i => i.id) :
-                      activeTab === 'Categories' ? filteredMenuCategories.map(i => i.id) :
-                      activeTab === 'Suppliers' ? filteredSuppliers.map(i => i.id) :
-                      activeTab === 'Units' ? units.map(i => i.id) : [];
+                        activeTab === 'Ingredients' ? filteredIngredients.map(i => i.id) :
+                          activeTab === 'Categories' ? filteredMenuCategories.map(i => i.id) :
+                            activeTab === 'Suppliers' ? filteredSuppliers.map(i => i.id) :
+                              activeTab === 'Units' ? units.map(i => i.id) : [];
                     handleSelectAll(ids);
                   }}
                 />
@@ -1486,7 +1486,7 @@ export default function InventoryPage() {
                     />
                   </div>
                   <div className={styles.dishImageWrap}>
-                    {item.images.length > 0  ? (
+                    {item.images.length > 0 ? (
                       <Image
                         className={styles.dishImg}
                         src={getImageUrl(item.images.find((img) => img.isPrimary)?.imageUrl || item.images[0]?.imageUrl) || getImageUrl(item.primaryImageUrl) || ''}
@@ -1510,10 +1510,10 @@ export default function InventoryPage() {
                         🍽️
                       </div>
                     )}
-                   <div className={styles.availablePill}>
-                                         {item.isVeg ? <VegIcon /> : <NonVegIcon />}
-                                         {item.isVeg ? 'Veg' : 'Non-Veg'}
-                                       </div>
+                    <div className={styles.availablePill}>
+                      {item.isVeg ? <VegIcon /> : <NonVegIcon />}
+                      {item.isVeg ? 'Veg' : 'Non-Veg'}
+                    </div>
                   </div>
                   <div className={styles.dishBody}>
                     <div className={styles.dishName}>{item.name}</div>
@@ -1547,7 +1547,7 @@ export default function InventoryPage() {
                       >
                         {item.status === 'ACTIVE' ? '● Active' : '○ Inactive'}
                       </span>
-                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1566,13 +1566,13 @@ export default function InventoryPage() {
                 const displayStatus = stockStatusToDisplay(i.stockStatus);
                 return (
                   <div key={i.id} className={styles.ingRow}>
-                    <input
-                      type="checkbox"
-                      checked={selectedItemIds.has(i.id)}
-                      onChange={() => toggleItemSelection(i.id)}
-                      className={styles.rowCheckbox}
-                    />
                     <div className={styles.ingLeft}>
+                      <input
+                        type="checkbox"
+                        checked={selectedItemIds.has(i.id)}
+                        onChange={() => toggleItemSelection(i.id)}
+                        className={styles.rowCheckbox}
+                      />
                       {i.imageUrl ? (
                         <img className={styles.ingImg} src={i.imageUrl} alt={i.name} loading="lazy" />
                       ) : (
@@ -1632,13 +1632,13 @@ export default function InventoryPage() {
               )}
               {!menuCategoriesLoading && !menuCategoryError && filteredMenuCategories.map((cat) => (
                 <div key={cat.id} className={styles.categoryMgmtRow}>
-                  <input
-                    type="checkbox"
-                    checked={selectedItemIds.has(cat.id)}
-                    onChange={() => toggleItemSelection(cat.id)}
-                    className={styles.rowCheckbox}
-                  />
                   <div className={styles.categoryMgmtLeft}>
+                    <input
+                      type="checkbox"
+                      checked={selectedItemIds.has(cat.id)}
+                      onChange={() => toggleItemSelection(cat.id)}
+                      className={styles.rowCheckbox}
+                    />
                     <div className={styles.categoryMgmtIcon}>🏷️</div>
                     <div>
                       <div className={styles.categoryMgmtName}>{cat.name}</div>
@@ -1671,13 +1671,14 @@ export default function InventoryPage() {
                 .filter((u) => !query || u.name.toLowerCase().includes(query.toLowerCase()) || u.abbreviation.toLowerCase().includes(query.toLowerCase()))
                 .map((unit) => (
                   <div key={unit.id} className={styles.categoryMgmtRow}>
-                    <input
-                      type="checkbox"
-                      checked={selectedItemIds.has(unit.id)}
-                      onChange={() => toggleItemSelection(unit.id)}
-                      className={styles.rowCheckbox}
-                    />
+
                     <div className={styles.categoryMgmtLeft}>
+                      <input
+                        type="checkbox"
+                        checked={selectedItemIds.has(unit.id)}
+                        onChange={() => toggleItemSelection(unit.id)}
+                        className={styles.rowCheckbox}
+                      />
                       <div className={styles.categoryMgmtIcon}>📏</div>
                       <div>
                         <div className={styles.categoryMgmtName}>{unit.name} <span style={{ fontWeight: 400, color: 'rgba(109,120,139,0.95)' }}>({unit.abbreviation})</span></div>
@@ -1711,13 +1712,13 @@ export default function InventoryPage() {
               )}
               {!suppliersLoading && !suppliersError && filteredSuppliers.map((supplier) => (
                 <div key={supplier.id} className={styles.categoryMgmtRow}>
-                  <input
-                    type="checkbox"
-                    checked={selectedItemIds.has(supplier.id)}
-                    onChange={() => toggleItemSelection(supplier.id)}
-                    className={styles.rowCheckbox}
-                  />
                   <div className={styles.categoryMgmtLeft}>
+                    <input
+                      type="checkbox"
+                      checked={selectedItemIds.has(supplier.id)}
+                      onChange={() => toggleItemSelection(supplier.id)}
+                      className={styles.rowCheckbox}
+                    />
                     <div className={styles.categoryMgmtIcon}>🏢</div>
                     <div>
                       <div className={styles.categoryMgmtName}>{supplier.name}</div>
@@ -1879,7 +1880,7 @@ export default function InventoryPage() {
                 {/* Images */}
                 <div className={styles.field}>
                   <label className={styles.label}>Images</label>
-                  
+
                   {/* Image Upload Dropbox */}
                   <div style={{ marginBottom: '16px' }}>
                     <ImageUploadDropbox

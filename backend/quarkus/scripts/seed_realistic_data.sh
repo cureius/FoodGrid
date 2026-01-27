@@ -146,12 +146,12 @@ declare -a MUMBAI_STREET_OUTLETS=(
 # Employee templates (name|email_suffix|role|pin)
 declare -a EMPLOYEE_TEMPLATES=(
   "Rajesh Kumar|rajesh|MANAGER|123456"
-  "Priya Sharma|priya|CASHIER|234567"
-  "Amit Singh|amit|CASHIER|345678"
-  "Sunita Devi|sunita|WAITER|456789"
-  "Rahul Verma|rahul|WAITER|567890"
-  "Neha Gupta|neha|KITCHEN|678901"
-  "Vikram Patel|vikram|KITCHEN|789012"
+  "Priya Sharma|priya|CASHIER|123456"
+  "Amit Singh|amit|CASHIER|123456"
+  "Sunita Devi|sunita|WAITER|123456"
+  "Rahul Verma|rahul|WAITER|123456"
+  "Neha Gupta|neha|KITCHEN|123456"
+  "Vikram Patel|vikram|KITCHEN|123456"
 )
 
 # Menu Categories
