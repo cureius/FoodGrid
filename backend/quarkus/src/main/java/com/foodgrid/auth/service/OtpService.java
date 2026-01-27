@@ -8,7 +8,6 @@ import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 import io.smallrye.mutiny.Uni;
-import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
@@ -17,6 +16,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import java.util.HashMap;
 import java.security.SecureRandom;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 
 @ApplicationScoped
 public class OtpService {
@@ -35,8 +39,10 @@ public class OtpService {
   @ConfigProperty(name = "resend.api.key")
   String resendApiKey;
 
-  private final Client httpClient = ClientBuilder.newClient();
   private final ObjectMapper objectMapper = new ObjectMapper();
+  private final HttpClient httpClient = HttpClient.newBuilder()
+          .connectTimeout(Duration.ofSeconds(30))
+          .build();
 
   public String generateOtp(final int length) {
     final StringBuilder sb = new StringBuilder(length);
@@ -60,22 +66,29 @@ public class OtpService {
         emailRequest.put("subject", subject);
         emailRequest.put("html", htmlContent);
 
-        // Make HTTP request to Resend API
-        final Response response = httpClient.target("https://api.resend.com/emails")
-                .request(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + resendApiKey)
-                .post(Entity.json(emailRequest));
+        // Convert to JSON
+        final String jsonBody = objectMapper.writeValueAsString(emailRequest);
 
-        if (response.getStatus() == 200) {
+        // Make HTTP request to Resend API using Java 11 HttpClient
+        final HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.resend.com/emails"))
+                .header("Authorization", "Bearer " + resendApiKey)
+                .header("Content-Type", "application/json")
+                .timeout(Duration.ofSeconds(30))
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        final HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 200) {
           // Parse response
-          final Map<String, Object> responseBody = response.readEntity(Map.class);
+          final Map<String, Object> responseBody = objectMapper.readValue(response.body(), Map.class);
           final String responseId = (String) responseBody.get("id");
           LOG.infof("OTP email sent successfully to %s via Resend API. Response ID: %s", maskEmail(toEmail), responseId);
           return null;
         } else {
-          final String errorBody = response.readEntity(String.class);
           LOG.errorf("Failed to send OTP email to %s via Resend API. Status: %d, Error: %s", 
-              maskEmail(toEmail), response.getStatus(), errorBody);
+              maskEmail(toEmail), response.statusCode(), response.body());
           // Fallback to SMTP if Resend fails
           return sendOtpEmailViaSmtp(toEmail, otp);
         }

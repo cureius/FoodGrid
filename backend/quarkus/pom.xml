@@ -99,6 +99,12 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-mailer</artifactId>
     </dependency>
+
+    <!-- Quarkus REST Client for HTTP calls -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-rest-client</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
