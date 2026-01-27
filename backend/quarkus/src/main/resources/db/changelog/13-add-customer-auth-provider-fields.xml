@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+<changeSet id="13-add-customer-auth-provider-fields" author="foodgrid">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="customers"/>
+    </preConditions>
+    
+    <addColumn tableName="customers">
+        <column name="provider" type="VARCHAR(20)" defaultValue="LOCAL">
+            <constraints nullable="false"/>
+        </column>
+        <column name="providerUserId" type="VARCHAR(255)"/>
+    </addColumn>
+    
+    <comment>
+      Add fields to support third-party authentication providers like Google.
+    </comment>
+  </changeSet>
+
+</databaseChangeLog>
