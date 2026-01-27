@@ -648,7 +648,7 @@ export default function HistoryPage() {
                 <div ref={printRef} style={{ display: "none" }}>
                   <div className="invoice-header">
                     <div className="invoice-title">INVOICE</div>
-                    <div style={{ fontSize: "11px" }}>Order #{selectedOrder.id}</div>
+                    <div style={{ fontSize: "11px" }}>Order #{selectedOrder.id.slice(-4).toUpperCase()}</div>
                   </div>
                   <div className="invoice-info">
                     <div className="invoice-row">

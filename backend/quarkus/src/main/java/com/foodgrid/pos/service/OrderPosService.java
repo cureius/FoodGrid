@@ -154,58 +154,96 @@ public class OrderPosService {
     return get(orderId);
   }
 
+  @Transactional
+  public OrderResponse updateItemStatus(final String orderId, final String itemId, final String statusVal) {
+    final Order o = getOrderForOutlet(orderId);
+    final OrderItem oi = orderItemRepository.findByIdAndOrder(itemId, o.id)
+      .orElseThrow(() -> new NotFoundException("Order item not found"));
+
+    try {
+      final OrderItem.Status newStatus = OrderItem.Status.valueOf(statusVal.toUpperCase());
+      
+      if (newStatus == OrderItem.Status.SERVED && oi.status != OrderItem.Status.SERVED) {
+        deductItemIngredients(o.outletId, o.id, oi);
+      }
+      
+      oi.status = newStatus;
+      orderItemRepository.persist(oi);
+      
+      // Auto-update order status if all items are served
+      updateOrderStatusFromItems(o);
+      
+      return get(orderId);
+    } catch (final IllegalArgumentException e) {
+      throw new BadRequestException("Invalid item status: " + statusVal);
+    }
+  }
+
+  private void updateOrderStatusFromItems(final Order o) {
+    final List<OrderItem> items = orderItemRepository.listByOrder(o.id);
+    final boolean allServedOrCancelled = items.stream()
+      .allMatch(i -> i.status == OrderItem.Status.SERVED || i.status == OrderItem.Status.CANCELLED);
+    
+    if (allServedOrCancelled && !items.isEmpty()) {
+       if (o.status == Order.Status.OPEN || o.status == Order.Status.KOT_SENT) {
+           o.status = Order.Status.SERVED;
+           o.updatedAt = Date.from(Instant.now());
+           orderRepository.persist(o);
+       }
+    }
+  }
+
   private void deductIngredientsFromStock(final Order order) {
     final List<OrderItem> orderItems = orderItemRepository.listByOrder(order.id);
-    
     for (final OrderItem orderItem : orderItems) {
-      // Skip cancelled items
-      if (orderItem.status == OrderItem.Status.CANCELLED) {
-        continue;
-      }
-
-      // Get recipe for this menu item
-      final List<MenuItemRecipe> recipes = recipeRepository.findByMenuItemId(orderItem.itemId);
-      
-      for (final MenuItemRecipe recipe : recipes) {
-        // Skip optional ingredients
-        if (Boolean.TRUE.equals(recipe.isOptional)) {
-          continue;
-        }
-
-        // Calculate total quantity needed (recipe quantity * order item quantity)
-        final BigDecimal totalQuantity = recipe.quantity.multiply(orderItem.qty);
-        
-        // Get ingredient to check if it tracks inventory
-        final Ingredient ingredient = Ingredient.findById(recipe.ingredientId);
-        if (ingredient == null || !Boolean.TRUE.equals(ingredient.trackInventory)) {
-          continue; // Skip ingredients that don't track inventory
-        }
-
-        // Create stock movement for usage
-        try {
-          final StockMovementCreateRequest stockMovementRequest = new StockMovementCreateRequest(
-            recipe.ingredientId,
-            com.foodgrid.pos.model.StockMovement.MovementType.USAGE,
-            totalQuantity,
-            recipe.unitId,
-            null, // unitCost
-            null, // supplierId
-            null, // purchaseOrderNumber
-            null, // invoiceNumber
-            null, // wastageReason
-            "Order #" + order.id + " - " + orderItem.itemName // notes
-          );
-          
-          ingredientService.recordStockMovement(order.outletId, stockMovementRequest);
-        } catch (final Exception e) {
-          // Log error but continue with other ingredients
-          audit.record("STOCK_DEDUCTION_FAILED", order.outletId, "Order", order.id, 
-            "Failed to deduct ingredient " + recipe.ingredientId + ": " + e.getMessage());
-        }
+      if (orderItem.status == OrderItem.Status.OPEN) {
+        deductItemIngredients(order.outletId, order.id, orderItem);
       }
     }
   }
 
+  private void deductItemIngredients(final String outletId, final String orderId, final OrderItem orderItem) {
+    // Get recipe for this menu item
+    final List<MenuItemRecipe> recipes = recipeRepository.findByMenuItemId(orderItem.itemId);
+    
+    for (final MenuItemRecipe recipe : recipes) {
+      // Skip optional ingredients
+      if (Boolean.TRUE.equals(recipe.isOptional)) {
+        continue;
+      }
+
+      // Calculate total quantity needed (recipe quantity * order item quantity)
+      final BigDecimal totalQuantity = recipe.quantity.multiply(orderItem.qty);
+      
+      // Get ingredient to check if it tracks inventory
+      final Ingredient ingredient = Ingredient.findById(recipe.ingredientId);
+      if (ingredient == null || !Boolean.TRUE.equals(ingredient.trackInventory)) {
+        continue; // Skip ingredients that don't track inventory
+      }
+
+      // Create stock movement for usage
+      try {
+        final StockMovementCreateRequest stockMovementRequest = new StockMovementCreateRequest(
+          recipe.ingredientId,
+          com.foodgrid.pos.model.StockMovement.MovementType.USAGE,
+          totalQuantity,
+          recipe.unitId,
+          null, // unitCost
+          null, // supplierId
+          null, // purchaseOrderNumber
+          null, // invoiceNumber
+          null, // wastageReason
+          "Order #" + orderId + " - " + orderItem.itemName // notes
+        );
+        
+        ingredientService.recordStockMovement(outletId, stockMovementRequest);
+      } catch (final Exception e) {
+        // Log error but continue with other ingredients
+        audit.record("STOCK_DEDUCTION_FAILED", outletId, "Order", orderId, 
+          "Failed to deduct ingredient " + recipe.ingredientId + ": " + e.getMessage());
+      }
+    }
+  }
   @Transactional
   public OrderResponse bill(final String orderId) {
     final Order o = getOrderForOutlet(orderId);

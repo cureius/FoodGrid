@@ -32,7 +32,7 @@ public class OrderItem extends PanacheEntityBase {
   public BigDecimal lineTotal;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+  @Column(nullable = false, length = 20)
   public Status status;
 
   @Temporal(TemporalType.TIMESTAMP)
@@ -41,6 +41,7 @@ public class OrderItem extends PanacheEntityBase {
 
   public enum Status {
     OPEN,
+    SERVED,
     CANCELLED
   }
 }

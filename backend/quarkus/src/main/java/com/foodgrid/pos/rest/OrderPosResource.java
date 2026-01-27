@@ -82,4 +82,13 @@ public class OrderPosResource {
       @PathParam("status") final String status) {
     return orderPosService.updateStatus(orderId, status);
   }
+
+  @PATCH
+  @Path("/{orderId}/items/{itemId}/status/{status}")
+  public OrderResponse updateItemStatus(
+      @PathParam("orderId") final String orderId,
+      @PathParam("itemId") final String itemId,
+      @PathParam("status") final String status) {
+    return orderPosService.updateItemStatus(orderId, itemId, status);
+  }
 }

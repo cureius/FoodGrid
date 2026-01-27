@@ -5,7 +5,7 @@ import styles from "./Orders.module.css";
 import Card from "@/components/ui/Card";
 import { Plus, Search, ChevronDown, ArrowRight, FileText, X, Timer, CheckCircle2, UtensilsCrossed, Loader2, RefreshCw, Zap, CreditCard, Utensils, Trash2, CheckSquare, Square } from "lucide-react";
 import Link from "next/link";
-import { listOrders, getOrder, cancelOrderItem, markOrderServed, billOrder, deleteOrder, updateOrderStatus, type OrderResponse, type OrderItemResponse } from "@/lib/api/clientAdmin";
+import { listOrders, getOrder, cancelOrderItem, markOrderServed, billOrder, deleteOrder, updateOrderStatus, updateOrderItemStatus, type OrderResponse, type OrderItemResponse } from "@/lib/api/clientAdmin";
 import { useOutlet } from "@/contexts/OutletContext";
 import { getImageUrl } from "@/lib/api/clientAdmin";
 import Image from "next/image";
@@ -92,11 +92,10 @@ function mapStatusToBackend(status: Exclude<OrderStatus, "All">): string {
 
 // Calculate progress percentage based on served items
 function calculateProgress(items: OrderItemResponse[]): number {
-  if (items.length === 0) return 0;
-  const servedCount = items.filter((item) => item.status === "OPEN").length; // Items that are OPEN are not yet served
-  const totalCount = items.length;
-  // Progress is inverse: more OPEN items = less progress
-  return Math.round(((totalCount - servedCount) / totalCount) * 100);
+  const activeItems = items.filter((item) => item.status !== "CANCELLED");
+  if (activeItems.length === 0) return 0;
+  const servedCount = activeItems.filter((item) => item.status === "SERVED").length;
+  return Math.round((servedCount / activeItems.length) * 100);
 }
 
 // Format date to display string
@@ -155,7 +154,7 @@ function mapOrderItemToDetailItem(item: OrderItemResponse, menuItemImages?: any[
     note: "", // Backend doesn't have notes per item yet
     price: Number(item.lineTotal),
     qty: Number(item.qty),
-    status: item.status === "OPEN" ? "Waiting to cooked" : "Served",
+    status: item.status === "SERVED" ? "Served" : "Waiting to cooked",
     imageUrl: imageUrl ? getImageUrl(imageUrl) : null,
   };
 }
@@ -295,6 +294,21 @@ export default function OrderPage() {
     } catch (err: any) {
       alert(err?.message || "Failed to cancel item");
       console.error("Failed to cancel item:", err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleItemStatusChange = async (orderId: string, itemId: string, status: string) => {
+    if (!selectedOutletId) return;
+    try {
+      setActionLoading(`item-status-${itemId}`);
+      await updateOrderItemStatus(orderId, itemId, status);
+      const orderData = await getOrder(orderId);
+      setSelectedOrderResponse(orderData);
+      await fetchOrders(true);
+    } catch (err: any) {
+      alert(err?.message || "Failed to update item status");
     } finally {
       setActionLoading(null);
     }
@@ -1268,7 +1282,7 @@ export default function OrderPage() {
               }}>
                 <div>
                   <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 4, color: "#1e293b" }}>Order Details</div>
-                  <div style={{ fontSize: 13, color: "#64748b" }}>Order #{selectedOrder.id}</div>
+                  <div style={{ fontSize: 13, color: "#64748b" }}>Order #{selectedOrder.id.slice(-4).toUpperCase()}</div>
                 </div>
                 <button
                   style={{
@@ -1405,41 +1419,58 @@ export default function OrderPage() {
                           <span>{it.status}</span>
                         </div>
                         {it.status === "Waiting to cooked" && (
-                          <button
-                            onClick={() => handleCancelItem(selectedOrder.id, it.id)}
-                            disabled={actionLoading === `cancel-${it.id}`}
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 6,
-                              padding: "6px 12px",
-                              borderRadius: 20,
-                              border: "1px solid rgba(239, 68, 68, 0.35)",
-                              color: "rgba(239, 68, 68, 0.95)",
-                              background: "rgba(239, 68, 68, 0.06)",
-                              fontWeight: 700,
-                              fontSize: 12,
-                              cursor: actionLoading === `cancel-${it.id}` ? "not-allowed" : "pointer",
-                              opacity: actionLoading === `cancel-${it.id}` ? 0.6 : 1,
-                              transition: "all 0.2s ease",
-                            }}
-                            onMouseEnter={(e) => {
-                              if (actionLoading !== `cancel-${it.id}`) {
-                                e.currentTarget.style.background = "rgba(239, 68, 68, 0.12)";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = "rgba(239, 68, 68, 0.06)";
-                            }}
-                          >
-                            {actionLoading === `cancel-${it.id}` ? (
-                              <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
-                            ) : (
-                              <>
-                                <UtensilsCrossed size={14} /> Cancel
-                              </>
-                            )}
-                          </button>
+                          <div style={{ display: "flex", gap: 8 }}>
+                            <button
+                              onClick={() => handleItemStatusChange(selectedOrder.id, it.id, "SERVED")}
+                              disabled={actionLoading === `item-status-${it.id}`}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 6,
+                                padding: "6px 12px",
+                                borderRadius: 20,
+                                border: "1px solid rgba(16, 185, 129, 0.35)",
+                                color: "rgba(16, 185, 129, 0.95)",
+                                background: "rgba(16, 185, 129, 0.06)",
+                                fontWeight: 700,
+                                fontSize: 12,
+                                cursor: actionLoading === `item-status-${it.id}` ? "not-allowed" : "pointer",
+                                opacity: actionLoading === `item-status-${it.id}` ? 0.6 : 1,
+                                transition: "all 0.2s ease",
+                              }}
+                            >
+                              {actionLoading === `item-status-${it.id}` ? (
+                                <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
+                              ) : (
+                                <><Utensils size={14} /> Serve</>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleCancelItem(selectedOrder.id, it.id)}
+                              disabled={actionLoading === `cancel-${it.id}`}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 6,
+                                padding: "6px 12px",
+                                borderRadius: 20,
+                                border: "1px solid rgba(239, 68, 68, 0.35)",
+                                color: "rgba(239, 68, 68, 0.95)",
+                                background: "rgba(239, 68, 68, 0.06)",
+                                fontWeight: 700,
+                                fontSize: 12,
+                                cursor: actionLoading === `cancel-${it.id}` ? "not-allowed" : "pointer",
+                                opacity: actionLoading === `cancel-${it.id}` ? 0.6 : 1,
+                                transition: "all 0.2s ease",
+                              }}
+                            >
+                              {actionLoading === `cancel-${it.id}` ? (
+                                <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
+                              ) : (
+                                <><UtensilsCrossed size={14} /> Cancel</>
+                              )}
+                            </button>
+                          </div>
                         )}
                       </div>
 

@@ -1213,7 +1213,7 @@ export default function OrderPage() {
               }}>
                 <div>
                   <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 4, color: "#1e293b" }}>Order Details</div>
-                  <div style={{ fontSize: 13, color: "#64748b" }}>Order #{selectedOrder.id}</div>
+                  <div style={{ fontSize: 13, color: "#64748b" }}>Order #{selectedOrder.id.slice(-4).toUpperCase()}</div>
                 </div>
                 <button
                   style={{

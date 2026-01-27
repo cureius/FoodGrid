@@ -1084,6 +1084,13 @@ export function updateOrderStatus(orderId: string, status: string) {
   });
 }
 
+export function updateOrderItemStatus(orderId: string, itemId: string, status: string) {
+  return http<OrderResponse>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}/items/${encodeURIComponent(itemId)}/status/${encodeURIComponent(status)}`, {
+    method: "PATCH",
+    headers: { ...clientAdminAuthHeader() }
+  });
+}
+
 export function deleteOrder(orderId: string) {
   return http<void>(`/api/v1/pos/orders/${encodeURIComponent(orderId)}`, {
     method: "DELETE",
