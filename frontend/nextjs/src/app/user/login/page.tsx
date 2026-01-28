@@ -18,7 +18,7 @@ function LoginContent() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   
   const [step, setStep] = useState<'identifier' | 'otp'>('identifier');
-  const [loginMode, setLoginMode] = useState<'mobile' | 'email'>('email');
+  const [loginMode, setLoginMode] = useState<'mobile' | 'email' | 'passkey'>('email');
   const [mobile, setMobile] = useState('');
   const [email, setEmail] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -69,6 +69,30 @@ function LoginContent() {
       return () => clearInterval(interval);
     }
   }, [timer]);
+
+  const handlePasskeyLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+    if (mobile.length !== 10) {
+      setError('Please enter a valid 10-digit mobile number as passkey');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await customerAuthApi.loginWithPasskey(email, mobile);
+      login(res.token, res.profile);
+      router.replace(redirect);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Invalid email or passkey. If you are not onboarded, please use OTP login.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSendOtp = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -182,11 +206,116 @@ function LoginContent() {
               <h1 className="title">Login / Signup</h1>
               <p className="subtitle">Sign in with your Google account to enjoy the best deals and track your orders.</p>
 
-              {/* Hide internal login for now */}
-              <div style={{ display: 'none' }}>
-                <form onSubmit={handleSendOtp} className="form">
-                  {/* ... existing form content ... */}
-                </form>
+              <div className="mode-toggle" style={{ marginBottom: 24 }}>
+                <button 
+                  onClick={() => { setLoginMode('email'); setError(null); }}
+                  className={loginMode === 'email' ? 'mode-btn active' : 'mode-btn'}
+                >
+                  EMAIL OTP
+                </button>
+                <button 
+                  onClick={() => { setLoginMode('mobile'); setError(null); }}
+                  className={loginMode === 'mobile' ? 'mode-btn active' : 'mode-btn'}
+                >
+                  MOBILE OTP
+                </button>
+                <button 
+                  onClick={() => { setLoginMode('passkey'); setError(null); }}
+                  className={loginMode === 'passkey' ? 'mode-btn active' : 'mode-btn'}
+                >
+                  PASSKEY
+                </button>
+              </div>
+
+              <div className="internal-login">
+                {loginMode === 'passkey' ? (
+                  <form onSubmit={handlePasskeyLogin} className="form">
+                    <div className="input-group">
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        className="login-input"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="input-group">
+                      <div className="country-code">+91</div>
+                      <input
+                        type="tel"
+                        maxLength={10}
+                        value={mobile}
+                        onChange={(e) => setMobile(e.target.value)}
+                        placeholder="Mobile Number (Passkey)"
+                        className="login-input with-prefix"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={loading || !email || mobile.length !== 10}
+                      className="submit-btn"
+                    >
+                      {loading ? <Loader2 className="spinner" /> : 'LOGIN WITH PASSKEY'}
+                      <ArrowRight size={20} />
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleSendOtp} className="form">
+                    <div className="input-group">
+                      {loginMode === 'mobile' ? (
+                        <>
+                          <div className="country-code">+91</div>
+                          <input
+                            type="tel"
+                            maxLength={10}
+                            value={mobile}
+                            onChange={(e) => setMobile(e.target.value)}
+                            placeholder="Enter mobile number"
+                            className="login-input with-prefix"
+                            autoFocus
+                          />
+                        </>
+                      ) : (
+                        <div className="email-input-container" style={{ width: '100%' }}>
+                          <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            onFocus={() => setShowSuggestions(true)}
+                            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                            placeholder="Enter email address"
+                            className="login-input"
+                            autoFocus
+                          />
+                          {showSuggestions && suggestions.length > 0 && (
+                            <div className="suggestions-dropdown">
+                              {suggestions.map((s) => (
+                                <button
+                                  key={s}
+                                  type="button"
+                                  onClick={() => setEmail(s)}
+                                  className="suggestion-item"
+                                >
+                                  {s}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={loading || (loginMode === 'mobile' ? mobile.length !== 10 : !email)}
+                      className="submit-btn"
+                    >
+                      {loading ? <Loader2 className="spinner" /> : 'CONTINUE'}
+                      <ArrowRight size={20} />
+                    </button>
+                  </form>
+                )}
+                
                 <div className="divider">
                   <span>OR</span>
                 </div>

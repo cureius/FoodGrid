@@ -221,4 +221,31 @@ public class CustomerAuthService {
 
         return response;
     }
+
+    @Transactional
+    public CustomerLoginResponse loginWithPasskey(final PasskeyLoginRequest request) {
+        // Find existing customer with both email and mobile matching
+        Customer customer = Customer.find("email = ?1 and mobileNumber = ?2", 
+                request.email, request.mobileNumber).firstResult();
+        
+        if (customer == null) {
+            throw new NotAuthorizedException("Invalid email or passkey (mobile number). If you're not onboarded, please use OTP login.", "Bearer");
+        }
+
+        customer.lastLoginAt = new Date();
+        customer.persist();
+
+        final String token = jwtIssuer.issueCustomerAccessToken(customer);
+        
+        final CustomerLoginResponse response = new CustomerLoginResponse();
+        response.token = token;
+        response.profile = new CustomerProfile();
+        response.profile.id = customer.id;
+        response.profile.mobileNumber = customer.mobileNumber;
+        response.profile.email = customer.email;
+        response.profile.displayName = customer.displayName;
+        response.profile.avatarUrl = customer.avatarUrl;
+
+        return response;
+    }
 }

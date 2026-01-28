@@ -64,4 +64,11 @@ public class CustomerAuthResource {
     public CustomerLoginResponse googleLogin(@Valid final VerifyGoogleTokenRequest request) {
         return customerAuthService.verifyGoogleToken(request);
     }
+
+    @POST
+    @Path("/login-passkey")
+    @Operation(summary = "Passkey Login", description = "Login with Email and Mobile (as passkey) for onboarded users")
+    public CustomerLoginResponse loginWithPasskey(@Valid final PasskeyLoginRequest request) {
+        return customerAuthService.loginWithPasskey(request);
+    }
 }

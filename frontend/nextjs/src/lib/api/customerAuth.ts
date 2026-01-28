@@ -46,4 +46,12 @@ export const customerAuthApi = {
     });
     return data;
   },
+
+  loginWithPasskey: async (email: string, mobileNumber: string): Promise<VerifyOtpResponse> => {
+    const { data } = await api.post<VerifyOtpResponse>('/api/v1/customer/auth/login-passkey', {
+      email,
+      mobileNumber,
+    });
+    return data;
+  },
 };

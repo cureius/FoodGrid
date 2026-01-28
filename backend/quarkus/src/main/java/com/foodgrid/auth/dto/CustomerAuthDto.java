@@ -43,6 +43,16 @@ public class CustomerAuthDto {
         public String idToken;
     }
 
+    public static class PasskeyLoginRequest {
+        @NotBlank
+        @Email(message = "Invalid email address")
+        public String email;
+
+        @NotBlank
+        @Pattern(regexp = "^[0-9]{10}$", message = "Invalid mobile number")
+        public String mobileNumber;
+    }
+
     public static class CustomerLoginResponse {
         public String token;
         public CustomerProfile profile;
