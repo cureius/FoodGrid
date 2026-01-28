@@ -174,21 +174,21 @@ export default function OrderDetailsPage() {
                     <h3 className="row-title">Payment Mode</h3>
                     <p className="row-text">{order.status === 'PAID' ? 'Amount Paid' : 'Pay via UPI/Cash'} • {formatPrice(order.grandTotal)}</p>
                 </div>
-                {order.status !== 'PAID' && order.status !== 'CANCELLED' && (
-                    <div className="unpaid-alert">PENDING</div>
+                {order.status === 'OPEN' && (
+                    <div className="unpaid-alert"></div>
                 )}
             </div>
         </section>
 
         {/* Help Actions */}
         <div className="actions-grid">
-            <button className="action-btn secondary">
+            <button className="action-btn secondary" onClick={() => window.open('tel:8583944249')}>
                 <div className="icon-wrap color-primary">
                     <Phone size={18} strokeWidth={2.5} />
                 </div>
                 Support
             </button>
-            <button 
+            {/* <button 
                 onClick={() => router.push('/user')}
                 className="action-btn primary"
             >
@@ -196,7 +196,7 @@ export default function OrderDetailsPage() {
                     <MessageSquare size={18} strokeWidth={2.5} />
                 </div>
                 Message
-            </button>
+            </button> */}
         </div>
       </main>
 
@@ -209,7 +209,7 @@ export default function OrderDetailsPage() {
         .header-title { font-size: 18px; font-weight: 800; color: var(--navy); line-height: 1; }
         .order-id-label { font-size: 10px; color: var(--text-light); font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; }
 
-        .track-main { padding: 12px; display: flex; flex-direction: column; gap: 12px;, margin-bottom: 72px; }
+        .track-main { padding: 12px; display: flex; flex-direction: column; gap: 12px;, margin-bottom: 72px; margin-bottom: 72px; }
         .card { background: white; border-radius: 32px; padding: 24px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
         
         .status-badge { display: inline-flex; padding: 4px 12px; border-radius: 999px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 24px; }
@@ -255,7 +255,7 @@ export default function OrderDetailsPage() {
         .total-label { font-size: 14px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: 1px; }
         .total-val { font-size: 20px; font-weight: 900; color: var(--primary); }
 
-        .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+        .actions-grid { display: grid; grid-template-columns: 1fr 0fr; gap: 12px; margin-top: 12px; }
         .action-btn { height: 64px; border-radius: 20px; border: none; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; transition: var(--transition-fast); box-shadow: var(--shadow-sm); cursor: pointer; }
         .action-btn.secondary { background: white; color: var(--navy); border: 1px solid var(--border-light); }
         .action-btn.primary { background: var(--navy); color: white; }
