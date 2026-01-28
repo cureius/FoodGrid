@@ -102,13 +102,27 @@ export default function NewOrderPage() {
   const outletId = selectedOutletId || "";
 
   // Load existing order if orderId is provided
+  const stepParam = searchParams.get("step");
+
   useEffect(() => {
     if (orderIdParam) {
       async function loadExistingOrder() {
         try {
           const order = await getOrder(orderIdParam!);
           setCurrentOrder(order);
-          setStep(2); // Start from select menu
+          
+          // Use step from URL if provided, otherwise default to 2
+          if (stepParam) {
+            const parsedStep = parseInt(stepParam);
+            if (parsedStep >= 1 && parsedStep <= 4) {
+              setStep(parsedStep as 1 | 2 | 3 | 4);
+            } else {
+              setStep(2);
+            }
+          } else {
+            setStep(2); // Start from select menu
+          }
+          
           setOrderType(order.orderType as any);
           setSelectedTableId(order.tableId);
           setOrderNotes(order.notes || "");
@@ -119,7 +133,7 @@ export default function NewOrderPage() {
       }
       loadExistingOrder();
     }
-  }, [orderIdParam, router]);
+  }, [orderIdParam, stepParam, router]);
   // Fetch menu categories
   useEffect(() => {
     if (!selectedOutletId) return;
@@ -180,15 +194,22 @@ export default function NewOrderPage() {
   }, [menuItems, query]);
 
   const subTotal = useMemo(() => {
-    return cart.reduce((sum, line) => {
+    const cartSubTotal = cart.reduce((sum, line) => {
       return sum + Number(line.menuItem.basePrice) * line.qty;
     }, 0);
-  }, [cart]);
+    const existingSubTotal = currentOrder ? Number(currentOrder.subtotal) : 0;
+    return cartSubTotal + existingSubTotal;
+  }, [cart, currentOrder]);
 
   const tax = useMemo(() => {
-    // Tax is calculated by backend, but we'll estimate for display
-    return subTotal * 0.12; // 12% tax estimate
-  }, [subTotal]);
+    // For cart items, estimate 12% tax. For existing items, use backend value.
+    const cartSubTotal = cart.reduce((sum, line) => {
+      return sum + Number(line.menuItem.basePrice) * line.qty;
+    }, 0);
+    const cartTax = cartSubTotal * 0.12;
+    const existingTax = currentOrder ? Number(currentOrder.taxTotal) : 0;
+    return cartTax + existingTax;
+  }, [cart, currentOrder]);
 
   const total = useMemo(() => subTotal + tax, [subTotal, tax]);
 
@@ -1115,7 +1136,7 @@ export default function NewOrderPage() {
               display: "flex",
               flexDirection: "column",
             }}>
-              {cart.length === 0 ? (
+              {cart.length === 0 && (!currentOrder || currentOrder.items.length === 0) ? (
                 <div style={{
                   height: "100%",
                   display: "flex",
@@ -1153,136 +1174,163 @@ export default function NewOrderPage() {
                   overflowY: "auto",
                   flex: 1,
                 }}>
-                  {cart.map((line, idx) => (
-                    <div
-                      key={`${line.menuItem.id}-${idx}`}
-                      style={{
-                        borderRadius: 14,
-                        border: "1px solid #e2e8f0",
-                        background: "white",
-                        padding: 14,
-                        transition: "all 0.2s ease",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.boxShadow = "none";
-                      }}
-                    >
-                      <div style={{ display: "grid", gridTemplateColumns: "64px 1fr 32px", gap: 12, alignItems: "start", marginBottom: 12 }}>
-                        {line.menuItem.images && line.menuItem.images.length > 0 ? (
-                          <Image
-                            src={getImageUrl(line.menuItem.images[0].imageUrl) || ""}
-                            alt={line.menuItem.name}
-                            width={64}
-                            height={64}
-                            style={{ objectFit: "cover", borderRadius: 12, border: "1px solid #e2e8f0" }}
-                          />
-                        ) : (
-                          <div style={{
-                            width: 64,
-                            height: 64,
-                            borderRadius: 12,
-                            background: "#f1f5f9",
-                            border: "1px solid #e2e8f0",
-                          }} />
-                        )}
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 15, fontWeight: 700, color: "#1e293b", marginBottom: 4 }}>{line.menuItem.name}</div>
-                          {line.note && (
-                            <div style={{ fontSize: 12, color: "#64748b", fontStyle: "italic" }}>Note: {line.note}</div>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => removeLine(idx)}
-                          aria-label="Remove"
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 8,
-                            background: "rgba(239, 68, 68, 0.1)",
-                            color: "#ef4444",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            border: "none",
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)";
-                          }}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 12, borderTop: "1px solid #f1f5f9" }}>
-                        <div style={{ fontSize: 18, fontWeight: 800, color: "#1e293b" }}>₹{Number(line.menuItem.basePrice).toFixed(2)}</div>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-                          <button
-                            onClick={() => updateLineQty(idx, -1)}
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: 10,
-                              background: "#f1f5f9",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              border: "none",
-                              cursor: "pointer",
-                              transition: "all 0.2s ease",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = "#e2e8f0";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = "#f1f5f9";
-                            }}
-                          >
-                            <Minus size={16} style={{ color: "#64748b" }} />
-                          </button>
-                          <div style={{
-                            width: 40,
-                            textAlign: "center",
-                            fontSize: 16,
-                            fontWeight: 800,
-                            color: "#1e293b",
-                          }}>
-                            {line.qty}
+                  {/* Existing Items */}
+                  {currentOrder && currentOrder.items.length > 0 && (
+                    <div style={{ marginBottom: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Existing Items</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {currentOrder.items.map((item) => (
+                          <div key={item.id} style={{ padding: "10px 12px", background: "white", borderRadius: 12, border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>
+                              {item.itemName} <span style={{ color: "#64748b", fontWeight: 500 }}>x {Number(item.qty)}</span>
+                            </div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "#64748b" }}>₹{Number(item.lineTotal).toFixed(2)}</div>
                           </div>
-                          <button
-                            onClick={() => updateLineQty(idx, 1)}
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: 10,
-                              background: "#f1f5f9",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              border: "none",
-                              cursor: "pointer",
-                              transition: "all 0.2s ease",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = "#e2e8f0";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = "#f1f5f9";
-                            }}
-                          >
-                            <Plus size={16} style={{ color: "#64748b" }} />
-                          </button>
-                        </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
+                  )}
+
+                  {/* New Items (Cart) */}
+                  {cart.length > 0 && (
+                    <div style={{ marginTop: currentOrder && currentOrder.items.length > 0 ? 8 : 0 }}>
+                      {currentOrder && currentOrder.items.length > 0 && (
+                        <div style={{ fontSize: 12, fontWeight: 700, color: "#8b5cf6", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>New Items</div>
+                      )}
+                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        {cart.map((line, idx) => (
+                          <div
+                            key={`${line.menuItem.id}-${idx}`}
+                            style={{
+                              borderRadius: 14,
+                              border: "1px solid #e2e8f0",
+                              background: "white",
+                              padding: 14,
+                              transition: "all 0.2s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.boxShadow = "none";
+                            }}
+                          >
+                            <div style={{ display: "grid", gridTemplateColumns: "64px 1fr 32px", gap: 12, alignItems: "start", marginBottom: 12 }}>
+                              {line.menuItem.images && line.menuItem.images.length > 0 ? (
+                                <Image
+                                  src={getImageUrl(line.menuItem.images[0].imageUrl) || ""}
+                                  alt={line.menuItem.name}
+                                  width={64}
+                                  height={64}
+                                  style={{ objectFit: "cover", borderRadius: 12, border: "1px solid #e2e8f0" }}
+                                />
+                              ) : (
+                                <div style={{
+                                  width: 64,
+                                  height: 64,
+                                  borderRadius: 12,
+                                  background: "#f1f5f9",
+                                  border: "1px solid #e2e8f0",
+                                }} />
+                              )}
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontSize: 15, fontWeight: 700, color: "#1e293b", marginBottom: 4 }}>{line.menuItem.name}</div>
+                                {line.note && (
+                                  <div style={{ fontSize: 12, color: "#64748b", fontStyle: "italic" }}>Note: {line.note}</div>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => removeLine(idx)}
+                                aria-label="Remove"
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: 8,
+                                  background: "rgba(239, 68, 68, 0.1)",
+                                  color: "#ef4444",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  transition: "all 0.2s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)";
+                                }}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 12, borderTop: "1px solid #f1f5f9" }}>
+                              <div style={{ fontSize: 18, fontWeight: 800, color: "#1e293b" }}>₹{Number(line.menuItem.basePrice).toFixed(2)}</div>
+                              <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                                <button
+                                  onClick={() => updateLineQty(idx, -1)}
+                                  style={{
+                                    width: 36,
+                                    height: 36,
+                                    borderRadius: 10,
+                                    background: "#f1f5f9",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    transition: "all 0.2s ease",
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = "#e2e8f0";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = "#f1f5f9";
+                                  }}
+                                >
+                                  <Minus size={16} style={{ color: "#64748b" }} />
+                                </button>
+                                <div style={{
+                                  width: 40,
+                                  textAlign: "center",
+                                  fontSize: 16,
+                                  fontWeight: 800,
+                                  color: "#1e293b",
+                                }}>
+                                  {line.qty}
+                                </div>
+                                <button
+                                  onClick={() => updateLineQty(idx, 1)}
+                                  style={{
+                                    width: 36,
+                                    height: 36,
+                                    borderRadius: 10,
+                                    background: "#f1f5f9",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    transition: "all 0.2s ease",
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = "#e2e8f0";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = "#f1f5f9";
+                                  }}
+                                >
+                                  <Plus size={16} style={{ color: "#64748b" }} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1665,6 +1713,39 @@ export default function NewOrderPage() {
                 <div style={{ fontSize: 14, color: "#64748b", marginBottom: 8, fontWeight: 600 }}>Total Amount</div>
                 <div style={{ fontSize: 42, fontWeight: 800, color: "#8b5cf6" }}>
                   ₹{Number(currentOrder.grandTotal).toFixed(2)}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#64748b", marginBottom: 12 }}>Order Items ({currentOrder.items.length})</div>
+                <div style={{ 
+                  display: "flex", 
+                  flexDirection: "column", 
+                  gap: 8, 
+                  maxHeight: "200px", 
+                  overflowY: "auto",
+                  padding: "4px",
+                  marginBottom: 16
+                }}>
+                  {currentOrder.items.map((item) => (
+                    <div
+                      key={item.id}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "10px 14px",
+                        background: "#f8fafc",
+                        borderRadius: 10,
+                        border: "1px solid #e2e8f0",
+                      }}
+                    >
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>
+                        {item.itemName} <span style={{ color: "#64748b", fontWeight: 500 }}>x {Number(item.qty)}</span>
+                      </span>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: "#1e293b" }}>₹{Number(item.lineTotal).toFixed(2)}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
