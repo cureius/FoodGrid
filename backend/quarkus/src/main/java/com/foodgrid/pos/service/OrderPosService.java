@@ -138,8 +138,11 @@ public class OrderPosService {
   public OrderResponse markServed(final String orderId) {
     final Order o = getOrderForOutlet(orderId);
 
-    if (o.status != Order.Status.OPEN && o.status != Order.Status.KOT_SENT) {
-      throw new BadRequestException("Order cannot be marked as served");
+    // Business Logic:
+    // TAKEAWAY: PAID -> KOT_SENT -> SERVED
+    // DINE_IN: KOT_SENT -> SERVED
+    if (o.status != Order.Status.KOT_SENT) {
+      throw new BadRequestException("Order cannot be served. It must be in KOT_SENT state first.");
     }
 
     // Deduct ingredients from stock for all order items
@@ -248,8 +251,20 @@ public class OrderPosService {
   public OrderResponse bill(final String orderId) {
     final Order o = getOrderForOutlet(orderId);
 
-    if (o.status == Order.Status.PAID || o.status == Order.Status.CANCELLED) {
-      throw new BadRequestException("Order cannot be billed");
+    // TAKEAWAY: OPEN -> BILLED
+    // DINE_IN: SERVED -> BILLED
+    if (o.orderType == Order.OrderType.TAKEAWAY || o.orderType == Order.OrderType.DELIVERY) {
+      if (o.status != Order.Status.OPEN) {
+        throw new BadRequestException("Takeaway order can only be billed from OPEN state.");
+      }
+    } else if (o.orderType == Order.OrderType.DINE_IN) {
+      if (o.status != Order.Status.SERVED && o.status != Order.Status.OPEN && o.status != Order.Status.KOT_SENT) {
+        // We allow from OPEN/KOT_SENT too for flexibility but preferred is SERVED
+        // Actually user said specifically SERVED -> BILLED
+        if (o.status != Order.Status.SERVED) {
+          throw new BadRequestException("Dine-in order must be SERVED before billing.");
+        }
+      }
     }
 
     recomputeTotals(o);
@@ -272,6 +287,21 @@ public class OrderPosService {
     try {
       final Order.Status newStatus = Order.Status.valueOf(statusVal);
       
+      // Enforce Lifecycle transitions via updateStatus too
+      if (newStatus == Order.Status.CANCELLED) {
+        validateCancellation(o);
+      }
+
+      if (newStatus == Order.Status.KOT_SENT) {
+        // TAKEAWAY: PAID -> KOT_SENT
+        // DINE_IN: OPEN -> KOT_SENT
+        if (o.orderType == Order.OrderType.DINE_IN) {
+          if (o.status != Order.Status.OPEN) throw new BadRequestException("Dine-in KOT can only be sent from OPEN state.");
+        } else {
+          if (o.status != Order.Status.PAID) throw new BadRequestException("Takeaway KOT can only be sent after payment (PAID).");
+        }
+      }
+
       // Basic transitions validation
       if (newStatus == Order.Status.SERVED && o.status != Order.Status.SERVED) {
         deductIngredientsFromStock(o);
@@ -289,6 +319,26 @@ public class OrderPosService {
     }
   }
 
+  private void validateCancellation(Order o) {
+    // TAKEAWAY: can be cancelled before billed
+    // DINE_IN: can be cancelled before kot sent
+    if (o.orderType == Order.OrderType.DINE_IN) {
+      if (o.status != Order.Status.OPEN) {
+        throw new BadRequestException("Dine-in order cannot be cancelled after KOT is sent.");
+      }
+    } else {
+      if (o.status != Order.Status.OPEN && o.status != Order.Status.BILLED) {
+         // Since PAID comes after BILLED, if it's not OPEN or BILLED, it might be PAID or further
+         if (o.status != Order.Status.OPEN) {
+           throw new BadRequestException("Takeaway order cannot be cancelled after billing/payment.");
+         }
+      }
+      // Explicit check for Takeaway flow: open -> billed -> paid
+      if (o.status != Order.Status.OPEN) {
+         throw new BadRequestException("Takeaway order can only be cancelled while in OPEN state.");
+      }
+    }
+  }
   @Transactional
   public PaymentResponse pay(final String orderId, final PaymentCreateRequest req) {
     return payWithIdempotency(orderId, req, null);

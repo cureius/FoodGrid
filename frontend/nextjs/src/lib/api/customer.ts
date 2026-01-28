@@ -161,6 +161,7 @@ export type OrderStatus =
   | 'OPEN' 
   | 'PLACED'
   | 'ACCEPTED' 
+  | 'KOT_SENT'
   | 'PREPARING' 
   | 'READY' 
   | 'SERVED' 
@@ -375,25 +376,56 @@ export function formatPrice(price: number, currency: string = '₹'): string {
   return `${currency}${price.toFixed(2)}`;
 }
 
-export function getOrderStatusInfo(status: OrderStatus): {
+export function getOrderStatusInfo(status: OrderStatus, orderType?: 'DINE_IN' | 'TAKEAWAY' | 'DELIVERY'): {
   label: string;
   color: string;
   bgColor: string;
-  step: number;
+  step: number; // 0-indexed step for progress bar
 } {
-  const statusMap: Record<OrderStatus, { label: string; color: string; bgColor: string; step: number }> = {
-    OPEN: { label: 'Order Placed', color: '#6B7280', bgColor: '#F3F4F6', step: 0 },
-    PLACED: { label: 'Order Placed', color: '#4B70F5', bgColor: '#EEF2FE', step: 1 },
-    ACCEPTED: { label: 'Accepted', color: '#4B70F5', bgColor: '#EEF2FE', step: 2 },
-    PREPARING: { label: 'Preparing', color: '#F69B42', bgColor: '#FEF3E2', step: 3 },
-    READY: { label: 'Ready', color: '#10B981', bgColor: '#D1FAE5', step: 4 },
-    SERVED: { label: 'Served', color: '#10B981', bgColor: '#D1FAE5', step: 5 },
-    OUT_FOR_DELIVERY: { label: 'Out for Delivery', color: '#F69B42', bgColor: '#FEF3E2', step: 4 },
-    DELIVERED: { label: 'Delivered', color: '#10B981', bgColor: '#D1FAE5', step: 5 },
-    BILLED: { label: 'Billed', color: '#6B7280', bgColor: '#F3F4F6', step: 5 },
-    PAID: { label: 'Paid', color: '#10B981', bgColor: '#D1FAE5', step: 6 },
-    CANCELLED: { label: 'Cancelled', color: '#EF4444', bgColor: '#FEE2E2', step: -1 },
+  const isDineIn = orderType === 'DINE_IN';
+  
+  // Generic mapping for labels and colors
+  const statusInfo: Record<OrderStatus, { label: string; color: string; bgColor: string }> = {
+    OPEN: { label: 'Order Placed', color: '#6B7280', bgColor: '#F3F4F6' },
+    PLACED: { label: 'Order Placed', color: '#4B70F5', bgColor: '#EEF2FE' },
+    ACCEPTED: { label: 'Accepted', color: '#4B70F5', bgColor: '#EEF2FE' },
+    KOT_SENT: { label: 'In Kitchen', color: '#F69B42', bgColor: '#FEF3E2' },
+    PREPARING: { label: 'Cooking', color: '#F69B42', bgColor: '#FEF3E2' },
+    READY: { label: 'Ready', color: '#10B981', bgColor: '#D1FAE5' },
+    SERVED: { label: 'Served', color: '#10B981', bgColor: '#D1FAE5' },
+    OUT_FOR_DELIVERY: { label: 'Out for Delivery', color: '#F69B42', bgColor: '#FEF3E2' },
+    DELIVERED: { label: 'Delivered', color: '#10B981', bgColor: '#D1FAE5' },
+    BILLED: { label: 'Bill Generated', color: '#6B7280', bgColor: '#F3F4F6' },
+    PAID: { label: 'Payment Done', color: '#10B981', bgColor: '#D1FAE5' },
+    CANCELLED: { label: 'Cancelled', color: '#EF4444', bgColor: '#FEE2E2' },
   };
 
-  return statusMap[status] || statusMap.OPEN;
+  const info = statusInfo[status] || statusInfo.OPEN;
+  let step = 0;
+
+  if (status === 'CANCELLED') return { ...info, step: -1 };
+
+  if (isDineIn) {
+    // DINE_IN: OPEN(0) -> KOT_SENT(1) -> SERVED(2) -> BILLED(3) -> PAID(4)
+    switch (status) {
+      case 'OPEN': step = 0; break;
+      case 'KOT_SENT': case 'ACCEPTED': case 'PREPARING': step = 1; break;
+      case 'SERVED': case 'READY': step = 2; break;
+      case 'BILLED': step = 3; break;
+      case 'PAID': step = 4; break;
+      default: step = 0;
+    }
+  } else {
+    // TAKEAWAY: OPEN(0) -> BILLED(1) -> PAID(2) -> KOT_SENT(3) -> SERVED(4)
+    switch (status) {
+      case 'OPEN': step = 0; break;
+      case 'BILLED': step = 1; break;
+      case 'PAID': step = 2; break;
+      case 'KOT_SENT': case 'ACCEPTED': case 'PREPARING': step = 3; break;
+      case 'SERVED': case 'READY': case 'DELIVERED': step = 4; break;
+      default: step = 0;
+    }
+  }
+
+  return { ...info, step };
 }

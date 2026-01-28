@@ -46,15 +46,25 @@ export default function OrderDetailsPage() {
 
   if (!order) return <div className="error-state">Order not found</div>;
 
-  const statusInfo = getOrderStatusInfo(order.status as any);
+  const statusInfo = getOrderStatusInfo(order.status as any, order.orderType as any);
 
-  const steps = [
-    { key: 'PLACED', label: 'Order Placed' },
-    { key: 'ACCEPTED', label: 'Accepted' },
-    { key: 'PREPARING', label: 'Cooking' },
-    { key: 'READY', label: 'Ready for delivery' },
-    { key: 'DELIVERED', label: 'Delivered' },
+  const dineInSteps = [
+    { key: 'OPEN', label: 'Order Placed' },
+    { key: 'KOT_SENT', label: 'In Kitchen' },
+    { key: 'SERVED', label: 'Served' },
+    { key: 'BILLED', label: 'Billed' },
+    { key: 'PAID', label: 'Paid' },
   ];
+
+  const takeawaySteps = [
+    { key: 'OPEN', label: 'Order Placed' },
+    { key: 'BILLED', label: 'Billed' },
+    { key: 'PAID', label: 'Payment Done' },
+    { key: 'KOT_SENT', label: 'Preparing' },
+    { key: 'SERVED', label: 'Ready for Pickup' },
+  ];
+
+  const steps = order.orderType === 'DINE_IN' ? dineInSteps : takeawaySteps;
 
   return (
     <div className="order-details-page">
@@ -67,8 +77,31 @@ export default function OrderDetailsPage() {
           <p className="order-id-label">Order #{order.id.slice(-4).toUpperCase()}</p>
         </div>
       </header>
+      
 
       <main className="track-main">
+
+        {/* Order Items */}
+        <section className="card summary-card">
+            <h3 className="section-title">Order Summary</h3>
+            <div className="items-list">
+                {order.items.map(item => (
+                    <div key={item.id} className="summary-item">
+                        <div className="item-left">
+                            <span className="qty-tag">{item.qty}x</span>
+                            <span className="name-tag">{item.itemName}</span>
+                        </div>
+                        <span className="price-tag">{formatPrice(item.lineTotal)}</span>
+                    </div>
+                ))}
+            </div>
+            <div className="bill-divider" />
+            <div className="total-row">
+                <span className="total-label">Total Amount</span>
+                <span className="total-val">{formatPrice(order.grandTotal)}</span>
+            </div>
+        </section>
+        
         {/* Progress Card */}
         <section className="card status-card">
             <div 
@@ -78,9 +111,14 @@ export default function OrderDetailsPage() {
                 {statusInfo.label}
             </div>
             
-            <h2 className="eta-title">Estimated delivery in</h2>
+            <h2 className="eta-title">
+                {order.status === 'PAID' && order.orderType === 'TAKEAWAY' ? 'Ready soon' : 
+                 order.status === 'SERVED' ? 'Enjoy your meal!' : 'Estimated in'}
+            </h2>
             <div className="eta-timer">
-                <span className="eta-val">15</span>
+                <span className="eta-val">
+                    {order.status === 'SERVED' ? '0' : '15'}
+                </span>
                 <span className="eta-unit">mins</span>
             </div>
 
@@ -89,7 +127,7 @@ export default function OrderDetailsPage() {
                 <div className="timeline-line" />
 
                 {steps.map((step, idx) => {
-                    const isCompleted = statusInfo.step >= idx + 1 || (idx === 0 && order.status !== 'CANCELLED');
+                    const isCompleted = statusInfo.step >= idx;
                     const isCurrent = statusInfo.step === idx;
                     
                     return (
@@ -100,7 +138,7 @@ export default function OrderDetailsPage() {
                                 ) : (
                                     <div className="dot-inner" />
                                 )}
-                                {isCurrent && (
+                                {isCurrent && order.status !== 'CANCELLED' && (
                                     <motion.div 
                                         animate={{ scale: [1, 1.8, 1], opacity: [0.5, 0, 0.5] }}
                                         transition={{ duration: 2, repeat: Infinity }}
@@ -117,7 +155,6 @@ export default function OrderDetailsPage() {
                 })}
             </div>
         </section>
-
         {/* Address & Payment Info */}
         <section className="card info-card">
             {/* <div className="info-row">
@@ -140,27 +177,6 @@ export default function OrderDetailsPage() {
                 {order.status !== 'PAID' && order.status !== 'CANCELLED' && (
                     <div className="unpaid-alert">PENDING</div>
                 )}
-            </div>
-        </section>
-
-        {/* Order Items */}
-        <section className="card summary-card">
-            <h3 className="section-title">Order Summary</h3>
-            <div className="items-list">
-                {order.items.map(item => (
-                    <div key={item.id} className="summary-item">
-                        <div className="item-left">
-                            <span className="qty-tag">{item.qty}x</span>
-                            <span className="name-tag">{item.itemName}</span>
-                        </div>
-                        <span className="price-tag">{formatPrice(item.lineTotal)}</span>
-                    </div>
-                ))}
-            </div>
-            <div className="bill-divider" />
-            <div className="total-row">
-                <span className="total-label">Total Amount</span>
-                <span className="total-val">{formatPrice(order.grandTotal)}</span>
             </div>
         </section>
 

@@ -3,9 +3,9 @@
 import React, { useMemo, useState, useEffect } from "react";
 import styles from "./Orders.module.css";
 import Card from "@/components/ui/Card";
-import { Plus, Search, ChevronDown, ArrowRight, FileText, X, Timer, CheckCircle2, UtensilsCrossed, Loader2, RefreshCw, Zap, CreditCard, Utensils, Trash2, CheckSquare, Square } from "lucide-react";
+import { Plus, Search, ChevronDown, ArrowRight, FileText, X, Timer, CheckCircle2, UtensilsCrossed, Loader2, RefreshCw, Zap, CreditCard, Utensils, Trash2, CheckSquare, Square, ReceiptText } from "lucide-react";
 import Link from "next/link";
-import { listOrders, getOrder, cancelOrderItem, markOrderServed, billOrder, deleteOrder, type OrderResponse, type OrderItemResponse } from "@/lib/api/clientAdmin";
+import { listOrders, getOrder, cancelOrderItem, markOrderServed, billOrder, deleteOrder, updateOrderStatus, type OrderResponse, type OrderItemResponse } from "@/lib/api/clientAdmin";
 import { useOutlet } from "@/contexts/OutletContext";
 import { getImageUrl } from "@/lib/api/clientAdmin";
 import Image from "next/image";
@@ -53,21 +53,34 @@ function mapOrderType(orderType: string): "Dine In" | "Take Away" {
 }
 
 // Map backend status to frontend display status
-function mapOrderStatus(status: string): Exclude<OrderStatus, "All"> {
-  switch (status) {
-    case "OPEN":
-    case "KOT_SENT":
-      return "In Progress";
-    case "SERVED":
-      return "Ready to Served";
-    case "BILLED":
-      return "Waiting for Payment";
-    case "PAID":
-      return "Waiting for Payment"; // Already paid, but show as waiting for payment
-    case "CANCELLED":
-      return "In Progress"; // Show cancelled orders as in progress for now
-    default:
-      return "In Progress";
+function mapOrderStatus(status: string, orderType?: string): Exclude<OrderStatus, "All"> {
+  const isDineIn = orderType === "DINE_IN";
+  
+  if (isDineIn) {
+    switch (status) {
+      case "OPEN":
+      case "KOT_SENT":
+        return "In Progress";
+      case "SERVED":
+        return "Waiting for Payment"; // After serving, we bill
+      case "BILLED":
+      case "PAID":
+        return "Waiting for Payment";
+      default: return "In Progress";
+    }
+  } else {
+    // Takeaway
+    switch (status) {
+      case "OPEN":
+      case "BILLED":
+        return "Waiting for Payment";
+      case "PAID":
+      case "KOT_SENT":
+        return "In Progress";
+      case "SERVED":
+        return "Ready to Served"; // Ready for pickup
+      default: return "In Progress";
+    }
   }
 }
 
@@ -96,7 +109,7 @@ function formatOrderTime(dateString: string | null | undefined): string {
     const displayHours = hours % 12 || 12;
     const displayMinutes = minutes.toString().padStart(2, "0");
     return `${day}, ${dayNum} ${month} ${displayHours}:${displayMinutes} ${ampm}`;
-  } catch {
+  } catch (e) {
     return "Recent";
   }
 }
@@ -112,7 +125,7 @@ function mapOrderResponse(order: OrderResponse): Order {
     time: formatOrderTime(order.createdAt || null),
     table: order.tableId || "N/A",
     customer: "Customer", // Placeholder - backend doesn't have customer name
-    status: mapOrderStatus(order.status),
+    status: mapOrderStatus(order.status, order.orderType),
     progress,
     itemsCount: servedItems.length,
     total: Number(order.grandTotal),
@@ -315,6 +328,23 @@ export default function OrderPage() {
     }
   };
 
+  const handleStatusChange = async (orderId: string, status: string) => {
+    if (!selectedOutletId) return;
+    try {
+      setActionLoading(`status-${orderId}`);
+      await updateOrderStatus(orderId, status);
+      await fetchOrders(true);
+      if (selectedOrderId === orderId) {
+        const orderData = await getOrder(orderId);
+        setSelectedOrderResponse(orderData);
+      }
+    } catch (err: any) {
+      alert(err?.message || "Failed to update status");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleToggleSelectOrder = (orderId: string) => {
     setSelectedOrderIds((prev) => {
       const newSet = new Set(prev);
@@ -349,18 +379,18 @@ export default function OrderPage() {
 
       const results = await Promise.allSettled(deletePromises);
       const errors = results
-        .filter((r) => r.status === "rejected" || (r.status === "fulfilled" && r.value && "error" in r.value))
+        .filter((r) => r.status === "rejected" || (r.status === "fulfilled" && (r as any).value && "error" in (r as any).value))
         .map((r, idx) => {
           const orderId = Array.from(selectedOrderIds)[idx];
           if (r.status === "rejected") {
-            return { orderId, error: r.reason?.message || "Failed to delete" };
+            return { orderId, error: (r as any).reason?.message || "Failed to delete" };
           }
-          return r.value as { orderId: string; error: string };
+          return (r as any).value as { orderId: string; error: string };
         });
 
       if (errors.length > 0) {
-        const errorMsg = errors.map((e) => `Order ${e.orderId.slice(0, 8)}: ${e.error}`).join("\n");
-        alert(`Some orders could not be deleted:\n${errorMsg}`);
+        const errorMsg = errors.map((e) => "Order " + e.orderId.slice(0, 8) + ": " + e.error).join("\n");
+        alert("Some orders could not be deleted:\n" + errorMsg);
       } else {
         // Success - refresh orders
         await fetchOrders(true);
@@ -1493,85 +1523,91 @@ export default function OrderPage() {
                   >
                     <Plus size={18} /> New Order
                   </Link>
-                  {selectedOrder.status === "Ready to Served" && (
-                    <button
-                      onClick={() => handleMarkServed(selectedOrder.id)}
-                      disabled={actionLoading === `serve-${selectedOrder.id}`}
-                      style={{
-                        flex: 1,
-                        padding: "14px 20px",
-                        borderRadius: 12,
-                        border: "none",
-                        background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                        fontSize: 14,
-                        fontWeight: 700,
-                        color: "white",
-                        cursor: actionLoading === `serve-${selectedOrder.id}` ? "not-allowed" : "pointer",
-                        opacity: actionLoading === `serve-${selectedOrder.id}` ? 0.6 : 1,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 8,
-                        boxShadow: "0 4px 14px rgba(16, 185, 129, 0.35)",
-                        transition: "all 0.2s ease",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (actionLoading !== `serve-${selectedOrder.id}`) {
-                          e.currentTarget.style.transform = "translateY(-1px)";
-                          e.currentTarget.style.boxShadow = "0 6px 20px rgba(16, 185, 129, 0.45)";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "translateY(0)";
-                        e.currentTarget.style.boxShadow = "0 4px 14px rgba(16, 185, 129, 0.35)";
-                      }}
-                    >
-                      {actionLoading === `serve-${selectedOrder.id}` ? (
-                        <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> Processing...</>
-                      ) : (
-                        <><Utensils size={18} /> Mark as Served</>
+                  {/* Dynamically show buttons based on Order Flow */}
+                  {selectedOrder.type === "Dine In" ? (
+                    <>
+                      {/* DINE_IN Flow: OPEN -> KOT_SENT -> SERVED -> BILLED -> PAID */}
+                      {selectedOrderResponse?.status === "OPEN" && (
+                        <button
+                          onClick={() => handleStatusChange(selectedOrder.id, "KOT_SENT")}
+                          disabled={!!actionLoading}
+                          className={styles.primaryBtn}
+                          style={{ background: "#8b5cf6", color: "white" }}
+                        >
+                          <Zap size={18} /> Send to Kitchen
+                        </button>
                       )}
-                    </button>
-                  )}
-                  {selectedOrder.status === "Waiting for Payment" && (
-                    <button
-                      onClick={() => handleBillOrder(selectedOrder.id)}
-                      disabled={actionLoading === `bill-${selectedOrder.id}`}
-                      style={{
-                        flex: 1,
-                        padding: "14px 20px",
-                        borderRadius: 12,
-                        border: "none",
-                        background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                        fontSize: 14,
-                        fontWeight: 700,
-                        color: "white",
-                        cursor: actionLoading === `bill-${selectedOrder.id}` ? "not-allowed" : "pointer",
-                        opacity: actionLoading === `bill-${selectedOrder.id}` ? 0.6 : 1,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 8,
-                        boxShadow: "0 4px 14px rgba(245, 158, 11, 0.35)",
-                        transition: "all 0.2s ease",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (actionLoading !== `bill-${selectedOrder.id}`) {
-                          e.currentTarget.style.transform = "translateY(-1px)";
-                          e.currentTarget.style.boxShadow = "0 6px 20px rgba(245, 158, 11, 0.45)";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "translateY(0)";
-                        e.currentTarget.style.boxShadow = "0 4px 14px rgba(245, 158, 11, 0.35)";
-                      }}
-                    >
-                      {actionLoading === `bill-${selectedOrder.id}` ? (
-                        <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> Processing...</>
-                      ) : (
-                        <><CreditCard size={18} /> Proceed to Payment</>
+                      {selectedOrderResponse?.status === "KOT_SENT" && (
+                        <button
+                          onClick={() => handleMarkServed(selectedOrder.id)}
+                          disabled={!!actionLoading}
+                          className={styles.primaryBtn}
+                        >
+                          <Utensils size={18} /> Mark as Served
+                        </button>
                       )}
-                    </button>
+                      {selectedOrderResponse?.status === "SERVED" && (
+                        <button
+                          onClick={() => handleBillOrder(selectedOrder.id)}
+                          disabled={!!actionLoading}
+                          className={styles.primaryBtn}
+                          style={{ background: "#f59e0b", color: "white" }}
+                        >
+                          <ReceiptText size={18} /> Generate Bill
+                        </button>
+                      )}
+                      {selectedOrderResponse?.status === "BILLED" && (
+                        <Link
+                          href={`/orders/new?orderId=${selectedOrder.id}&step=4`}
+                          className={styles.primaryBtn}
+                          style={{ background: "#10b981", color: "white", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+                        >
+                          <CreditCard size={18} /> Payment
+                        </Link>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {/* TAKEAWAY Flow: OPEN -> BILLED -> PAID -> KOT_SENT -> SERVED */}
+                      {selectedOrderResponse?.status === "OPEN" && (
+                        <button
+                          onClick={() => handleBillOrder(selectedOrder.id)}
+                          disabled={!!actionLoading}
+                          className={styles.primaryBtn}
+                          style={{ background: "#f59e0b", color: "white" }}
+                        >
+                          <ReceiptText size={18} /> Generate Bill
+                        </button>
+                      )}
+                      {selectedOrderResponse?.status === "BILLED" && (
+                        <Link
+                          href={`/orders/new?orderId=${selectedOrder.id}&step=4`}
+                          className={styles.primaryBtn}
+                          style={{ background: "#10b981", color: "white", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+                        >
+                          <CreditCard size={18} /> Payment
+                        </Link>
+                      )}
+                      {selectedOrderResponse?.status === "PAID" && (
+                        <button
+                          onClick={() => handleStatusChange(selectedOrder.id, "KOT_SENT")}
+                          disabled={!!actionLoading}
+                          className={styles.primaryBtn}
+                          style={{ background: "#8b5cf6", color: "white" }}
+                        >
+                          <Zap size={18} /> Send to Kitchen
+                        </button>
+                      )}
+                      {selectedOrderResponse?.status === "KOT_SENT" && (
+                        <button
+                          onClick={() => handleMarkServed(selectedOrder.id)}
+                          disabled={!!actionLoading}
+                          className={styles.primaryBtn}
+                        >
+                          <Utensils size={18} /> Ready for Pickup
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

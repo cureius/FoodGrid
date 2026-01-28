@@ -7,7 +7,7 @@ import { History as HistoryIcon, Search, ReceiptText, Printer, Calendar, Filter,
 import { listOrders, getOrder, type OrderResponse } from "@/lib/api/clientAdmin";
 import { useOutlet } from "@/contexts/OutletContext";
 
-type HistoryFilter = "All" | "DINE_IN" | "TAKEAWAY" | "DELIVERY";
+type HistoryFilter = "All" | "DINE_IN" | "TAKEAWAY" | "DELIVERY" | "CANCELLED";
 
 // Map backend orderType to frontend display
 function mapOrderType(orderType: string): "Dine In" | "Take Away" | "Delivery" {
@@ -82,6 +82,7 @@ export default function HistoryPage() {
   const [orders, setOrders] = useState<OrderResponse[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [detailsLoading, setDetailsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const { selectedOutletId } = useOutlet();
@@ -97,9 +98,13 @@ export default function HistoryPage() {
         // Fetch paid/billed orders for history
         if(!selectedOutletId) return;
         const data = await listOrders(500, selectedOutletId);
-        // Filter only paid/billed orders
-        const paidOrders = data.filter(o => o.status === "PAID" || o.status === "BILLED");
-        setOrders(paidOrders);
+        // Show terminal states: PAID (Dine-in), SERVED (Takeaway), CANCELLED
+        const historyOrders = data.filter(o => 
+          o.status === "PAID" || 
+          (o.orderType === "TAKEAWAY" && o.status === "SERVED") ||
+          o.status === "CANCELLED"
+        );
+        setOrders(historyOrders);
       } catch (err: any) {
         setError(err?.message || "Failed to load order history");
         console.error("Failed to fetch orders:", err);
@@ -115,12 +120,15 @@ export default function HistoryPage() {
     if (selectedId) {
       async function fetchOrderDetails() {
         try {
+          setDetailsLoading(true);
           if(!selectedId) return;
           const data = await getOrder(selectedId);
           setSelectedOrder(data);
         } catch (err: any) {
           console.error("Failed to fetch order details:", err);
           setSelectedOrder(null);
+        } finally {
+          setDetailsLoading(false);
         }
       }
       fetchOrderDetails();
@@ -133,10 +141,15 @@ export default function HistoryPage() {
     const q = query.trim().toLowerCase();
     return orders.filter((o) => {
       const matchesFilter =
-        filter === "All" ? true : o.orderType === filter;
+        filter === "All"
+          ? true
+          : filter === "CANCELLED"
+            ? o.status === "CANCELLED"
+            : o.orderType === filter;
       const matchesQuery =
         !q ||
         o.id.toLowerCase().includes(q) ||
+        o.id.slice(-4).toLowerCase().includes(q) ||
         (o.tableId ? o.tableId.toLowerCase().includes(q) : false);
       return matchesFilter && matchesQuery;
     });
@@ -357,13 +370,14 @@ export default function HistoryPage() {
           }}>
             <div style={{ padding: 20, borderBottom: "1px solid #f1f5f9" }}>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                {(["All", "DINE_IN", "TAKEAWAY", "DELIVERY"] as HistoryFilter[]).map((f) => {
+                {(["All", "DINE_IN", "TAKEAWAY", "DELIVERY", "CANCELLED"] as HistoryFilter[]).map((f) => {
                   const isActive = filter === f;
                   const getLabel = (val: HistoryFilter) => {
                     switch (val) {
                       case "DINE_IN": return "Dine In";
                       case "TAKEAWAY": return "Take Away";
                       case "DELIVERY": return "Delivery";
+                      case "CANCELLED": return "Cancelled";
                       default: return "All";
                     }
                   };
@@ -372,6 +386,7 @@ export default function HistoryPage() {
                       case "DINE_IN": return { bg: "rgba(59, 130, 246, 0.1)", color: "#3b82f6", border: "rgba(59, 130, 246, 0.2)" };
                       case "TAKEAWAY": return { bg: "rgba(139, 92, 246, 0.1)", color: "#8b5cf6", border: "rgba(139, 92, 246, 0.2)" };
                       case "DELIVERY": return { bg: "rgba(16, 185, 129, 0.1)", color: "#10b981", border: "rgba(16, 185, 129, 0.2)" };
+                      case "CANCELLED": return { bg: "rgba(239, 68, 68, 0.1)", color: "#ef4444", border: "rgba(239, 68, 68, 0.2)" };
                       default: return { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b", border: "rgba(100, 116, 139, 0.2)" };
                     }
                   };
@@ -507,7 +522,21 @@ export default function HistoryPage() {
             minHeight: 0,
             overflow: "hidden",
           }}>
-            {selectedOrder ? (
+            {detailsLoading ? (
+              <div style={{
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 40,
+                textAlign: "center",
+                color: "#64748b",
+              }}>
+                <Loader2 size={40} className="animate-spin" style={{ color: "#8b5cf6", marginBottom: 16 }} />
+                <div style={{ fontSize: 16, fontWeight: 600, color: "#1e293b" }}>Loading Bill...</div>
+              </div>
+            ) : selectedOrder ? (
               <>
                 <div style={{
                   padding: "24px 28px",

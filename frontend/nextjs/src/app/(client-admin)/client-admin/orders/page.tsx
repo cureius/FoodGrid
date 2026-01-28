@@ -3,14 +3,14 @@
 import React, { useMemo, useState, useEffect } from "react";
 import styles from "./Orders.module.css";
 import Card from "@/components/ui/Card";
-import { Plus, Search, ChevronDown, ArrowRight, FileText, X, Timer, CheckCircle2, UtensilsCrossed, Loader2, RefreshCw, Zap, CreditCard, Utensils, Trash2, CheckSquare, Square } from "lucide-react";
+import { Plus, Search, ChevronDown, ArrowRight, FileText, X, Timer, CheckCircle2, UtensilsCrossed, Loader2, RefreshCw, Zap, CreditCard, Utensils, Trash2, CheckSquare, Square, ReceiptText } from "lucide-react";
 import Link from "next/link";
 import { listOrders, getOrder, cancelOrderItem, markOrderServed, billOrder, deleteOrder, updateOrderStatus, updateOrderItemStatus, type OrderResponse, type OrderItemResponse } from "@/lib/api/clientAdmin";
 import { useOutlet } from "@/contexts/OutletContext";
 import { getImageUrl } from "@/lib/api/clientAdmin";
 import Image from "next/image";
 
-type OrderStatus = "All" | "Open" | "KOT Sent" | "Served" | "Billed" | "Paid" | "Cancelled";
+type OrderStatus = "All" | "Preparation" | "Payment" | "Ready" | "Completed" | "Cancelled" | "Open" | "KOT Sent" | "Served" | "Billed" | "Paid";
 
 type Order = {
   id: string;
@@ -87,6 +87,8 @@ function mapStatusToBackend(status: Exclude<OrderStatus, "All">): string {
       return "PAID";
     case "Cancelled":
       return "CANCELLED";
+    default:
+      return "OPEN";
   }
 }
 
@@ -237,33 +239,60 @@ export default function OrderPage() {
 
   const selectedOrder = useMemo(() => mappedOrders.find((o) => o.id === selectedOrderId) ?? null, [mappedOrders, selectedOrderId]);
 
-  const statusFilters: { label: OrderStatus; count: number }[] = useMemo(() => {
-    const counts = {
-      All: mappedOrders.length,
-      "Open": mappedOrders.filter((o) => o.status === "Open").length,
-      "KOT Sent": mappedOrders.filter((o) => o.status === "KOT Sent").length,
-      "Served": mappedOrders.filter((o) => o.status === "Served").length,
-      "Billed": mappedOrders.filter((o) => o.status === "Billed").length,
-      "Paid": mappedOrders.filter((o) => o.status === "Paid").length,
-      "Cancelled": mappedOrders.filter((o) => o.status === "Cancelled").length,
-    };
+  const statusFilters: { label: string; value: string; count: number }[] = useMemo(() => {
+    // Preparation: Dine-In (Open, KOT Sent), Takeaway (Paid/KOT Sent)
+    const prep = mappedOrders.filter(o => 
+      (o.type === "Dine In" && (o.status === "Open" || o.status === "KOT Sent")) ||
+      (o.type === "Take Away" && (o.status === "Paid" || o.status === "KOT Sent"))
+    );
+
+    // Payment: Dine-In (Served, Billed), Takeaway (Open, Billed)
+    const payment = mappedOrders.filter(o => 
+      (o.type === "Dine In" && (o.status === "Served" || o.status === "Billed")) ||
+      (o.type === "Take Away" && (o.status === "Open" || o.status === "Billed"))
+    );
+
+    // Ready/Pickup: Takeaway ready after KOT Sent
+    const ready = mappedOrders.filter(o => o.type === "Take Away" && o.status === "Served");
+
+    // Completed: Dine-In Paid, Takeaway Served
+    const completed = mappedOrders.filter(o => 
+      (o.type === "Dine In" && o.status === "Paid") || 
+      (o.type === "Take Away" && o.status === "Served")
+    );
+
     return [
-      { label: "All", count: counts.All },
-      { label: "Open", count: counts["Open"] },
-      { label: "KOT Sent", count: counts["KOT Sent"] },
-      { label: "Served", count: counts["Served"] },
-      { label: "Billed", count: counts["Billed"] },
-      { label: "Paid", count: counts["Paid"] },
-      { label: "Cancelled", count: counts["Cancelled"] },
+      { label: "All Orders", value: "All", count: mappedOrders.length },
+      { label: "Preparation", value: "Preparation", count: prep.length },
+      { label: "Payment", value: "Payment", count: payment.length },
+      { label: "Ready", value: "Ready", count: ready.length },
+      { label: "Completed", value: "Completed", count: completed.length },
+      { label: "Cancelled", value: "Cancelled", count: mappedOrders.filter(o => o.status === "Cancelled").length },
     ];
   }, [mappedOrders]);
 
   const filteredOrders = useMemo(() => {
     let filtered = mappedOrders;
 
-    // Filter by status
+    // Filter by Tab
     if (activeStatus !== "All") {
-      filtered = filtered.filter((o) => o.status === activeStatus);
+      filtered = filtered.filter(o => {
+          if (activeStatus === "Preparation") {
+              return (o.type === "Dine In" && (o.status === "Open" || o.status === "KOT Sent")) ||
+                     (o.type === "Take Away" && (o.status === "Paid" || o.status === "KOT Sent"));
+          }
+          if (activeStatus === "Payment") {
+              return (o.type === "Dine In" && (o.status === "Served" || o.status === "Billed")) ||
+                     (o.type === "Take Away" && (o.status === "Open" || o.status === "Billed"));
+          }
+          if (activeStatus === "Ready") {
+              return o.type === "Take Away" && o.status === "Served";
+          }
+          if (activeStatus === "Completed") {
+              return (o.type === "Dine In" && o.status === "Paid") || (o.type === "Take Away" && o.status === "Served");
+          }
+          return o.status === activeStatus;
+      });
     }
 
     // Filter by query
@@ -673,19 +702,19 @@ export default function OrderPage() {
 
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 24 }}>
           {statusFilters.map((f) => {
-            const isActive = f.label === activeStatus;
-            const getStatusColor = (label: OrderStatus) => {
+            const isActive = f.value === activeStatus;
+            const getStatusColor = (label: string) => {
               switch (label) {
-                case "Open":
-                case "KOT Sent":
+                case "Preparation":
                   return { bg: "rgba(59, 130, 246, 0.1)", color: "#3b82f6", border: "rgba(59, 130, 246, 0.2)" };
-                case "Served":
+                case "Ready":
                   return { bg: "rgba(16, 185, 129, 0.1)", color: "#10b981", border: "rgba(16, 185, 129, 0.2)" };
-                case "Billed":
-                case "Paid":
+                case "Payment":
                   return { bg: "rgba(245, 158, 11, 0.1)", color: "#f59e0b", border: "rgba(245, 158, 11, 0.2)" };
+                case "Completed":
+                    return { bg: "rgba(16, 185, 129, 0.1)", color: "#10b981", border: "rgba(16, 185, 129, 0.2)" };
                 case "Cancelled":
-                  return { bg: "rgba(239, 68, 68, 0.1)", color: "#ef4444", border: "rgba(239, 68, 68, 0.2)" };
+                    return { bg: "rgba(239, 68, 68, 0.1)", color: "#ef4444", border: "rgba(239, 68, 68, 0.2)" };
                 default:
                   return { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b", border: "rgba(100, 116, 139, 0.2)" };
               }
@@ -695,7 +724,7 @@ export default function OrderPage() {
             return (
               <button
                 key={f.label}
-                onClick={() => setActiveStatus(f.label)}
+                onClick={() => setActiveStatus(f.value as any)}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -990,6 +1019,7 @@ export default function OrderPage() {
                                 flexShrink: 0,
                               }} />
                               <span style={{
+                                fontSize: 20,
                                 fontWeight: 600,
                                 color: "#1e293b",
                                 overflow: "hidden",
@@ -1011,119 +1041,99 @@ export default function OrderPage() {
                     </div>
 
                     {/* Quick Actions */}
-                    <div style={{ display: "flex", gap: 10 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                       <button
                         onClick={() => setSelectedOrderId(order.id)}
-                        style={{
-                          flex: 1,
-                          padding: "12px 18px",
-                          borderRadius: 12,
-                          border: "1px solid #e2e8f0",
-                          background: "white",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 8,
-                          cursor: "pointer",
-                          fontSize: 14,
-                          fontWeight: 600,
-                          color: "#64748b",
-                          transition: "all 0.2s ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = "#8b5cf6";
-                          e.currentTarget.style.color = "#8b5cf6";
-                          e.currentTarget.style.background = "#faf5ff";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = "#e2e8f0";
-                          e.currentTarget.style.color = "#64748b";
-                          e.currentTarget.style.background = "white";
-                        }}
+                        style={{ width: "100%", padding: "12px 18px", borderRadius: 12, border: "1px solid #e2e8f0", background: "white", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer", fontSize: 14, fontWeight: 600, color: "#64748b", transition: "all 0.2s ease" }}
                       >
-                        <FileText size={16} /> Details
+                        <FileText size={16} /> Order Details
                       </button>
-                      <div style={{ display: "flex", gap: 10, width: "100%", marginTop: "auto" }}>
-                        <div style={{ position: "relative", flex: 1 }}>
-                          <select
-                            value={order.status}
-                            onChange={(e) => handleStatusChange(order.id, e.target.value as Exclude<OrderStatus, "All">)}
-                            disabled={actionLoading === `status-${order.id}`}
-                            style={{
-                              width: "100%",
-                              padding: "10px 32px 10px 12px",
-                              borderRadius: 12,
-                              border: "1px solid #e2e8f0",
-                              background: "white",
-                              fontSize: 13,
-                              fontWeight: 700,
-                              color: "#1e293b",
-                              cursor: "pointer",
-                              outline: "none",
-                              appearance: "none",
-                              transition: "all 0.2s ease",
-                            }}
-                            onFocus={(e) => e.currentTarget.style.borderColor = "#8b5cf6"}
-                            onBlur={(e) => e.currentTarget.style.borderColor = "#e2e8f0"}
-                          >
+                      <div style={{ display: "flex", gap: 10, width: "100%" }}>
+                        {order.type === "Dine In" ? (
+                          <>
+                            {order.status === "Open" && (
+                              <button 
+                                onClick={() => handleStatusChange(order.id, "KOT Sent")} 
+                                disabled={actionLoading === `status-${order.id}`}
+                                style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "#8b5cf6", color: "white", fontWeight: 700, cursor: actionLoading === `status-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                              >
+                                {actionLoading === `status-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+                                Kitchen
+                              </button>
+                            )}
+                            {order.status === "KOT Sent" && (
+                              <button 
+                                onClick={() => handleMarkServed(order.id)} 
+                                disabled={actionLoading === `serve-${order.id}`}
+                                style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "#10b981", color: "white", fontWeight: 700, cursor: actionLoading === `serve-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                              >
+                                {actionLoading === `serve-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <Utensils size={16} />}
+                                Serve
+                              </button>
+                            )}
+                            {order.status === "Served" && (
+                              <button 
+                                onClick={() => handleBillOrder(order.id)} 
+                                disabled={actionLoading === `bill-${order.id}`}
+                                style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "#f59e0b", color: "white", fontWeight: 700, cursor: actionLoading === `bill-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                              >
+                                {actionLoading === `bill-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <ReceiptText size={16} />}
+                                Bill
+                              </button>
+                            )}
+                            {order.status === "Billed" && (
+                              <Link href={`/client-admin/orders/new?orderId=${order.id}&step=4`} style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "#10b981", color: "white", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, textDecoration: "none", fontSize: 13 }}>
+                                <CreditCard size={16} /> Pay
+                              </Link>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {order.status === "Open" && (
+                              <button 
+                                onClick={() => handleBillOrder(order.id)} 
+                                disabled={actionLoading === `bill-${order.id}`}
+                                style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "#f59e0b", color: "white", fontWeight: 700, cursor: actionLoading === `bill-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                              >
+                                {actionLoading === `bill-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <ReceiptText size={16} />}
+                                Bill
+                              </button>
+                            )}
+                            {order.status === "Billed" && (
+                              <Link href={`/client-admin/orders/new?orderId=${order.id}&step=4`} style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "#10b981", color: "white", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, textDecoration: "none", fontSize: 13 }}>
+                                <CreditCard size={16} /> Pay
+                              </Link>
+                            )}
+                            {order.status === "Paid" && (
+                              <button 
+                                onClick={() => handleStatusChange(order.id, "KOT Sent")} 
+                                disabled={actionLoading === `status-${order.id}`}
+                                style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "#8b5cf6", color: "white", fontWeight: 700, cursor: actionLoading === `status-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                              >
+                                {actionLoading === `status-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+                                Kitchen
+                              </button>
+                            )}
+                            {order.status === "KOT Sent" && (
+                              <button 
+                                onClick={() => handleMarkServed(order.id)} 
+                                disabled={actionLoading === `serve-${order.id}`}
+                                style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "#10b981", color: "white", fontWeight: 700, cursor: actionLoading === `serve-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                              >
+                                {actionLoading === `serve-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <Utensils size={16} />}
+                                Pickup
+                              </button>
+                            )}
+                          </>
+                        )}
+                        <div style={{ position: "relative" }}>
+                          <select value={order.status} onChange={(e) => handleStatusChange(order.id, e.target.value as any)} style={{ width: 44, height: 44, padding: 0, borderRadius: 12, border: "1px solid #e2e8f0", background: "white", fontSize: 0, cursor: "pointer", outline: "none", appearance: "none" }}>
                             {(["Open", "KOT Sent", "Served", "Billed", "Paid", "Cancelled"] as const).map(s => (
                               <option key={s} value={s}>{s}</option>
                             ))}
                           </select>
-                          <ChevronDown size={14} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#64748b" }} />
+                          <ChevronDown size={14} style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", pointerEvents: "none", color: "#64748b" }} />
                         </div>
-                        
-                        {(order.status === "Open" || order.status === "KOT Sent") && (
-                          <button
-                            onClick={() => handleStatusChange(order.id, "Served")}
-                            disabled={actionLoading === `status-${order.id}`}
-                            style={{
-                              padding: "10px 16px",
-                              borderRadius: 12,
-                              border: "none",
-                              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              gap: 6,
-                              cursor: actionLoading === `status-${order.id}` ? "not-allowed" : "pointer",
-                              fontSize: 13,
-                              fontWeight: 700,
-                              color: "white",
-                              boxShadow: "0 4px 14px rgba(16, 185, 129, 0.35)",
-                              transition: "all 0.2s ease",
-                            }}
-                          >
-                            {actionLoading === `status-${order.id}` ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
-                            Serve
-                          </button>
-                        )}
-
-                        {order.status === "Served" && (
-                          <button
-                            onClick={() => handleStatusChange(order.id, "Billed")}
-                            disabled={actionLoading === `status-${order.id}`}
-                            style={{
-                              padding: "10px 16px",
-                              borderRadius: 12,
-                              border: "none",
-                              background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              gap: 6,
-                              cursor: actionLoading === `status-${order.id}` ? "not-allowed" : "pointer",
-                              fontSize: 13,
-                              fontWeight: 700,
-                              color: "white",
-                              boxShadow: "0 4px 14px rgba(245, 158, 11, 0.35)",
-                              transition: "all 0.2s ease",
-                            }}
-                          >
-                            {actionLoading === `status-${order.id}` ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
-                            Bill
-                          </button>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -1579,65 +1589,99 @@ export default function OrderPage() {
                   >
                     <Plus size={18} /> Add Items
                   </Link>
-                  {(selectedOrder.status === "Open" || selectedOrder.status === "KOT Sent") && (
-                    <button
-                      onClick={() => handleStatusChange(selectedOrder.id, "Served")}
-                      disabled={actionLoading === `status-${selectedOrder.id}`}
-                      style={{
-                        flex: 1,
-                        padding: "14px 20px",
-                        borderRadius: 12,
-                        border: "none",
-                        background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                        fontSize: 14,
-                        fontWeight: 700,
-                        color: "white",
-                        cursor: actionLoading === `status-${selectedOrder.id}` ? "not-allowed" : "pointer",
-                        opacity: actionLoading === `status-${selectedOrder.id}` ? 0.6 : 1,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 8,
-                        boxShadow: "0 4px 14px rgba(16, 185, 129, 0.35)",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      {actionLoading === `status-${selectedOrder.id}` ? (
-                        <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> Processing...</>
-                      ) : (
-                        <><Utensils size={18} /> Mark as Served</>
+                  {/* Dynamically show buttons based on Order Flow */}
+                  {selectedOrder.type === "Dine In" ? (
+                    <>
+                      {/* DINE_IN Flow: OPEN -> KOT_SENT -> SERVED -> BILLED -> PAID */}
+                      {selectedOrder.status === "Open" && (
+                        <button
+                          onClick={() => handleStatusChange(selectedOrder.id, "KOT Sent")}
+                          disabled={actionLoading === `status-${selectedOrder.id}`}
+                          className={styles.primaryActionBtn}
+                          style={{ background: "#8b5cf6", cursor: actionLoading === `status-${selectedOrder.id}` ? "not-allowed" : "pointer" }}
+                        >
+                          {actionLoading === `status-${selectedOrder.id}` ? <Loader2 size={18} className="animate-spin" /> : <Zap size={18} />}
+                          Send to Kitchen
+                        </button>
                       )}
-                    </button>
-                  )}
-                  {selectedOrder.status === "Served" && (
-                    <button
-                      onClick={() => handleStatusChange(selectedOrder.id, "Billed")}
-                      disabled={actionLoading === `status-${selectedOrder.id}`}
-                      style={{
-                        flex: 1,
-                        padding: "14px 20px",
-                        borderRadius: 12,
-                        border: "none",
-                        background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                        fontSize: 14,
-                        fontWeight: 700,
-                        color: "white",
-                        cursor: actionLoading === `status-${selectedOrder.id}` ? "not-allowed" : "pointer",
-                        opacity: actionLoading === `status-${selectedOrder.id}` ? 0.6 : 1,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 8,
-                        boxShadow: "0 4px 14px rgba(245, 158, 11, 0.35)",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      {actionLoading === `status-${selectedOrder.id}` ? (
-                        <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> Processing...</>
-                      ) : (
-                        <><CreditCard size={18} /> Proceed to Payment</>
+                      {selectedOrder.status === "KOT Sent" && (
+                        <button
+                          onClick={() => handleMarkServed(selectedOrder.id)}
+                          disabled={actionLoading === `serve-${selectedOrder.id}`}
+                          className={styles.primaryActionBtn}
+                          style={{ cursor: actionLoading === `serve-${selectedOrder.id}` ? "not-allowed" : "pointer" }}
+                        >
+                          {actionLoading === `serve-${selectedOrder.id}` ? <Loader2 size={18} className="animate-spin" /> : <Utensils size={18} />}
+                          Mark as Served
+                        </button>
                       )}
-                    </button>
+                      {selectedOrder.status === "Served" && (
+                        <button
+                          onClick={() => handleBillOrder(selectedOrder.id)}
+                          disabled={actionLoading === `bill-${selectedOrder.id}`}
+                          className={styles.primaryActionBtn}
+                          style={{ background: "#f59e0b", cursor: actionLoading === `bill-${selectedOrder.id}` ? "not-allowed" : "pointer" }}
+                        >
+                          {actionLoading === `bill-${selectedOrder.id}` ? <Loader2 size={18} className="animate-spin" /> : <ReceiptText size={18} />}
+                          Generate Bill
+                        </button>
+                      )}
+                      {selectedOrder.status === "Billed" && (
+                        <Link
+                          href={`/client-admin/orders/new?orderId=${selectedOrder.id}&step=4`}
+                          className={styles.primaryActionBtn}
+                          style={{ background: "#10b981", textDecoration: "none" }}
+                        >
+                          <CreditCard size={18} /> Proceed to Payment
+                        </Link>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {/* TAKEAWAY Flow: OPEN -> BILLED -> PAID -> KOT_SENT -> SERVED */}
+                      {selectedOrder.status === "Open" && (
+                        <button
+                          onClick={() => handleBillOrder(selectedOrder.id)}
+                          disabled={actionLoading === `bill-${selectedOrder.id}`}
+                          className={styles.primaryActionBtn}
+                          style={{ background: "#f59e0b", cursor: actionLoading === `bill-${selectedOrder.id}` ? "not-allowed" : "pointer" }}
+                        >
+                          {actionLoading === `bill-${selectedOrder.id}` ? <Loader2 size={18} className="animate-spin" /> : <ReceiptText size={18} />}
+                          Generate Bill
+                        </button>
+                      )}
+                      {selectedOrder.status === "Billed" && (
+                        <Link
+                          href={`/client-admin/orders/new?orderId=${selectedOrder.id}&step=4`}
+                          className={styles.primaryActionBtn}
+                          style={{ background: "#10b981", textDecoration: "none" }}
+                        >
+                          <CreditCard size={18} /> Proceed to Payment
+                        </Link>
+                      )}
+                      {selectedOrder.status === "Paid" && (
+                        <button
+                          onClick={() => handleStatusChange(selectedOrder.id, "KOT Sent")}
+                          disabled={actionLoading === `status-${selectedOrder.id}`}
+                          className={styles.primaryActionBtn}
+                          style={{ background: "#8b5cf6", cursor: actionLoading === `status-${selectedOrder.id}` ? "not-allowed" : "pointer" }}
+                        >
+                          {actionLoading === `status-${selectedOrder.id}` ? <Loader2 size={18} className="animate-spin" /> : <Zap size={18} />}
+                          Send to Kitchen
+                        </button>
+                      )}
+                      {selectedOrder.status === "KOT Sent" && (
+                        <button
+                          onClick={() => handleMarkServed(selectedOrder.id)}
+                          disabled={actionLoading === `serve-${selectedOrder.id}`}
+                          className={styles.primaryActionBtn}
+                          style={{ cursor: actionLoading === `serve-${selectedOrder.id}` ? "not-allowed" : "pointer" }}
+                        >
+                          {actionLoading === `serve-${selectedOrder.id}` ? <Loader2 size={18} className="animate-spin" /> : <Utensils size={18} />}
+                          Ready for Pickup
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -1651,6 +1695,9 @@ export default function OrderPage() {
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+          animation: spin 1s linear infinite;
         }
         @keyframes fadeIn {
           from { opacity: 0; }
