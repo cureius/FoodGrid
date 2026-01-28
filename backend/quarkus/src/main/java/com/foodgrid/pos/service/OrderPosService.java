@@ -25,7 +25,6 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 
 @ApplicationScoped
@@ -72,8 +71,8 @@ public class OrderPosService {
     o.discountTotal = moneyZero();
     o.grandTotal = moneyZero();
     o.notes = req.notes();
-    o.createdAt = Date.from(Instant.now());
-    o.updatedAt = Date.from(Instant.now());
+    o.createdAt = Instant.now();
+    o.updatedAt = Instant.now();
 
     orderRepository.persist(o);
 
@@ -105,7 +104,7 @@ public class OrderPosService {
     oi.unitPrice = mi.basePrice;
     oi.lineTotal = money(req.qty().multiply(mi.basePrice));
     oi.status = OrderItem.Status.OPEN;
-    oi.createdAt = Date.from(Instant.now());
+    oi.createdAt = Instant.now();
 
     orderItemRepository.persist(oi);
 
@@ -149,7 +148,7 @@ public class OrderPosService {
     deductIngredientsFromStock(o);
 
     o.status = Order.Status.SERVED;
-    o.updatedAt = Date.from(Instant.now());
+    o.updatedAt = Instant.now();
     orderRepository.persist(o);
 
     audit.record("ORDER_SERVED", o.outletId, "Order", o.id, "Order marked as served");
@@ -190,7 +189,7 @@ public class OrderPosService {
     if (allServedOrCancelled && !items.isEmpty()) {
        if (o.status == Order.Status.OPEN || o.status == Order.Status.KOT_SENT) {
            o.status = Order.Status.SERVED;
-           o.updatedAt = Date.from(Instant.now());
+           o.updatedAt = Instant.now();
            orderRepository.persist(o);
        }
     }
@@ -269,7 +268,7 @@ public class OrderPosService {
 
     recomputeTotals(o);
     o.status = Order.Status.BILLED;
-    o.updatedAt = Date.from(Instant.now());
+    o.updatedAt = Instant.now();
     orderRepository.persist(o);
 
     return get(orderId);
@@ -308,7 +307,7 @@ public class OrderPosService {
       }
       
       o.status = newStatus;
-      o.updatedAt = Date.from(Instant.now());
+      o.updatedAt = Instant.now();
       orderRepository.persist(o);
       
       audit.record("ORDER_STATUS_UPDATED", o.outletId, "Order", o.id, "Status changed to " + statusVal);
@@ -371,7 +370,7 @@ public class OrderPosService {
     p.method = parsePaymentMethod(req.method());
     p.amount = money(req.amount());
     p.status = Payment.Status.CAPTURED;
-    p.createdAt = Date.from(Instant.now());
+    p.createdAt = Instant.now();
     paymentRepository.persist(p);
 
     audit.record("PAYMENT_CAPTURED", o.outletId, "Payment", p.id, "orderId=" + o.id + ", method=" + p.method.name());
@@ -387,7 +386,7 @@ public class OrderPosService {
 
     if (paid.compareTo(o.grandTotal) >= 0) {
       o.status = Order.Status.PAID;
-      o.updatedAt = Date.from(Instant.now());
+      o.updatedAt = Instant.now();
       orderRepository.persist(o);
     }
 
@@ -448,7 +447,7 @@ public class OrderPosService {
     if (o.discountTotal == null) o.discountTotal = moneyZero();
 
     o.grandTotal = money(o.subtotal.add(o.taxTotal).subtract(o.discountTotal));
-    o.updatedAt = Date.from(Instant.now());
+    o.updatedAt = Instant.now();
     orderRepository.persist(o);
   }
 

@@ -3,7 +3,7 @@ package com.foodgrid.payment.dto;
 import com.foodgrid.payment.model.RefundStatus;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.Instant;
 
 /**
  * Refund response.
@@ -15,6 +15,6 @@ public record RefundResponse(
     BigDecimal amount,
     RefundStatus status,
     String reason,
-    Date createdAt,
-    Date processedAt
+    Instant createdAt,
+    Instant processedAt
 ) {}

@@ -25,7 +25,6 @@ import jakarta.ws.rs.NotFoundException;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,8 +112,8 @@ public class PaymentService {
         tx.currency = request.effectiveCurrency();
         tx.status = GatewayTransactionStatus.INITIATED;
         tx.idempotencyKey = request.idempotencyKey();
-        tx.createdAt = Date.from(Instant.now());
-        tx.updatedAt = Date.from(Instant.now());
+        tx.createdAt = Instant.now();
+        tx.updatedAt = Instant.now();
 
         transactionRepository.persist(tx);
 
@@ -125,10 +124,9 @@ public class PaymentService {
         );
 
         if (!result.success()) {
-            tx.status = GatewayTransactionStatus.FAILED;
             tx.failureReason = result.errorMessage();
             tx.gatewayResponse = result.rawResponse();
-            tx.updatedAt = Date.from(Instant.now());
+            tx.updatedAt = Instant.now();
             transactionRepository.persist(tx);
 
             auditService.record("PAYMENT_INITIATE_FAILED", outletId, "GatewayTransaction", tx.id,
@@ -141,7 +139,7 @@ public class PaymentService {
         tx.gatewayOrderId = result.gatewayOrderId();
         tx.status = GatewayTransactionStatus.PENDING;
         tx.gatewayResponse = result.rawResponse();
-        tx.updatedAt = Date.from(Instant.now());
+        tx.updatedAt = Instant.now();
         transactionRepository.persist(tx);
 
         auditService.record("PAYMENT_INITIATED", outletId, "GatewayTransaction", tx.id,
@@ -205,12 +203,12 @@ public class PaymentService {
         tx.gatewayPaymentId = request.gatewayPaymentId();
         tx.gatewaySignature = request.gatewaySignature();
         tx.gatewayResponse = result.rawResponse();
-        tx.updatedAt = Date.from(Instant.now());
+        tx.updatedAt = Instant.now();
 
         if (result.success()) {
             tx.status = result.status();
             tx.paymentMethod = result.paymentMethod();
-            tx.completedAt = Date.from(Instant.now());
+            tx.completedAt = Instant.now();
 
             auditService.record("PAYMENT_CAPTURED", tx.outletId, "GatewayTransaction", tx.id,
                 "order=" + tx.orderId + ", method=" + tx.paymentMethod);
@@ -260,7 +258,7 @@ public class PaymentService {
         refund.amount = request.amount();
         refund.status = RefundStatus.INITIATED;
         refund.reason = request.reason();
-        refund.createdAt = Date.from(Instant.now());
+        refund.createdAt = Instant.now();
         refundRepository.persist(refund);
 
         // Process with gateway
@@ -272,7 +270,7 @@ public class PaymentService {
 
         if (result.success()) {
             if (result.status() == RefundStatus.COMPLETED) {
-                refund.processedAt = Date.from(Instant.now());
+                refund.processedAt = Instant.now();
             }
 
             // Update transaction status
@@ -282,7 +280,7 @@ public class PaymentService {
             } else {
                 tx.status = GatewayTransactionStatus.PARTIALLY_REFUNDED;
             }
-            tx.updatedAt = Date.from(Instant.now());
+            tx.updatedAt = Instant.now();
             transactionRepository.persist(tx);
 
             auditService.record("PAYMENT_REFUND_" + result.status(), tx.outletId, "GatewayRefund", refund.id,
@@ -434,7 +432,7 @@ public class PaymentService {
         transaction.status = GatewayTransactionStatus.PENDING;
         transaction.gatewayResponse = linkResult.rawResponse();
         transaction.idempotencyKey = idempotencyKey;
-        transaction.createdAt = new Date();
+        transaction.createdAt = Instant.now();
         
         transactionRepository.persist(transaction);
         
@@ -579,7 +577,7 @@ public class PaymentService {
         event.gatewayType = gatewayType;
         event.payload = payload;
         event.signature = signature;
-        event.createdAt = Date.from(Instant.now());
+        event.createdAt = Instant.now();
 
         // Get any client config for this gateway type to verify signature
         // In production, you'd want to identify the client from the webhook payload
@@ -643,7 +641,7 @@ public class PaymentService {
                 });
 
             event.isProcessed = true;
-            event.processedAt = Date.from(Instant.now());
+            event.processedAt = Instant.now();
         } catch (final Exception e) {
             event.processingError = e.getMessage();
         }
@@ -659,8 +657,8 @@ public class PaymentService {
                 tx.status = GatewayTransactionStatus.CAPTURED;
                 tx.gatewayPaymentId = event.gatewayPaymentId();
                 tx.paymentMethod = event.paymentMethod();
-                tx.completedAt = Date.from(Instant.now());
-                tx.updatedAt = Date.from(Instant.now());
+                tx.completedAt = Instant.now();
+                tx.updatedAt = Instant.now();
                 transactionRepository.persist(tx);
 
                 // Create Payment entity and update Order status
@@ -673,7 +671,7 @@ public class PaymentService {
             if (tx.status == GatewayTransactionStatus.PENDING || tx.status == GatewayTransactionStatus.AUTHORIZED) {
                 tx.status = GatewayTransactionStatus.FAILED;
                 tx.failureReason = "Payment failed (webhook)";
-                tx.updatedAt = Date.from(Instant.now());
+                tx.updatedAt = Instant.now();
                 transactionRepository.persist(tx);
 
                 auditService.record("PAYMENT_WEBHOOK_FAILED", tx.outletId, "GatewayTransaction", tx.id,
@@ -686,7 +684,7 @@ public class PaymentService {
                     .ifPresent(refund -> {
                         if (eventType.contains("processed") || eventType.contains("completed")) {
                             refund.status = RefundStatus.COMPLETED;
-                            refund.processedAt = Date.from(Instant.now());
+                            refund.processedAt = Instant.now();
                             refundRepository.persist(refund);
                         }
                     });
@@ -722,7 +720,7 @@ public class PaymentService {
             payment.amount = tx.amount;
             payment.status = Payment.Status.CAPTURED;
             payment.gatewayTransactionId = tx.id;
-            payment.createdAt = Date.from(Instant.now());
+            payment.createdAt = Instant.now();
             paymentRepository.persist(payment);
 
             // Update transaction with payment ID
@@ -743,7 +741,7 @@ public class PaymentService {
 
         if (totalPaid.compareTo(order.grandTotal) >= 0 && order.status != Order.Status.PAID) {
             order.status = Order.Status.PAID;
-            order.updatedAt = Date.from(Instant.now());
+            order.updatedAt = Instant.now();
             orderRepository.persist(order);
 
             auditService.record("ORDER_PAID", order.outletId, "Order", order.id,

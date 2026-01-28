@@ -3,7 +3,7 @@ package com.foodgrid.payment.model;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -42,13 +42,11 @@ public class GatewayWebhookEvent extends PanacheEntityBase {
     @Column(name = "processing_error", columnDefinition = "TEXT")
     public String processingError;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
-    public Date createdAt;
+    public Instant createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "processed_at")
-    public Date processedAt;
+    public Instant processedAt;
 
     public static GatewayWebhookEvent findByGatewayEventId(final String gatewayEventId) {
         return find("gatewayEventId", gatewayEventId).firstResult();

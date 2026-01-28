@@ -164,7 +164,7 @@ export default function NewOrderPage() {
 
   const tax = useMemo(() => {
     // Tax is calculated by backend, but we'll estimate for display
-    return subTotal * 0.12; // 12% tax estimate
+    return subTotal * 0.0; // 12% tax estimate
   }, [subTotal]);
 
   const total = useMemo(() => subTotal + tax, [subTotal, tax]);

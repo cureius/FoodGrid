@@ -4,7 +4,7 @@ import com.foodgrid.payment.model.GatewayTransactionStatus;
 import com.foodgrid.payment.model.PaymentGatewayType;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.Instant;
 
 /**
  * Gateway transaction response.
@@ -21,6 +21,6 @@ public record GatewayTransactionResponse(
     GatewayTransactionStatus status,
     String paymentMethod,
     String failureReason,
-    Date createdAt,
-    Date completedAt
+    Instant createdAt,
+    Instant completedAt
 ) {}

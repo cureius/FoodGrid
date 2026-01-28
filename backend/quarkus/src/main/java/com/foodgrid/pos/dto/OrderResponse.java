@@ -1,7 +1,7 @@
 package com.foodgrid.pos.dto;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 public record OrderResponse(
@@ -18,7 +18,7 @@ public record OrderResponse(
   BigDecimal discountTotal,
   BigDecimal grandTotal,
   String notes,
-  Date createdAt,
+  Instant createdAt,
   String outletName, // Added
   List<OrderItemResponse> items
 ) {}

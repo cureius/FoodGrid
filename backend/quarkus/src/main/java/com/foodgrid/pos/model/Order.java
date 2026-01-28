@@ -4,7 +4,7 @@ import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.Instant;
 
 @Entity
 @Table(name = "orders")
@@ -57,13 +57,11 @@ public class Order extends PanacheEntityBase {
   @Column(length = 500)
   public String notes;
 
-  @Temporal(TemporalType.TIMESTAMP)
   @Column(name = "created_at")
-  public Date createdAt;
+  public Instant createdAt;
 
-  @Temporal(TemporalType.TIMESTAMP)
   @Column(name = "updated_at")
-  public Date updatedAt;
+  public Instant updatedAt;
 
   public enum OrderType {
     DINE_IN,

@@ -4,7 +4,7 @@ import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 @Entity
@@ -65,17 +65,14 @@ public class GatewayTransaction extends PanacheEntityBase {
     @Column(name = "idempotency_key", length = 255)
     public String idempotencyKey;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
-    public Date createdAt;
+    public Instant createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at")
-    public Date updatedAt;
+    public Instant updatedAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "completed_at")
-    public Date completedAt;
+    public Instant completedAt;
 
     public static GatewayTransaction findByGatewayOrderId(final String gatewayOrderId) {
         return find("gatewayOrderId", gatewayOrderId).firstResult();

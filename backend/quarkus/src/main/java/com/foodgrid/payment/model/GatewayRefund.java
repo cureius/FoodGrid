@@ -4,7 +4,7 @@ import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.Instant;
 
 @Entity
 @Table(name = "gateway_refunds")
@@ -33,13 +33,11 @@ public class GatewayRefund extends PanacheEntityBase {
     @Column(name = "gateway_response", columnDefinition = "TEXT")
     public String gatewayResponse;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created_at")
-    public Date createdAt;
+  @Column(name = "created_at")
+  public Instant createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "processed_at")
-    public Date processedAt;
+  @Column(name = "processed_at")
+  public Instant processedAt;
 
     public static java.util.List<GatewayRefund> findByTransactionId(final String transactionId) {
         return list("transactionId", transactionId);

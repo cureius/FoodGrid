@@ -4,7 +4,7 @@ import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.Instant;
 
 @Entity
 @Table(name = "order_items")
@@ -35,9 +35,8 @@ public class OrderItem extends PanacheEntityBase {
   @Column(nullable = false, length = 20)
   public Status status;
 
-  @Temporal(TemporalType.TIMESTAMP)
   @Column(name = "created_at")
-  public Date createdAt;
+  public Instant createdAt;
 
   public enum Status {
     OPEN,

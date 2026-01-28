@@ -2,7 +2,7 @@ package com.foodgrid.auth.model;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
-import java.util.Date;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -28,12 +28,10 @@ public class Customer extends PanacheEntityBase {
     @Column(nullable = false)
     public String status = "ACTIVE";
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false, updatable = false)
-    public Date createdAt;
+    public Instant createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    public Date lastLoginAt;
+    public Instant lastLoginAt;
 
     @Column(length = 20)
     public String provider = "LOCAL";
@@ -43,7 +41,7 @@ public class Customer extends PanacheEntityBase {
 
     public Customer() {
         this.id = UUID.randomUUID().toString();
-        this.createdAt = new Date();
+        this.createdAt = Instant.now();
     }
 
     public static Customer findByMobile(String mobileNumber) {

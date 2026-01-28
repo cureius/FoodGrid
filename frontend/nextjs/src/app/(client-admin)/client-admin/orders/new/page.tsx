@@ -206,7 +206,7 @@ export default function NewOrderPage() {
     const cartSubTotal = cart.reduce((sum, line) => {
       return sum + Number(line.menuItem.basePrice) * line.qty;
     }, 0);
-    const cartTax = cartSubTotal * 0.12;
+    const cartTax = cartSubTotal * 0.0;
     const existingTax = currentOrder ? Number(currentOrder.taxTotal) : 0;
     return cartTax + existingTax;
   }, [cart, currentOrder]);

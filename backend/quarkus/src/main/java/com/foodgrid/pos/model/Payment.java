@@ -4,7 +4,7 @@ import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.Instant;
 
 @Entity
 @Table(name = "payments")
@@ -31,9 +31,8 @@ public class Payment extends PanacheEntityBase {
   @Column(name = "gateway_transaction_id", length = 36)
   public String gatewayTransactionId;
 
-  @Temporal(TemporalType.TIMESTAMP)
   @Column(name = "created_at")
-  public Date createdAt;
+  public Instant createdAt;
 
   public enum Method {
     CASH,

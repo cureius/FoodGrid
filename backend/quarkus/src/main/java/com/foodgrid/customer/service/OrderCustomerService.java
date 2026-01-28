@@ -16,7 +16,6 @@ import jakarta.ws.rs.NotFoundException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 
 @ApplicationScoped
@@ -49,8 +48,8 @@ public class OrderCustomerService {
         o.discountTotal = moneyZero();
         o.grandTotal = moneyZero();
         o.notes = req.notes();
-        o.createdAt = Date.from(Instant.now());
-        o.updatedAt = Date.from(Instant.now());
+        o.createdAt = Instant.now();
+        o.updatedAt = Instant.now();
 
         orderRepository.persist(o);
 
@@ -73,7 +72,7 @@ public class OrderCustomerService {
                 oi.unitPrice = mi.basePrice;
                 oi.lineTotal = money(itemReq.qty().multiply(mi.basePrice));
                 oi.status = OrderItem.Status.OPEN;
-                oi.createdAt = Date.from(Instant.now());
+                oi.createdAt = Instant.now();
 
                 orderItemRepository.persist(oi);
             }
@@ -107,7 +106,7 @@ public class OrderCustomerService {
         oi.unitPrice = mi.basePrice;
         oi.lineTotal = money(req.qty().multiply(mi.basePrice));
         oi.status = OrderItem.Status.OPEN;
-        oi.createdAt = Date.from(Instant.now());
+        oi.createdAt = Instant.now();
 
         orderItemRepository.persist(oi);
 
@@ -157,7 +156,7 @@ public class OrderCustomerService {
         }
 
         o.status = Order.Status.CANCELLED;
-        o.updatedAt = Date.from(Instant.now());
+        o.updatedAt = Instant.now();
         orderRepository.persist(o);
     }
 
@@ -186,7 +185,7 @@ public class OrderCustomerService {
         if (o.discountTotal == null) o.discountTotal = moneyZero();
 
         o.grandTotal = money(o.subtotal.add(o.taxTotal).subtract(o.discountTotal));
-        o.updatedAt = Date.from(Instant.now());
+        o.updatedAt = Instant.now();
         orderRepository.persist(o);
     }
 

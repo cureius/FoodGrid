@@ -2,7 +2,7 @@ package com.foodgrid.auth.model;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
-import java.util.Date;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -24,22 +24,19 @@ public class CustomerOtpChallenge extends PanacheEntityBase {
     @Column(nullable = false, length = 255)
     public String otpHash;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
-    public Date expiresAt;
+    public Instant expiresAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    public Date consumedAt;
+    public Instant consumedAt;
 
     public int resendCount = 0;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
-    public Date createdAt;
+    public Instant createdAt;
 
     public CustomerOtpChallenge() {
         this.id = UUID.randomUUID().toString();
-        this.createdAt = new Date();
+        this.createdAt = Instant.now();
     }
 
     public static CustomerOtpChallenge findLatest(String mobileNumber) {

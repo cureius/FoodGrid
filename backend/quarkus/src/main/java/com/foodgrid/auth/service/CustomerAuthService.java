@@ -44,7 +44,7 @@ public class CustomerAuthService {
         challenge.email = null; // Not used for mobile OTP
         challenge.challengeType = "MOBILE";
         challenge.otpHash = pinHasher.hash(otp);
-        challenge.expiresAt = Date.from(Instant.now().plus(OTP_TTL));
+        challenge.expiresAt = Instant.now().plus(OTP_TTL);
         challenge.persist();
 
         // In production, send via SMS gateway. For now, log to console.
@@ -61,7 +61,7 @@ public class CustomerAuthService {
         challenge.email = request.email;
         challenge.challengeType = "EMAIL";
         challenge.otpHash = pinHasher.hash(otp);
-        challenge.expiresAt = Date.from(Instant.now().plus(OTP_TTL));
+        challenge.expiresAt = Instant.now().plus(OTP_TTL);
         challenge.persist();
 
         // Send OTP via email asynchronously after transaction commits
@@ -82,7 +82,7 @@ public class CustomerAuthService {
             throw new NotFoundException("No active OTP request found for this number");
         }
 
-        if (challenge.expiresAt.before(new Date())) {
+        if (challenge.expiresAt.isBefore(Instant.now())) {
             throw new BadRequestException("OTP expired");
         }
 
@@ -90,7 +90,7 @@ public class CustomerAuthService {
             throw new ForbiddenException("Invalid OTP");
         }
 
-        challenge.consumedAt = new Date();
+        challenge.consumedAt = Instant.now();
         challenge.persist();
 
         // Find or create customer
@@ -102,7 +102,7 @@ public class CustomerAuthService {
             customer.persist();
         }
 
-        customer.lastLoginAt = new Date();
+        customer.lastLoginAt = Instant.now();
         customer.persist();
 
         final String token = jwtIssuer.issueCustomerAccessToken(customer);
@@ -127,7 +127,7 @@ public class CustomerAuthService {
             throw new NotFoundException("No active OTP request found for this email");
         }
 
-        if (challenge.expiresAt.before(new Date())) {
+        if (challenge.expiresAt.isBefore(Instant.now())) {
             throw new BadRequestException("OTP expired");
         }
 
@@ -135,7 +135,7 @@ public class CustomerAuthService {
             throw new ForbiddenException("Invalid OTP");
         }
 
-        challenge.consumedAt = new Date();
+        challenge.consumedAt = Instant.now();
         challenge.persist();
 
         // Find or create customer
@@ -147,7 +147,7 @@ public class CustomerAuthService {
             customer.persist();
         }
 
-        customer.lastLoginAt = new Date();
+        customer.lastLoginAt = Instant.now();
         customer.persist();
 
         final String token = jwtIssuer.issueCustomerAccessToken(customer);
@@ -205,7 +205,7 @@ public class CustomerAuthService {
             customer.persist();
         }
 
-        customer.lastLoginAt = new Date();
+        customer.lastLoginAt = Instant.now();
         customer.persist();
 
         final String token = jwtIssuer.issueCustomerAccessToken(customer);
@@ -232,7 +232,7 @@ public class CustomerAuthService {
             throw new NotAuthorizedException("Invalid email or passkey (mobile number). If you're not onboarded, please use OTP login.", "Bearer");
         }
 
-        customer.lastLoginAt = new Date();
+        customer.lastLoginAt = Instant.now();
         customer.persist();
 
         final String token = jwtIssuer.issueCustomerAccessToken(customer);
