@@ -357,7 +357,7 @@ export function calculateCartTotal(items: CartItem[]): {
   total: number;
 } {
   const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-  const taxRate = 0.05; 
+  const taxRate = 0.00; 
   const taxAmount = subtotal * taxRate;
   const deliveryFee = 0; 
   const discount = 0; 
