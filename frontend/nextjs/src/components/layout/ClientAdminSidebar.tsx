@@ -26,6 +26,7 @@ const navItems = [
   { icon: ShoppingCart, label: 'Orders', href: '/client-admin/orders' },
   { icon: History, label: 'History', href: '/client-admin/history' },
   { icon: Package, label: 'Inventory', href: '/client-admin/inventory' },
+  { icon: CreditCard, label: 'Payments', href: '/client-admin/payments' },
 ];
 
 const ClientAdminSidebar = () => {

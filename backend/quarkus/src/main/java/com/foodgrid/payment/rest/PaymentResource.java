@@ -95,6 +95,22 @@ public class PaymentResource {
     }
 
     @GET
+    @Path("/client")
+    @RolesAllowed({"CLIENT_ADMIN"})
+    @Operation(summary = "List all client transactions", description = "List all transactions for the client with pagination")
+    public Response listClientTransactions(
+            @QueryParam("page") @DefaultValue("0") final int page,
+            @QueryParam("size") @DefaultValue("20") final int size,
+            @QueryParam("status") final String status,
+            @QueryParam("paymentMethod") final String paymentMethod,
+            @QueryParam("fromDate") final String fromDate,
+            @QueryParam("toDate") final String toDate) {
+        final String clientId = jwt.getClaim("clientId");
+        final var result = paymentService.listClientTransactions(clientId, page, size, status, paymentMethod, fromDate, toDate);
+        return Response.ok(result).build();
+    }
+
+    @GET
     @Path("/{transactionId}/refunds")
     @RolesAllowed({"ADMIN", "CLIENT_ADMIN"})
     @Operation(summary = "List refunds", description = "List refunds for a transaction")

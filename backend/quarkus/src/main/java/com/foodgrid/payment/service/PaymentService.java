@@ -555,6 +555,31 @@ public class PaymentService {
     }
 
     /**
+     * List transactions for a client with pagination and filters.
+     */
+    public PaginatedResponse<GatewayTransactionResponse> listClientTransactions(
+            final String clientId,
+            final int page,
+            final int size,
+            final String status,
+            final String paymentMethod,
+            final String fromDate,
+            final String toDate) {
+        
+        final List<GatewayTransaction> transactions = transactionRepository.findByClientIdPaginated(
+            clientId, page, size, status, paymentMethod, fromDate, toDate);
+            
+        final long totalElements = transactionRepository.countByClientIdFiltered(
+            clientId, status, paymentMethod, fromDate, toDate);
+            
+        final List<GatewayTransactionResponse> content = transactions.stream()
+            .map(this::toResponse)
+            .toList();
+            
+        return PaginatedResponse.of(content, page, size, totalElements);
+    }
+
+    /**
      * List refunds for a transaction.
      */
     public List<RefundResponse> listRefunds(final String transactionId) {

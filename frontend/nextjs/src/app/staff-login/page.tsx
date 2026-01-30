@@ -92,7 +92,7 @@ export default function StaffLoginPage() {
         email: email.trim(),
         pin: pin,
         deviceId: deviceId,
-      });
+      }); // chaneg
 
       if (loginResponse?.accessToken) {
         // Success! Store tokens and redirect

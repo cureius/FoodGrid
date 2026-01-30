@@ -1210,7 +1210,7 @@ export default function EmployeesPage() {
                 <div style={{ marginBottom: 20 }}>
                   <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#1e293b" }}>Avatar URL</label>
                   <input
-                    type="text"
+                    type="url"
                     placeholder="https://example.com/avatar.jpg"
                     value={form.avatarUrl}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, avatarUrl: e.target.value })}
@@ -1493,7 +1493,7 @@ export default function EmployeesPage() {
                 <div style={{ marginBottom: 20 }}>
                   <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#1e293b" }}>Avatar URL</label>
                   <input
-                    type="text"
+                    type="url"
                     placeholder="https://example.com/avatar.jpg"
                     value={form.avatarUrl}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, avatarUrl: e.target.value })}

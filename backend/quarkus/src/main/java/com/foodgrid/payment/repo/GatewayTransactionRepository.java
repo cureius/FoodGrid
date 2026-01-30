@@ -51,4 +51,82 @@ public class GatewayTransactionRepository implements PanacheRepositoryBase<Gatew
     public long countByStatus(final GatewayTransactionStatus status) {
         return count("status", status);
     }
+
+    public List<GatewayTransaction> findByClientIdPaginated(
+            final String clientId,
+            final int page,
+            final int size,
+            final String status,
+            final String paymentMethod,
+            final String fromDate,
+            final String toDate) {
+        
+        final StringBuilder query = new StringBuilder("clientId = ?1");
+        int paramIndex = 2;
+        
+        if (status != null && !status.isBlank()) {
+            query.append(" and status = ?").append(paramIndex++);
+        }
+        if (paymentMethod != null && !paymentMethod.isBlank()) {
+            query.append(" and paymentMethod = ?").append(paramIndex++);
+        }
+        if (fromDate != null && !fromDate.isBlank()) {
+            query.append(" and createdAt >= ?").append(paramIndex++);
+        }
+        if (toDate != null && !toDate.isBlank()) {
+            query.append(" and createdAt <= ?").append(paramIndex++);
+        }
+        
+        query.append(" order by createdAt desc");
+        
+        var panacheQuery = find(query.toString(), buildParams(clientId, status, paymentMethod, fromDate, toDate));
+        return panacheQuery.page(page, size).list();
+    }
+
+    public long countByClientIdFiltered(
+            final String clientId,
+            final String status,
+            final String paymentMethod,
+            final String fromDate,
+            final String toDate) {
+        
+        final StringBuilder query = new StringBuilder("clientId = ?1");
+        int paramIndex = 2;
+        
+        if (status != null && !status.isBlank()) {
+            query.append(" and status = ?").append(paramIndex++);
+        }
+        if (paymentMethod != null && !paymentMethod.isBlank()) {
+            query.append(" and paymentMethod = ?").append(paramIndex++);
+        }
+        if (fromDate != null && !fromDate.isBlank()) {
+            query.append(" and createdAt >= ?").append(paramIndex++);
+        }
+        if (toDate != null && !toDate.isBlank()) {
+            query.append(" and createdAt <= ?").append(paramIndex++);
+        }
+        
+        return count(query.toString(), buildParams(clientId, status, paymentMethod, fromDate, toDate));
+    }
+
+    private Object[] buildParams(final String clientId, final String status, final String paymentMethod, 
+                                  final String fromDate, final String toDate) {
+        final java.util.ArrayList<Object> params = new java.util.ArrayList<>();
+        params.add(clientId);
+        
+        if (status != null && !status.isBlank()) {
+            params.add(GatewayTransactionStatus.valueOf(status));
+        }
+        if (paymentMethod != null && !paymentMethod.isBlank()) {
+            params.add(paymentMethod);
+        }
+        if (fromDate != null && !fromDate.isBlank()) {
+            params.add(java.time.Instant.parse(fromDate));
+        }
+        if (toDate != null && !toDate.isBlank()) {
+            params.add(java.time.Instant.parse(toDate));
+        }
+        
+        return params.toArray();
+    }
 }
