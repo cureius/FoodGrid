@@ -21,20 +21,42 @@ public class OutletAdminService {
   @Inject SecurityIdentity identity;
 
   public List<OutletResponse> list() {
+    final String cid = clientId();
     final String adminId = subject();
+    
+    if (cid != null && !cid.isBlank()) {
+      // If user has a clientId, they should see all outlets for that client, 
+      // PLUS any outlets they personally own that aren't yet assigned to a client.
+      return outletRepository.find("clientId = ?1 or (clientId is null and ownerId = ?2)", cid, adminId)
+          .stream().map(OutletAdminService::toResponse).toList();
+    }
+
     if (adminId != null && !adminId.isBlank()) {
-      // Restaurant owners can only see their own outlets
+      // Regular owner access (no clientId in token yet)
       return outletRepository.list("ownerId", adminId).stream().map(OutletAdminService::toResponse).toList();
     }
 
-    // Super admin can see all outlets
+    // Super admin fallback
     return outletRepository.listAll().stream().map(OutletAdminService::toResponse).toList();
   }
 
+  @Transactional
   public OutletResponse get(final String outletId) {
-    return outletRepository.findByIdOptional(outletId)
-      .map(OutletAdminService::toResponse)
+    final Outlet o = outletRepository.findByIdOptional(outletId)
       .orElseThrow(() -> new NotFoundException("Outlet not found"));
+      
+    // Auto-migration: If outlet has no clientId but user accessing it does,
+    // and this user is the owner, or part of the same client admin group.
+    final String cid = clientId();
+    if (o.clientId == null && cid != null && !cid.isBlank()) {
+        final String sub = subject();
+        if (sub != null && sub.equals(o.ownerId)) {
+            o.clientId = cid;
+            outletRepository.persist(o);
+        }
+    }
+    
+    return toResponse(o);
   }
 
   @Transactional
@@ -52,6 +74,7 @@ public class OutletAdminService {
     final Outlet o = new Outlet();
     o.id = Ids.uuid();
     o.ownerId = req.ownerId();
+    o.clientId = clientId();
     o.name = req.name();
     o.timezone = req.timezone();
     o.status = req.status() != null ? Outlet.Status.valueOf(req.status()) : Outlet.Status.ACTIVE;
@@ -99,6 +122,11 @@ public class OutletAdminService {
     }
 
     outletRepository.delete(o);
+  }
+
+  private String clientId() {
+    final Object v = identity.getAttributes().get("clientId");
+    return v == null ? null : v.toString();
   }
 
   private String subject() {

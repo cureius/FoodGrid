@@ -45,6 +45,7 @@ public class TenantFilter implements ContainerRequestFilter {
     // 1) Try clientId claim first
     final String clientId = jwt.getClaim("clientId");
     if (clientId != null && !clientId.isBlank()) {
+      LOG.infof("Resolved tenant from clientId claim: %s", clientId);
       tenantContext.setTenantId(clientId);
       return;
     }
@@ -53,6 +54,7 @@ public class TenantFilter implements ContainerRequestFilter {
     final String principalType = jwt.getClaim("principalType");
     final String subject = jwt.getSubject();
     if ("ADMIN".equalsIgnoreCase(principalType) && subject != null && !subject.isBlank()) {
+      LOG.infof("Resolved tenant from ADMIN subject: %s", subject);
       tenantContext.setTenantId(subject);
       return;
     }
