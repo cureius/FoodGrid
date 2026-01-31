@@ -459,7 +459,7 @@ export default function TenantsPage() {
     try {
       setSaving(true);
       setError(null);
-      await deactivatePaymentConfig(editingPaymentGateway.id, config.gatewayType);
+      await deactivatePaymentConfig(config.id);
       setSuccess({ message: `Payment configuration deleted successfully` });
       await loadPaymentConfigs(editingPaymentGateway.id);
       setTimeout(() => setSuccess(null), 5000);

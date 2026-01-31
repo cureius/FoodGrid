@@ -131,6 +131,17 @@ public class EventLaggingFilter implements ContainerRequestFilter, ContainerResp
     private void logResponseDetails(final ContainerRequestContext requestContext, final ContainerResponseContext responseContext) {
         final StringBuilder sb = new StringBuilder("=== RESPONSE DETAILS ===\nStatus: ").append(responseContext.getStatus()).append("\n");
 
+        // Add error context for unsuccessful responses
+        final int status = responseContext.getStatus();
+        if (status >= 400) {
+            sb.append("ERROR TYPE: ");
+            if (status >= 500) {
+                sb.append("SERVER ERROR (5xx)\n");
+            } else {
+                sb.append("CLIENT ERROR (4xx)\n");
+            }
+        }
+
         // Log response headers
         final MultivaluedMap<String, Object> responseHeaders = responseContext.getHeaders();
         if (!responseHeaders.isEmpty()) {
@@ -158,9 +169,21 @@ public class EventLaggingFilter implements ContainerRequestFilter, ContainerResp
             } catch (final Exception e) {
                 sb.append("Response Body: [Unable to log - ").append(e.getMessage()).append("]\n");
             }
+        } else {
+            // For error responses, explicitly note if no response body is available
+            if (status >= 400) {
+                sb.append("Response Body: [No response entity available]\n");
+            }
         }
 
-        LOG.info(sb.toString());
+        // Check if response status indicates an error (4xx or 5xx)
+        if (status >= 400) {
+            // Log as ERROR for unsuccessful responses
+            LOG.error(sb.toString());
+        } else {
+            // Log as INFO for successful responses
+            LOG.info(sb.toString());
+        }
     }
 
     private String formatJson(final String json) {

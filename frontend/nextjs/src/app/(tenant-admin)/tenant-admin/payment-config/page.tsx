@@ -290,7 +290,7 @@ export default function PaymentConfigPage() {
       setSaving(true);
       setError(null);
       setSuccess(null);
-      await deactivatePaymentConfig(config.clientId, config.gatewayType);
+      await deactivatePaymentConfig(config.id);
       await refreshConfigs();
       setSuccess(`Payment configuration for ${config.gatewayType} deactivated successfully`);
       setTimeout(() => setSuccess(null), 5000);

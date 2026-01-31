@@ -409,8 +409,8 @@ export function getPaymentConfig(configId: string) {
   });
 }
 
-export function deactivatePaymentConfig(clientId: string, gatewayType: PaymentGatewayType) {
-  return http<void>(`/api/v1/payment-config/${encodeURIComponent(gatewayType)}/${encodeURIComponent(clientId)}`, {
+export function deactivatePaymentConfig(configId: string) {
+  return http<void>(`/api/v1/payment-config/${encodeURIComponent(configId)}`, {
     method: "DELETE",
     headers: {
       ...adminOnlyAuthHeader()

@@ -86,6 +86,15 @@ public class PaymentConfigResource {
         return Response.noContent().build();
     }
 
+    @DELETE
+    @Path("/{configId}")
+    @RolesAllowed({"CLIENT_ADMIN", "SUPER_ADMIN", "ADMIN", "TENANT_ADMIN"})
+    @Operation(summary = "Delete configuration", description = "Delete a payment gateway configuration permanently")
+    public Response deleteConfig(@PathParam("configId") final String configId) {
+        configService.deleteConfig(configId);
+        return Response.noContent().build();
+    }
+
     @PUT
     @Path("/{configId}")
     @RolesAllowed({"CLIENT_ADMIN", "SUPER_ADMIN", "ADMIN", "TENANT_ADMIN"})
