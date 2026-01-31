@@ -16,6 +16,9 @@ public class Payment extends PanacheEntityBase {
   @Column(name = "order_id", nullable = false, length = 36)
   public String orderId;
 
+  @Column(name = "client_id", length = 36)
+  public String clientId;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   public Method method;

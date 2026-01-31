@@ -96,7 +96,7 @@ public class PaymentResource {
 
     @GET
     @Path("/client")
-    @RolesAllowed({"CLIENT_ADMIN"})
+    @RolesAllowed({"ADMIN", "CLIENT_ADMIN"})
     @Operation(summary = "List all client transactions", description = "List all transactions for the client with pagination")
     public Response listClientTransactions(
             @QueryParam("page") @DefaultValue("0") final int page,
@@ -106,7 +106,9 @@ public class PaymentResource {
             @QueryParam("fromDate") final String fromDate,
             @QueryParam("toDate") final String toDate) {
         final String clientId = jwt.getClaim("clientId");
-        final var result = paymentService.listClientTransactions(clientId, page, size, status, paymentMethod, fromDate, toDate);
+        // Fallback to sub if clientId claim is missing (for legacy or strictly global admins)
+        final String effectiveClientId = (clientId != null && !clientId.isBlank()) ? clientId : jwt.getSubject();
+        final var result = paymentService.listClientTransactions(effectiveClientId, page, size, status, paymentMethod, fromDate, toDate);
         return Response.ok(result).build();
     }
 

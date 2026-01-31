@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
+import jakarta.enterprise.event.Observes;
+import io.quarkus.runtime.StartupEvent;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
@@ -45,6 +47,9 @@ public class PaymentService {
     GatewayTransactionRepository transactionRepository;
 
     @Inject
+    PaymentRepository paymentRepository;
+
+    @Inject
     GatewayRefundRepository refundRepository;
 
     @Inject
@@ -63,10 +68,34 @@ public class PaymentService {
     OrderRepository orderRepository;
 
     @Inject
-    PaymentRepository paymentRepository;
-
-    @Inject
     OutletRepository outletRepository;
+
+    public void onStart(@Observes final StartupEvent ev) {
+        backfillClientId();
+    }
+
+    @Transactional
+    public void backfillClientId() {
+        LOG.info("Starting payment clientId backfill...");
+        final List<Payment> payments = paymentRepository.find("clientId is null").list();
+        int count = 0;
+        for (final Payment p : payments) {
+            try {
+                final com.foodgrid.pos.model.Order o = orderRepository.findByIdOptional(p.orderId).orElse(null);
+                if (o != null) {
+                    final com.foodgrid.auth.model.Outlet outlet = outletRepository.findByIdOptional(o.outletId).orElse(null);
+                    if (outlet != null) {
+                        p.clientId = (outlet.clientId != null && !outlet.clientId.isBlank()) ? outlet.clientId : outlet.ownerId;
+                        paymentRepository.persist(p);
+                        count++;
+                    }
+                }
+            } catch (final Exception e) {
+                LOG.errorf("Failed to backfill payment %s: %s", p.id, e.getMessage());
+            }
+        }
+        LOG.infof("Finished payment backfill. Updated %d records.", count);
+    }
 
     @Inject
     ClientRepository clientRepository;
@@ -566,17 +595,64 @@ public class PaymentService {
             final String fromDate,
             final String toDate) {
         
-        final List<GatewayTransaction> transactions = transactionRepository.findByClientIdPaginated(
+        // 1. Fetch Payments
+        final List<Payment> payments = paymentRepository.findByClientIdPaginated(
             clientId, page, size, status, paymentMethod, fromDate, toDate);
             
-        final long totalElements = transactionRepository.countByClientIdFiltered(
+        final long totalElements = paymentRepository.countByClientIdFiltered(
             clientId, status, paymentMethod, fromDate, toDate);
             
-        final List<GatewayTransactionResponse> content = transactions.stream()
-            .map(this::toResponse)
+        // 2. Fetch Gateway Transactions for GATEWAY payments in batch
+        final List<String> gatewayTxIds = payments.stream()
+            .filter(p -> p.method == Payment.Method.GATEWAY && p.gatewayTransactionId != null)
+            .map(p -> p.gatewayTransactionId)
+            .toList();
+            
+        final Map<String, GatewayTransaction> gatewayTxMap = new HashMap<>();
+        if (!gatewayTxIds.isEmpty()) {
+            final List<GatewayTransaction> gatewayTxs = transactionRepository.find("id in ?1", gatewayTxIds).list();
+            gatewayTxs.forEach(tx -> gatewayTxMap.put(tx.id, tx));
+        }
+
+        // 3. Map to Response
+        final List<GatewayTransactionResponse> content = payments.stream()
+            .map(p -> {
+                if (p.method == Payment.Method.GATEWAY && p.gatewayTransactionId != null) {
+                    final GatewayTransaction tx = gatewayTxMap.get(p.gatewayTransactionId);
+                    if (tx != null) {
+                        return toResponse(tx);
+                    }
+                }
+                
+                // Fallback or Manual Payment
+                return new GatewayTransactionResponse(
+                    p.id,
+                    p.orderId,
+                    p.id,
+                    null,
+                    null,
+                    null,
+                    p.amount,
+                    "INR",
+                    mapPaymentStatus(p.status),
+                    p.method.name(),
+                    null,
+                    p.createdAt,
+                    p.createdAt
+                );
+            })
             .toList();
             
         return PaginatedResponse.of(content, page, size, totalElements);
+    }
+
+    private GatewayTransactionStatus mapPaymentStatus(final Payment.Status status) {
+        if (status == null) return GatewayTransactionStatus.PENDING;
+        return switch (status) {
+            case CAPTURED -> GatewayTransactionStatus.CAPTURED;
+            case VOID -> GatewayTransactionStatus.CANCELLED;
+            default -> GatewayTransactionStatus.PENDING;
+        };
     }
 
     /**
@@ -741,6 +817,7 @@ public class PaymentService {
             payment = new Payment();
             payment.id = Ids.uuid();
             payment.orderId = tx.orderId;
+            payment.clientId = tx.clientId;
             payment.method = Payment.Method.GATEWAY;
             payment.amount = tx.amount;
             payment.status = Payment.Status.CAPTURED;

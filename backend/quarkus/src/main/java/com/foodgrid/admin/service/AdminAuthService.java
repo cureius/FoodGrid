@@ -36,8 +36,7 @@ public class AdminAuthService {
 
     final List<String> roles = roleRepository.listRoles(admin.id);
 
-    // NOTE: AdminUser currently isn't linked to a Client. Until it is, admin tokens remain non-tenant-scoped.
-    final String clientId = null;
+    final String clientId = admin.clientId;
 
     final String accessToken = jwtIssuer.issueAdminAccessToken(admin, null, clientId, roles);
     final String refreshToken = jwtIssuer.issueAdminRefreshToken(admin, null, clientId);

@@ -369,6 +369,7 @@ public class OrderPosService {
     p.orderId = o.id;
     p.method = parsePaymentMethod(req.method());
     p.amount = money(req.amount());
+    p.clientId = tenantId; // In POS context, tenantId is the clientId
     p.status = Payment.Status.CAPTURED;
     p.createdAt = Instant.now();
     paymentRepository.persist(p);
