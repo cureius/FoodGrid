@@ -19,9 +19,9 @@
   padding: 10px 14px;
   border-radius: 12px;
   border: 1px solid var(--border-light);
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--component-bg);
   font-weight: 900;
-  color: rgba(17, 24, 39, 0.92);
+  color: var(--text-primary);
 }
 
 .headerMid {
@@ -38,8 +38,8 @@
   gap: 8px;
   padding: 6px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
 }
 
 .segment {
@@ -47,13 +47,13 @@
   padding: 0 14px;
   border-radius: 12px;
   font-weight: 800;
-  color: rgba(109, 120, 139, 0.95);
+  color: var(--text-secondary);
 }
 
 .segmentActive {
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 10px 26px rgba(16, 24, 40, 0.08);
-  color: rgba(17, 24, 39, 0.92);
+  background: var(--component-bg);
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
 }
 
 .routeTabs {
@@ -75,12 +75,12 @@
   gap: 10px;
   padding: 0 14px;
   border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--border-light);
+  background: var(--component-bg);
 }
 
 .searchWrap svg {
-  color: rgba(109, 120, 139, 0.9);
+  color: var(--text-tertiary);
 }
 
 .searchWrap input {
@@ -88,20 +88,20 @@
   border: none;
   outline: none;
   background: transparent;
-  color: rgba(17, 24, 39, 0.92);
+  color: var(--text-primary);
 }
 
 .addBtn {
   height: 40px;
   padding: 0 16px;
   border-radius: 14px;
-  background: rgba(57, 107, 251, 1);
+  background: var(--primary);
   color: white;
   font-weight: 900;
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 14px 30px rgba(57, 107, 251, 0.25);
+  box-shadow: 0 14px 30px rgba(75, 112, 245, 0.25);
 }
 
 .tabs {
@@ -110,8 +110,8 @@
   gap: 4px;
   padding: 4px;
   border-radius: 14px;
-  background: rgba(243, 244, 246, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
 }
 
 .tab {
@@ -119,7 +119,7 @@
   border-radius: 10px;
   font-size: 13px;
   font-weight: 700;
-  color: rgba(109, 120, 139, 0.95);
+  color: var(--text-secondary);
   background: transparent;
   border: none;
   white-space: nowrap;
@@ -128,18 +128,18 @@
 }
 
 .tab:hover {
-  color: rgba(57, 107, 251, 1);
-  background: rgba(255, 255, 255, 0.5);
+  color: var(--primary);
+  background: var(--component-hover);
 }
 
 .tabActive {
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.08);
-  color: rgba(57, 107, 251, 1);
+  background: var(--component-bg);
+  box-shadow: var(--shadow-sm);
+  color: var(--primary);
 }
 
 .tabActive:hover {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--component-bg);
 }
 
 .shell {
@@ -152,7 +152,7 @@
 .filterCard {
   border-radius: 16px;
   border: 1px solid var(--border-light);
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--bg-surface);
   box-shadow: var(--shadow-card);
   padding: 14px;
   position: sticky;
@@ -170,13 +170,13 @@
 .filterSection {
   margin-top: 14px;
   padding-top: 14px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 1px solid var(--border-light);
 }
 
 .filterLabel {
   font-size: 12px;
   font-weight: 900;
-  color: rgba(109, 120, 139, 0.95);
+  color: var(--text-secondary);
   margin-bottom: 10px;
 }
 
@@ -190,9 +190,9 @@
   height: 34px;
   padding: 0 12px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  color: rgba(109, 120, 139, 0.95);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
   font-weight: 900;
   display: inline-flex;
   align-items: center;
@@ -200,9 +200,9 @@
 }
 
 .chipActive {
-  background: rgba(57, 107, 251, 0.10);
-  border-color: rgba(57, 107, 251, 0.20);
-  color: rgba(57, 107, 251, 1);
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .badgeCount {
@@ -229,19 +229,19 @@
   height: 38px;
   padding: 0 12px;
   border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--border-light);
+  background: var(--component-bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-weight: 900;
-  color: rgba(109, 120, 139, 0.95);
+  color: var(--text-secondary);
 }
 
 .categoryBtnActive {
-  background: rgba(57, 107, 251, 0.10);
-  border-color: rgba(57, 107, 251, 0.20);
-  color: rgba(57, 107, 251, 1);
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .categoryText {
@@ -258,8 +258,8 @@
   height: 22px;
   padding: 0 8px;
   border-radius: 999px;
-  background: rgba(57, 107, 251, 0.10);
-  color: rgba(57, 107, 251, 1);
+  background: var(--primary-light);
+  color: var(--primary);
   font-weight: 900;
   font-size: 12px;
 }
@@ -269,15 +269,16 @@
   margin-top: 14px;
   height: 44px;
   border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border-light);
+  background: var(--bg-tertiary);
   font-weight: 900;
+  color: var(--text-primary);
 }
 
 .contentCard {
   border-radius: 16px;
   border: 1px solid var(--border-light);
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--bg-surface);
   box-shadow: var(--shadow-card);
   padding: 14px;
   min-height: 680px;
@@ -287,7 +288,7 @@
 .contentCardFull {
   border-radius: 16px;
   border: 1px solid var(--border-light);
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--bg-surface);
   box-shadow: var(--shadow-card);
   padding: 14px;
   min-height: 680px;
@@ -348,13 +349,13 @@
   top: 10px;
   right: 10px;
   z-index: 10;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--bg-surface);
   padding: 4px;
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-light);
 }
 
 .dishSelectionOverlay input {
@@ -379,10 +380,10 @@
   all: unset;
   cursor: pointer;
   border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--border-light);
+  background: var(--component-bg);
   overflow: hidden;
-  box-shadow: 0 14px 30px rgba(16, 24, 40, 0.06);
+  box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
   min-height: 240px;
@@ -392,7 +393,7 @@
   position: relative;
   height: 140px;
   min-height: 140px;
-  background: rgba(243, 244, 246, 1);
+  background: var(--bg-tertiary);
 }
 
 .dishImg {
@@ -408,22 +409,21 @@
   height: 26px;
   padding: 0 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
   display: inline-flex;
   align-items: center;
   gap: 8px;
   font-size: 12px;
   font-weight: 900;
-  color: rgba(17, 24, 39, 0.9);
-  
+  color: var(--text-primary);
 }
 
 .availableDot {
   width: 8px;
   height: 8px;
   border-radius: 99px;
-  background: rgba(20, 184, 166, 1);
+  background: var(--success);
 }
 
 .dishBody {
@@ -432,13 +432,13 @@
 
 .dishName {
   font-weight: 900;
-  color: rgba(17, 24, 39, 0.92);
+  color: var(--text-primary);
 }
 
 .dishCategory {
   margin-top: 2px;
   font-size: 12px;
-  color: rgba(109, 120, 139, 0.92);
+  color: var(--text-secondary);
 }
 
 .dishFooter {
@@ -451,7 +451,7 @@
 
 .canServe {
   font-size: 12px;
-  color: rgba(109, 120, 139, 0.92);
+  color: var(--text-secondary);
 }
 
 .stockInline {
@@ -467,19 +467,19 @@
 }
 
 .dotHigh {
-  background: rgba(16, 185, 129, 1);
+  background: var(--success);
 }
 
 .dotMedium {
-  background: rgba(245, 158, 11, 1);
+  background: var(--warning);
 }
 
 .dotLow {
-  background: rgba(239, 68, 68, 1);
+  background: var(--danger);
 }
 
 .dotEmpty {
-  background: rgba(156, 163, 175, 1);
+  background: var(--text-tertiary);
 }
 
 .stockText {
@@ -526,8 +526,8 @@
   align-items: center;
   padding: 12px;
   border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--border-light);
+  background: var(--component-bg);
 }
 
 .ingLeft {
@@ -542,7 +542,7 @@
   height: 52px;
   border-radius: 14px;
   object-fit: cover;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--border-light);
 }
 
 .ingName {
@@ -555,13 +555,13 @@
 .ingMeta {
   margin-top: 2px;
   font-size: 12px;
-  color: rgba(109, 120, 139, 0.92);
+  color: var(--text-secondary);
 }
 
 .ingColLabel {
   font-size: 10px;
   font-weight: 900;
-  color: rgba(156, 163, 175, 1);
+  color: var(--text-tertiary);
 }
 
 .ingColValue {
@@ -578,41 +578,41 @@
   justify-content: center;
   font-size: 12px;
   font-weight: 900;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--border-light);
 }
 
 .statusNeed {
-  color: rgba(239, 68, 68, 1);
-  background: rgba(239, 68, 68, 0.08);
+  color: var(--danger);
+  background: var(--danger-light);
 }
 
 .statusNormal {
-  color: rgba(245, 158, 11, 1);
-  background: rgba(245, 158, 11, 0.10);
+  color: var(--warning);
+  background: var(--warning-light);
 }
 
 .statusGood {
-  color: rgba(16, 185, 129, 1);
-  background: rgba(16, 185, 129, 0.10);
+  color: var(--success);
+  background: var(--success-light);
 }
 
 .moreBtn {
   width: 36px;
   height: 36px;
   border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--border-light);
+  background: var(--component-bg);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: rgba(109, 120, 139, 0.9);
+  color: var(--text-secondary);
 }
 
 /* Modal */
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(17, 24, 39, 0.22);
+  background: var(--bg-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -623,10 +623,10 @@
 .modal {
   width: min(980px, 96vw);
   max-height: 86vh;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--bg-surface);
   border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 30px 70px rgba(16, 24, 40, 0.18);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-xl);
   overflow: hidden;
 }
 
@@ -635,7 +635,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .modalTitle {
@@ -646,18 +646,19 @@
   width: 36px;
   height: 36px;
   border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--border-light);
+  background: var(--component-bg);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  color: var(--text-primary);
 }
 
 .iconCloseDark {
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: rgba(17, 24, 39, 0.95);
+  background: var(--navy);
   color: white;
   display: inline-flex;
   align-items: center;
@@ -672,7 +673,7 @@
 
 .modalSidebar {
   padding: 14px;
-  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  border-right: 1px solid var(--border-light);
 }
 
 .stepRow {
@@ -684,7 +685,7 @@
 }
 
 .stepRowActive {
-  background: rgba(57, 107, 251, 0.08);
+  background: var(--primary-light);
 }
 
 .stepDot {
@@ -739,23 +740,25 @@
 .label {
   font-size: 12px;
   font-weight: 900;
-  color: rgba(17, 24, 39, 0.9);
+  color: var(--text-primary);
 }
 
 .input {
   height: 40px;
   border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.10);
+  border: 1px solid var(--border-light);
   padding: 0 12px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--component-bg);
+  color: var(--text-primary);
 }
 
 .textarea {
   min-height: 120px;
   border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.10);
+  border: 1px solid var(--border-light);
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--component-bg);
+  color: var(--text-primary);
   resize: none;
 }
 
@@ -769,10 +772,10 @@
   height: 36px;
   padding: 0 18px;
   border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--border-light);
+  background: var(--bg-tertiary);
   font-weight: 900;
-  color: rgba(109, 120, 139, 0.95);
+  color: var(--text-secondary);
 }
 
 .priceWrap {
@@ -780,7 +783,7 @@
   grid-template-columns: 36px 1fr;
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.10);
+  border: 1px solid var(--border-light);
 }
 
 .pricePrefix {
@@ -788,7 +791,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(243, 244, 246, 1);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
   font-weight: 900;
 }
 
@@ -797,7 +801,8 @@
   border: none;
   outline: none;
   padding: 0 12px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--component-bg);
+  color: var(--text-primary);
 }
 
 .ingredientsGrid {
@@ -811,12 +816,12 @@
   height: 40px;
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.10);
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(var(--bg-surface-rgb), 0.95);
   padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: rgba(109, 120, 139, 0.95);
+  color: var(--text-secondary);
   font-weight: 900;
 }
 
@@ -854,7 +859,7 @@
 .detailModal {
   width: min(520px, 92vw);
   max-height: 80vh;
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(var(--bg-surface-rgb), 0.96);
   border-radius: 16px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 0 30px 70px rgba(16, 24, 40, 0.18);
@@ -868,7 +873,7 @@
 
 .detailSectionTitle {
   font-weight: 900;
-  color: rgba(17, 24, 39, 0.92);
+  color: var(--text-primary);
   margin-bottom: 10px;
 }
 
@@ -899,7 +904,7 @@
 .detailDishMeta {
   margin-top: 2px;
   font-size: 12px;
-  color: rgba(109, 120, 139, 0.92);
+  color: var(--text-secondary);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -933,7 +938,7 @@
   width: 34px;
   height: 34px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(var(--bg-surface-rgb), 0.9);
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
@@ -944,7 +949,7 @@
 
 .detailIngAmt {
   font-size: 11px;
-  color: rgba(109, 120, 139, 0.92);
+  color: var(--text-secondary);
 }
 
 .detailIngLevel {
@@ -972,7 +977,7 @@
   padding: 14px 16px;
   border-radius: 16px;
   border: 1px solid rgba(0, 0, 0, 0.06);
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(var(--bg-surface-rgb), 0.92);
 }
 
 .categoryMgmtLeft {
@@ -995,13 +1000,13 @@
 
 .categoryMgmtName {
   font-weight: 900;
-  color: rgba(17, 24, 39, 0.92);
+  color: var(--text-primary);
 }
 
 .categoryMgmtMeta {
   margin-top: 2px;
   font-size: 12px;
-  color: rgba(109, 120, 139, 0.92);
+  color: var(--text-secondary);
 }
 
 .categoryMgmtActions {
@@ -1015,7 +1020,7 @@
   height: 36px;
   border-radius: 10px;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(var(--bg-surface-rgb), 0.92);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1064,7 +1069,7 @@
 .loadingText {
   padding: 24px;
   text-align: center;
-  color: rgba(109, 120, 139, 0.95);
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
@@ -1078,7 +1083,7 @@
 .emptyText {
   padding: 24px;
   text-align: center;
-  color: rgba(109, 120, 139, 0.95);
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
@@ -1086,7 +1091,7 @@
 .categoryModal {
   width: min(480px, 92vw);
   max-height: 90vh;
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(var(--bg-surface-rgb), 0.96);
   border-radius: 16px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 0 30px 70px rgba(16, 24, 40, 0.18);

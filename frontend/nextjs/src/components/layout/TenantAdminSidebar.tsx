@@ -17,6 +17,7 @@ import {
   Wallet
 } from 'lucide-react';
 import styles from './TenantAdminSidebar.module.css';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/tenant-admin' },
@@ -106,6 +107,7 @@ const TenantAdminSidebar = () => {
       </nav>
 
       <div className={styles.footer}>
+        <ThemeSwitcher className={styles.themeSwitcher} />
         <button onClick={handleLogout} className={styles.logoutBtn}>
           <LogOut size={20} />
           <span>Logout</span>

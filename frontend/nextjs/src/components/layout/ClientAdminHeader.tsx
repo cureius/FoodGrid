@@ -4,6 +4,7 @@ import React from 'react';
 import { useOutlet } from '@/contexts/OutletContext';
 import { ChevronDown, Store } from 'lucide-react';
 import styles from './ClientAdminHeader.module.css';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
 const ClientAdminHeader: React.FC = () => {
   const { selectedOutlet, outlets, setSelectedOutletId, loading } = useOutlet();

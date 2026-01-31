@@ -3,12 +3,13 @@
 import React from 'react';
 import { useTheme } from '@/styles/ThemeProvider';
 
-export function ThemeSwitcher() {
+export function ThemeSwitcher({ className }: { className?: string }) {
   const { mode, toggleTheme } = useTheme();
 
   return (
     <button
       onClick={toggleTheme}
+      className={className}
       aria-label={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}
       title={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}
       style={{
@@ -37,12 +38,12 @@ export function ThemeSwitcher() {
       {mode === 'light' ? (
         <>
           <SunIcon />
-          Light
+          <span>Light</span>
         </>
       ) : (
         <>
           <MoonIcon />
-          Dark
+          <span>Dark</span>
         </>
       )}
     </button>

@@ -1,7 +1,7 @@
 .sidebar {
   width: 260px;
   height: 100vh;
-  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  background: var(--navy);
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
@@ -10,6 +10,7 @@
   top: 0;
   z-index: 100;
   overflow-y: auto;
+  border-right: 1px solid var(--border-light);
 }
 
 .logoContainer {
@@ -24,12 +25,12 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(75, 112, 245, 0.4);
 }
 
 .logoText {
@@ -40,14 +41,14 @@
 .logoMain {
   font-size: 20px;
   font-weight: 700;
-  color: white;
+  color: var(--text-inverse);
   letter-spacing: -0.5px;
 }
 
 .logoSub {
   font-size: 11px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -68,11 +69,12 @@
 .navSectionTitle {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 0 12px;
   margin-bottom: 8px;
+  opacity: 0.6;
 }
 
 .navItem {
@@ -81,7 +83,7 @@
   gap: 12px;
   padding: 12px 14px;
   border-radius: 10px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-muted);
   font-weight: 500;
   font-size: 14px;
   transition: all 0.2s ease;
@@ -89,18 +91,18 @@
 }
 
 .navItem:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: white;
+  background: var(--component-hover);
+  color: var(--text-inverse);
 }
 
 .activeNavItem {
-  background: rgba(59, 130, 246, 0.25);
-  color: white;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+  background: var(--primary);
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(75, 112, 245, 0.2);
 }
 
 .activeNavItem:hover {
-  background: rgba(59, 130, 246, 0.35);
+  background: var(--primary-hover);
 }
 
 .navIcon {
@@ -112,7 +114,10 @@
 .footer {
   margin-top: auto;
   padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .logoutBtn {
@@ -123,8 +128,8 @@
   padding: 12px 14px;
   border-radius: 10px;
   border: none;
-  background: rgba(239, 68, 68, 0.12);
-  color: #fca5a5;
+  background: var(--danger-light);
+  color: var(--danger);
   font-weight: 500;
   font-size: 14px;
   cursor: pointer;
@@ -133,7 +138,11 @@
 
 .logoutBtn:hover {
   background: rgba(239, 68, 68, 0.2);
-  color: #fecaca;
+}
+
+.themeSwitcher {
+  justify-content: flex-start !important;
+  width: 100%;
 }
 
 /* Responsive */
@@ -146,7 +155,8 @@
   .logoText,
   .navSectionTitle,
   .navItem span,
-  .logoutBtn span {
+  .logoutBtn span,
+  .themeSwitcher span {
     display: none;
   }
 
@@ -156,8 +166,9 @@
   }
 
   .navItem,
-  .logoutBtn {
-    justify-content: center;
-    padding: 12px;
+  .logoutBtn,
+  .themeSwitcher {
+    justify-content: center !important;
+    padding: 12px !important;
   }
 }

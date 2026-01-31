@@ -522,15 +522,15 @@ export default function NewOrderPage() {
         <div style={{ display: "flex", justifyContent: "center", padding: "40px 20px" }}>
           <div style={{
             width: "min(600px, 95vw)",
-            background: "white",
+            background: "var(--bg-surface)",
             border: "1px solid rgba(0,0,0,0.08)",
             borderRadius: 24,
             padding: 32,
             boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
           }}>
-            <div style={{ textAlign: "center", fontSize: 26, fontWeight: 800, marginBottom: 28, color: "#1e293b" }}>Order Information</div>
+            <div style={{ textAlign: "center", fontSize: 26, fontWeight: 800, marginBottom: 28, color: "var(--text-primary)" }}>Order Information</div>
 
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#64748b", marginBottom: 12 }}>Order Type</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 12 }}>Order Type</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
               {[
                 { value: "DINE_IN", label: "Dine In", icon: "🍽️" },
@@ -577,7 +577,7 @@ export default function NewOrderPage() {
 
             {orderType === "DINE_IN" && (
               <>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#64748b", marginBottom: 12, marginTop: 24 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 12, marginTop: 24 }}>
                   Select Table
                 </div>
                 <select
@@ -590,7 +590,7 @@ export default function NewOrderPage() {
                     border: "1px solid #e2e8f0",
                     padding: "0 16px",
                     outline: "none",
-                    background: "#f8fafc",
+                    background: "var(--component-bg)",
                     fontSize: 14,
                     cursor: "pointer",
                     boxSizing: "border-box",
@@ -617,7 +617,7 @@ export default function NewOrderPage() {
               </>
             )}
 
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#64748b", marginBottom: 12, marginTop: 24 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 12, marginTop: 24 }}>
               Customer Name (Optional)
             </div>
             <input
@@ -631,7 +631,7 @@ export default function NewOrderPage() {
                 border: "1px solid #e2e8f0",
                 padding: "0 16px",
                 outline: "none",
-                background: "#f8fafc",
+                background: "var(--component-bg)",
                 fontSize: 14,
                 boxSizing: "border-box",
                 transition: "all 0.2s ease",
@@ -648,7 +648,7 @@ export default function NewOrderPage() {
               }}
             />
 
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#64748b", marginBottom: 12, marginTop: 24 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 12, marginTop: 24 }}>
               Notes (Optional)
             </div>
             <textarea
@@ -662,7 +662,7 @@ export default function NewOrderPage() {
                 border: "1px solid #e2e8f0",
                 padding: "12px 16px",
                 outline: "none",
-                background: "#f8fafc",
+                background: "var(--component-bg)",
                 fontSize: 14,
                 fontFamily: "inherit",
                 resize: "vertical",
@@ -747,7 +747,7 @@ export default function NewOrderPage() {
                 <span>Menu List</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 600, color: "#64748b", cursor: "pointer" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 600, color: "var(--text-secondary)", cursor: "pointer" }}>
                   <input
                     type="checkbox"
                     checked={quickAddMode}
@@ -762,7 +762,7 @@ export default function NewOrderPage() {
                   minWidth: 280,
                   maxWidth: 400,
                 }}>
-                  <Search size={18} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#94a3b8", pointerEvents: "none" }} />
+                  <Search size={18} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
@@ -772,7 +772,7 @@ export default function NewOrderPage() {
                       padding: "12px 14px 12px 44px",
                       borderRadius: 12,
                       border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -894,7 +894,7 @@ export default function NewOrderPage() {
                       borderRadius: 16,
                       border: "1px solid #e2e8f0",
                       overflow: "hidden",
-                      background: "white",
+                      background: "var(--bg-surface)",
                       transition: "all 0.2s ease",
                     }}
                     onMouseEnter={(e) => {
@@ -923,7 +923,7 @@ export default function NewOrderPage() {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          color: "#94a3b8",
+                          color: "var(--text-tertiary)",
                           fontSize: 12,
                           fontWeight: 600,
                         }}>
@@ -956,8 +956,8 @@ export default function NewOrderPage() {
                     </div>
 
                     <div style={{ padding: 16 }}>
-                      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6, color: "#1e293b" }}>{item.name}</div>
-                      <div style={{ fontSize: 12, color: "#64748b", minHeight: 32, marginBottom: 12 }}>
+                      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)" }}>{item.name}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-secondary)", minHeight: 32, marginBottom: 12 }}>
                         {item.description || "No description"}
                       </div>
 
@@ -1131,7 +1131,7 @@ export default function NewOrderPage() {
               marginTop: 12,
               border: "1px solid #e2e8f0",
               borderRadius: 16,
-              background: "#f8fafc",
+              background: "var(--component-bg)",
               overflow: "hidden",
               display: "flex",
               flexDirection: "column",
@@ -1145,7 +1145,7 @@ export default function NewOrderPage() {
                   justifyContent: "center",
                   padding: 40,
                   textAlign: "center",
-                  color: "#64748b",
+                  color: "var(--text-secondary)",
                 }}>
                   <div style={{
                     width: 64,
@@ -1156,12 +1156,12 @@ export default function NewOrderPage() {
                     alignItems: "center",
                     justifyContent: "center",
                     marginBottom: 16,
-                    background: "white",
+                    background: "var(--bg-surface)",
                   }}>
                     <ShoppingCart size={32} style={{ color: "#cbd5e1" }} />
                   </div>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: "#1e293b", marginBottom: 8 }}>No items in cart</div>
-                  <div style={{ fontSize: 13, color: "#64748b" }}>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>No items in cart</div>
+                  <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
                     Select menu items from the list and add to cart
                   </div>
                 </div>
@@ -1177,14 +1177,14 @@ export default function NewOrderPage() {
                   {/* Existing Items */}
                   {currentOrder && currentOrder.items.length > 0 && (
                     <div style={{ marginBottom: 8 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Existing Items</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-tertiary)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Existing Items</div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                         {currentOrder.items.map((item) => (
-                          <div key={item.id} style={{ padding: "10px 12px", background: "white", borderRadius: 12, border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>
-                              {item.itemName} <span style={{ color: "#64748b", fontWeight: 500 }}>x {Number(item.qty)}</span>
+                          <div key={item.id} style={{ padding: "10px 12px", background: "var(--bg-surface)", borderRadius: 12, border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+                              {item.itemName} <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>x {Number(item.qty)}</span>
                             </div>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: "#64748b" }}>₹{Number(item.lineTotal).toFixed(2)}</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-secondary)" }}>₹{Number(item.lineTotal).toFixed(2)}</div>
                           </div>
                         ))}
                       </div>
@@ -1204,7 +1204,7 @@ export default function NewOrderPage() {
                             style={{
                               borderRadius: 14,
                               border: "1px solid #e2e8f0",
-                              background: "white",
+                              background: "var(--bg-surface)",
                               padding: 14,
                               transition: "all 0.2s ease",
                             }}
@@ -1234,9 +1234,9 @@ export default function NewOrderPage() {
                                 }} />
                               )}
                               <div style={{ minWidth: 0 }}>
-                                <div style={{ fontSize: 15, fontWeight: 700, color: "#1e293b", marginBottom: 4 }}>{line.menuItem.name}</div>
+                                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>{line.menuItem.name}</div>
                                 {line.note && (
-                                  <div style={{ fontSize: 12, color: "#64748b", fontStyle: "italic" }}>Note: {line.note}</div>
+                                  <div style={{ fontSize: 12, color: "var(--text-secondary)", fontStyle: "italic" }}>Note: {line.note}</div>
                                 )}
                               </div>
                               <button
@@ -1267,7 +1267,7 @@ export default function NewOrderPage() {
                             </div>
 
                             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 12, borderTop: "1px solid #f1f5f9" }}>
-                              <div style={{ fontSize: 18, fontWeight: 800, color: "#1e293b" }}>₹{Number(line.menuItem.basePrice).toFixed(2)}</div>
+                              <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>₹{Number(line.menuItem.basePrice).toFixed(2)}</div>
                               <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
                                 <button
                                   onClick={() => updateLineQty(idx, -1)}
@@ -1290,14 +1290,14 @@ export default function NewOrderPage() {
                                     e.currentTarget.style.background = "#f1f5f9";
                                   }}
                                 >
-                                  <Minus size={16} style={{ color: "#64748b" }} />
+                                  <Minus size={16} style={{ color: "var(--text-secondary)" }} />
                                 </button>
                                 <div style={{
                                   width: 40,
                                   textAlign: "center",
                                   fontSize: 16,
                                   fontWeight: 800,
-                                  color: "#1e293b",
+                                  color: "var(--text-primary)",
                                 }}>
                                   {line.qty}
                                 </div>
@@ -1322,7 +1322,7 @@ export default function NewOrderPage() {
                                     e.currentTarget.style.background = "#f1f5f9";
                                   }}
                                 >
-                                  <Plus size={16} style={{ color: "#64748b" }} />
+                                  <Plus size={16} style={{ color: "var(--text-secondary)" }} />
                                 </button>
                               </div>
                             </div>
@@ -1339,14 +1339,14 @@ export default function NewOrderPage() {
               marginTop: 16,
               borderRadius: 16,
               border: "1px solid #e2e8f0",
-              background: "white",
+              background: "var(--bg-surface)",
               padding: 20,
             }}>
               <div style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                color: "#64748b",
+                color: "var(--text-secondary)",
                 fontWeight: 600,
                 padding: "8px 0",
                 fontSize: 14,
@@ -1358,7 +1358,7 @@ export default function NewOrderPage() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                color: "#64748b",
+                color: "var(--text-secondary)",
                 fontWeight: 600,
                 padding: "8px 0",
                 fontSize: 14,
@@ -1376,7 +1376,7 @@ export default function NewOrderPage() {
                 alignItems: "center",
                 justifyContent: "space-between",
                 fontWeight: 800,
-                color: "#1e293b",
+                color: "var(--text-primary)",
                 fontSize: 20,
               }}>
                 <span>Total Payment</span>
@@ -1440,21 +1440,21 @@ export default function NewOrderPage() {
         <div style={{ display: "flex", justifyContent: "center", padding: "40px 20px" }}>
           <div style={{
             width: "min(600px, 95vw)",
-            background: "white",
+            background: "var(--bg-surface)",
             border: "1px solid rgba(0,0,0,0.08)",
             borderRadius: 24,
             padding: 32,
             boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
           }}>
-            <div style={{ textAlign: "center", fontSize: 26, fontWeight: 800, marginBottom: 28, color: "#1e293b" }}>Order Summary</div>
+            <div style={{ textAlign: "center", fontSize: 26, fontWeight: 800, marginBottom: 28, color: "var(--text-primary)" }}>Order Summary</div>
 
-            <div style={{ marginBottom: 24, padding: 20, background: "#f8fafc", borderRadius: 16, border: "1px solid #e2e8f0" }}>
-              <div style={{ fontSize: 12, color: "#64748b", marginBottom: 6, fontWeight: 600 }}>Order ID</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#1e293b" }}>{currentOrder.id}</div>
+            <div style={{ marginBottom: 24, padding: 20, background: "var(--component-bg)", borderRadius: 16, border: "1px solid #e2e8f0" }}>
+              <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 6, fontWeight: 600 }}>Order ID</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>{currentOrder.id}</div>
             </div>
 
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#64748b", marginBottom: 12 }}>Order Type</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 12 }}>Order Type</div>
               <div style={{
                 display: "inline-block",
                 padding: "8px 16px",
@@ -1473,7 +1473,7 @@ export default function NewOrderPage() {
             </div>
 
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#64748b", marginBottom: 12 }}>Items ({currentOrder.items.length})</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 12 }}>Items ({currentOrder.items.length})</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {currentOrder.items.map((item) => (
                   <div
@@ -1483,30 +1483,30 @@ export default function NewOrderPage() {
                       justifyContent: "space-between",
                       alignItems: "center",
                       padding: "14px 16px",
-                      background: "#f8fafc",
+                      background: "var(--component-bg)",
                       borderRadius: 12,
                       border: "1px solid #e2e8f0",
                     }}
                   >
-                    <span style={{ fontSize: 14, fontWeight: 600, color: "#1e293b" }}>
-                      {item.itemName} <span style={{ color: "#64748b", fontWeight: 500 }}>x {Number(item.qty)}</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
+                      {item.itemName} <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>x {Number(item.qty)}</span>
                     </span>
-                    <span style={{ fontSize: 15, fontWeight: 800, color: "#1e293b" }}>₹{Number(item.lineTotal).toFixed(2)}</span>
+                    <span style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>₹{Number(item.lineTotal).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             <div style={{ marginBottom: 28, padding: 20, background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)", borderRadius: 16, border: "1px solid #e2e8f0" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, fontSize: 14, color: "#64748b", fontWeight: 600 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, fontSize: 14, color: "var(--text-secondary)", fontWeight: 600 }}>
                 <span>Subtotal:</span>
                 <span>₹{Number(currentOrder.subtotal).toFixed(2)}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, fontSize: 14, color: "#64748b", fontWeight: 600 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, fontSize: 14, color: "var(--text-secondary)", fontWeight: 600 }}>
                 <span>Tax:</span>
                 <span>₹{Number(currentOrder.taxTotal).toFixed(2)}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16, fontSize: 14, color: "#64748b", fontWeight: 600 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16, fontSize: 14, color: "var(--text-secondary)", fontWeight: 600 }}>
                 <span>Discount:</span>
                 <span>₹{Number(currentOrder.discountTotal).toFixed(2)}</span>
               </div>
@@ -1515,7 +1515,7 @@ export default function NewOrderPage() {
                 background: "#e2e8f0",
                 marginBottom: 16,
               }} />
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 22, fontWeight: 800, color: "#1e293b" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>
                 <span>Grand Total:</span>
                 <span style={{ fontSize: 28, color: "#8b5cf6" }}>₹{Number(currentOrder.grandTotal).toFixed(2)}</span>
               </div>
@@ -1583,7 +1583,7 @@ export default function NewOrderPage() {
               height: "600px",
               display: "flex",
               flexDirection: "column",
-              background: "white",
+              background: "var(--bg-surface)",
               borderRadius: 24,
               boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
               border: "1px solid rgba(0,0,0,0.08)",
@@ -1598,9 +1598,9 @@ export default function NewOrderPage() {
                 background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
               }}>
                 <div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: "#1e293b" }}>Complete Payment</div>
-                  <div style={{ fontSize: 14, color: "#64748b", marginTop: 4 }}>
-                    Amount: <strong style={{ color: "#1e293b" }}>₹{Number(currentOrder.grandTotal).toFixed(2)}</strong>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)" }}>Complete Payment</div>
+                  <div style={{ fontSize: 14, color: "var(--text-secondary)", marginTop: 4 }}>
+                    Amount: <strong style={{ color: "var(--text-primary)" }}>₹{Number(currentOrder.grandTotal).toFixed(2)}</strong>
                   </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -1666,7 +1666,7 @@ export default function NewOrderPage() {
                 padding: "40px",
                 textAlign: "center",
               }}>
-                <div style={{ marginBottom: 24, fontSize: 16, color: "#64748b" }}>
+                <div style={{ marginBottom: 24, fontSize: 16, color: "var(--text-secondary)" }}>
                   Payment page has been opened in a new tab.<br/>
                   Please complete the payment there.
                 </div>
@@ -1701,23 +1701,23 @@ export default function NewOrderPage() {
             // Payment method selection view
             <div style={{
               width: "min(600px, 95vw)",
-              background: "white",
+              background: "var(--bg-surface)",
               border: "1px solid rgba(0,0,0,0.08)",
               borderRadius: 24,
               padding: 32,
               boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
             }}>
-              <div style={{ textAlign: "center", fontSize: 26, fontWeight: 800, marginBottom: 28, color: "#1e293b" }}>Payment</div>
+              <div style={{ textAlign: "center", fontSize: 26, fontWeight: 800, marginBottom: 28, color: "var(--text-primary)" }}>Payment</div>
 
               <div style={{ marginBottom: 32, textAlign: "center" }}>
-                <div style={{ fontSize: 14, color: "#64748b", marginBottom: 8, fontWeight: 600 }}>Total Amount</div>
+                <div style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 8, fontWeight: 600 }}>Total Amount</div>
                 <div style={{ fontSize: 42, fontWeight: 800, color: "#8b5cf6" }}>
                   ₹{Number(currentOrder.grandTotal).toFixed(2)}
                 </div>
               </div>
 
               <div style={{ marginBottom: 24 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#64748b", marginBottom: 12 }}>Order Items ({currentOrder.items.length})</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 12 }}>Order Items ({currentOrder.items.length})</div>
                 <div style={{ 
                   display: "flex", 
                   flexDirection: "column", 
@@ -1735,21 +1735,21 @@ export default function NewOrderPage() {
                         justifyContent: "space-between",
                         alignItems: "center",
                         padding: "10px 14px",
-                        background: "#f8fafc",
+                        background: "var(--component-bg)",
                         borderRadius: 10,
                         border: "1px solid #e2e8f0",
                       }}
                     >
-                      <span style={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>
-                        {item.itemName} <span style={{ color: "#64748b", fontWeight: 500 }}>x {Number(item.qty)}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+                        {item.itemName} <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>x {Number(item.qty)}</span>
                       </span>
-                      <span style={{ fontSize: 14, fontWeight: 800, color: "#1e293b" }}>₹{Number(item.lineTotal).toFixed(2)}</span>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>₹{Number(item.lineTotal).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#64748b", marginBottom: 16 }}>Payment Method</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 16 }}>Payment Method</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, marginBottom: 32 }}>
                 {[
                   { value: "CASH", label: "Cash", icon: Banknote, color: "#10b981" },
@@ -1875,7 +1875,7 @@ export default function NewOrderPage() {
             style={{
               width: "min(520px, 96vw)",
               maxHeight: "86vh",
-              background: "white",
+              background: "var(--bg-surface)",
               borderRadius: 24,
               border: "1px solid rgba(0,0,0,0.08)",
               boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
@@ -1949,7 +1949,7 @@ export default function NewOrderPage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#94a3b8",
+                  color: "var(--text-tertiary)",
                   fontSize: 11,
                   fontWeight: 600,
                   border: "1px solid #e2e8f0",
@@ -1958,17 +1958,17 @@ export default function NewOrderPage() {
                 </div>
               )}
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 6, color: "#1e293b" }}>{openAddModalFor.name}</div>
-                <div style={{ fontSize: 13, color: "#64748b" }}>{openAddModalFor.description || "No description"}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 6, color: "var(--text-primary)" }}>{openAddModalFor.name}</div>
+                <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>{openAddModalFor.description || "No description"}</div>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4, fontWeight: 600 }}>Base Price</div>
+                <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4, fontWeight: 600 }}>Base Price</div>
                 <div style={{ fontSize: 24, fontWeight: 800, color: "#8b5cf6" }}>₹{Number(openAddModalFor.basePrice).toFixed(2)}</div>
               </div>
             </div>
 
             <div style={{ padding: "0 24px 20px" }}>
-              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, color: "#64748b" }}>Special Instructions (Optional)</div>
+              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, color: "var(--text-secondary)" }}>Special Instructions (Optional)</div>
               <textarea
                 placeholder="Add any special instructions..."
                 value={addModalNote}
@@ -1980,7 +1980,7 @@ export default function NewOrderPage() {
                   border: "1px solid #e2e8f0",
                   padding: "12px 16px",
                   outline: "none",
-                  background: "#f8fafc",
+                  background: "var(--component-bg)",
                   fontSize: 14,
                   fontFamily: "inherit",
                   resize: "vertical",
@@ -2030,14 +2030,14 @@ export default function NewOrderPage() {
                     e.currentTarget.style.background = "#f1f5f9";
                   }}
                 >
-                  <Minus size={18} style={{ color: "#64748b" }} />
+                  <Minus size={18} style={{ color: "var(--text-secondary)" }} />
                 </button>
                 <div style={{
                   width: 50,
                   textAlign: "center",
                   fontSize: 18,
                   fontWeight: 800,
-                  color: "#1e293b",
+                  color: "var(--text-primary)",
                 }}>
                   {addModalQty}
                 </div>
@@ -2062,7 +2062,7 @@ export default function NewOrderPage() {
                     e.currentTarget.style.background = "#f1f5f9";
                   }}
                 >
-                  <Plus size={18} style={{ color: "#64748b" }} />
+                  <Plus size={18} style={{ color: "var(--text-secondary)" }} />
                 </button>
               </div>
 

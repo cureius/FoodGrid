@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { adminLogin } from "@/lib/api/clientAdmin";
 import { isClientAdminToken } from "@/lib/utils/admin";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
 export default function Page() {
   const [email, setEmail] = useState("");
@@ -24,7 +25,6 @@ export default function Page() {
       setLoading(true);
       const res = await adminLogin({ email: email.trim(), password });
       
-      // Check if user has CLIENT_ADMIN role
       if (!isClientAdminToken(res.accessToken)) {
         setError("Access denied. This login is only for client administrators. Tenant admins should use the tenant admin portal.");
         return;
@@ -44,16 +44,17 @@ export default function Page() {
     width: "100%",
     padding: "12px 12px",
     borderRadius: 10,
-    border: "1px solid rgba(0,0,0,0.12)",
+    border: "1px solid var(--border-light)",
     outline: "none",
-    background: "rgba(255,255,255,0.9)"
+    background: "var(--component-bg)",
+    color: "var(--text-primary)"
   };
 
   const labelStyle: React.CSSProperties = {
     display: "block",
     fontSize: 13,
     fontWeight: 600,
-    color: "rgba(0,0,0,0.7)",
+    color: "var(--text-secondary)",
     marginBottom: 8
   };
 
@@ -64,27 +65,30 @@ export default function Page() {
         display: "grid",
         placeItems: "center",
         padding: 24,
-        background:
-          "radial-gradient(ellipse at top, rgba(0,0,0,0.05), transparent 60%), linear-gradient(135deg, #f8fafc, #eef2ff)"
+        background: "var(--bg-app)"
       }}
     >
+      <div style={{ position: 'absolute', top: 24, right: 24 }}>
+        <ThemeSwitcher />
+      </div>
+
       <div
         style={{
           width: "100%",
           maxWidth: 440,
           borderRadius: 16,
-          background: "rgba(255,255,255,0.85)",
-          boxShadow: "0 12px 40px rgba(0,0,0,0.10)",
-          border: "1px solid rgba(0,0,0,0.08)",
+          background: "var(--bg-surface)",
+          boxShadow: "var(--shadow-lg)",
+          border: "1px solid var(--border-light)",
           padding: 20
         }}
       >
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 12, color: "rgba(0,0,0,0.55)", fontWeight: 700, letterSpacing: 0.6 }}>
+          <div style={{ fontSize: 12, color: "var(--primary)", fontWeight: 700, letterSpacing: 0.6 }}>
             FOODGRID
           </div>
-          <h1 style={{ margin: "6px 0 0", fontSize: 22, letterSpacing: -0.2 }}>Client Admin Login</h1>
-          <div style={{ marginTop: 6, color: "rgba(0,0,0,0.6)", fontSize: 13 }}>
+          <h1 style={{ margin: "6px 0 0", fontSize: 22, letterSpacing: -0.2, color: "var(--text-primary)" }}>Client Admin Login</h1>
+          <div style={{ marginTop: 6, color: "var(--text-secondary)", fontSize: 13 }}>
             Sign in to manage outlets and staff.
           </div>
         </div>
@@ -96,9 +100,9 @@ export default function Page() {
               marginBottom: 12,
               padding: "10px 12px",
               borderRadius: 12,
-              background: "rgba(220, 38, 38, 0.08)",
-              border: "1px solid rgba(220, 38, 38, 0.22)",
-              color: "rgb(185, 28, 28)",
+              background: "var(--danger-light)",
+              border: "1px solid var(--danger)",
+              color: "var(--danger)",
               fontSize: 13
             }}
           >
@@ -140,8 +144,9 @@ export default function Page() {
                   height: 44,
                   padding: "0 12px",
                   borderRadius: 10,
-                  border: "1px solid rgba(0,0,0,0.12)",
-                  background: "rgba(255,255,255,0.9)",
+                  border: "1px solid var(--border-light)",
+                  background: "var(--component-bg)",
+                  color: "var(--text-primary)",
                   cursor: "pointer",
                   fontSize: 13
                 }}
@@ -160,16 +165,17 @@ export default function Page() {
               padding: "12px 14px",
               borderRadius: 12,
               border: "0",
-              background: loading || !canSubmit ? "rgba(79, 70, 229, 0.55)" : "rgb(79, 70, 229)",
+              background: loading || !canSubmit ? "var(--primary-light)" : "var(--primary)",
               color: "white",
               fontWeight: 700,
-              cursor: loading || !canSubmit ? "not-allowed" : "pointer"
+              cursor: loading || !canSubmit ? "not-allowed" : "pointer",
+              transition: "var(--transition-normal)"
             }}
           >
             {loading ? "Signing in..." : "Sign in"}
           </button>
 
-          <div style={{ marginTop: 6, fontSize: 12, color: "rgba(0,0,0,0.55)" }}>
+          <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-tertiary)" }}>
             This login is only for client administrators.
           </div>
         </div>

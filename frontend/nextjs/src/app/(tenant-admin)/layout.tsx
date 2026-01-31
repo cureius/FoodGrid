@@ -15,12 +15,10 @@ export default function TenantAdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className} style={{ margin: 0 }}>
-        <StyledComponentsRegistry>
-          {children}
-        </StyledComponentsRegistry>
-      </body>
-    </html>
+    <div className={inter.className}>
+      <StyledComponentsRegistry>
+        {children}
+      </StyledComponentsRegistry>
+    </div>
   );
 }

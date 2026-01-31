@@ -100,15 +100,15 @@ interface StatCardProps {
 function StatCard({ title, value, subtitle, icon, color, bgColor, trend, loading }: StatCardProps) {
   return (
     <div style={{
-      background: "white",
+      background: "var(--bg-surface)",
       borderRadius: 20,
       padding: 24,
-      boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
-      border: "1px solid rgba(0,0,0,0.04)",
+      boxShadow: "var(--shadow-md)",
+      border: "1px solid var(--border-light)",
       display: "flex",
       flexDirection: "column",
       gap: 16,
-      transition: "all 0.2s ease",
+      transition: "var(--transition-normal)",
       cursor: "default",
     }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
@@ -145,7 +145,7 @@ function StatCard({ title, value, subtitle, icon, color, bgColor, trend, loading
         <div style={{
           fontSize: 32,
           fontWeight: 700,
-          color: "#1e293b",
+          color: "var(--text-primary)",
           marginBottom: 4,
           fontFeatureSettings: "'tnum' on, 'lnum' on",
         }}>
@@ -160,8 +160,8 @@ function StatCard({ title, value, subtitle, icon, color, bgColor, trend, loading
             }} />
           ) : value}
         </div>
-        <div style={{ fontSize: 14, fontWeight: 500, color: "#64748b" }}>{title}</div>
-        <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>{subtitle}</div>
+        <div style={{ fontSize: 14, fontWeight: 500, color: "var(--text-secondary)" }}>{title}</div>
+        <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 2 }}>{subtitle}</div>
       </div>
     </div>
   );
@@ -245,7 +245,7 @@ export default function Page() {
   const recentEmployees = employees.slice(0, 5);
 
   return (
-    <div style={{ padding: "32px"}}>
+    <div style={{ padding: "32px", background: "var(--bg-app)", minHeight: "100%", color: "var(--text-primary)" }}>
       {/* Header */}
       <div style={{
         display: "flex",
@@ -260,31 +260,29 @@ export default function Page() {
             fontSize: 32,
             fontWeight: 800,
             margin: 0,
-            background: "linear-gradient(135deg, #1e293b 0%, #475569 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
+            color: "var(--text-primary)",
             letterSpacing: "-0.5px",
           }}>
             Dashboard
           </h1>
-          <p style={{ margin: "8px 0 0", color: "#64748b", fontSize: 15 }}>
+          <p style={{ margin: "8px 0 0", color: "var(--text-secondary)", fontSize: 15 }}>
             Welcome back! Here's an overview of your business.
           </p>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div style={{
-            background: "white",
+            background: "var(--bg-surface)",
             padding: "2px 20px",
             borderRadius: 14,
-            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-            border: "1px solid rgba(0,0,0,0.04)",
+            boxShadow: "var(--shadow-sm)",
+            border: "1px solid var(--border-light)",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <Clock size={18} style={{ color: "#8b5cf6" }} />
+              <Clock size={18} style={{ color: "var(--primary)" }} />
               <div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#1e293b" }}>{formatTime(now)}</div>
-                <div style={{ fontSize: 12, color: "#64748b" }}>{formatDate(now)}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>{formatTime(now)}</div>
+                <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{formatDate(now)}</div>
               </div>
             </div>
           </div>
@@ -341,7 +339,7 @@ export default function Page() {
         marginBottom: 24,
         flexWrap: "wrap",
       }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: "#64748b" }}>Time Range:</span>
+        <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-secondary)" }}>Time Range:</span>
         {(["today", "thisWeek", "thisMonth", "thisQuarter", "thisYear"] as TimeRange[]).map((range) => (
           <button
             key={range}
@@ -351,15 +349,15 @@ export default function Page() {
               borderRadius: 8,
               border: "none",
               background: timeRange === range 
-                ? "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)"
-                : "white",
-              color: timeRange === range ? "white" : "#64748b",
+                ? "var(--primary)"
+                : "var(--component-bg)",
+              color: timeRange === range ? "white" : "var(--text-secondary)",
               fontSize: 13,
               fontWeight: timeRange === range ? 600 : 500,
               cursor: "pointer",
               boxShadow: timeRange === range 
-                ? "0 2px 8px rgba(139, 92, 246, 0.3)"
-                : "0 1px 3px rgba(0,0,0,0.08)",
+                ? "var(--shadow-md)"
+                : "var(--shadow-sm)",
               transition: "all 0.2s ease",
               textTransform: "capitalize",
             }}
@@ -428,15 +426,15 @@ export default function Page() {
       }}>
         {/* Employees Section */}
         <div style={{
-          background: "white",
+          background: "var(--bg-surface)",
           borderRadius: 20,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
-          border: "1px solid rgba(0,0,0,0.04)",
+          boxShadow: "var(--shadow-md)",
+          border: "1px solid var(--border-light)",
           overflow: "hidden",
         }}>
           <div style={{
             padding: "20px 24px",
-            borderBottom: "1px solid #f1f5f9",
+            borderBottom: "1px solid var(--border-light)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -455,14 +453,14 @@ export default function Page() {
               </div>
               <div>
                 <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Employees</h3>
-                <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>{employees.length} total</p>
+                <p style={{ margin: 0, fontSize: 12, color: "var(--text-secondary)" }}>{employees.length} total</p>
               </div>
             </div>
             <Link href="/client-admin/employees" style={{
               display: "flex",
               alignItems: "center",
               gap: 4,
-              color: "#3b82f6",
+              color: "var(--primary)",
               fontSize: 13,
               fontWeight: 600,
               textDecoration: "none",
@@ -476,8 +474,8 @@ export default function Page() {
               <div style={{ padding: 20, textAlign: "center", color: "#64748b" }}>Loading employees...</div>
             ) : recentEmployees.length === 0 ? (
               <div style={{ padding: 40, textAlign: "center" }}>
-                <Users size={40} style={{ color: "#cbd5e1", marginBottom: 12 }} />
-                <p style={{ color: "#64748b", margin: 0 }}>No employees found</p>
+                <Users size={40} style={{ color: "var(--text-tertiary)", marginBottom: 12 }} />
+                <p style={{ color: "var(--text-secondary)", margin: 0 }}>No employees found</p>
                 <Link href="/client-admin/employees" style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -503,7 +501,7 @@ export default function Page() {
                     gap: 14,
                     padding: "14px 16px",
                     borderRadius: 12,
-                    background: "#f8fafc",
+                    background: "var(--bg-tertiary)",
                     transition: "all 0.15s ease",
                   }}>
                     <div style={{
@@ -523,10 +521,10 @@ export default function Page() {
                       {!emp.avatarUrl && (emp.displayName ?? emp.email ?? "E").slice(0, 2).toUpperCase()}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: "#1e293b", marginBottom: 2 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>
                         {emp.displayName ?? "Employee"}
                       </div>
-                      <div style={{ fontSize: 12, color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <div style={{ fontSize: 12, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {emp.email ?? "No email"} • {emp.outletName ?? "Unknown outlet"}
                       </div>
                     </div>
@@ -550,7 +548,7 @@ export default function Page() {
 
       {/* Quick Actions */}
       <div style={{ marginTop: 32 }}>
-        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16, color: "#1e293b" }}>Quick Actions</h3>
+        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16, color: "var(--text-primary)" }}>Quick Actions</h3>
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
@@ -562,9 +560,9 @@ export default function Page() {
             gap: 14,
             padding: 20,
             borderRadius: 16,
-            background: "white",
-            border: "1px solid rgba(0,0,0,0.04)",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border-light)",
+            boxShadow: "var(--shadow-sm)",
             textDecoration: "none",
             transition: "all 0.2s ease",
           }}>
@@ -572,16 +570,16 @@ export default function Page() {
               width: 48,
               height: 48,
               borderRadius: 12,
-              background: "rgba(139, 92, 246, 0.1)",
+              background: "var(--bg-tertiary)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}>
-              <Store size={24} style={{ color: "#8b5cf6" }} />
+              <Store size={24} style={{ color: "var(--primary)" }} />
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "#1e293b" }}>Manage Outlets</div>
-              <div style={{ fontSize: 12, color: "#64748b" }}>Add or edit outlets</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>Manage Outlets</div>
+              <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>Add or edit outlets</div>
             </div>
           </Link>
 
@@ -591,9 +589,9 @@ export default function Page() {
             gap: 14,
             padding: 20,
             borderRadius: 16,
-            background: "white",
-            border: "1px solid rgba(0,0,0,0.04)",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border-light)",
+            boxShadow: "var(--shadow-sm)",
             textDecoration: "none",
             transition: "all 0.2s ease",
           }}>
@@ -601,16 +599,16 @@ export default function Page() {
               width: 48,
               height: 48,
               borderRadius: 12,
-              background: "rgba(59, 130, 246, 0.1)",
+              background: "var(--bg-tertiary)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}>
-              <Users size={24} style={{ color: "#3b82f6" }} />
+              <Users size={24} style={{ color: "var(--primary)" }} />
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "#1e293b" }}>Manage Employees</div>
-              <div style={{ fontSize: 12, color: "#64748b" }}>Add or edit staff</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>Manage Employees</div>
+              <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>Add or edit staff</div>
             </div>
           </Link>
 
@@ -620,9 +618,9 @@ export default function Page() {
             gap: 14,
             padding: 20,
             borderRadius: 16,
-            background: "white",
-            border: "1px solid rgba(0,0,0,0.04)",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border-light)",
+            boxShadow: "var(--shadow-sm)",
             textDecoration: "none",
             transition: "all 0.2s ease",
           }}>
@@ -630,16 +628,16 @@ export default function Page() {
               width: 48,
               height: 48,
               borderRadius: 12,
-              background: "rgba(16, 185, 129, 0.1)",
+              background: "var(--bg-tertiary)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}>
-              <Activity size={24} style={{ color: "#10b981" }} />
+              <Activity size={24} style={{ color: "var(--success)" }} />
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "#1e293b" }}>View Orders</div>
-              <div style={{ fontSize: 12, color: "#64748b" }}>Track all orders</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>View Orders</div>
+              <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>Track all orders</div>
             </div>
           </Link>
         </div>

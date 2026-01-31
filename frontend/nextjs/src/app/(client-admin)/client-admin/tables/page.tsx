@@ -258,7 +258,7 @@ export default function TablesPage() {
       case "INACTIVE":
         return { bg: "rgba(239, 68, 68, 0.1)", color: "#ef4444" };
       default:
-        return { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b" };
+        return { bg: "rgba(100, 116, 139, 0.1)", color: "var(--text-secondary)" };
     }
   };
 
@@ -321,7 +321,7 @@ export default function TablesPage() {
               >
                 Tables
               </h1>
-              <p style={{ margin: "8px 0 0", color: "#64748b", fontSize: 15 }}>
+              <p style={{ margin: "8px 0 0", color: "var(--text-secondary)", fontSize: 15 }}>
                 Manage dining tables and seating arrangements.
               </p>
             </div>
@@ -338,7 +338,7 @@ export default function TablesPage() {
                   height: 48,
                   borderRadius: 14,
                   border: "1px solid rgba(0,0,0,0.08)",
-                  background: "white",
+                  background: "var(--bg-surface)",
                   cursor: refreshing || !selectedOutletId ? "not-allowed" : "pointer",
                   opacity: refreshing || !selectedOutletId ? 0.6 : 1,
                   transition: "all 0.2s ease",
@@ -357,7 +357,7 @@ export default function TablesPage() {
                 title="Refresh"
                 aria-label="Refresh table list"
               >
-                <RefreshCw size={18} style={{ color: "#64748b", animation: refreshing ? "spin 1s linear infinite" : "none" }} />
+                <RefreshCw size={18} style={{ color: "var(--text-secondary)", animation: refreshing ? "spin 1s linear infinite" : "none" }} />
               </button>
 
               <button
@@ -410,7 +410,7 @@ export default function TablesPage() {
                 <div
                   key={index}
                   style={{
-                    background: "white",
+                    background: "var(--bg-surface)",
                     borderRadius: 20,
                     padding: 24,
                     boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
@@ -431,8 +431,8 @@ export default function TablesPage() {
                   }}
                 >
                   <div>
-                    <p style={{ margin: 0, fontSize: 14, color: "#64748b", fontWeight: 500 }}>{stat.title}</p>
-                    <p style={{ margin: "8px 0 0", fontSize: 36, fontWeight: 800, color: "#1e293b", fontFeatureSettings: "'tnum' on, 'lnum' on" }}>{stat.value}</p>
+                    <p style={{ margin: 0, fontSize: 14, color: "var(--text-secondary)", fontWeight: 500 }}>{stat.title}</p>
+                    <p style={{ margin: "8px 0 0", fontSize: 36, fontWeight: 800, color: "var(--text-primary)", fontFeatureSettings: "'tnum' on, 'lnum' on" }}>{stat.value}</p>
                   </div>
                   <div style={{ padding: 16, borderRadius: 16, background: stat.bgColor }}>
                     <stat.icon size={28} style={{ color: stat.color }} />
@@ -447,7 +447,7 @@ export default function TablesPage() {
         {selectedOutletId && (
           <div
             style={{
-              background: "white",
+              background: "var(--bg-surface)",
               borderRadius: 20,
               padding: 20,
               boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
@@ -458,7 +458,7 @@ export default function TablesPage() {
             <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
               <div style={{ display: "flex", gap: 12, flex: 1, flexWrap: "wrap" }}>
                 <div style={{ position: "relative", flex: 1, minWidth: 240, maxWidth: 480 }}>
-                  <Search size={18} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#94a3b8", pointerEvents: "none" }} />
+                  <Search size={18} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
                   <input
                     type="text"
                     placeholder="Search by code or name..."
@@ -469,7 +469,7 @@ export default function TablesPage() {
                       padding: "14px 16px 14px 44px",
                       borderRadius: 12,
                       border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -488,7 +488,7 @@ export default function TablesPage() {
                   />
                 </div>
                 <div style={{ position: "relative", minWidth: 180 }}>
-                  <Filter size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#94a3b8", pointerEvents: "none" }} />
+                  <Filter size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
                   <select
                     value={statusFilter}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
@@ -497,7 +497,7 @@ export default function TablesPage() {
                       padding: "14px 16px 14px 38px",
                       borderRadius: 12,
                       border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       cursor: "pointer",
                       outline: "none",
@@ -522,7 +522,7 @@ export default function TablesPage() {
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <span style={{ fontSize: 14, color: "#64748b", fontWeight: 600, whiteSpace: "nowrap" }}>
+                <span style={{ fontSize: 14, color: "var(--text-secondary)", fontWeight: 600, whiteSpace: "nowrap" }}>
                   {filteredTables.length} {filteredTables.length === 1 ? "table" : "tables"}
                 </span>
                 <div style={{ display: "flex", background: "#f1f5f9", borderRadius: 12, padding: 4, gap: 4 }}>
@@ -587,10 +587,10 @@ export default function TablesPage() {
           <Card>
             <div style={{ padding: 60, textAlign: "center" }}>
               <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-                <Building2 size={40} style={{ color: "#94a3b8" }} />
+                <Building2 size={40} style={{ color: "var(--text-tertiary)" }} />
               </div>
               <h3 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px" }}>Select an Outlet</h3>
-              <p style={{ color: "#64748b", maxWidth: 400, margin: "0 auto" }}>
+              <p style={{ color: "var(--text-secondary)", maxWidth: 400, margin: "0 auto" }}>
                 Please select an outlet from the dropdown above to manage its tables
               </p>
             </div>
@@ -615,10 +615,10 @@ export default function TablesPage() {
           <Card>
             <div style={{ padding: 60, textAlign: "center" }}>
               <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-                <LayoutGrid size={40} style={{ color: "#94a3b8" }} />
+                <LayoutGrid size={40} style={{ color: "var(--text-tertiary)" }} />
               </div>
               <h3 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px" }}>No tables found</h3>
-              <p style={{ color: "#64748b", maxWidth: 400, margin: "0 auto 24px" }}>
+              <p style={{ color: "var(--text-secondary)", maxWidth: 400, margin: "0 auto 24px" }}>
                 {searchQuery || statusFilter !== "all"
                   ? "Try adjusting your search or filter criteria"
                   : "Get started by adding your first table"}
@@ -654,7 +654,7 @@ export default function TablesPage() {
                 <div
                   key={table.id}
                   style={{
-                    background: "white",
+                    background: "var(--bg-surface)",
                     borderRadius: 20,
                     padding: 24,
                     boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
@@ -701,11 +701,11 @@ export default function TablesPage() {
                   </div>
 
                   {/* Info */}
-                  <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 6px", color: "#1e293b" }}>
+                  <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 6px", color: "var(--text-primary)" }}>
                     {table.displayName}
                   </h3>
-                  <p style={{ fontSize: 14, color: "#64748b", margin: "0 0 16px" }}>
-                    Code: <strong style={{ color: "#1e293b" }}>{table.tableCode}</strong>
+                  <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: "0 0 16px" }}>
+                    Code: <strong style={{ color: "var(--text-primary)" }}>{table.tableCode}</strong>
                   </p>
 
                   {/* Capacity */}
@@ -714,13 +714,13 @@ export default function TablesPage() {
                     alignItems: "center",
                     gap: 10,
                     padding: "12px 16px",
-                    background: "#f8fafc",
+                    background: "var(--component-bg)",
                     borderRadius: 12,
                     marginBottom: 20,
                   }}>
-                    <Users size={18} style={{ color: "#64748b" }} />
-                    <span style={{ fontSize: 14, color: "#64748b" }}>
-                      Capacity: <strong style={{ color: "#1e293b", fontSize: 15 }}>{table.capacity} guests</strong>
+                    <Users size={18} style={{ color: "var(--text-secondary)" }} />
+                    <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>
+                      Capacity: <strong style={{ color: "var(--text-primary)", fontSize: 15 }}>{table.capacity} guests</strong>
                     </span>
                   </div>
 
@@ -733,7 +733,7 @@ export default function TablesPage() {
                         padding: "12px 18px",
                         borderRadius: 12,
                         border: "1px solid #e2e8f0",
-                        background: "white",
+                        background: "var(--bg-surface)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -741,7 +741,7 @@ export default function TablesPage() {
                         cursor: "pointer",
                         fontSize: 14,
                         fontWeight: 600,
-                        color: "#64748b",
+                        color: "var(--text-secondary)",
                         transition: "all 0.2s ease",
                       }}
                       onMouseEnter={(e) => {
@@ -796,7 +796,7 @@ export default function TablesPage() {
                 <div
                   key={table.id}
                   style={{
-                    background: "white",
+                    background: "var(--bg-surface)",
                     borderRadius: 16,
                     padding: 20,
                     boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
@@ -836,7 +836,7 @@ export default function TablesPage() {
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 6 }}>
-                      <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#1e293b" }}>{table.displayName}</h3>
+                      <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>{table.displayName}</h3>
                       <div style={{
                         padding: "4px 12px",
                         borderRadius: 20,
@@ -848,11 +848,11 @@ export default function TablesPage() {
                         {table.status}
                       </div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 16, color: "#64748b", fontSize: 14 }}>
-                      <span>Code: <strong style={{ color: "#1e293b" }}>{table.tableCode}</strong></span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 16, color: "var(--text-secondary)", fontSize: 14 }}>
+                      <span>Code: <strong style={{ color: "var(--text-primary)" }}>{table.tableCode}</strong></span>
                       <span>•</span>
                       <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <Users size={16} /> <strong style={{ color: "#1e293b" }}>{table.capacity}</strong> guests
+                        <Users size={16} /> <strong style={{ color: "var(--text-primary)" }}>{table.capacity}</strong> guests
                       </span>
                     </div>
                   </div>
@@ -865,14 +865,14 @@ export default function TablesPage() {
                         padding: "10px 16px",
                         borderRadius: 10,
                         border: "1px solid #e2e8f0",
-                        background: "white",
+                        background: "var(--bg-surface)",
                         display: "flex",
                         alignItems: "center",
                         gap: 8,
                         cursor: "pointer",
                         fontSize: 14,
                         fontWeight: 600,
-                        color: "#64748b",
+                        color: "var(--text-secondary)",
                         transition: "all 0.2s ease",
                       }}
                       onMouseEnter={(e) => {
@@ -938,7 +938,7 @@ export default function TablesPage() {
           >
             <div
               style={{
-                background: "white",
+                background: "var(--bg-surface)",
                 borderRadius: 24,
                 maxWidth: 480,
                 width: "100%",
@@ -953,12 +953,12 @@ export default function TablesPage() {
                 <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(139, 92, 246, 0.3)" }}>
                   <LayoutGrid size={32} style={{ color: "white" }} />
                 </div>
-                <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 6px", color: "#1e293b" }}>Add New Table</h2>
-                <p style={{ color: "#64748b", fontSize: 15, margin: 0 }}>Create a new table for {selectedOutlet?.name || 'the selected outlet'}</p>
+                <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 6px", color: "var(--text-primary)" }}>Add New Table</h2>
+                <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: 0 }}>Create a new table for {selectedOutlet?.name || 'the selected outlet'}</p>
               </div>
               <div style={{ padding: 28 }}>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#1e293b" }}>Table Code *</label>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>Table Code *</label>
                   <input
                     type="text"
                     placeholder="e.g. T01, A1, PATIO-1"
@@ -969,7 +969,7 @@ export default function TablesPage() {
                       padding: "12px 16px",
                       borderRadius: 12,
                       border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -988,7 +988,7 @@ export default function TablesPage() {
                   />
                 </div>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#1e293b" }}>Display Name *</label>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>Display Name *</label>
                   <input
                     type="text"
                     placeholder="e.g. Table 1, Window Seat A"
@@ -999,7 +999,7 @@ export default function TablesPage() {
                       padding: "12px 16px",
                       borderRadius: 12,
                       border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -1018,7 +1018,7 @@ export default function TablesPage() {
                   />
                 </div>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#1e293b" }}>Capacity (guests)</label>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>Capacity (guests)</label>
                   <input
                     type="number"
                     min={1}
@@ -1031,7 +1031,7 @@ export default function TablesPage() {
                       padding: "12px 16px",
                       borderRadius: 12,
                       border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -1050,7 +1050,7 @@ export default function TablesPage() {
                   />
                 </div>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#1e293b" }}>Status</label>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>Status</label>
                   <select
                     value={form.status}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setForm({ ...form, status: e.target.value })}
@@ -1059,7 +1059,7 @@ export default function TablesPage() {
                       padding: "12px 16px",
                       borderRadius: 12,
                       border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       cursor: "pointer",
                       outline: "none",
@@ -1090,10 +1090,10 @@ export default function TablesPage() {
                     padding: "14px 20px",
                     borderRadius: 12,
                     border: "1px solid #e2e8f0",
-                    background: "white",
+                    background: "var(--bg-surface)",
                     fontSize: 14,
                     fontWeight: 600,
-                    color: "#64748b",
+                    color: "var(--text-secondary)",
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                   }}
@@ -1166,7 +1166,7 @@ export default function TablesPage() {
           >
             <div
               style={{
-                background: "white",
+                background: "var(--bg-surface)",
                 borderRadius: 24,
                 maxWidth: 480,
                 width: "100%",
@@ -1181,12 +1181,12 @@ export default function TablesPage() {
                 <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(59, 130, 246, 0.3)" }}>
                   <Edit size={32} style={{ color: "white" }} />
                 </div>
-                <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 6px", color: "#1e293b" }}>Edit Table</h2>
-                <p style={{ color: "#64748b", fontSize: 15, margin: 0 }}>Update table information</p>
+                <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 6px", color: "var(--text-primary)" }}>Edit Table</h2>
+                <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: 0 }}>Update table information</p>
               </div>
               <div style={{ padding: 28 }}>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#1e293b" }}>Table Code *</label>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>Table Code *</label>
                   <input
                     type="text"
                     placeholder="e.g. T01, A1, PATIO-1"
@@ -1197,7 +1197,7 @@ export default function TablesPage() {
                       padding: "12px 16px",
                       borderRadius: 12,
                       border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -1216,7 +1216,7 @@ export default function TablesPage() {
                   />
                 </div>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#1e293b" }}>Display Name *</label>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>Display Name *</label>
                   <input
                     type="text"
                     placeholder="e.g. Table 1, Window Seat A"
@@ -1227,7 +1227,7 @@ export default function TablesPage() {
                       padding: "12px 16px",
                       borderRadius: 12,
                       border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -1246,7 +1246,7 @@ export default function TablesPage() {
                   />
                 </div>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#1e293b" }}>Capacity (guests)</label>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>Capacity (guests)</label>
                   <input
                     type="number"
                     min={1}
@@ -1259,7 +1259,7 @@ export default function TablesPage() {
                       padding: "12px 16px",
                       borderRadius: 12,
                       border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -1278,7 +1278,7 @@ export default function TablesPage() {
                   />
                 </div>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#1e293b" }}>Status</label>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>Status</label>
                   <select
                     value={form.status}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setForm({ ...form, status: e.target.value })}
@@ -1287,7 +1287,7 @@ export default function TablesPage() {
                       padding: "12px 16px",
                       borderRadius: 12,
                       border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       cursor: "pointer",
                       outline: "none",
@@ -1318,10 +1318,10 @@ export default function TablesPage() {
                     padding: "14px 20px",
                     borderRadius: 12,
                     border: "1px solid #e2e8f0",
-                    background: "white",
+                    background: "var(--bg-surface)",
                     fontSize: 14,
                     fontWeight: 600,
-                    color: "#64748b",
+                    color: "var(--text-secondary)",
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                   }}
@@ -1394,7 +1394,7 @@ export default function TablesPage() {
           >
             <div
               style={{
-                background: "white",
+                background: "var(--bg-surface)",
                 borderRadius: 24,
                 maxWidth: 440,
                 width: "100%",
@@ -1407,9 +1407,9 @@ export default function TablesPage() {
                 <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(239, 68, 68, 0.3)" }}>
                   <Trash2 size={32} style={{ color: "white" }} />
                 </div>
-                <h3 style={{ margin: "0 0 8px", fontSize: 24, fontWeight: 700, color: "#1e293b" }}>Delete Table?</h3>
-                <p style={{ margin: 0, color: "#64748b", fontSize: 15 }}>
-                  Are you sure you want to delete <strong style={{ color: "#1e293b" }}>{selectedTable?.displayName}</strong>? This action cannot be undone.
+                <h3 style={{ margin: "0 0 8px", fontSize: 24, fontWeight: 700, color: "var(--text-primary)" }}>Delete Table?</h3>
+                <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: 15 }}>
+                  Are you sure you want to delete <strong style={{ color: "var(--text-primary)" }}>{selectedTable?.displayName}</strong>? This action cannot be undone.
                 </p>
               </div>
               <div style={{ padding: "24px 28px 28px", display: "flex", gap: 12 }}>
@@ -1420,10 +1420,10 @@ export default function TablesPage() {
                     padding: "14px 20px",
                     borderRadius: 12,
                     border: "1px solid #e2e8f0",
-                    background: "white",
+                    background: "var(--bg-surface)",
                     fontSize: 14,
                     fontWeight: 600,
-                    color: "#64748b",
+                    color: "var(--text-secondary)",
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                   }}

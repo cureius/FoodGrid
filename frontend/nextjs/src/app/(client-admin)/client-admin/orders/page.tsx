@@ -575,7 +575,7 @@ export default function OrderPage() {
               }}>
                 Orders
               </h1>
-              <p style={{ margin: "8px 0 0", color: "#64748b", fontSize: 15 }}>
+              <p style={{ margin: "8px 0 0", color: "var(--text-secondary)", fontSize: 15 }}>
                 Manage and track all orders in real-time
               </p>
             </div>
@@ -651,11 +651,11 @@ export default function OrderPage() {
                   padding: "10px 16px",
                   borderRadius: 12,
                   border: "1px solid rgba(0,0,0,0.08)",
-                  background: "white",
+                  background: "var(--bg-surface)",
                   cursor: refreshing ? "not-allowed" : "pointer",
                   fontSize: 13,
                   fontWeight: 600,
-                  color: "#64748b",
+                  color: "var(--text-secondary)",
                   transition: "all 0.2s ease",
                   boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
                 }}
@@ -697,7 +697,7 @@ export default function OrderPage() {
 
           <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
             <div style={{ position: "relative", flex: 1, minWidth: 280, maxWidth: 500 }}>
-              <Search size={18} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#94a3b8", pointerEvents: "none" }} />
+              <Search size={18} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -763,7 +763,7 @@ export default function OrderPage() {
                   <option>All</option>
                   <option>Custom</option>
                 </select>
-                <Calendar size={16} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#94a3b8" }} />
+                <Calendar size={16} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-tertiary)" }} />
               </div>
             </div>
 
@@ -784,7 +784,7 @@ export default function OrderPage() {
                     color: "var(--text-primary)"
                   }}
                 />
-                <span style={{ color: "#94a3b8" }}>-</span>
+                <span style={{ color: "var(--text-tertiary)" }}>-</span>
                 <input
                   type="date"
                   value={customEndDate}
@@ -835,7 +835,7 @@ export default function OrderPage() {
                   <option>Latest Order</option>
                   <option>Oldest Order</option>
                 </select>
-                <ChevronDown size={16} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#94a3b8" }} />
+                <ChevronDown size={16} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-tertiary)" }} />
               </div>
             </div>
           </div>
@@ -857,7 +857,7 @@ export default function OrderPage() {
                 case "Cancelled":
                     return { bg: "rgba(239, 68, 68, 0.1)", color: "#ef4444", border: "rgba(239, 68, 68, 0.2)" };
                 default:
-                  return { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b", border: "rgba(100, 116, 139, 0.2)" };
+                  return { bg: "rgba(100, 116, 139, 0.1)", color: "var(--text-secondary)", border: "rgba(100, 116, 139, 0.2)" };
               }
             };
             const colors = getStatusColor(f.label);
@@ -919,7 +919,7 @@ export default function OrderPage() {
           <div style={{ display: "flex", justifyContent: "center", padding: "60px" }}>
             <div style={{ textAlign: "center" }}>
               <Loader2 size={40} className="animate-spin" style={{ color: "#8b5cf6", margin: "0 auto 16px" }} />
-              <p style={{ color: "#64748b", fontSize: 14 }}>Loading orders...</p>
+              <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Loading orders...</p>
             </div>
           </div>
         )}
@@ -944,7 +944,7 @@ export default function OrderPage() {
         {!loading && !error && (
           <div>
             {filteredOrders.length > 0 && (
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, padding: "12px 16px", background: "white", borderRadius: 12, border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, padding: "12px 16px", background: "var(--bg-surface)", borderRadius: 12, border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
                 <button
                   onClick={handleSelectAll}
                   style={{
@@ -954,11 +954,11 @@ export default function OrderPage() {
                     padding: "8px 12px",
                     borderRadius: 8,
                     border: "1px solid #e2e8f0",
-                    background: "white",
+                    background: "var(--bg-surface)",
                     cursor: "pointer",
                     fontSize: 13,
                     fontWeight: 600,
-                    color: "#64748b",
+                    color: "var(--text-secondary)",
                     transition: "all 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
@@ -978,7 +978,7 @@ export default function OrderPage() {
                   <span>{selectedOrderIds.size === filteredOrders.length ? "Deselect All" : "Select All"}</span>
                 </button>
                 {selectedOrderIds.size > 0 && (
-                  <span style={{ fontSize: 13, color: "#64748b", fontWeight: 600 }}>
+                  <span style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>
                     {selectedOrderIds.size} order{selectedOrderIds.size !== 1 ? "s" : ""} selected
                   </span>
                 )}
@@ -986,10 +986,10 @@ export default function OrderPage() {
             )}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: 24 }}>
               {filteredOrders.length === 0 ? (
-              <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "60px", background: "white", borderRadius: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+              <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "60px", background: "var(--bg-surface)", borderRadius: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
                 <FileText size={48} style={{ color: "#cbd5e1", margin: "0 auto 16px" }} />
-                <h3 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px", color: "#1e293b" }}>No orders found</h3>
-                <p style={{ color: "#64748b", margin: 0 }}>
+                <h3 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px", color: "var(--text-primary)" }}>No orders found</h3>
+                <p style={{ color: "var(--text-secondary)", margin: 0 }}>
                   {query || activeStatus !== "All" ? "Try adjusting your search or filter criteria" : "Get started by creating your first order"}
                 </p>
               </div>
@@ -1009,7 +1009,7 @@ export default function OrderPage() {
                     case "Cancelled":
                       return { bg: "rgba(239, 68, 68, 0.1)", color: "#ef4444", icon: X };
                     default:
-                      return { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b", icon: FileText };
+                      return { bg: "rgba(100, 116, 139, 0.1)", color: "var(--text-secondary)", icon: FileText };
                   }
                 };
                 const statusConfig = getStatusConfig(order.status);
@@ -1087,14 +1087,14 @@ export default function OrderPage() {
                             <StatusIcon size={14} />
                             {order.status}
                           </div>
-                          <span style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>
+                          <span style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 600 }}>
                             {order.type}
                           </span>
                         </div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: "#1e293b", marginBottom: 4 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
                           Order #{order.id.slice(-4).toUpperCase()}
                         </div>
-                        <div style={{ fontSize: 12, color: "#64748b" }}>{order.time}</div>
+                        <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{order.time}</div>
                       </div>
                       <div style={{
                         width: 56,
@@ -1117,8 +1117,8 @@ export default function OrderPage() {
                     {/* Progress Bar */}
                     <div style={{ marginBottom: 20 }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: "#64748b" }}>Progress</span>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: "#1e293b" }}>{order.progress}%</span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary)" }}>Progress</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{order.progress}%</span>
                       </div>
                       <div style={{
                         width: "100%",
@@ -1138,15 +1138,15 @@ export default function OrderPage() {
 
                     {/* Items Preview */}
                     <div style={{
-                      background: "#f8fafc",
+                      background: "var(--component-bg)",
                       borderRadius: 12,
                       padding: 16,
                       marginBottom: 20,
                       border: "1px solid #e2e8f0",
                     }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: "#64748b" }}>Items ({order.itemsCount})</span>
-                        <span style={{ fontSize: 20, fontWeight: 800, color: "#1e293b" }}>₹{order.total.toFixed(2)}</span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary)" }}>Items ({order.itemsCount})</span>
+                        <span style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>₹{order.total.toFixed(2)}</span>
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 120, overflowY: "auto" }}>
                         {order.items.slice(0, 3).map((it, idx) => (
@@ -1162,7 +1162,7 @@ export default function OrderPage() {
                               <span style={{
                                 fontSize: 20,
                                 fontWeight: 600,
-                                color: "#1e293b",
+                                color: "var(--text-primary)",
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
@@ -1170,11 +1170,11 @@ export default function OrderPage() {
                                 {it.name}
                               </span>
                             </div>
-                            <span style={{ fontWeight: 700, color: "#64748b", marginLeft: 8 }}>x{it.qty}</span>
+                            <span style={{ fontWeight: 700, color: "var(--text-secondary)", marginLeft: 8 }}>x{it.qty}</span>
                           </div>
                         ))}
                         {order.items.length > 3 && (
-                          <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600, textAlign: "center", paddingTop: 4 }}>
+                          <div style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 600, textAlign: "center", paddingTop: 4 }}>
                             +{order.items.length - 3} more items
                           </div>
                         )}
@@ -1185,7 +1185,7 @@ export default function OrderPage() {
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                       <button
                         onClick={() => setSelectedOrderId(order.id)}
-                        style={{ width: "100%", padding: "12px 18px", borderRadius: 12, border: "1px solid #e2e8f0", background: "white", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer", fontSize: 14, fontWeight: 600, color: "#64748b", transition: "all 0.2s ease" }}
+                        style={{ width: "100%", padding: "12px 18px", borderRadius: 12, border: "1px solid #e2e8f0", background: "var(--bg-surface)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer", fontSize: 14, fontWeight: 600, color: "var(--text-secondary)", transition: "all 0.2s ease" }}
                       >
                         <FileText size={16} /> Order Details
                       </button>
@@ -1268,12 +1268,12 @@ export default function OrderPage() {
                           </>
                         )}
                         <div style={{ position: "relative" }}>
-                          <select value={order.status} onChange={(e) => handleStatusChange(order.id, e.target.value as any)} style={{ width: 44, height: 44, padding: 0, borderRadius: 12, border: "1px solid #e2e8f0", background: "white", fontSize: 0, cursor: "pointer", outline: "none", appearance: "none" }}>
+                          <select value={order.status} onChange={(e) => handleStatusChange(order.id, e.target.value as any)} style={{ width: 44, height: 44, padding: 0, borderRadius: 12, border: "1px solid #e2e8f0", background: "var(--bg-surface)", fontSize: 0, cursor: "pointer", outline: "none", appearance: "none" }}>
                             {(["Open", "KOT Sent", "Served", "Billed", "Paid", "Cancelled"] as const).map(s => (
                               <option key={s} value={s}>{s}</option>
                             ))}
                           </select>
-                          <ChevronDown size={14} style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", pointerEvents: "none", color: "#64748b" }} />
+                          <ChevronDown size={14} style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", pointerEvents: "none", color: "var(--text-secondary)" }} />
                         </div>
                       </div>
                     </div>
@@ -1303,7 +1303,7 @@ export default function OrderPage() {
           >
             <div
               style={{
-                background: "white",
+                background: "var(--bg-surface)",
                 borderRadius: 20,
                 padding: 32,
                 maxWidth: 480,
@@ -1314,10 +1314,10 @@ export default function OrderPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div style={{ marginBottom: 24 }}>
-                <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, color: "#1e293b" }}>
+                <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, color: "var(--text-primary)" }}>
                   Delete {selectedOrderIds.size} order{selectedOrderIds.size !== 1 ? "s" : ""}?
                 </div>
-                <div style={{ fontSize: 14, color: "#64748b", lineHeight: 1.6 }}>
+                <div style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.6 }}>
                   This action cannot be undone. The selected orders will be permanently deleted.
                   {selectedOrderIds.size > 1 && " Orders with payments cannot be deleted."}
                 </div>
@@ -1330,10 +1330,10 @@ export default function OrderPage() {
                     padding: "12px 24px",
                     borderRadius: 12,
                     border: "1px solid #e2e8f0",
-                    background: "white",
+                    background: "var(--bg-surface)",
                     fontSize: 14,
                     fontWeight: 600,
-                    color: "#64748b",
+                    color: "var(--text-secondary)",
                     cursor: deleting ? "not-allowed" : "pointer",
                     transition: "all 0.2s ease",
                   }}
@@ -1412,7 +1412,7 @@ export default function OrderPage() {
               style={{
                 width: "min(600px, 95vw)",
                 maxHeight: "min(90vh, 900px)",
-                background: "white",
+                background: "var(--bg-surface)",
                 borderRadius: 24,
                 boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
                 border: "1px solid rgba(0,0,0,0.08)",
@@ -1432,8 +1432,8 @@ export default function OrderPage() {
                 background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
               }}>
                 <div>
-                  <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 4, color: "#1e293b" }}>Order Details</div>
-                  <div style={{ fontSize: 13, color: "#64748b" }}>Order #{selectedOrder.id.slice(-4).toUpperCase()}</div>
+                  <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 4, color: "var(--text-primary)" }}>Order Details</div>
+                  <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>Order #{selectedOrder.id.slice(-4).toUpperCase()}</div>
                 </div>
                 <button
                   style={{
@@ -1474,12 +1474,12 @@ export default function OrderPage() {
               }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: 16, borderBottom: "1px solid #f1f5f9" }}>
                   <div>
-                    <div style={{ fontSize: 14, color: "#64748b", marginBottom: 4 }}>Order Type</div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: "#1e293b" }}>{selectedOrder.type}</div>
+                    <div style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 4 }}>Order Type</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>{selectedOrder.type}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 14, color: "#64748b", marginBottom: 4 }}>Time</div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "#1e293b" }}>{selectedOrder.time}</div>
+                    <div style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 4 }}>Time</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{selectedOrder.time}</div>
                   </div>
                 </div>
 
@@ -1500,8 +1500,8 @@ export default function OrderPage() {
                     {selectedOrder.table === "N/A" ? "TA" : selectedOrder.table.slice(0, 2)}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>Table</div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: "#1e293b" }}>{selectedOrder.table}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>Table</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>{selectedOrder.table}</div>
                   </div>
                 </div>
 
@@ -1511,7 +1511,7 @@ export default function OrderPage() {
                   justifyContent: "space-between",
                   padding: "14px 18px",
                   borderRadius: 14,
-                  background: "#f8fafc",
+                  background: "var(--component-bg)",
                   border: "1px solid #e2e8f0",
                 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -1529,7 +1529,7 @@ export default function OrderPage() {
                         position: "absolute",
                         inset: 4,
                         borderRadius: "50%",
-                        background: "white",
+                        background: "var(--bg-surface)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -1541,8 +1541,8 @@ export default function OrderPage() {
                       </div>
                     </div>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "#1e293b" }}>{selectedOrder.status}</div>
-                      <div style={{ fontSize: 12, color: "#64748b" }}>{selectedOrder.itemsCount} items</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{selectedOrder.status}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{selectedOrder.itemsCount} items</div>
                     </div>
                   </div>
                 </div>
@@ -1555,7 +1555,7 @@ export default function OrderPage() {
                         borderRadius: 16,
                         border: "1px solid #e2e8f0",
                         overflow: "hidden",
-                        background: "white",
+                        background: "var(--bg-surface)",
                       }}
                     >
                       <div style={{
@@ -1563,7 +1563,7 @@ export default function OrderPage() {
                         alignItems: "center",
                         justifyContent: "space-between",
                         padding: "12px 16px",
-                        background: it.status === "Served" ? "linear-gradient(180deg, rgba(16, 185, 129, 0.12), rgba(255, 255, 255, 0))" : "linear-gradient(180deg, rgba(59, 130, 246, 0.08), rgba(255, 255, 255, 0))",
+                        background: it.status === "Served" ? "linear-gradient(180deg, rgba(16, 185, 129, 0.12), rgba(var(--bg-surface-rgb), 0))" : "linear-gradient(180deg, rgba(59, 130, 246, 0.08), rgba(var(--bg-surface-rgb), 0))",
                       }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontWeight: 700, color: it.status === "Served" ? "#10b981" : "#3b82f6" }}>
                           {it.status === "Served" ? <CheckCircle2 size={18} /> : <Timer size={18} />}
@@ -1643,7 +1643,7 @@ export default function OrderPage() {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            color: "#94a3b8",
+                            color: "var(--text-tertiary)",
                             fontSize: 11,
                             fontWeight: 600,
                             border: "1px solid #e2e8f0",
@@ -1652,9 +1652,9 @@ export default function OrderPage() {
                           </div>
                         )}
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 16, fontWeight: 700, color: "#1e293b", marginBottom: 4 }}>{it.name}</div>
-                          {it.additions && <div style={{ fontSize: 13, color: "#64748b", marginBottom: 2 }}>{it.additions}</div>}
-                          {it.note && <div style={{ fontSize: 12, color: "#64748b", fontStyle: "italic" }}>Note: {it.note}</div>}
+                          <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>{it.name}</div>
+                          {it.additions && <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 2 }}>{it.additions}</div>}
+                          {it.note && <div style={{ fontSize: 12, color: "var(--text-secondary)", fontStyle: "italic" }}>Note: {it.note}</div>}
                         </div>
                       </div>
 
@@ -1664,17 +1664,17 @@ export default function OrderPage() {
                         justifyContent: "space-between",
                         padding: "12px 16px",
                         borderTop: "1px solid #f1f5f9",
-                        background: "#f8fafc",
+                        background: "var(--component-bg)",
                       }}>
-                        <div style={{ fontSize: 18, fontWeight: 800, color: "#1e293b" }}>₹{it.price.toFixed(2)}</div>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>₹{it.price.toFixed(2)}</div>
                         <div style={{
                           padding: "6px 12px",
                           borderRadius: 20,
                           border: "1px solid #e2e8f0",
                           fontSize: 13,
                           fontWeight: 700,
-                          color: "#64748b",
-                          background: "white",
+                          color: "var(--text-secondary)",
+                          background: "var(--bg-surface)",
                         }}>
                           x{it.qty}
                         </div>
@@ -1697,8 +1697,8 @@ export default function OrderPage() {
                   paddingBottom: 16,
                   borderBottom: "1px solid #e2e8f0",
                 }}>
-                  <span style={{ fontSize: 16, fontWeight: 600, color: "#64748b" }}>Total Payment</span>
-                  <span style={{ fontSize: 28, fontWeight: 800, color: "#1e293b" }}>₹{selectedOrder.total.toFixed(2)}</span>
+                  <span style={{ fontSize: 16, fontWeight: 600, color: "var(--text-secondary)" }}>Total Payment</span>
+                  <span style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)" }}>₹{selectedOrder.total.toFixed(2)}</span>
                 </div>
                 <div style={{ display: "flex", gap: 12 }}>
                   <Link
@@ -1708,7 +1708,7 @@ export default function OrderPage() {
                       padding: "14px 20px",
                       borderRadius: 12,
                       border: "1px solid #e2e8f0",
-                      background: "white",
+                      background: "var(--bg-surface)",
                       fontSize: 14,
                       fontWeight: 700,
                       display: "inline-flex",
@@ -1716,7 +1716,7 @@ export default function OrderPage() {
                       justifyContent: "center",
                       gap: 8,
                       textDecoration: "none",
-                      color: "#64748b",
+                      color: "var(--text-secondary)",
                       transition: "all 0.2s ease",
                     }}
                     onMouseEnter={(e) => {

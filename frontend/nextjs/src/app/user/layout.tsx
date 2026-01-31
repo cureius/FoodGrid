@@ -54,7 +54,7 @@ export default function UserLayout({
               margin: 0 auto;
               min-height: calc(100vh - 64px);
               position: relative;
-              background: white;
+              background: var(--bg-surface);
               box-shadow: var(--shadow-lg);
             }
             @media (min-width: 768px) {

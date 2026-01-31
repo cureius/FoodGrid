@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { COLORS } from "@/lib/constants";
 import Logo from "../Logo";
 import { useOutlet } from "@/contexts/OutletContext";
+import { ThemeSwitcher } from "../ThemeSwitcher";
 
 const Nav = styled.nav`
   top: 0;
@@ -15,11 +16,11 @@ const Nav = styled.nav`
   justify-content: space-between;
   align-items: center;
   padding: 16px 0;
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+  border-bottom: 1px solid var(--border-light);
 
   @media (max-width: 640px) {
-    /* tighter navbar for phones */
     padding: 10px 0;
   }
 `;
@@ -47,6 +48,7 @@ const Brand = styled.div`
   span {
     font-weight: 800;
     font-size: 20px;
+    color: var(--text-main);
   }
 
   @media (max-width: 640px) {
@@ -54,7 +56,6 @@ const Brand = styled.div`
       font-size: 16px;
     }
 
-    /* logo-only feel if screen is extremely narrow */
     @media (max-width: 360px) {
       span {
         display: none;
@@ -65,13 +66,12 @@ const Brand = styled.div`
 
 const Tabs = styled.div`
   display: flex;
-  background: #eceff3;
+  background: var(--bg-secondary);
   padding: 4px;
   border-radius: 12px;
   gap: 4px;
 
   @media (max-width: 640px) {
-    /* Make tabs horizontally scrollable on mobile */
     flex: 1;
     min-width: 0;
     overflow-x: auto;
@@ -94,24 +94,21 @@ const TabItem = styled.div<{ active?: boolean }>`
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  background: ${(p) => (p.active ? "white" : "transparent")};
-  color: ${(p) => (p.active ? COLORS.textMain : COLORS.textMuted)};
-  box-shadow: ${(p) => (p.active ? "0 2px 4px rgba(0,0,0,0.05)" : "none")};
+  background: ${(p) => (p.active ? "var(--bg-surface)" : "transparent")};
+  color: ${(p) => (p.active ? "var(--text-main)" : "var(--text-muted)")};
+  box-shadow: ${(p) => (p.active ? "var(--shadow-sm)" : "none")};
   transition: all 0.2s;
   white-space: nowrap;
 
   @media (max-width: 640px) {
     padding: 8px 12px;
     scroll-snap-align: start;
-
-    /* On mobile, keep icon and shorten label footprint */
     font-size: 13px;
 
     svg {
       flex: 0 0 auto;
     }
 
-    /* Hide text on very small screens (icons only) */
     @media (max-width: 420px) {
       span[data-label] {
         display: none;
@@ -122,6 +119,7 @@ const TabItem = styled.div<{ active?: boolean }>`
 
 const RightWrap = styled.div`
   display: flex;
+  align-items: center;
   gap: 12px;
   padding-right: 16px;
   flex: 0 0 auto;
@@ -134,12 +132,13 @@ const RightWrap = styled.div`
 
 const BellButton = styled.button`
   padding: 10px;
-  background: white;
+  background: var(--bg-surface);
   border-radius: 50%;
-  border: 1px solid ${COLORS.border};
+  border: 1px solid var(--border-light);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  color: var(--text-main);
 
   @media (max-width: 640px) {
     padding: 8px;
@@ -150,16 +149,16 @@ const ProfilePill = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-  background: white;
+  background: var(--bg-surface);
   padding: 4px 12px 4px 6px;
   border-radius: 100px;
-  border: 1px solid ${COLORS.border};
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
 
   @media (max-width: 640px) {
     padding: 4px;
     gap: 6px;
 
-    /* hide name/meta on mobile (keeps avatar accessible) */
     div {
       display: none;
     }
@@ -170,13 +169,13 @@ const OutletBadge = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.08) 100%);
+  background: var(--primary-light);
   padding: 8px 14px;
   border-radius: 12px;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  border: 1px solid var(--primary-border);
   font-size: 13px;
   font-weight: 600;
-  color: #7c3aed;
+  color: var(--primary);
 
   svg {
     flex-shrink: 0;
@@ -242,6 +241,7 @@ export const Navbar = () => {
       </LeftWrap>
 
       <RightWrap>
+        <ThemeSwitcher />
         {selectedOutlet && (
           <OutletBadge>
             <Store size={16} />
@@ -254,7 +254,7 @@ export const Navbar = () => {
         <ProfilePill>
           <img src="https://i.pravatar.cc/150?u=richardo" alt="Richardo" style={{ width: "32px", height: "32px", borderRadius: "50%" }} />
           <div style={{ fontSize: "13px" }}>
-            <b>Richardo</b> <span style={{ color: COLORS.textMuted }}>/ Waiter</span>
+            <b>Richardo</b> <span style={{ color: "var(--text-muted)" }}>/ Waiter</span>
           </div>
         </ProfilePill>
       </RightWrap>

@@ -62,14 +62,15 @@ export default function Page() {
           display: "flex", 
           alignItems: "center", 
           gap: 16, 
-          background: "white", 
+          background: "var(--bg-surface)", 
           padding: "12px 20px", 
           borderRadius: 12, 
-          boxShadow: "0 1px 3px rgba(0,0,0,0.1)" 
+          boxShadow: "var(--shadow-sm)",
+          border: "1px solid var(--border-light)" 
         }}>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 20, fontWeight: 600, color: "#1e293b" }}>{formatTime(now)}</div>
-            <div style={{ fontSize: 13, color: "#64748b" }}>{formatDate(now)}</div>
+            <div style={{ fontSize: 20, fontWeight: 600, color: "var(--text-primary)" }}>{formatTime(now)}</div>
+            <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>{formatDate(now)}</div>
           </div>
         </div>
       </div>
@@ -78,16 +79,17 @@ export default function Page() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 20, marginBottom: 32 }}>
         {stats.map((stat, index) => (
           <div key={index} style={{ 
-            background: "white", 
+            background: "var(--bg-surface)", 
             borderRadius: 16, 
             padding: 24, 
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            boxShadow: "var(--shadow-sm)",
+            border: "1px solid var(--border-light)",
             transition: "transform 0.2s, box-shadow 0.2s"
           }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
               <div>
-                <p style={{ margin: 0, fontSize: 13, color: "#64748b", fontWeight: 500 }}>{stat.title}</p>
-                <p style={{ margin: "8px 0 0", fontSize: 32, fontWeight: 700, color: "#1e293b" }}>{stat.value}</p>
+                <p style={{ margin: 0, fontSize: 13, color: "var(--text-secondary)", fontWeight: 500 }}>{stat.title}</p>
+                <p style={{ margin: "8px 0 0", fontSize: 32, fontWeight: 700, color: "var(--text-primary)" }}>{stat.value}</p>
                 <p style={{ margin: "8px 0 0", fontSize: 12, color: stat.color, fontWeight: 500 }}>{stat.change}</p>
               </div>
               <div style={{ padding: 14, borderRadius: 14, background: stat.bgColor }}>
