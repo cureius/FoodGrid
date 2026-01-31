@@ -24,4 +24,7 @@ public class OrderRepository implements PanacheRepositoryBase<Order, String> {
   public List<Order> listByCustomerAndOutlet(String customerId, String outletId, int limit) {
     return find("customerId = ?1 and outletId = ?2 order by createdAt desc", customerId, outletId).page(0, limit).list();
   }
+  public List<Order> listByOutletAndDateRange(String outletId, java.time.Instant startDate, java.time.Instant endDate) {
+    return find("outletId = ?1 and createdAt >= ?2 and createdAt <= ?3 order by createdAt desc", outletId, startDate, endDate).list();
+  }
 }

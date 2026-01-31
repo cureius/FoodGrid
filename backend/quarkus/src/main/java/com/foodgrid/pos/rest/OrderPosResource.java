@@ -30,7 +30,14 @@ public class OrderPosResource {
   }
 
   @GET
-  public List<OrderResponse> list(@QueryParam("limit") final Integer limit, @QueryParam("outletId") final String outletId) {
+  public List<OrderResponse> list(
+      @QueryParam("limit") final Integer limit,
+      @QueryParam("outletId") final String outletId,
+      @QueryParam("startDate") final String startDate,
+      @QueryParam("endDate") final String endDate) {
+    if (startDate != null && !startDate.isBlank() && endDate != null && !endDate.isBlank()) {
+      return orderPosService.listByRange(outletId, java.time.Instant.parse(startDate), java.time.Instant.parse(endDate));
+    }
     return orderPosService.listRecent(limit, outletId);
   }
 

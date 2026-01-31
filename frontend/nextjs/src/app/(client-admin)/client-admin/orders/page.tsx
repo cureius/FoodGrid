@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import styles from "./Orders.module.css";
 import Card from "@/components/ui/Card";
-import { Plus, Search, ChevronDown, ArrowRight, FileText, X, Timer, CheckCircle2, UtensilsCrossed, Loader2, RefreshCw, Zap, CreditCard, Utensils, Trash2, CheckSquare, Square, ReceiptText } from "lucide-react";
+import { Plus, Search, ChevronDown, ArrowRight, FileText, X, Timer, CheckCircle2, UtensilsCrossed, Loader2, RefreshCw, Zap, CreditCard, Utensils, Trash2, CheckSquare, Square, ReceiptText, Calendar } from "lucide-react";
 import Link from "next/link";
 import { listOrders, getOrder, cancelOrderItem, markOrderServed, billOrder, deleteOrder, updateOrderStatus, updateOrderItemStatus, type OrderResponse, type OrderItemResponse } from "@/lib/api/clientAdmin";
 import { useOutlet } from "@/contexts/OutletContext";
@@ -163,6 +163,9 @@ function mapOrderItemToDetailItem(item: OrderItemResponse, menuItemImages?: any[
 
 export default function OrderPage() {
   const [activeStatus, setActiveStatus] = useState<OrderStatus>("All");
+  const [timeFilter, setTimeFilter] = useState("Today");
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("Latest Order");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -189,7 +192,65 @@ export default function OrderPage() {
         setLoading(true);
       }
       setError(null);
-      const data = await listOrders(100, selectedOutletId);
+
+      // Date Range Calculation
+      const now = new Date();
+      let start: Date | undefined;
+      const end: Date = timeFilter === "Custom" && customEndDate ? new Date(customEndDate) : now;
+
+      // Adjust end date to end of day if it's a custom date or today/specific range
+      if (timeFilter === "Custom" && customEndDate) {
+          end.setHours(23, 59, 59, 999);
+      }
+
+      switch (timeFilter) {
+        case "Today":
+          start = new Date(now);
+          start.setHours(0, 0, 0, 0);
+          break;
+        case "Week":
+          start = new Date(now);
+          // Start of current week (assuming Monday start)
+          const day = start.getDay();
+          const diff = start.getDate() - day + (day === 0 ? -6 : 1);
+          start.setDate(diff);
+          start.setHours(0, 0, 0, 0);
+          break;
+        case "Month":
+          start = new Date(now.getFullYear(), now.getMonth(), 1);
+          break;
+        case "Quarter":
+          const q = Math.floor(now.getMonth() / 3);
+          start = new Date(now.getFullYear(), q * 3, 1);
+          break;
+        case "Year":
+          start = new Date(now.getFullYear(), 0, 1);
+          break;
+        case "All":
+          start = new Date("2000-01-01");
+          break;
+        case "Custom":
+          if (customStartDate) {
+              start = new Date(customStartDate);
+              start.setHours(0, 0, 0, 0);
+          }
+          break;
+        default:
+          start = new Date(now);
+          start.setHours(0, 0, 0, 0);
+      }
+
+      if (timeFilter === "Custom" && (!start || !end)) {
+          // Verify custom dates are valid before fetching
+          // If invalid or missing, maybe don't fetch or fetch default?
+          // For now, let's just fetch if we have at least start date, or default to today if missing
+          if (!start) {
+              start = new Date(now); 
+              start.setHours(0,0,0,0);
+          }
+      }
+
+      const data = await listOrders(100, selectedOutletId, start?.toISOString(), end.toISOString());
       setOrders(data);
     } catch (err: any) {
       setError(err?.message || "Failed to load orders");
@@ -202,8 +263,11 @@ export default function OrderPage() {
 
   // Fetch orders when outletId is available
   useEffect(() => {
+    if (timeFilter === "Custom" && (!customStartDate || !customEndDate)) {
+        return; // Wait for both dates
+    }
     fetchOrders();
-  }, [selectedOutletId]);
+  }, [selectedOutletId, timeFilter, customStartDate, customEndDate]);
 
   // Auto-refresh when enabled
   useEffect(() => {
@@ -661,6 +725,83 @@ export default function OrderPage() {
                 }}
               />
             </div>
+
+            <div style={{ position: "relative", minWidth: 160 }}>
+              <div style={{ position: "relative", display: "inline-block", width: "100%" }}>
+                <select
+                  value={timeFilter}
+                  onChange={(e) => setTimeFilter(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "14px 36px 14px 16px",
+                    borderRadius: 12,
+                    border: "1px solid #e2e8f0",
+                    fontSize: 14,
+                    cursor: "pointer",
+                    outline: "none",
+                    appearance: "none",
+                    boxSizing: "border-box",
+                    transition: "all 0.2s ease",
+                    background: "var(--bg-card)",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = "#8b5cf6";
+                    e.currentTarget.style.background = "white";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "#e2e8f0";
+                    e.currentTarget.style.background = "#f8fafc";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                >
+                  <option>Today</option>
+                  <option>Week</option>
+                  <option>Month</option>
+                  <option>Quarter</option>
+                  <option>Year</option>
+                  <option>All</option>
+                  <option>Custom</option>
+                </select>
+                <Calendar size={16} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#94a3b8" }} />
+              </div>
+            </div>
+
+            {timeFilter === "Custom" && (
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
+                  style={{
+                    padding: "13px 12px",
+                    borderRadius: 12,
+                    border: "1px solid #e2e8f0",
+                    fontSize: 14,
+                    outline: "none",
+                    fontFamily: "inherit",
+                    background: "var(--bg-card)",
+                    color: "var(--text-primary)"
+                  }}
+                />
+                <span style={{ color: "#94a3b8" }}>-</span>
+                <input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  style={{
+                    padding: "13px 12px",
+                    borderRadius: 12,
+                    border: "1px solid #e2e8f0",
+                    fontSize: 14,
+                    outline: "none",
+                    fontFamily: "inherit",
+                    background: "var(--bg-card)",
+                    color: "var(--text-primary)"
+                  }}
+                />
+              </div>
+            )}
 
             <div style={{ position: "relative", minWidth: 180 }}>
               <div style={{ position: "relative", display: "inline-block", width: "100%" }}>

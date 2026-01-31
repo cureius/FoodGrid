@@ -1021,10 +1021,12 @@ export type OrderAddItemInput = {
   qty: number;
 };
 
-export function listOrders(limit?: number, outletId?: string) {
+export function listOrders(limit?: number, outletId?: string, startDate?: string, endDate?: string) {
   const params = new URLSearchParams();
   if (limit) params.append('limit', limit.toString());
   if (outletId) params.append('outletId', outletId);
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
   const queryString = params.toString();
   return http<OrderResponse[]>(`/api/v1/pos/orders${queryString ? `?${queryString}` : ''}`, {
     method: "GET",

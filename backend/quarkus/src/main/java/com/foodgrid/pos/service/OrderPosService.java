@@ -412,6 +412,15 @@ public class OrderPosService {
       .toList();
   }
 
+  public List<OrderResponse> listByRange(final String outletIdParam, final Instant start, final Instant end) {
+    final String outletId = (outletIdParam != null && !outletIdParam.isBlank()) ? outletIdParam : claimRequired("outletId");
+    guards.requireOutletInTenant(outletId);
+
+    return orderRepository.listByOutletAndDateRange(outletId, start, end).stream()
+      .map(o -> toResponse(o, orderItemRepository.listByOrder(o.id).stream().map(OrderPosService::toResponse).toList()))
+      .toList();
+  }
+
   @Transactional
   public void delete(final String orderId) {
     final Order o = getOrderForOutlet(orderId);
