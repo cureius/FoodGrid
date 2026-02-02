@@ -12,7 +12,6 @@ import {
   BarChart3,
   Shield,
   Zap,
-  Globe,
   CheckCircle2,
   ArrowRight,
   Smartphone,
@@ -32,7 +31,7 @@ export default function LandingPage() {
         <div className={styles.headerContent}>
           <Logo size={32} />
           <div className={styles.headerActions}>
-            {/* <ThemeSwitcher /> */}
+            <ThemeSwitcher />
             <Link href="/user/login">
               <button className={`${styles.btnSecondary} ${styles.btnSmall}`}>
                 Login

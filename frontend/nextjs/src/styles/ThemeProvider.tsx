@@ -66,7 +66,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // Prevent flash of unstyled content
   if (!isMounted) {
-    return <div style={{ visibility: 'hidden' }}>{children}</div>;
+    return (
+      <ThemeContext.Provider value={{ theme: themes.light, mode: 'light', setMode: () => {}, toggleTheme: () => {} }}>
+        <div style={{ visibility: 'hidden' }}>{children}</div>
+      </ThemeContext.Provider>
+    );
   }
 
   return (
