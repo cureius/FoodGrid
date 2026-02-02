@@ -25,7 +25,7 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -113,7 +113,7 @@
 }
 
 .activeNavItem .navIcon {
-  color: #10b981;
+  color: var(--success);
 }
 
 .navIcon {
@@ -141,7 +141,7 @@
   border-radius: 12px;
   border: none;
   background: rgba(239, 68, 68, 0.1);
-  color: #f87171;
+  color: var(--danger);
   font-weight: 500;
   font-size: 14px;
   cursor: pointer;

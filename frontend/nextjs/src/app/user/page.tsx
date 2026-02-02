@@ -166,7 +166,7 @@ function RestaurantView({ outletId, onBack }: { outletId: string; onBack: () => 
       </div>
 
       <style jsx>{`
-        .landing-page { padding-bottom: 96px; background: white; }
+        .landing-page { padding-bottom: 96px;  }
         .restaurant-header { padding: 16px 16px 24px; border-bottom: 1px solid var(--border-light); }
         .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .back-btn { padding: 4px; margin-left: -8px; color: var(--navy); }

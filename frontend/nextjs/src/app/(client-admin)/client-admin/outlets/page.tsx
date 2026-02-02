@@ -54,7 +54,7 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
       right: 24,
       padding: "14px 20px",
       borderRadius: 12,
-      background: type === "success" ? "#10b981" : "#ef4444",
+      background: type === "success" ? "var(--success)" : "var(--danger)",
       color: "white",
       display: "flex",
       alignItems: "center",
@@ -232,13 +232,13 @@ export default function Page() {
             fontSize: 32,
             fontWeight: 800,
             margin: 0,
-            background: "linear-gradient(135deg, #1e293b 0%, #475569 100%)",
+            background: "var(--text-primary)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
           }}>
             Outlets
           </h1>
-          <p style={{ margin: "8px 0 0", color: "#64748b", fontSize: 15 }}>
+          <p style={{ margin: "8px 0 0", color: "var(--text-secondary)", fontSize: 15 }}>
             Manage your restaurant locations and branches
           </p>
         </div>
@@ -271,12 +271,12 @@ export default function Page() {
               padding: "12px 20px",
               borderRadius: 12,
               border: "none",
-              background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+              background: "var(--primary)",
               color: "white",
               fontSize: 14,
               fontWeight: 600,
               cursor: "pointer",
-              boxShadow: "0 4px 14px rgba(139, 92, 246, 0.35)",
+              boxShadow: "0 4px 14px var(--primary-light)",
             }}
           >
             <Plus size={18} />
@@ -298,12 +298,12 @@ export default function Page() {
           minWidth: 280,
           position: "relative",
         }}>
-          <Search size={18} style={{
+            <Search size={18} style={{
             position: "absolute",
             left: 14,
             top: "50%",
             transform: "translateY(-50%)",
-            color: "#94a3b8",
+            color: "var(--text-tertiary)",
           }} />
           <input
             type="text"
@@ -354,9 +354,9 @@ export default function Page() {
         <div style={{
           padding: "14px 18px",
           borderRadius: 12,
-          background: "rgba(239, 68, 68, 0.08)",
-          border: "1px solid rgba(239, 68, 68, 0.2)",
-          color: "#dc2626",
+          background: "var(--danger-light)",
+          border: "1px solid var(--danger)",
+          color: "var(--danger)",
           marginBottom: 24,
         }}>
           {error}
@@ -382,7 +382,7 @@ export default function Page() {
                   width: 52,
                   height: 52,
                   borderRadius: 12,
-                  background: "linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)",
+                  background: "linear-gradient(90deg, var(--bg-tertiary) 25%, var(--component-border) 50%, var(--bg-tertiary) 75%)",
                   backgroundSize: "200% 100%",
                   animation: "shimmer 1.5s infinite",
                 }} />
@@ -390,7 +390,7 @@ export default function Page() {
                   <div style={{
                     width: "60%",
                     height: 18,
-                    background: "linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)",
+                    background: "linear-gradient(90deg, var(--bg-tertiary) 25%, var(--component-border) 50%, var(--bg-tertiary) 75%)",
                     backgroundSize: "200% 100%",
                     animation: "shimmer 1.5s infinite",
                     borderRadius: 4,
@@ -399,7 +399,7 @@ export default function Page() {
                   <div style={{
                     width: "40%",
                     height: 14,
-                    background: "linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)",
+                    background: "linear-gradient(90deg, var(--bg-tertiary) 25%, var(--component-border) 50%, var(--bg-tertiary) 75%)",
                     backgroundSize: "200% 100%",
                     animation: "shimmer 1.5s infinite",
                     borderRadius: 4,
@@ -417,7 +417,7 @@ export default function Page() {
           borderRadius: 20,
           border: "1px solid var(--border-light)",
         }}>
-          <Store size={56} style={{ color: "#cbd5e1", marginBottom: 16 }} />
+          <Store size={56} style={{ color: "var(--text-tertiary)", marginBottom: 16 }} />
           <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 600, color: "var(--text-primary)" }}>
             {searchQuery ? "No outlets found" : "No outlets yet"}
           </h3>
@@ -436,7 +436,7 @@ export default function Page() {
                 padding: "12px 24px",
                 borderRadius: 12,
                 border: "none",
-                background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                background: "var(--primary)",
                 color: "white",
                 fontSize: 14,
                 fontWeight: 600,
@@ -473,7 +473,7 @@ export default function Page() {
                     width: 52,
                     height: 52,
                     borderRadius: 14,
-                    background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                    background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -505,8 +505,8 @@ export default function Page() {
                       <div style={{
                         padding: "3px 8px",
                         borderRadius: 20,
-                        background: outlet.status === "ACTIVE" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                        color: outlet.status === "ACTIVE" ? "#10b981" : "#ef4444",
+                        background: outlet.status === "ACTIVE" ? "var(--success-light)" : "var(--danger-light)",
+                        color: outlet.status === "ACTIVE" ? "var(--success)" : "var(--danger)",
                         fontSize: 11,
                         fontWeight: 600,
                         flexShrink: 0,
@@ -589,9 +589,9 @@ export default function Page() {
                     gap: 6,
                     padding: "8px 14px",
                     borderRadius: 8,
-                    border: "1px solid rgba(239, 68, 68, 0.2)",
-                    background: "rgba(239, 68, 68, 0.05)",
-                    color: "#ef4444",
+                    border: "1px solid var(--danger-light)",
+                    background: "var(--danger-light)",
+                    color: "var(--danger)",
                     fontSize: 13,
                     fontWeight: 500,
                     cursor: saving ? "not-allowed" : "pointer",
@@ -643,12 +643,12 @@ export default function Page() {
                   width: 40,
                   height: 40,
                   borderRadius: 10,
-                  background: "rgba(139, 92, 246, 0.1)",
+                  background: "var(--primary-light)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                 }}>
-                  <Building2 size={20} style={{ color: "#8b5cf6" }} />
+                  <Building2 size={20} style={{ color: "var(--primary)" }} />
                 </div>
                 <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>
                   {editingOutlet ? "Edit Outlet" : "Create Outlet"}
@@ -807,9 +807,9 @@ export default function Page() {
                   flex: 1,
                   padding: "12px 20px",
                   borderRadius: 10,
-                  border: "1px solid #e2e8f0",
-                  background: "white",
-                  color: "#64748b",
+                  border: "1px solid var(--component-border)",
+                  background: "var(--component-bg)",
+                  color: "var(--text-secondary)",
                   fontSize: 14,
                   fontWeight: 600,
                   cursor: "pointer",
@@ -826,13 +826,13 @@ export default function Page() {
                   borderRadius: 10,
                   border: "none",
                   background: !canSubmit || saving
-                    ? "#e2e8f0"
-                    : "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                  color: !canSubmit || saving ? "#94a3b8" : "white",
+                    ? "var(--border-light)"
+                    : "var(--primary)",
+                  color: !canSubmit || saving ? "var(--text-secondary)" : "white",
                   fontSize: 14,
                   fontWeight: 600,
                   cursor: !canSubmit || saving ? "not-allowed" : "pointer",
-                  boxShadow: !canSubmit || saving ? "none" : "0 4px 14px rgba(139, 92, 246, 0.35)",
+                  boxShadow: !canSubmit || saving ? "none" : "0 4px 14px var(--primary-light)",
                 }}
               >
                 {saving ? "Saving..." : editingOutlet ? "Update Outlet" : "Create Outlet"}
@@ -856,7 +856,7 @@ export default function Page() {
           zIndex: 100,
         }}>
           <div style={{
-            background: "white",
+            background: "var(--bg-surface)",
             borderRadius: 20,
             width: "100%",
             maxWidth: 400,
@@ -867,18 +867,18 @@ export default function Page() {
               width: 56,
               height: 56,
               borderRadius: "50%",
-              background: "rgba(239, 68, 68, 0.1)",
+              background: "var(--danger-light)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               margin: "0 auto 16px",
             }}>
-              <Trash2 size={28} style={{ color: "#ef4444" }} />
+              <Trash2 size={28} style={{ color: "var(--danger)" }} />
             </div>
-            <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 600, color: "#1e293b" }}>
+            <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 600, color: "var(--text-primary)" }}>
               Delete Outlet?
             </h3>
-            <p style={{ margin: "0 0 24px", color: "#64748b", fontSize: 14 }}>
+            <p style={{ margin: "0 0 24px", color: "var(--text-secondary)", fontSize: 14 }}>
               This action cannot be undone. All data associated with this outlet will be permanently removed.
             </p>
             <div style={{ display: "flex", gap: 12 }}>
@@ -888,9 +888,9 @@ export default function Page() {
                   flex: 1,
                   padding: "12px 20px",
                   borderRadius: 10,
-                  border: "1px solid #e2e8f0",
-                  background: "white",
-                  color: "#64748b",
+                  border: "1px solid var(--border-light)",
+                  background: "var(--bg-surface)",
+                  color: "var(--text-secondary)",
                   fontSize: 14,
                   fontWeight: 600,
                   cursor: "pointer",
@@ -899,14 +899,14 @@ export default function Page() {
                 Cancel
               </button>
               <button
-                onClick={() => onDelete(deleteConfirm)}
+                onClick={() => deleteConfirm && onDelete(deleteConfirm)}
                 disabled={saving}
                 style={{
                   flex: 1,
                   padding: "12px 20px",
                   borderRadius: 10,
                   border: "none",
-                  background: "#ef4444",
+                  background: "var(--danger)",
                   color: "white",
                   fontSize: 14,
                   fontWeight: 600,

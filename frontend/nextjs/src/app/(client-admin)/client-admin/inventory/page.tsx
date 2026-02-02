@@ -197,8 +197,8 @@ function VegIcon() {
 function NonVegIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="2" y="2" width="20" height="20" rx="2" stroke="#dc2626" strokeWidth="2" />
-      <polygon points="12,7 17,17 7,17" fill="#dc2626" />
+      <rect x="2" y="2" width="20" height="20" rx="2" stroke="var(--danger)" strokeWidth="2" />
+      <polygon points="12,7 17,17 7,17" fill="var(--danger)" />
     </svg>
   );
 }

@@ -132,7 +132,7 @@ function StatCard({ title, value, subtitle, icon, color, bgColor, trend, loading
             padding: "4px 10px",
             borderRadius: 20,
             background: "rgba(16, 185, 129, 0.1)",
-            color: "#10b981",
+            color: "var(--success)",
             fontSize: 12,
             fontWeight: 600,
           }}>
@@ -153,7 +153,7 @@ function StatCard({ title, value, subtitle, icon, color, bgColor, trend, loading
             <div style={{
               width: 60,
               height: 32,
-              background: "linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)",
+              background: "linear-gradient(90deg, var(--bg-tertiary) 25%, var(--component-border) 50%, var(--bg-tertiary) 75%)",
               backgroundSize: "200% 100%",
               animation: "shimmer 1.5s infinite",
               borderRadius: 6,
@@ -297,7 +297,7 @@ export default function Page() {
               padding: "16px 20px",
               borderRadius: 14,
               border: "none",
-              background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+              background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
               color: "white",
               fontSize: 14,
               fontWeight: 600,
@@ -320,7 +320,7 @@ export default function Page() {
           borderRadius: 12,
           background: "rgba(239, 68, 68, 0.08)",
           border: "1px solid rgba(239, 68, 68, 0.2)",
-          color: "#dc2626",
+          color: "var(--danger)",
           marginBottom: 24,
           display: "flex",
           alignItems: "center",
@@ -385,7 +385,7 @@ export default function Page() {
                    timeRange === "thisMonth" ? "This month" :
                    timeRange === "thisQuarter" ? "This quarter" : "This year"}
           icon={<ShoppingBag size={26} />}
-          color="#8b5cf6"
+          color="var(--primary)"
           bgColor="rgba(139, 92, 246, 0.1)"
           loading={loading || ordersLoading}
         />
@@ -394,7 +394,7 @@ export default function Page() {
           value={stats.employeesCount}
           subtitle={selectedOutlet ? `For ${selectedOutlet.name}` : "Select an outlet"}
           icon={<Users size={26} />}
-          color="#3b82f6"
+          color="var(--info)"
           bgColor="rgba(59, 130, 246, 0.1)"
           loading={loading}
         />
@@ -403,7 +403,7 @@ export default function Page() {
           value={stats.activeEmployees}
           subtitle="Currently enabled"
           icon={<UserCheck size={26} />}
-          color="#10b981"
+          color="var(--success)"
           bgColor="rgba(16, 185, 129, 0.1)"
           loading={loading}
         />
@@ -412,7 +412,7 @@ export default function Page() {
           value={stats.inactiveEmployees}
           subtitle="Disabled accounts"
           icon={<UserX size={26} />}
-          color="#f59e0b"
+          color="var(--warning)"
           bgColor="rgba(245, 158, 11, 0.1)"
           loading={loading}
         />
@@ -449,7 +449,7 @@ export default function Page() {
                 alignItems: "center",
                 justifyContent: "center",
               }}>
-                <Users size={20} style={{ color: "#3b82f6" }} />
+                <Users size={20} style={{ color: "var(--info)" }} />
               </div>
               <div>
                 <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Employees</h3>
@@ -471,7 +471,7 @@ export default function Page() {
 
           <div style={{ padding: 16 }}>
             {loading ? (
-              <div style={{ padding: 20, textAlign: "center", color: "#64748b" }}>Loading employees...</div>
+              <div style={{ padding: 20, textAlign: "center", color: "var(--text-secondary)" }}>Loading employees...</div>
             ) : recentEmployees.length === 0 ? (
               <div style={{ padding: 40, textAlign: "center" }}>
                 <Users size={40} style={{ color: "var(--text-tertiary)", marginBottom: 12 }} />
@@ -483,7 +483,7 @@ export default function Page() {
                   marginTop: 12,
                   padding: "10px 18px",
                   borderRadius: 10,
-                  background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                  background: "linear-gradient(135deg, var(--info) 0%, #2563eb 100%)",
                   color: "white",
                   fontSize: 13,
                   fontWeight: 600,
@@ -510,7 +510,7 @@ export default function Page() {
                       borderRadius: "50%",
                       background: emp.avatarUrl 
                         ? `url(${emp.avatarUrl}) center/cover`
-                        : "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                        : "linear-gradient(135deg, var(--info) 0%, #2563eb 100%)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -532,7 +532,7 @@ export default function Page() {
                       padding: "4px 10px",
                       borderRadius: 20,
                       background: (emp.status ?? "ACTIVE") === "ACTIVE" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                      color: (emp.status ?? "ACTIVE") === "ACTIVE" ? "#10b981" : "#ef4444",
+                      color: (emp.status ?? "ACTIVE") === "ACTIVE" ? "var(--success)" : "var(--danger)",
                       fontSize: 11,
                       fontWeight: 600,
                     }}>

@@ -16,7 +16,7 @@ export default function VegIndicator({ isVeg, size = 'sm', showText = false }: V
   };
 
   const { box, dot, font } = sizeMap[size];
-  const color = isVeg ? '#10B981' : '#D9534F';
+  const color = isVeg ? 'var(--success)' : '#D9534F';
 
   return (
     <div className="veg-wrap">

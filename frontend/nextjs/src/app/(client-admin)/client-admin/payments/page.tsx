@@ -23,7 +23,6 @@ const Container = styled.main`
 
 const ContentWrapper = styled.div`
   height: calc(100dvh - ${NAV_HEIGHT_DESKTOP}px);
-  padding-top: ${NAV_HEIGHT_DESKTOP + 30}px;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -551,7 +550,7 @@ export default function PaymentsPage() {
               <StatValue>{stats.failedCount}</StatValue>
             </StatInfo>
             <StatIconBox $bgColor="rgba(239, 68, 68, 0.1)">
-              <XCircle size={24} color="#ef4444" />
+              <XCircle size={24} color="var(--danger)" />
             </StatIconBox>
           </StatCard>
         </StatGrid>

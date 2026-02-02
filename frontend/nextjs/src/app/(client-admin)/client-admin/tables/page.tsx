@@ -245,8 +245,8 @@ export default function TablesPage() {
 
   const stats = [
     { title: "Total Tables", value: tables.length, icon: LayoutGrid, color: "#6366f1", bgColor: "rgba(99, 102, 241, 0.1)" },
-    { title: "Active", value: activeCount, icon: CheckCircle2, color: "#10b981", bgColor: "rgba(16, 185, 129, 0.1)" },
-    { title: "Inactive", value: inactiveCount, icon: XCircle, color: "#ef4444", bgColor: "rgba(239, 68, 68, 0.1)" },
+    { title: "Active", value: activeCount, icon: CheckCircle2, color: "var(--success)", bgColor: "rgba(16, 185, 129, 0.1)" },
+    { title: "Inactive", value: inactiveCount, icon: XCircle, color: "var(--danger)", bgColor: "rgba(239, 68, 68, 0.1)" },
   ];
 
   const canSubmit = form.tableCode.trim() && form.displayName.trim();
@@ -254,9 +254,9 @@ export default function TablesPage() {
   const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
       case "ACTIVE":
-        return { bg: "rgba(16, 185, 129, 0.1)", color: "#10b981" };
+        return { bg: "rgba(16, 185, 129, 0.1)", color: "var(--success)" };
       case "INACTIVE":
-        return { bg: "rgba(239, 68, 68, 0.1)", color: "#ef4444" };
+        return { bg: "rgba(239, 68, 68, 0.1)", color: "var(--danger)" };
       default:
         return { bg: "rgba(100, 116, 139, 0.1)", color: "var(--text-secondary)" };
     }
@@ -276,7 +276,7 @@ export default function TablesPage() {
             zIndex: 1000,
             padding: "14px 18px",
             borderRadius: 14,
-            background: toast.type === "success" ? "#10b981" : "#ef4444",
+            background: toast.type === "success" ? "var(--success)" : "var(--danger)",
             color: "white",
             boxShadow: "0 14px 50px rgba(0,0,0,0.24)",
             display: "flex",
@@ -313,7 +313,7 @@ export default function TablesPage() {
                   fontSize: 32,
                   fontWeight: 800,
                   margin: 0,
-                  background: "linear-gradient(135deg, #1e293b 0%, #475569 100%)",
+                  background: "var(--text-primary)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   letterSpacing: "-0.5px",
@@ -370,7 +370,7 @@ export default function TablesPage() {
                   padding: "14px 20px",
                   borderRadius: 14,
                   border: "none",
-                  background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                  background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                   color: "white",
                   cursor: !selectedOutletId ? "not-allowed" : "pointer",
                   opacity: !selectedOutletId ? 0.6 : 1,
@@ -468,7 +468,7 @@ export default function TablesPage() {
                       width: "100%",
                       padding: "14px 16px 14px 44px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid var(--component-border)",
                       background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
@@ -476,13 +476,13 @@ export default function TablesPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#8b5cf6";
+                      e.currentTarget.style.borderColor = "var(--primary)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   />
@@ -496,7 +496,7 @@ export default function TablesPage() {
                       width: "100%",
                       padding: "14px 16px 14px 38px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid var(--component-border)",
                       background: "var(--component-bg)",
                       fontSize: 14,
                       cursor: "pointer",
@@ -505,13 +505,13 @@ export default function TablesPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#8b5cf6";
+                      e.currentTarget.style.borderColor = "var(--primary)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   >
@@ -525,7 +525,7 @@ export default function TablesPage() {
                 <span style={{ fontSize: 14, color: "var(--text-secondary)", fontWeight: 600, whiteSpace: "nowrap" }}>
                   {filteredTables.length} {filteredTables.length === 1 ? "table" : "tables"}
                 </span>
-                <div style={{ display: "flex", background: "#f1f5f9", borderRadius: 12, padding: 4, gap: 4 }}>
+                <div style={{ display: "flex", background: "var(--bg-tertiary)", borderRadius: 12, padding: 4, gap: 4 }}>
                   <button
                     onClick={() => setViewMode("grid")}
                     aria-label="Grid view"
@@ -549,7 +549,7 @@ export default function TablesPage() {
                       }
                     }}
                   >
-                    <Grid3X3 size={18} style={{ color: viewMode === "grid" ? "#7c3aed" : "#64748b" }} />
+                    <Grid3X3 size={18} style={{ color: viewMode === "grid" ? "var(--primary)" : "var(--text-secondary)" }} />
                   </button>
                   <button
                     onClick={() => setViewMode("list")}
@@ -574,7 +574,7 @@ export default function TablesPage() {
                       }
                     }}
                   >
-                    <List size={18} style={{ color: viewMode === "list" ? "#7c3aed" : "#64748b" }} />
+                    <List size={18} style={{ color: viewMode === "list" ? "var(--primary)" : "var(--text-secondary)" }} />
                   </button>
                 </div>
               </div>
@@ -586,7 +586,7 @@ export default function TablesPage() {
         {!selectedOutletId ? (
           <Card>
             <div style={{ padding: 60, textAlign: "center" }}>
-              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "var(--bg-tertiary)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
                 <Building2 size={40} style={{ color: "var(--text-tertiary)" }} />
               </div>
               <h3 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px" }}>Select an Outlet</h3>
@@ -601,10 +601,10 @@ export default function TablesPage() {
               <Card key={i}>
                 <div style={{ padding: 24 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                    <div style={{ width: 64, height: 64, borderRadius: 16, background: "#e2e8f0", animation: "pulse 2s infinite" }} />
+                    <div style={{ width: 64, height: 64, borderRadius: 16, background: "var(--component-border)", animation: "pulse 2s infinite" }} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ height: 20, background: "#e2e8f0", borderRadius: 6, marginBottom: 8, width: "60%", animation: "pulse 2s infinite" }} />
-                      <div style={{ height: 16, background: "#e2e8f0", borderRadius: 6, width: "40%", animation: "pulse 2s infinite" }} />
+                      <div style={{ height: 20, background: "var(--component-border)", borderRadius: 6, marginBottom: 8, width: "60%", animation: "pulse 2s infinite" }} />
+                      <div style={{ height: 16, background: "var(--component-border)", borderRadius: 6, width: "40%", animation: "pulse 2s infinite" }} />
                     </div>
                   </div>
                 </div>
@@ -614,7 +614,7 @@ export default function TablesPage() {
         ) : filteredTables.length === 0 ? (
           <Card>
             <div style={{ padding: 60, textAlign: "center" }}>
-              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "var(--bg-tertiary)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
                 <LayoutGrid size={40} style={{ color: "var(--text-tertiary)" }} />
               </div>
               <h3 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px" }}>No tables found</h3>
@@ -633,7 +633,7 @@ export default function TablesPage() {
                     padding: "12px 24px",
                     borderRadius: 10,
                     border: "none",
-                    background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                    background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                     color: "white",
                     fontSize: 14,
                     fontWeight: 600,
@@ -677,7 +677,7 @@ export default function TablesPage() {
                       width: 64,
                       height: 64,
                       borderRadius: 16,
-                      background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                      background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -732,7 +732,7 @@ export default function TablesPage() {
                         flex: 1,
                         padding: "12px 18px",
                         borderRadius: 12,
-                        border: "1px solid #e2e8f0",
+                        border: "1px solid var(--component-border)",
                         background: "var(--bg-surface)",
                         display: "flex",
                         alignItems: "center",
@@ -745,13 +745,13 @@ export default function TablesPage() {
                         transition: "all 0.2s ease",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = "#8b5cf6";
-                        e.currentTarget.style.color = "#8b5cf6";
+                        e.currentTarget.style.borderColor = "var(--primary)";
+                        e.currentTarget.style.color = "var(--primary)";
                         e.currentTarget.style.background = "#faf5ff";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = "#e2e8f0";
-                        e.currentTarget.style.color = "#64748b";
+                        e.currentTarget.style.borderColor = "var(--component-border)";
+                        e.currentTarget.style.color = "var(--text-secondary)";
                         e.currentTarget.style.background = "white";
                       }}
                     >
@@ -764,7 +764,7 @@ export default function TablesPage() {
                         borderRadius: 12,
                         border: "1px solid #fecaca",
                         background: "#fef2f2",
-                        color: "#ef4444",
+                        color: "var(--danger)",
                         cursor: "pointer",
                         display: "flex",
                         alignItems: "center",
@@ -820,7 +820,7 @@ export default function TablesPage() {
                     width: 64,
                     height: 64,
                     borderRadius: 16,
-                    background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                    background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -864,7 +864,7 @@ export default function TablesPage() {
                       style={{
                         padding: "10px 16px",
                         borderRadius: 10,
-                        border: "1px solid #e2e8f0",
+                        border: "1px solid var(--component-border)",
                         background: "var(--bg-surface)",
                         display: "flex",
                         alignItems: "center",
@@ -876,13 +876,13 @@ export default function TablesPage() {
                         transition: "all 0.2s ease",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = "#8b5cf6";
-                        e.currentTarget.style.color = "#8b5cf6";
+                        e.currentTarget.style.borderColor = "var(--primary)";
+                        e.currentTarget.style.color = "var(--primary)";
                         e.currentTarget.style.background = "#faf5ff";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = "#e2e8f0";
-                        e.currentTarget.style.color = "#64748b";
+                        e.currentTarget.style.borderColor = "var(--component-border)";
+                        e.currentTarget.style.color = "var(--text-secondary)";
                         e.currentTarget.style.background = "white";
                       }}
                     >
@@ -895,7 +895,7 @@ export default function TablesPage() {
                         borderRadius: 10,
                         border: "1px solid #fecaca",
                         background: "#fef2f2",
-                        color: "#ef4444",
+                        color: "var(--danger)",
                         cursor: "pointer",
                         display: "flex",
                         alignItems: "center",
@@ -949,8 +949,8 @@ export default function TablesPage() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ padding: 28, textAlign: "center", borderBottom: "1px solid #f1f5f9", background: "linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)" }}>
-                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(139, 92, 246, 0.3)" }}>
+              <div style={{ padding: 28, textAlign: "center", borderBottom: "1px solid var(--bg-tertiary)", background: "linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)" }}>
+                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(139, 92, 246, 0.3)" }}>
                   <LayoutGrid size={32} style={{ color: "white" }} />
                 </div>
                 <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 6px", color: "var(--text-primary)" }}>Add New Table</h2>
@@ -968,7 +968,7 @@ export default function TablesPage() {
                       width: "100%",
                       padding: "12px 16px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid var(--component-border)",
                       background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
@@ -976,13 +976,13 @@ export default function TablesPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#8b5cf6";
+                      e.currentTarget.style.borderColor = "var(--primary)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   />
@@ -998,7 +998,7 @@ export default function TablesPage() {
                       width: "100%",
                       padding: "12px 16px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid var(--component-border)",
                       background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
@@ -1006,13 +1006,13 @@ export default function TablesPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#8b5cf6";
+                      e.currentTarget.style.borderColor = "var(--primary)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   />
@@ -1030,7 +1030,7 @@ export default function TablesPage() {
                       width: "100%",
                       padding: "12px 16px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid var(--component-border)",
                       background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
@@ -1038,13 +1038,13 @@ export default function TablesPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#8b5cf6";
+                      e.currentTarget.style.borderColor = "var(--primary)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   />
@@ -1058,7 +1058,7 @@ export default function TablesPage() {
                       width: "100%",
                       padding: "12px 16px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid var(--component-border)",
                       background: "var(--component-bg)",
                       fontSize: 14,
                       cursor: "pointer",
@@ -1067,13 +1067,13 @@ export default function TablesPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#8b5cf6";
+                      e.currentTarget.style.borderColor = "var(--primary)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   >
@@ -1082,14 +1082,14 @@ export default function TablesPage() {
                   </select>
                 </div>
               </div>
-              <div style={{ padding: "20px 28px 28px", display: "flex", gap: 12, borderTop: "1px solid #f1f5f9" }}>
+              <div style={{ padding: "20px 28px 28px", display: "flex", gap: 12, borderTop: "1px solid var(--bg-tertiary)" }}>
                 <button
                   onClick={() => setCreateDialogOpen(false)}
                   style={{
                     flex: 1,
                     padding: "14px 20px",
                     borderRadius: 12,
-                    border: "1px solid #e2e8f0",
+                    border: "1px solid var(--component-border)",
                     background: "var(--bg-surface)",
                     fontSize: 14,
                     fontWeight: 600,
@@ -1098,11 +1098,11 @@ export default function TablesPage() {
                     transition: "all 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "#cbd5e1";
-                    e.currentTarget.style.background = "#f8fafc";
+                    e.currentTarget.style.borderColor = "var(--component-border-hover)";
+                    e.currentTarget.style.background = "var(--bg-secondary)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "#e2e8f0";
+                    e.currentTarget.style.borderColor = "var(--component-border)";
                     e.currentTarget.style.background = "white";
                   }}
                 >
@@ -1116,7 +1116,7 @@ export default function TablesPage() {
                     padding: "14px 20px",
                     borderRadius: 12,
                     border: "none",
-                    background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                    background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                     color: "white",
                     fontSize: 14,
                     fontWeight: 700,
@@ -1177,8 +1177,8 @@ export default function TablesPage() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ padding: 28, textAlign: "center", borderBottom: "1px solid #f1f5f9", background: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)" }}>
-                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(59, 130, 246, 0.3)" }}>
+              <div style={{ padding: 28, textAlign: "center", borderBottom: "1px solid var(--bg-tertiary)", background: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)" }}>
+                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, var(--info) 0%, #2563eb 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(59, 130, 246, 0.3)" }}>
                   <Edit size={32} style={{ color: "white" }} />
                 </div>
                 <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 6px", color: "var(--text-primary)" }}>Edit Table</h2>
@@ -1196,7 +1196,7 @@ export default function TablesPage() {
                       width: "100%",
                       padding: "12px 16px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid var(--component-border)",
                       background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
@@ -1204,13 +1204,13 @@ export default function TablesPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#3b82f6";
+                      e.currentTarget.style.borderColor = "var(--info)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   />
@@ -1226,7 +1226,7 @@ export default function TablesPage() {
                       width: "100%",
                       padding: "12px 16px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid var(--component-border)",
                       background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
@@ -1234,13 +1234,13 @@ export default function TablesPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#3b82f6";
+                      e.currentTarget.style.borderColor = "var(--info)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   />
@@ -1258,7 +1258,7 @@ export default function TablesPage() {
                       width: "100%",
                       padding: "12px 16px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid var(--component-border)",
                       background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
@@ -1266,13 +1266,13 @@ export default function TablesPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#3b82f6";
+                      e.currentTarget.style.borderColor = "var(--info)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   />
@@ -1286,7 +1286,7 @@ export default function TablesPage() {
                       width: "100%",
                       padding: "12px 16px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid var(--component-border)",
                       background: "var(--component-bg)",
                       fontSize: 14,
                       cursor: "pointer",
@@ -1295,13 +1295,13 @@ export default function TablesPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#3b82f6";
+                      e.currentTarget.style.borderColor = "var(--info)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   >
@@ -1310,14 +1310,14 @@ export default function TablesPage() {
                   </select>
                 </div>
               </div>
-              <div style={{ padding: "20px 28px 28px", display: "flex", gap: 12, borderTop: "1px solid #f1f5f9" }}>
+              <div style={{ padding: "20px 28px 28px", display: "flex", gap: 12, borderTop: "1px solid var(--bg-tertiary)" }}>
                 <button
                   onClick={() => { setEditDialogOpen(false); setSelectedTable(null); resetForm(); }}
                   style={{
                     flex: 1,
                     padding: "14px 20px",
                     borderRadius: 12,
-                    border: "1px solid #e2e8f0",
+                    border: "1px solid var(--component-border)",
                     background: "var(--bg-surface)",
                     fontSize: 14,
                     fontWeight: 600,
@@ -1326,11 +1326,11 @@ export default function TablesPage() {
                     transition: "all 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "#cbd5e1";
-                    e.currentTarget.style.background = "#f8fafc";
+                    e.currentTarget.style.borderColor = "var(--component-border-hover)";
+                    e.currentTarget.style.background = "var(--bg-secondary)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "#e2e8f0";
+                    e.currentTarget.style.borderColor = "var(--component-border)";
                     e.currentTarget.style.background = "white";
                   }}
                 >
@@ -1344,7 +1344,7 @@ export default function TablesPage() {
                     padding: "14px 20px",
                     borderRadius: 12,
                     border: "none",
-                    background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                    background: "linear-gradient(135deg, var(--info) 0%, #2563eb 100%)",
                     color: "white",
                     fontSize: 14,
                     fontWeight: 700,
@@ -1403,8 +1403,8 @@ export default function TablesPage() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ padding: 32, textAlign: "center", borderBottom: "1px solid #f1f5f9", background: "linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)" }}>
-                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(239, 68, 68, 0.3)" }}>
+              <div style={{ padding: 32, textAlign: "center", borderBottom: "1px solid var(--bg-tertiary)", background: "linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)" }}>
+                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, var(--danger) 0%, var(--danger) 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(239, 68, 68, 0.3)" }}>
                   <Trash2 size={32} style={{ color: "white" }} />
                 </div>
                 <h3 style={{ margin: "0 0 8px", fontSize: 24, fontWeight: 700, color: "var(--text-primary)" }}>Delete Table?</h3>
@@ -1419,7 +1419,7 @@ export default function TablesPage() {
                     flex: 1,
                     padding: "14px 20px",
                     borderRadius: 12,
-                    border: "1px solid #e2e8f0",
+                    border: "1px solid var(--component-border)",
                     background: "var(--bg-surface)",
                     fontSize: 14,
                     fontWeight: 600,
@@ -1428,11 +1428,11 @@ export default function TablesPage() {
                     transition: "all 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "#cbd5e1";
-                    e.currentTarget.style.background = "#f8fafc";
+                    e.currentTarget.style.borderColor = "var(--component-border-hover)";
+                    e.currentTarget.style.background = "var(--bg-secondary)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "#e2e8f0";
+                    e.currentTarget.style.borderColor = "var(--component-border)";
                     e.currentTarget.style.background = "white";
                   }}
                 >
@@ -1446,7 +1446,7 @@ export default function TablesPage() {
                     padding: "14px 20px",
                     borderRadius: 12,
                     border: "none",
-                    background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                    background: "linear-gradient(135deg, var(--danger) 0%, var(--danger) 100%)",
                     color: "white",
                     fontSize: 14,
                     fontWeight: 700,

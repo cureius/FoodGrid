@@ -293,8 +293,8 @@ export default function EmployeesPage() {
 
   const stats = [
     { title: "Total Employees", value: employees.length, icon: Users, color: "#6366f1", bgColor: "rgba(99, 102, 241, 0.1)" },
-    { title: "Active", value: activeCount, icon: CheckCircle2, color: "#10b981", bgColor: "rgba(16, 185, 129, 0.1)" },
-    { title: "Inactive", value: inactiveCount, icon: XCircle, color: "#ef4444", bgColor: "rgba(239, 68, 68, 0.1)" },
+    { title: "Active", value: activeCount, icon: CheckCircle2, color: "var(--success)", bgColor: "rgba(16, 185, 129, 0.1)" },
+    { title: "Inactive", value: inactiveCount, icon: XCircle, color: "var(--danger)", bgColor: "rgba(239, 68, 68, 0.1)" },
   ];
 
   const canSubmit = form.displayName.trim() && form.email.trim();
@@ -313,7 +313,7 @@ export default function EmployeesPage() {
             zIndex: 1000,
             padding: "14px 18px",
             borderRadius: 14,
-            background: toast.type === "success" ? "#10b981" : "#ef4444",
+            background: toast.type === "success" ? "var(--success)" : "var(--danger)",
             color: "white",
             boxShadow: "0 14px 50px rgba(0,0,0,0.24)",
             display: "flex",
@@ -408,7 +408,7 @@ export default function EmployeesPage() {
                   padding: "14px 20px",
                   borderRadius: 14,
                   border: "none",
-                  background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                  background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                   color: "white",
                   cursor: !selectedOutletId ? "not-allowed" : "pointer",
                   opacity: !selectedOutletId ? 0.6 : 1,
@@ -515,19 +515,19 @@ export default function EmployeesPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#8b5cf6";
+                      e.currentTarget.style.borderColor = "var(--primary)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   />
                 </div>
                 <div style={{ position: "relative", minWidth: 180 }}>
-                  <Filter size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#94a3b8", pointerEvents: "none" }} />
+                  <Filter size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
                   <select
                     value={statusFilter}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
@@ -545,13 +545,13 @@ export default function EmployeesPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#8b5cf6";
+                      e.currentTarget.style.borderColor = "var(--primary)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   >
@@ -562,10 +562,10 @@ export default function EmployeesPage() {
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <span style={{ fontSize: 14, color: "#64748b", fontWeight: 600, whiteSpace: "nowrap" }}>
+                <span style={{ fontSize: 14, color: "var(--text-secondary)", fontWeight: 600, whiteSpace: "nowrap" }}>
                   {filteredEmployees.length} {filteredEmployees.length === 1 ? "employee" : "employees"}
                 </span>
-                <div style={{ display: "flex", background: "#f1f5f9", borderRadius: 12, padding: 4, gap: 4 }}>
+                <div style={{ display: "flex", background: "var(--bg-tertiary)", borderRadius: 12, padding: 4, gap: 4 }}>
                   <button
                     onClick={() => setViewMode("grid")}
                     aria-label="Grid view"
@@ -626,11 +626,11 @@ export default function EmployeesPage() {
         {!selectedOutletId ? (
           <Card>
             <div style={{ padding: 60, textAlign: "center" }}>
-              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-                <Building2 size={40} style={{ color: "#94a3b8" }} />
+              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "var(--bg-tertiary)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+                <Building2 size={40} style={{ color: "var(--text-tertiary)" }} />
               </div>
               <h3 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px" }}>Select an Outlet</h3>
-              <p style={{ color: "#64748b", maxWidth: 400, margin: "0 auto" }}>
+              <p style={{ color: "var(--text-secondary)", maxWidth: 400, margin: "0 auto" }}>
                 Please select an outlet from the dropdown above to manage its employees
               </p>
             </div>
@@ -641,10 +641,10 @@ export default function EmployeesPage() {
               <Card key={i}>
                 <div style={{ padding: 24 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                    <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#e2e8f0", animation: "pulse 2s infinite" }} />
+                    <div style={{ width: 64, height: 64, borderRadius: "50%", background: "var(--component-border)", animation: "pulse 2s infinite" }} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ height: 20, background: "#e2e8f0", borderRadius: 6, marginBottom: 8, width: "70%", animation: "pulse 2s infinite" }} />
-                      <div style={{ height: 16, background: "#e2e8f0", borderRadius: 6, width: "50%", animation: "pulse 2s infinite" }} />
+                      <div style={{ height: 20, background: "var(--component-border)", borderRadius: 6, marginBottom: 8, width: "70%", animation: "pulse 2s infinite" }} />
+                      <div style={{ height: 16, background: "var(--component-border)", borderRadius: 6, width: "50%", animation: "pulse 2s infinite" }} />
                     </div>
                   </div>
                 </div>
@@ -654,11 +654,11 @@ export default function EmployeesPage() {
         ) : filteredEmployees.length === 0 ? (
           <Card>
             <div style={{ padding: 60, textAlign: "center" }}>
-              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-                <Users size={40} style={{ color: "#94a3b8" }} />
+              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "var(--bg-tertiary)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+                <Users size={40} style={{ color: "var(--text-tertiary)" }} />
               </div>
               <h3 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px" }}>No employees found</h3>
-              <p style={{ color: "#64748b", maxWidth: 400, margin: "0 auto 24px" }}>
+              <p style={{ color: "var(--text-secondary)", maxWidth: 400, margin: "0 auto 24px" }}>
                 {searchQuery || statusFilter !== "all"
                   ? "Try adjusting your search or filter criteria"
                   : "Get started by adding your first employee"}
@@ -673,7 +673,7 @@ export default function EmployeesPage() {
                     padding: "12px 24px",
                     borderRadius: 10,
                     border: "none",
-                    background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                    background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                     color: "white",
                     fontSize: 14,
                     fontWeight: 600,
@@ -710,7 +710,7 @@ export default function EmployeesPage() {
                 }}
               >
                 {/* Gradient Header */}
-                <div style={{ position: "relative", height: 100, background: "linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #4f46e5 100%)" }}>
+                <div style={{ position: "relative", height: 100, background: "linear-gradient(135deg, var(--primary) 0%, #6366f1 50%, #4f46e5 100%)" }}>
                   <div style={{ position: "absolute", top: 14, right: 14 }}>
                     <div
                       style={{
@@ -811,15 +811,15 @@ export default function EmployeesPage() {
                               transition: "background 0.15s ease",
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.background = "#f8fafc";
+                              e.currentTarget.style.background = "var(--bg-secondary)";
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.background = "transparent";
                             }}
                           >
-                            {employee.status === "ACTIVE" ? <><XCircle size={16} style={{ color: "#64748b" }} /> Deactivate</> : <><CheckCircle2 size={16} style={{ color: "#64748b" }} /> Activate</>}
+                            {employee.status === "ACTIVE" ? <><XCircle size={16} style={{ color: "var(--text-secondary)" }} /> Deactivate</> : <><CheckCircle2 size={16} style={{ color: "var(--text-secondary)" }} /> Activate</>}
                           </button>
-                          <div style={{ height: 1, background: "#e2e8f0", margin: "4px 0" }} />
+                          <div style={{ height: 1, background: "var(--component-border)", margin: "4px 0" }} />
                           <button
                             onClick={() => handleDeleteClick(employee)}
                             style={{
@@ -833,7 +833,7 @@ export default function EmployeesPage() {
                               cursor: "pointer",
                               fontSize: 14,
                               fontWeight: 500,
-                              color: "#ef4444",
+                              color: "var(--danger)",
                               transition: "background 0.15s ease",
                             }}
                             onMouseEnter={(e) => {
@@ -855,7 +855,7 @@ export default function EmployeesPage() {
                       width: 96,
                       height: 96,
                       borderRadius: "50%",
-                      background: employee.avatarUrl ? `url(${employee.avatarUrl}) center/cover` : "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                      background: employee.avatarUrl ? `url(${employee.avatarUrl}) center/cover` : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                       border: "5px solid white",
                       boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                       display: "flex",
@@ -917,7 +917,7 @@ export default function EmployeesPage() {
                       borderRadius: 12,
                       border: "1px solid #fecaca",
                       background: "#fef2f2",
-                      color: "#ef4444",
+                      color: "var(--danger)",
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
@@ -970,7 +970,7 @@ export default function EmployeesPage() {
                   width: 64,
                   height: 64,
                   borderRadius: "50%",
-                  background: employee.avatarUrl ? `url(${employee.avatarUrl}) center/cover` : "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                  background: employee.avatarUrl ? `url(${employee.avatarUrl}) center/cover` : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                   border: "3px solid rgba(139, 92, 246, 0.2)",
                   boxShadow: "0 4px 12px rgba(139, 92, 246, 0.2)",
                   display: "flex",
@@ -993,7 +993,7 @@ export default function EmployeesPage() {
                         padding: "4px 12px",
                         borderRadius: 20,
                         background: employee.status === "ACTIVE" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                        color: employee.status === "ACTIVE" ? "#10b981" : "#ef4444",
+                        color: employee.status === "ACTIVE" ? "var(--success)" : "var(--danger)",
                         fontSize: 12,
                         fontWeight: 600,
                         display: "inline-flex",
@@ -1005,7 +1005,7 @@ export default function EmployeesPage() {
                       {employee.status}
                     </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#64748b", fontSize: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-secondary)", fontSize: 14 }}>
                     <Mail size={16} />
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{employee.email}</span>
                   </div>
@@ -1047,7 +1047,7 @@ export default function EmployeesPage() {
                     style={{
                       padding: "10px 16px",
                       borderRadius: 10,
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid var(--component-border)",
                       background: "white",
                       display: "flex",
                       alignItems: "center",
@@ -1055,17 +1055,17 @@ export default function EmployeesPage() {
                       cursor: "pointer",
                       fontSize: 14,
                       fontWeight: 600,
-                      color: "#64748b",
+                      color: "var(--text-secondary)",
                       transition: "all 0.2s ease",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = employee.status === "ACTIVE" ? "#f59e0b" : "#10b981";
-                      e.currentTarget.style.color = employee.status === "ACTIVE" ? "#f59e0b" : "#10b981";
+                      e.currentTarget.style.borderColor = employee.status === "ACTIVE" ? "var(--warning)" : "var(--success)";
+                      e.currentTarget.style.color = employee.status === "ACTIVE" ? "var(--warning)" : "var(--success)";
                       e.currentTarget.style.background = employee.status === "ACTIVE" ? "#fffbeb" : "#f0fdf4";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.color = "#64748b";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.color = "var(--text-secondary)";
                       e.currentTarget.style.background = "white";
                     }}
                   >
@@ -1078,7 +1078,7 @@ export default function EmployeesPage() {
                       borderRadius: 10,
                       border: "1px solid #fecaca",
                       background: "#fef2f2",
-                      color: "#ef4444",
+                      color: "var(--danger)",
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
@@ -1168,13 +1168,13 @@ export default function EmployeesPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#8b5cf6";
+                      e.currentTarget.style.borderColor = "var(--primary)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   />
@@ -1190,21 +1190,21 @@ export default function EmployeesPage() {
                       width: "100%",
                       padding: "12px 16px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      border: "1px solid var(--component-border)",
+                      background: "var(--bg-secondary)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#8b5cf6";
+                      e.currentTarget.style.borderColor = "var(--primary)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   />
@@ -1220,21 +1220,21 @@ export default function EmployeesPage() {
                       width: "100%",
                       padding: "12px 16px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      border: "1px solid var(--component-border)",
+                      background: "var(--bg-secondary)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#8b5cf6";
+                      e.currentTarget.style.borderColor = "var(--primary)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   />
@@ -1248,8 +1248,8 @@ export default function EmployeesPage() {
                       width: "100%",
                       padding: "12px 16px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      border: "1px solid var(--component-border)",
+                      background: "var(--bg-secondary)",
                       fontSize: 14,
                       outline: "none",
                       cursor: "pointer",
@@ -1257,13 +1257,13 @@ export default function EmployeesPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#8b5cf6";
+                      e.currentTarget.style.borderColor = "var(--primary)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   >
@@ -1284,21 +1284,21 @@ export default function EmployeesPage() {
                         width: "100%",
                         padding: "12px 44px 12px 16px",
                         borderRadius: 12,
-                        border: "1px solid #e2e8f0",
-                        background: "#f8fafc",
+                        border: "1px solid var(--component-border)",
+                        background: "var(--bg-secondary)",
                         fontSize: 14,
                         outline: "none",
                         boxSizing: "border-box",
                         transition: "all 0.2s ease",
                       }}
                       onFocus={(e) => {
-                        e.currentTarget.style.borderColor = "#8b5cf6";
+                        e.currentTarget.style.borderColor = "var(--primary)";
                         e.currentTarget.style.background = "white";
                         e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                       }}
                       onBlur={(e) => {
-                        e.currentTarget.style.borderColor = "#e2e8f0";
-                        e.currentTarget.style.background = "#f8fafc";
+                        e.currentTarget.style.borderColor = "var(--component-border)";
+                        e.currentTarget.style.background = "var(--bg-secondary)";
                         e.currentTarget.style.boxShadow = "none";
                       }}
                     />
@@ -1318,18 +1318,18 @@ export default function EmployeesPage() {
                         transition: "background 0.2s ease",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#f1f5f9";
+                        e.currentTarget.style.background = "var(--bg-tertiary)";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = "transparent";
                       }}
                     >
-                      {showPin ? <EyeOff size={18} style={{ color: "#94a3b8" }} /> : <Eye size={18} style={{ color: "#94a3b8" }} />}
+                      {showPin ? <EyeOff size={18} style={{ color: "var(--text-tertiary)" }} /> : <Eye size={18} style={{ color: "var(--text-tertiary)" }} />}
                     </button>
                   </div>
                 </div>
               </div>
-              <div style={{ padding: "20px 28px 28px", display: "flex", gap: 12, borderTop: "1px solid #f1f5f9" }}>
+              <div style={{ padding: "20px 28px 28px", display: "flex", gap: 12, borderTop: "1px solid var(--bg-tertiary)" }}>
                 <button
                   onClick={() => setCreateDialogOpen(false)}
                   style={{
@@ -1363,7 +1363,7 @@ export default function EmployeesPage() {
                     padding: "14px 20px",
                     borderRadius: 12,
                     border: "none",
-                    background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                    background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                     color: "white",
                     fontSize: 14,
                     fontWeight: 700,
@@ -1452,13 +1452,13 @@ export default function EmployeesPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#3b82f6";
+                      e.currentTarget.style.borderColor = "var(--info)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   />
@@ -1474,21 +1474,21 @@ export default function EmployeesPage() {
                       width: "100%",
                       padding: "12px 16px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      border: "1px solid var(--component-border)",
+                      background: "var(--bg-secondary)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#3b82f6";
+                      e.currentTarget.style.borderColor = "var(--info)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   />
@@ -1504,21 +1504,21 @@ export default function EmployeesPage() {
                       width: "100%",
                       padding: "12px 16px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      border: "1px solid var(--component-border)",
+                      background: "var(--bg-secondary)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#3b82f6";
+                      e.currentTarget.style.borderColor = "var(--info)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   />
@@ -1532,8 +1532,8 @@ export default function EmployeesPage() {
                       width: "100%",
                       padding: "12px 16px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      border: "1px solid var(--component-border)",
+                      background: "var(--bg-secondary)",
                       fontSize: 14,
                       outline: "none",
                       cursor: "pointer",
@@ -1541,13 +1541,13 @@ export default function EmployeesPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#3b82f6";
+                      e.currentTarget.style.borderColor = "var(--info)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   >
@@ -1568,21 +1568,21 @@ export default function EmployeesPage() {
                         width: "100%",
                         padding: "12px 44px 12px 16px",
                         borderRadius: 12,
-                        border: "1px solid #e2e8f0",
-                        background: "#f8fafc",
+                        border: "1px solid var(--component-border)",
+                        background: "var(--bg-secondary)",
                         fontSize: 14,
                         outline: "none",
                         boxSizing: "border-box",
                         transition: "all 0.2s ease",
                       }}
                       onFocus={(e) => {
-                        e.currentTarget.style.borderColor = "#3b82f6";
+                        e.currentTarget.style.borderColor = "var(--info)";
                         e.currentTarget.style.background = "white";
                         e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                       }}
                       onBlur={(e) => {
-                        e.currentTarget.style.borderColor = "#e2e8f0";
-                        e.currentTarget.style.background = "#f8fafc";
+                        e.currentTarget.style.borderColor = "var(--component-border)";
+                        e.currentTarget.style.background = "var(--bg-secondary)";
                         e.currentTarget.style.boxShadow = "none";
                       }}
                     />
@@ -1602,38 +1602,38 @@ export default function EmployeesPage() {
                         transition: "background 0.2s ease",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#f1f5f9";
+                        e.currentTarget.style.background = "var(--bg-tertiary)";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = "transparent";
                       }}
                     >
-                      {showPin ? <EyeOff size={18} style={{ color: "#94a3b8" }} /> : <Eye size={18} style={{ color: "#94a3b8" }} />}
+                      {showPin ? <EyeOff size={18} style={{ color: "var(--text-tertiary)" }} /> : <Eye size={18} style={{ color: "var(--text-tertiary)" }} />}
                     </button>
                   </div>
                 </div>
               </div>
-              <div style={{ padding: "20px 28px 28px", display: "flex", gap: 12, borderTop: "1px solid #f1f5f9" }}>
+              <div style={{ padding: "20px 28px 28px", display: "flex", gap: 12, borderTop: "1px solid var(--bg-tertiary)" }}>
                 <button
                   onClick={() => { setEditDialogOpen(false); setSelectedEmployee(null); resetForm(); }}
                   style={{
                     flex: 1,
                     padding: "14px 20px",
                     borderRadius: 12,
-                    border: "1px solid #e2e8f0",
+                    border: "1px solid var(--component-border)",
                     background: "white",
                     fontSize: 14,
                     fontWeight: 600,
-                    color: "#64748b",
+                    color: "var(--text-secondary)",
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "#cbd5e1";
-                    e.currentTarget.style.background = "#f8fafc";
+                    e.currentTarget.style.borderColor = "var(--component-border-hover)";
+                    e.currentTarget.style.background = "var(--bg-secondary)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "#e2e8f0";
+                    e.currentTarget.style.borderColor = "var(--component-border)";
                     e.currentTarget.style.background = "white";
                   }}
                 >
@@ -1647,7 +1647,7 @@ export default function EmployeesPage() {
                     padding: "14px 20px",
                     borderRadius: 12,
                     border: "none",
-                    background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                    background: "linear-gradient(135deg, var(--info) 0%, #2563eb 100%)",
                     color: "white",
                     fontSize: 14,
                     fontWeight: 700,
@@ -1706,12 +1706,12 @@ export default function EmployeesPage() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ padding: 32, textAlign: "center", borderBottom: "1px solid #f1f5f9", background: "linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)" }}>
-                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(239, 68, 68, 0.3)" }}>
+              <div style={{ padding: 32, textAlign: "center", borderBottom: "1px solid var(--bg-tertiary)", background: "linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)" }}>
+                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, var(--danger) 0%, var(--danger) 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(239, 68, 68, 0.3)" }}>
                   <AlertCircle size={32} style={{ color: "white" }} />
                 </div>
                 <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 8px", color: "var(--text-primary)" }}>Delete Employee</h2>
-                <p style={{ color: "#64748b", fontSize: 15, margin: 0 }}>
+                <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: 0 }}>
                   Are you sure you want to delete <strong style={{ color: "var(--text-primary)" }}>{selectedEmployee?.displayName}</strong>? This action cannot be undone.
                 </p>
               </div>
@@ -1722,20 +1722,20 @@ export default function EmployeesPage() {
                     flex: 1,
                     padding: "14px 20px",
                     borderRadius: 12,
-                    border: "1px solid #e2e8f0",
+                    border: "1px solid var(--component-border)",
                     background: "white",
                     fontSize: 14,
                     fontWeight: 600,
-                    color: "#64748b",
+                    color: "var(--text-secondary)",
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "#cbd5e1";
-                    e.currentTarget.style.background = "#f8fafc";
+                    e.currentTarget.style.borderColor = "var(--component-border-hover)";
+                    e.currentTarget.style.background = "var(--bg-secondary)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "#e2e8f0";
+                    e.currentTarget.style.borderColor = "var(--component-border)";
                     e.currentTarget.style.background = "white";
                   }}
                 >
@@ -1749,7 +1749,7 @@ export default function EmployeesPage() {
                     padding: "14px 20px",
                     borderRadius: 12,
                     border: "none",
-                    background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                    background: "linear-gradient(135deg, var(--danger) 0%, var(--danger) 100%)",
                     color: "white",
                     fontSize: 14,
                     fontWeight: 700,

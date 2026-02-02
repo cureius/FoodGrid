@@ -303,14 +303,14 @@ export default function DishModal({ item, isOpen, onClose }: DishModalProps) {
             .description-box {
               display: flex;
               gap: 14px;
-              background-color: #f8fafc;
+              background-color: var(--bg-secondary);
               padding: 20px;
               border-radius: 20px;
               margin-bottom: 32px;
-              border: 1px solid #f1f5f9;
+              border: 1px solid var(--bg-tertiary);
             }
             .info-icon {
-              color: #94a3b8;
+              color: var(--text-tertiary);
               flex-shrink: 0;
               margin-top: 2px;
             }
@@ -335,20 +335,20 @@ export default function DishModal({ item, isOpen, onClose }: DishModalProps) {
               font-weight: 800;
               text-transform: uppercase;
               letter-spacing: 0.05em;
-              color: #1e293b;
+              color: var(--text-primary);
             }
             .form-optional-badge {
               font-size: 10px;
               font-weight: 800;
-              color: #94a3b8;
-              background-color: #f1f5f9;
+              color: var(--text-tertiary);
+              background-color: var(--bg-tertiary);
               padding: 4px 8px;
               border-radius: 6px;
             }
             .form-textarea {
               width: 100%;
-              background-color: #f8fafc;
-              border: 2px solid #f1f5f9;
+              background-color: var(--bg-secondary);
+              border: 2px solid var(--bg-tertiary);
               border-radius: 16px;
               padding: 20px;
               font-size: 15px;
@@ -358,7 +358,7 @@ export default function DishModal({ item, isOpen, onClose }: DishModalProps) {
               outline: none;
               transition: all 0.2s ease;
               font-weight: 500;
-              color: #1e293b;
+              color: var(--text-primary);
             }
             .form-textarea:focus {
               border-color: var(--primary, #4B70F5);
@@ -372,7 +372,7 @@ export default function DishModal({ item, isOpen, onClose }: DishModalProps) {
               gap: 20px;
               padding: 24px 32px;
               background-color: #ffffff;
-              border-top: 1px solid #f1f5f9;
+              border-top: 1px solid var(--bg-tertiary);
               position: absolute;
               bottom: 0;
               left: 0;

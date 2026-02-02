@@ -318,8 +318,8 @@ export default function EmployeesPage() {
 
   const stats = [
     { title: "Total Employees", value: employees.length, icon: Users, color: "#6366f1", bgColor: "rgba(99, 102, 241, 0.1)" },
-    { title: "Active", value: activeCount, icon: CheckCircle2, color: "#10b981", bgColor: "rgba(16, 185, 129, 0.1)" },
-    { title: "Inactive", value: inactiveCount, icon: XCircle, color: "#ef4444", bgColor: "rgba(239, 68, 68, 0.1)" },
+    { title: "Active", value: activeCount, icon: CheckCircle2, color: "var(--success)", bgColor: "rgba(16, 185, 129, 0.1)" },
+    { title: "Inactive", value: inactiveCount, icon: XCircle, color: "var(--danger)", bgColor: "rgba(239, 68, 68, 0.1)" },
   ];
 
   const canSubmit = form.displayName.trim() && form.email.trim();
@@ -338,7 +338,7 @@ export default function EmployeesPage() {
             zIndex: 1000,
             padding: "14px 18px",
             borderRadius: 14,
-            background: toast.type === "success" ? "#10b981" : "#ef4444",
+            background: toast.type === "success" ? "var(--success)" : "var(--danger)",
             color: "white",
             boxShadow: "0 14px 50px rgba(0,0,0,0.24)",
             display: "flex",
@@ -377,7 +377,7 @@ export default function EmployeesPage() {
                   fontSize: 32,
                   fontWeight: 800,
                   margin: 0,
-                  background: "linear-gradient(135deg, #1e293b 0%, #475569 100%)",
+                  background: "var(--text-primary)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   letterSpacing: "-0.5px",
@@ -385,7 +385,7 @@ export default function EmployeesPage() {
               >
                 Employees
               </h1>
-              <p style={{ margin: "8px 0 0", color: "#64748b", fontSize: 15 }}>
+              <p style={{ margin: "8px 0 0", color: "var(--text-secondary)", fontSize: 15 }}>
                 Add, edit, and manage staff for each outlet.
               </p>
             </div>
@@ -401,7 +401,7 @@ export default function EmployeesPage() {
                   width: 44,
                   height: 44,
                   borderRadius: 12,
-                  border: "1px solid #e2e8f0",
+                  border: "1px solid var(--component-border)",
                   background: "white",
                   cursor: refreshing || !selectedOutletId ? "not-allowed" : "pointer",
                   opacity: refreshing || !selectedOutletId ? 0.6 : 1,
@@ -410,7 +410,7 @@ export default function EmployeesPage() {
                 title="Refresh"
                 aria-label="Refresh employee list"
               >
-                <RefreshCw size={18} style={{ color: "#64748b", animation: refreshing ? "spin 1s linear infinite" : "none" }} />
+                <RefreshCw size={18} style={{ color: "var(--text-secondary)", animation: refreshing ? "spin 1s linear infinite" : "none" }} />
               </button>
 
               <button
@@ -423,7 +423,7 @@ export default function EmployeesPage() {
                   padding: "12px 18px",
                   borderRadius: 12,
                   border: "none",
-                  background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                  background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                   color: "white",
                   cursor: !selectedOutletId ? "not-allowed" : "pointer",
                   opacity: !selectedOutletId ? 0.6 : 1,
@@ -450,7 +450,7 @@ export default function EmployeesPage() {
                   style={{
                     fontSize: 12,
                     fontWeight: 700,
-                    color: "#64748b",
+                    color: "var(--text-secondary)",
                     display: "block",
                     marginBottom: 8,
                     letterSpacing: 0.2,
@@ -466,8 +466,8 @@ export default function EmployeesPage() {
                     width: "100%",
                     padding: "12px 14px",
                     borderRadius: 12,
-                    border: "1px solid #e2e8f0",
-                    background: "#f8fafc",
+                    border: "1px solid var(--component-border)",
+                    background: "var(--bg-secondary)",
                     fontSize: 14,
                     cursor: "pointer",
                     outline: "none",
@@ -480,7 +480,7 @@ export default function EmployeesPage() {
                     </option>
                   ))}
                 </select>
-                <div style={{ marginTop: 8, fontSize: 12, color: "#94a3b8" }}>
+                <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-tertiary)" }}>
                   Tip: Use the dropdown to switch outlet context.
                 </div>
               </div>
@@ -514,8 +514,8 @@ export default function EmployeesPage() {
                 <Card key={index} style={{ transition: "transform 0.2s, box-shadow 0.2s" }}>
                   <div style={{ padding: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
-                      <p style={{ margin: 0, fontSize: 13, color: "#64748b", fontWeight: 600 }}>{stat.title}</p>
-                      <p style={{ margin: "8px 0 0", fontSize: 34, fontWeight: 800, color: "#1e293b" }}>{stat.value}</p>
+                      <p style={{ margin: 0, fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>{stat.title}</p>
+                      <p style={{ margin: "8px 0 0", fontSize: 34, fontWeight: 800, color: "var(--text-primary)" }}>{stat.value}</p>
                     </div>
                     <div style={{ padding: 14, borderRadius: 14, background: stat.bgColor }}>
                       <stat.icon size={26} style={{ color: stat.color }} />
@@ -533,7 +533,7 @@ export default function EmployeesPage() {
             <div style={{ padding: 16, display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
               <div style={{ display: "flex", gap: 12, flex: 1, flexWrap: "wrap" }}>
                 <div style={{ position: "relative", flex: 1, minWidth: 220, maxWidth: 460 }}>
-                  <Search size={18} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
+                  <Search size={18} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)" }} />
                   <input
                     type="text"
                     placeholder="Search employees by name or email..."
@@ -543,8 +543,8 @@ export default function EmployeesPage() {
                       width: "100%",
                       padding: "12px 14px 12px 42px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      border: "1px solid var(--component-border)",
+                      background: "var(--bg-secondary)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -552,7 +552,7 @@ export default function EmployeesPage() {
                   />
                 </div>
                 <div style={{ position: "relative", minWidth: 180 }}>
-                  <Filter size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
+                  <Filter size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)" }} />
                   <select
                     value={statusFilter}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
@@ -560,8 +560,8 @@ export default function EmployeesPage() {
                       width: "100%",
                       padding: "12px 14px 12px 36px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      border: "1px solid var(--component-border)",
+                      background: "var(--bg-secondary)",
                       fontSize: 14,
                       cursor: "pointer",
                       outline: "none",
@@ -575,8 +575,8 @@ export default function EmployeesPage() {
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: 13, color: "#64748b", fontWeight: 600 }}>{filteredEmployees.length} employees</span>
-                <div style={{ display: "flex", background: "#f1f5f9", borderRadius: 10, padding: 4 }}>
+                <span style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>{filteredEmployees.length} employees</span>
+                <div style={{ display: "flex", background: "var(--bg-tertiary)", borderRadius: 10, padding: 4 }}>
                   <button
                     onClick={() => setViewMode("grid")}
                     aria-label="Grid view"
@@ -589,7 +589,7 @@ export default function EmployeesPage() {
                       cursor: "pointer",
                     }}
                   >
-                    <Grid3X3 size={18} style={{ color: viewMode === "grid" ? "#7c3aed" : "#64748b" }} />
+                    <Grid3X3 size={18} style={{ color: viewMode === "grid" ? "var(--primary)" : "var(--text-secondary)" }} />
                   </button>
                   <button
                     onClick={() => setViewMode("list")}
@@ -603,7 +603,7 @@ export default function EmployeesPage() {
                       cursor: "pointer",
                     }}
                   >
-                    <List size={18} style={{ color: viewMode === "list" ? "#7c3aed" : "#64748b" }} />
+                    <List size={18} style={{ color: viewMode === "list" ? "var(--primary)" : "var(--text-secondary)" }} />
                   </button>
                 </div>
               </div>
@@ -615,11 +615,11 @@ export default function EmployeesPage() {
         {!selectedOutletId ? (
           <Card>
             <div style={{ padding: 60, textAlign: "center" }}>
-              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-                <Building2 size={40} style={{ color: "#94a3b8" }} />
+              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "var(--bg-tertiary)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+                <Building2 size={40} style={{ color: "var(--text-tertiary)" }} />
               </div>
               <h3 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px" }}>Select an Outlet</h3>
-              <p style={{ color: "#64748b", maxWidth: 400, margin: "0 auto" }}>
+              <p style={{ color: "var(--text-secondary)", maxWidth: 400, margin: "0 auto" }}>
                 Please select an outlet from the dropdown above to manage its employees
               </p>
             </div>
@@ -630,10 +630,10 @@ export default function EmployeesPage() {
               <Card key={i}>
                 <div style={{ padding: 24 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                    <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#e2e8f0", animation: "pulse 2s infinite" }} />
+                    <div style={{ width: 64, height: 64, borderRadius: "50%", background: "var(--component-border)", animation: "pulse 2s infinite" }} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ height: 20, background: "#e2e8f0", borderRadius: 6, marginBottom: 8, width: "70%", animation: "pulse 2s infinite" }} />
-                      <div style={{ height: 16, background: "#e2e8f0", borderRadius: 6, width: "50%", animation: "pulse 2s infinite" }} />
+                      <div style={{ height: 20, background: "var(--component-border)", borderRadius: 6, marginBottom: 8, width: "70%", animation: "pulse 2s infinite" }} />
+                      <div style={{ height: 16, background: "var(--component-border)", borderRadius: 6, width: "50%", animation: "pulse 2s infinite" }} />
                     </div>
                   </div>
                 </div>
@@ -643,11 +643,11 @@ export default function EmployeesPage() {
         ) : filteredEmployees.length === 0 ? (
           <Card>
             <div style={{ padding: 60, textAlign: "center" }}>
-              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-                <Users size={40} style={{ color: "#94a3b8" }} />
+              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "var(--bg-tertiary)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+                <Users size={40} style={{ color: "var(--text-tertiary)" }} />
               </div>
               <h3 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px" }}>No employees found</h3>
-              <p style={{ color: "#64748b", maxWidth: 400, margin: "0 auto 24px" }}>
+              <p style={{ color: "var(--text-secondary)", maxWidth: 400, margin: "0 auto 24px" }}>
                 {searchQuery || statusFilter !== "all"
                   ? "Try adjusting your search or filter criteria"
                   : "Get started by adding your first employee"}
@@ -662,7 +662,7 @@ export default function EmployeesPage() {
                     padding: "12px 24px",
                     borderRadius: 10,
                     border: "none",
-                    background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                    background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                     color: "white",
                     fontSize: 14,
                     fontWeight: 600,
@@ -680,7 +680,7 @@ export default function EmployeesPage() {
             {filteredEmployees.map((employee) => (
               <Card key={employee.id} style={{ overflow: "hidden", transition: "transform 0.2s, box-shadow 0.2s" }}>
                 {/* Gradient Header */}
-                <div style={{ position: "relative", height: 80, background: "linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #4f46e5 100%)" }}>
+                <div style={{ position: "relative", height: 80, background: "linear-gradient(135deg, var(--primary) 0%, #6366f1 50%, #4f46e5 100%)" }}>
                   <div style={{ position: "absolute", top: 12, right: 12 }}>
                     <Badge variant={employee.status === "ACTIVE" ? "success" : "danger"}>
                       {employee.status === "ACTIVE" ? <ShieldCheck size={12} style={{ marginRight: 4 }} /> : <ShieldX size={12} style={{ marginRight: 4 }} />}
@@ -719,13 +719,13 @@ export default function EmployeesPage() {
                           overflow: "hidden"
                         }}>
                           <button onClick={() => handleEditClick(employee)} style={{ width: "100%", padding: "12px 16px", border: "none", background: "none", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14 }}>
-                            <Edit size={16} style={{ color: "#64748b" }} /> Edit Employee
+                            <Edit size={16} style={{ color: "var(--text-secondary)" }} /> Edit Employee
                           </button>
                           <button onClick={() => handleToggleStatus(employee)} style={{ width: "100%", padding: "12px 16px", border: "none", background: "none", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14 }}>
-                            {employee.status === "ACTIVE" ? <><XCircle size={16} style={{ color: "#64748b" }} /> Deactivate</> : <><CheckCircle2 size={16} style={{ color: "#64748b" }} /> Activate</>}
+                            {employee.status === "ACTIVE" ? <><XCircle size={16} style={{ color: "var(--text-secondary)" }} /> Deactivate</> : <><CheckCircle2 size={16} style={{ color: "var(--text-secondary)" }} /> Activate</>}
                           </button>
-                          <div style={{ height: 1, background: "#e2e8f0" }} />
-                          <button onClick={() => handleDeleteClick(employee)} style={{ width: "100%", padding: "12px 16px", border: "none", background: "none", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14, color: "#ef4444" }}>
+                          <div style={{ height: 1, background: "var(--component-border)" }} />
+                          <button onClick={() => handleDeleteClick(employee)} style={{ width: "100%", padding: "12px 16px", border: "none", background: "none", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14, color: "var(--danger)" }}>
                             <Trash2 size={16} /> Delete Employee
                           </button>
                         </div>
@@ -738,7 +738,7 @@ export default function EmployeesPage() {
                       width: 80,
                       height: 80,
                       borderRadius: "50%",
-                      background: employee.avatarUrl ? `url(${employee.avatarUrl}) center/cover` : "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                      background: employee.avatarUrl ? `url(${employee.avatarUrl}) center/cover` : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                       border: "4px solid white",
                       boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                       display: "flex",
@@ -755,7 +755,7 @@ export default function EmployeesPage() {
 
                 <div style={{ padding: "56px 20px 20px", textAlign: "center" }}>
                   <h3 style={{ fontSize: 18, fontWeight: 600, margin: "0 0 4px" }}>{employee.displayName}</h3>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, color: "#64748b", fontSize: 13 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, color: "var(--text-secondary)", fontSize: 13 }}>
                     <Mail size={14} />
                     <span>{employee.email}</span>
                   </div>
@@ -768,7 +768,7 @@ export default function EmployeesPage() {
                       flex: 1,
                       padding: "10px 16px",
                       borderRadius: 10,
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid var(--component-border)",
                       background: "white",
                       display: "flex",
                       alignItems: "center",
@@ -789,7 +789,7 @@ export default function EmployeesPage() {
                       borderRadius: 10,
                       border: "1px solid #fecaca",
                       background: "#fef2f2",
-                      color: "#ef4444",
+                      color: "var(--danger)",
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
@@ -813,7 +813,7 @@ export default function EmployeesPage() {
                     width: 56,
                     height: 56,
                     borderRadius: "50%",
-                    background: employee.avatarUrl ? `url(${employee.avatarUrl}) center/cover` : "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                    background: employee.avatarUrl ? `url(${employee.avatarUrl}) center/cover` : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                     border: "2px solid rgba(139, 92, 246, 0.2)",
                     boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
                     display: "flex",
@@ -835,7 +835,7 @@ export default function EmployeesPage() {
                         {employee.status}
                       </Badge>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#64748b", fontSize: 13, marginTop: 4 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-secondary)", fontSize: 13, marginTop: 4 }}>
                       <Mail size={14} />
                       <span>{employee.email}</span>
                     </div>
@@ -848,7 +848,7 @@ export default function EmployeesPage() {
                       style={{
                         padding: "8px 14px",
                         borderRadius: 8,
-                        border: "1px solid #e2e8f0",
+                        border: "1px solid var(--component-border)",
                         background: "white",
                         display: "flex",
                         alignItems: "center",
@@ -865,7 +865,7 @@ export default function EmployeesPage() {
                       style={{
                         padding: "8px 14px",
                         borderRadius: 8,
-                        border: "1px solid #e2e8f0",
+                        border: "1px solid var(--component-border)",
                         background: "white",
                         display: "flex",
                         alignItems: "center",
@@ -884,7 +884,7 @@ export default function EmployeesPage() {
                         borderRadius: 8,
                         border: "1px solid #fecaca",
                         background: "#fef2f2",
-                        color: "#ef4444",
+                        color: "var(--danger)",
                         cursor: "pointer",
                         display: "flex",
                         alignItems: "center"
@@ -912,12 +912,12 @@ export default function EmployeesPage() {
         {createDialogOpen && (
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 20 }}>
             <div style={{ background: "white", borderRadius: 20, maxWidth: 440, width: "100%", maxHeight: "90vh", overflow: "auto" }}>
-              <div style={{ padding: 24, textAlign: "center", borderBottom: "1px solid #e2e8f0" }}>
+              <div style={{ padding: 24, textAlign: "center", borderBottom: "1px solid var(--component-border)" }}>
                 <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(139, 92, 246, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-                  <UserPlus size={28} style={{ color: "#8b5cf6" }} />
+                  <UserPlus size={28} style={{ color: "var(--primary)" }} />
                 </div>
                 <h2 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 4px" }}>Add New Employee</h2>
-                <p style={{ color: "#64748b", fontSize: 14, margin: 0 }}>Create a new employee for {selectedOutlet?.name}</p>
+                <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: 0 }}>Create a new employee for {selectedOutlet?.name}</p>
               </div>
               <div style={{ padding: 24 }}>
                 <div style={{ marginBottom: 16 }}>
@@ -927,7 +927,7 @@ export default function EmployeesPage() {
                     placeholder="Enter employee name"
                     value={form.displayName}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, displayName: e.target.value })}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #e2e8f0", background: "#f8fafc", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                   />
                 </div>
                 <div style={{ marginBottom: 16 }}>
@@ -937,7 +937,7 @@ export default function EmployeesPage() {
                     placeholder="employee@example.com"
                     value={form.email}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, email: e.target.value })}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #e2e8f0", background: "#f8fafc", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                   />
                 </div>
                 <div style={{ marginBottom: 16 }}>
@@ -947,7 +947,7 @@ export default function EmployeesPage() {
                     placeholder="https://example.com/avatar.jpg"
                     value={form.avatarUrl}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, avatarUrl: e.target.value })}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #e2e8f0", background: "#f8fafc", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                   />
                 </div>
                 <div style={{ marginBottom: 16 }}>
@@ -955,7 +955,7 @@ export default function EmployeesPage() {
                   <select
                     value={form.status}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setForm({ ...form, status: e.target.value })}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #e2e8f0", background: "#f8fafc", fontSize: 14, outline: "none", cursor: "pointer", boxSizing: "border-box" }}
+                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", cursor: "pointer", boxSizing: "border-box" }}
                   >
                     <option value="ACTIVE">Active</option>
                     <option value="INACTIVE">Inactive</option>
@@ -970,14 +970,14 @@ export default function EmployeesPage() {
                       value={form.pin}
                       onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, pin: e.target.value })}
                       maxLength={6}
-                      style={{ width: "100%", padding: "10px 44px 10px 14px", borderRadius: 10, border: "1px solid #e2e8f0", background: "#f8fafc", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                      style={{ width: "100%", padding: "10px 44px 10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPin(!showPin)}
                       style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: 4 }}
                     >
-                      {showPin ? <EyeOff size={18} style={{ color: "#94a3b8" }} /> : <Eye size={18} style={{ color: "#94a3b8" }} />}
+                      {showPin ? <EyeOff size={18} style={{ color: "var(--text-tertiary)" }} /> : <Eye size={18} style={{ color: "var(--text-tertiary)" }} />}
                     </button>
                   </div>
                 </div>
@@ -985,7 +985,7 @@ export default function EmployeesPage() {
               <div style={{ padding: "16px 24px 24px", display: "flex", gap: 12 }}>
                 <button
                   onClick={() => setCreateDialogOpen(false)}
-                  style={{ flex: 1, padding: "12px 20px", borderRadius: 10, border: "1px solid #e2e8f0", background: "white", fontSize: 14, fontWeight: 500, cursor: "pointer" }}
+                  style={{ flex: 1, padding: "12px 20px", borderRadius: 10, border: "1px solid var(--component-border)", background: "white", fontSize: 14, fontWeight: 500, cursor: "pointer" }}
                 >
                   Cancel
                 </button>
@@ -997,7 +997,7 @@ export default function EmployeesPage() {
                     padding: "12px 20px",
                     borderRadius: 10,
                     border: "none",
-                    background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                    background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                     color: "white",
                     fontSize: 14,
                     fontWeight: 600,
@@ -1020,12 +1020,12 @@ export default function EmployeesPage() {
         {editDialogOpen && (
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 20 }}>
             <div style={{ background: "white", borderRadius: 20, maxWidth: 440, width: "100%", maxHeight: "90vh", overflow: "auto" }}>
-              <div style={{ padding: 24, textAlign: "center", borderBottom: "1px solid #e2e8f0" }}>
+              <div style={{ padding: 24, textAlign: "center", borderBottom: "1px solid var(--component-border)" }}>
                 <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(59, 130, 246, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-                  <Edit size={28} style={{ color: "#3b82f6" }} />
+                  <Edit size={28} style={{ color: "var(--info)" }} />
                 </div>
                 <h2 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 4px" }}>Edit Employee</h2>
-                <p style={{ color: "#64748b", fontSize: 14, margin: 0 }}>Update employee information</p>
+                <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: 0 }}>Update employee information</p>
               </div>
               <div style={{ padding: 24 }}>
                 <div style={{ marginBottom: 16 }}>
@@ -1035,7 +1035,7 @@ export default function EmployeesPage() {
                     placeholder="Enter employee name"
                     value={form.displayName}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, displayName: e.target.value })}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #e2e8f0", background: "#f8fafc", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                   />
                 </div>
                 <div style={{ marginBottom: 16 }}>
@@ -1045,7 +1045,7 @@ export default function EmployeesPage() {
                     placeholder="employee@example.com"
                     value={form.email}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, email: e.target.value })}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #e2e8f0", background: "#f8fafc", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                   />
                 </div>
                 <div style={{ marginBottom: 16 }}>
@@ -1055,7 +1055,7 @@ export default function EmployeesPage() {
                     placeholder="https://example.com/avatar.jpg"
                     value={form.avatarUrl}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, avatarUrl: e.target.value })}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #e2e8f0", background: "#f8fafc", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                   />
                 </div>
                 <div style={{ marginBottom: 16 }}>
@@ -1063,7 +1063,7 @@ export default function EmployeesPage() {
                   <select
                     value={form.status}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setForm({ ...form, status: e.target.value })}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #e2e8f0", background: "#f8fafc", fontSize: 14, outline: "none", cursor: "pointer", boxSizing: "border-box" }}
+                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", cursor: "pointer", boxSizing: "border-box" }}
                   >
                     <option value="ACTIVE">Active</option>
                     <option value="INACTIVE">Inactive</option>
@@ -1078,14 +1078,14 @@ export default function EmployeesPage() {
                       value={form.pin}
                       onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, pin: e.target.value })}
                       maxLength={6}
-                      style={{ width: "100%", padding: "10px 44px 10px 14px", borderRadius: 10, border: "1px solid #e2e8f0", background: "#f8fafc", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                      style={{ width: "100%", padding: "10px 44px 10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPin(!showPin)}
                       style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: 4 }}
                     >
-                      {showPin ? <EyeOff size={18} style={{ color: "#94a3b8" }} /> : <Eye size={18} style={{ color: "#94a3b8" }} />}
+                      {showPin ? <EyeOff size={18} style={{ color: "var(--text-tertiary)" }} /> : <Eye size={18} style={{ color: "var(--text-tertiary)" }} />}
                     </button>
                   </div>
                 </div>
@@ -1093,7 +1093,7 @@ export default function EmployeesPage() {
               <div style={{ padding: "16px 24px 24px", display: "flex", gap: 12 }}>
                 <button
                   onClick={() => { setEditDialogOpen(false); setSelectedEmployee(null); resetForm(); }}
-                  style={{ flex: 1, padding: "12px 20px", borderRadius: 10, border: "1px solid #e2e8f0", background: "white", fontSize: 14, fontWeight: 500, cursor: "pointer" }}
+                  style={{ flex: 1, padding: "12px 20px", borderRadius: 10, border: "1px solid var(--component-border)", background: "white", fontSize: 14, fontWeight: 500, cursor: "pointer" }}
                 >
                   Cancel
                 </button>
@@ -1105,7 +1105,7 @@ export default function EmployeesPage() {
                     padding: "12px 20px",
                     borderRadius: 10,
                     border: "none",
-                    background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                    background: "linear-gradient(135deg, var(--info) 0%, #2563eb 100%)",
                     color: "white",
                     fontSize: 14,
                     fontWeight: 600,
@@ -1130,17 +1130,17 @@ export default function EmployeesPage() {
             <div style={{ background: "white", borderRadius: 20, maxWidth: 400, width: "100%" }}>
               <div style={{ padding: 24, textAlign: "center" }}>
                 <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(239, 68, 68, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-                  <AlertCircle size={28} style={{ color: "#ef4444" }} />
+                  <AlertCircle size={28} style={{ color: "var(--danger)" }} />
                 </div>
                 <h2 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px" }}>Delete Employee</h2>
-                <p style={{ color: "#64748b", fontSize: 14, margin: 0 }}>
-                  Are you sure you want to delete <strong style={{ color: "#1e293b" }}>{selectedEmployee?.displayName}</strong>? This action cannot be undone.
+                <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: 0 }}>
+                  Are you sure you want to delete <strong style={{ color: "var(--text-primary)" }}>{selectedEmployee?.displayName}</strong>? This action cannot be undone.
                 </p>
               </div>
               <div style={{ padding: "16px 24px 24px", display: "flex", gap: 12 }}>
                 <button
                   onClick={() => { setDeleteDialogOpen(false); setSelectedEmployee(null); }}
-                  style={{ flex: 1, padding: "12px 20px", borderRadius: 10, border: "1px solid #e2e8f0", background: "white", fontSize: 14, fontWeight: 500, cursor: "pointer" }}
+                  style={{ flex: 1, padding: "12px 20px", borderRadius: 10, border: "1px solid var(--component-border)", background: "white", fontSize: 14, fontWeight: 500, cursor: "pointer" }}
                 >
                   Cancel
                 </button>
@@ -1152,7 +1152,7 @@ export default function EmployeesPage() {
                     padding: "12px 20px",
                     borderRadius: 10,
                     border: "none",
-                    background: "#ef4444",
+                    background: "var(--danger)",
                     color: "white",
                     fontSize: 14,
                     fontWeight: 600,

@@ -542,7 +542,7 @@ export default function NewOrderPage() {
                   onClick={() => setOrderType(type.value as OrderType)}
                   style={{
                     borderRadius: 16,
-                    border: `2px solid ${orderType === type.value ? "#8b5cf6" : "#e2e8f0"}`,
+                    border: `2px solid ${orderType === type.value ? "var(--primary)" : "var(--component-border)"}`,
                     background: orderType === type.value ? "rgba(139, 92, 246, 0.05)" : "white",
                     padding: "20px 16px",
                     display: "flex",
@@ -550,7 +550,7 @@ export default function NewOrderPage() {
                     alignItems: "center",
                     gap: 8,
                     fontWeight: 700,
-                    color: orderType === type.value ? "#8b5cf6" : "#64748b",
+                    color: orderType === type.value ? "var(--primary)" : "var(--text-secondary)",
                     fontSize: 14,
                     cursor: "pointer",
                     transition: "all 0.2s ease",
@@ -558,13 +558,13 @@ export default function NewOrderPage() {
                   }}
                   onMouseEnter={(e) => {
                     if (orderType !== type.value) {
-                      e.currentTarget.style.borderColor = "#cbd5e1";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border-hover)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (orderType !== type.value) {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
                       e.currentTarget.style.background = "white";
                     }
                   }}
@@ -587,7 +587,7 @@ export default function NewOrderPage() {
                     width: "100%",
                     height: 48,
                     borderRadius: 12,
-                    border: "1px solid #e2e8f0",
+                    border: "1px solid var(--component-border)",
                     padding: "0 16px",
                     outline: "none",
                     background: "var(--component-bg)",
@@ -597,13 +597,13 @@ export default function NewOrderPage() {
                     transition: "all 0.2s ease",
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = "#8b5cf6";
+                    e.currentTarget.style.borderColor = "var(--primary)";
                     e.currentTarget.style.background = "white";
                     e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "#e2e8f0";
-                    e.currentTarget.style.background = "#f8fafc";
+                    e.currentTarget.style.borderColor = "var(--component-border)";
+                    e.currentTarget.style.background = "var(--bg-secondary)";
                     e.currentTarget.style.boxShadow = "none";
                   }}
                 >
@@ -628,7 +628,7 @@ export default function NewOrderPage() {
                 width: "100%",
                 height: 48,
                 borderRadius: 12,
-                border: "1px solid #e2e8f0",
+                border: "1px solid var(--component-border)",
                 padding: "0 16px",
                 outline: "none",
                 background: "var(--component-bg)",
@@ -637,13 +637,13 @@ export default function NewOrderPage() {
                 transition: "all 0.2s ease",
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = "#8b5cf6";
+                e.currentTarget.style.borderColor = "var(--primary)";
                 e.currentTarget.style.background = "white";
                 e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = "#e2e8f0";
-                e.currentTarget.style.background = "#f8fafc";
+                e.currentTarget.style.borderColor = "var(--component-border)";
+                e.currentTarget.style.background = "var(--bg-secondary)";
                 e.currentTarget.style.boxShadow = "none";
               }}
             />
@@ -659,7 +659,7 @@ export default function NewOrderPage() {
               style={{
                 width: "100%",
                 borderRadius: 12,
-                border: "1px solid #e2e8f0",
+                border: "1px solid var(--component-border)",
                 padding: "12px 16px",
                 outline: "none",
                 background: "var(--component-bg)",
@@ -670,13 +670,13 @@ export default function NewOrderPage() {
                 transition: "all 0.2s ease",
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = "#8b5cf6";
+                e.currentTarget.style.borderColor = "var(--primary)";
                 e.currentTarget.style.background = "white";
                 e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = "#e2e8f0";
-                e.currentTarget.style.background = "#f8fafc";
+                e.currentTarget.style.borderColor = "var(--component-border)";
+                e.currentTarget.style.background = "var(--bg-secondary)";
                 e.currentTarget.style.boxShadow = "none";
               }}
             />
@@ -690,9 +690,9 @@ export default function NewOrderPage() {
                   padding: "0 28px",
                   borderRadius: 14,
                   background: !canContinueFromStep1 || creatingOrder
-                    ? "#e2e8f0"
-                    : "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                  color: !canContinueFromStep1 || creatingOrder ? "#94a3b8" : "white",
+                    ? "var(--component-border)"
+                    : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
+                  color: !canContinueFromStep1 || creatingOrder ? "var(--text-tertiary)" : "white",
                   fontWeight: 700,
                   fontSize: 15,
                   display: "inline-flex",
@@ -739,11 +739,11 @@ export default function NewOrderPage() {
               justifyContent: "space-between",
               gap: 16,
               paddingBottom: 16,
-              borderBottom: "1px solid #f1f5f9",
+              borderBottom: "1px solid var(--bg-tertiary)",
               marginBottom: 16,
             }}>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 10, fontWeight: 700, fontSize: 16 }}>
-                <Boxes size={20} style={{ color: "#8b5cf6" }} />
+                <Boxes size={20} style={{ color: "var(--primary)" }} />
                 <span>Menu List</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -771,7 +771,7 @@ export default function NewOrderPage() {
                       width: "100%",
                       padding: "12px 14px 12px 44px",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid var(--component-border)",
                       background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
@@ -779,13 +779,13 @@ export default function NewOrderPage() {
                       transition: "all 0.2s ease",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#8b5cf6";
+                      e.currentTarget.style.borderColor = "var(--primary)";
                       e.currentTarget.style.background = "white";
                       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#e2e8f0";
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   />
@@ -811,7 +811,7 @@ export default function NewOrderPage() {
                   borderRadius: 20,
                   border: `1px solid ${categoryId === "all" ? "rgba(139, 92, 246, 0.3)" : "rgba(0,0,0,0.08)"}`,
                   background: categoryId === "all" ? "rgba(139, 92, 246, 0.12)" : "white",
-                  color: categoryId === "all" ? "#8b5cf6" : "#64748b",
+                  color: categoryId === "all" ? "var(--primary)" : "var(--text-secondary)",
                   fontWeight: 700,
                   fontSize: 13,
                   whiteSpace: "nowrap",
@@ -820,7 +820,7 @@ export default function NewOrderPage() {
                 }}
                 onMouseEnter={(e) => {
                   if (categoryId !== "all") {
-                    e.currentTarget.style.background = "#f8fafc";
+                    e.currentTarget.style.background = "var(--bg-secondary)";
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -835,8 +835,8 @@ export default function NewOrderPage() {
                   height: 20,
                   padding: "0 8px",
                   borderRadius: 20,
-                  background: categoryId === "all" ? "#8b5cf6" : "rgba(100, 116, 139, 0.12)",
-                  color: categoryId === "all" ? "white" : "#64748b",
+                  background: categoryId === "all" ? "var(--primary)" : "rgba(100, 116, 139, 0.12)",
+                  color: categoryId === "all" ? "white" : "var(--text-secondary)",
                   fontSize: 11,
                   fontWeight: 700,
                   display: "inline-flex",
@@ -858,7 +858,7 @@ export default function NewOrderPage() {
                     borderRadius: 20,
                     border: `1px solid ${categoryId === cat.id ? "rgba(139, 92, 246, 0.3)" : "rgba(0,0,0,0.08)"}`,
                     background: categoryId === cat.id ? "rgba(139, 92, 246, 0.12)" : "white",
-                    color: categoryId === cat.id ? "#8b5cf6" : "#64748b",
+                    color: categoryId === cat.id ? "var(--primary)" : "var(--text-secondary)",
                     fontWeight: 700,
                     fontSize: 13,
                     whiteSpace: "nowrap",
@@ -867,7 +867,7 @@ export default function NewOrderPage() {
                   }}
                   onMouseEnter={(e) => {
                     if (categoryId !== cat.id) {
-                      e.currentTarget.style.background = "#f8fafc";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -892,7 +892,7 @@ export default function NewOrderPage() {
                     key={item.id}
                     style={{
                       borderRadius: 16,
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid var(--component-border)",
                       overflow: "hidden",
                       background: "var(--bg-surface)",
                       transition: "all 0.2s ease",
@@ -919,7 +919,7 @@ export default function NewOrderPage() {
                         <div style={{
                           width: "100%",
                           height: "100%",
-                          background: "#f1f5f9",
+                          background: "var(--bg-tertiary)",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -943,13 +943,13 @@ export default function NewOrderPage() {
                         backdropFilter: "blur(10px)",
                         fontSize: 11,
                         fontWeight: 700,
-                        color: item.status === "ACTIVE" ? "#10b981" : "#ef4444",
+                        color: item.status === "ACTIVE" ? "var(--success)" : "var(--danger)",
                       }}>
                         <span style={{
                           width: 6,
                           height: 6,
                           borderRadius: "50%",
-                          background: item.status === "ACTIVE" ? "#10b981" : "#ef4444",
+                          background: item.status === "ACTIVE" ? "var(--success)" : "var(--danger)",
                         }} />
                         {item.status === "ACTIVE" ? "Available" : "Unavailable"}
                       </div>
@@ -962,7 +962,7 @@ export default function NewOrderPage() {
                       </div>
 
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                        <div style={{ fontSize: 18, fontWeight: 800, color: "#8b5cf6" }}>₹{Number(item.basePrice).toFixed(2)}</div>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: "var(--primary)" }}>₹{Number(item.basePrice).toFixed(2)}</div>
                         {quickAddMode ? (
                           <div style={{ display: "flex", gap: 6 }}>
                             <button
@@ -972,8 +972,8 @@ export default function NewOrderPage() {
                                 padding: "8px 12px",
                                 borderRadius: 10,
                                 border: "none",
-                                background: item.status === "ACTIVE" ? "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)" : "#e2e8f0",
-                                color: item.status === "ACTIVE" ? "white" : "#94a3b8",
+                                background: item.status === "ACTIVE" ? "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)" : "var(--component-border)",
+                                color: item.status === "ACTIVE" ? "white" : "var(--text-tertiary)",
                                 fontSize: 12,
                                 fontWeight: 700,
                                 cursor: item.status === "ACTIVE" ? "pointer" : "not-allowed",
@@ -998,8 +998,8 @@ export default function NewOrderPage() {
                                 padding: "8px 12px",
                                 borderRadius: 10,
                                 border: "none",
-                                background: item.status === "ACTIVE" ? "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)" : "#e2e8f0",
-                                color: item.status === "ACTIVE" ? "white" : "#94a3b8",
+                                background: item.status === "ACTIVE" ? "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)" : "var(--component-border)",
+                                color: item.status === "ACTIVE" ? "white" : "var(--text-tertiary)",
                                 fontSize: 12,
                                 fontWeight: 700,
                                 cursor: item.status === "ACTIVE" ? "pointer" : "not-allowed",
@@ -1023,9 +1023,9 @@ export default function NewOrderPage() {
                               style={{
                                 padding: "8px 10px",
                                 borderRadius: 10,
-                                border: "1px solid #e2e8f0",
-                                background: item.status === "ACTIVE" ? "white" : "#f1f5f9",
-                                color: item.status === "ACTIVE" ? "#64748b" : "#94a3b8",
+                                border: "1px solid var(--component-border)",
+                                background: item.status === "ACTIVE" ? "white" : "var(--bg-tertiary)",
+                                color: item.status === "ACTIVE" ? "var(--text-secondary)" : "var(--text-tertiary)",
                                 fontSize: 11,
                                 fontWeight: 700,
                                 cursor: item.status === "ACTIVE" ? "pointer" : "not-allowed",
@@ -1033,11 +1033,11 @@ export default function NewOrderPage() {
                               }}
                               onMouseEnter={(e) => {
                                 if (item.status === "ACTIVE") {
-                                  e.currentTarget.style.background = "#f8fafc";
+                                  e.currentTarget.style.background = "var(--bg-secondary)";
                                 }
                               }}
                               onMouseLeave={(e) => {
-                                e.currentTarget.style.background = item.status === "ACTIVE" ? "white" : "#f1f5f9";
+                                e.currentTarget.style.background = item.status === "ACTIVE" ? "white" : "var(--bg-tertiary)";
                               }}
                               title="Custom quantity"
                             >
@@ -1052,8 +1052,8 @@ export default function NewOrderPage() {
                               padding: "10px 16px",
                               borderRadius: 10,
                               border: "none",
-                              background: item.status === "ACTIVE" ? "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)" : "#e2e8f0",
-                              color: item.status === "ACTIVE" ? "white" : "#94a3b8",
+                              background: item.status === "ACTIVE" ? "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)" : "var(--component-border)",
+                              color: item.status === "ACTIVE" ? "white" : "var(--text-tertiary)",
                               fontSize: 13,
                               fontWeight: 700,
                               cursor: item.status === "ACTIVE" ? "pointer" : "not-allowed",
@@ -1089,11 +1089,11 @@ export default function NewOrderPage() {
               justifyContent: "space-between",
               gap: 12,
               paddingBottom: 16,
-              borderBottom: "1px solid #f1f5f9",
+              borderBottom: "1px solid var(--bg-tertiary)",
               marginBottom: 16,
             }}>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 10, fontWeight: 700, fontSize: 16 }}>
-                <FileText size={20} style={{ color: "#8b5cf6" }} />
+                <FileText size={20} style={{ color: "var(--primary)" }} />
                 <span>Order Details</span>
               </div>
               <button
@@ -1106,7 +1106,7 @@ export default function NewOrderPage() {
                   borderRadius: 10,
                   border: "1px solid #fecaca",
                   background: "#fef2f2",
-                  color: "#ef4444",
+                  color: "var(--danger)",
                   fontWeight: 700,
                   fontSize: 13,
                   cursor: "pointer",
@@ -1129,7 +1129,7 @@ export default function NewOrderPage() {
               flex: 1,
               minHeight: 0,
               marginTop: 12,
-              border: "1px solid #e2e8f0",
+              border: "1px solid var(--component-border)",
               borderRadius: 16,
               background: "var(--component-bg)",
               overflow: "hidden",
@@ -1151,14 +1151,14 @@ export default function NewOrderPage() {
                     width: 64,
                     height: 64,
                     borderRadius: 16,
-                    border: "1px solid #e2e8f0",
+                    border: "1px solid var(--component-border)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     marginBottom: 16,
                     background: "var(--bg-surface)",
                   }}>
-                    <ShoppingCart size={32} style={{ color: "#cbd5e1" }} />
+                    <ShoppingCart size={32} style={{ color: "var(--component-border-hover)" }} />
                   </div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>No items in cart</div>
                   <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
@@ -1180,7 +1180,7 @@ export default function NewOrderPage() {
                       <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-tertiary)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Existing Items</div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                         {currentOrder.items.map((item) => (
-                          <div key={item.id} style={{ padding: "10px 12px", background: "var(--bg-surface)", borderRadius: 12, border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div key={item.id} style={{ padding: "10px 12px", background: "var(--bg-surface)", borderRadius: 12, border: "1px solid var(--component-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
                               {item.itemName} <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>x {Number(item.qty)}</span>
                             </div>
@@ -1195,7 +1195,7 @@ export default function NewOrderPage() {
                   {cart.length > 0 && (
                     <div style={{ marginTop: currentOrder && currentOrder.items.length > 0 ? 8 : 0 }}>
                       {currentOrder && currentOrder.items.length > 0 && (
-                        <div style={{ fontSize: 12, fontWeight: 700, color: "#8b5cf6", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>New Items</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--primary)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>New Items</div>
                       )}
                       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                         {cart.map((line, idx) => (
@@ -1203,7 +1203,7 @@ export default function NewOrderPage() {
                             key={`${line.menuItem.id}-${idx}`}
                             style={{
                               borderRadius: 14,
-                              border: "1px solid #e2e8f0",
+                              border: "1px solid var(--component-border)",
                               background: "var(--bg-surface)",
                               padding: 14,
                               transition: "all 0.2s ease",
@@ -1222,15 +1222,15 @@ export default function NewOrderPage() {
                                   alt={line.menuItem.name}
                                   width={64}
                                   height={64}
-                                  style={{ objectFit: "cover", borderRadius: 12, border: "1px solid #e2e8f0" }}
+                                  style={{ objectFit: "cover", borderRadius: 12, border: "1px solid var(--component-border)" }}
                                 />
                               ) : (
                                 <div style={{
                                   width: 64,
                                   height: 64,
                                   borderRadius: 12,
-                                  background: "#f1f5f9",
-                                  border: "1px solid #e2e8f0",
+                                  background: "var(--bg-tertiary)",
+                                  border: "1px solid var(--component-border)",
                                 }} />
                               )}
                               <div style={{ minWidth: 0 }}>
@@ -1247,7 +1247,7 @@ export default function NewOrderPage() {
                                   height: 32,
                                   borderRadius: 8,
                                   background: "rgba(239, 68, 68, 0.1)",
-                                  color: "#ef4444",
+                                  color: "var(--danger)",
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "center",
@@ -1266,7 +1266,7 @@ export default function NewOrderPage() {
                               </button>
                             </div>
 
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 12, borderTop: "1px solid #f1f5f9" }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 12, borderTop: "1px solid var(--bg-tertiary)" }}>
                               <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>₹{Number(line.menuItem.basePrice).toFixed(2)}</div>
                               <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
                                 <button
@@ -1275,7 +1275,7 @@ export default function NewOrderPage() {
                                     width: 36,
                                     height: 36,
                                     borderRadius: 10,
-                                    background: "#f1f5f9",
+                                    background: "var(--bg-tertiary)",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
@@ -1284,10 +1284,10 @@ export default function NewOrderPage() {
                                     transition: "all 0.2s ease",
                                   }}
                                   onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = "#e2e8f0";
+                                    e.currentTarget.style.background = "var(--component-border)";
                                   }}
                                   onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = "#f1f5f9";
+                                    e.currentTarget.style.background = "var(--bg-tertiary)";
                                   }}
                                 >
                                   <Minus size={16} style={{ color: "var(--text-secondary)" }} />
@@ -1307,7 +1307,7 @@ export default function NewOrderPage() {
                                     width: 36,
                                     height: 36,
                                     borderRadius: 10,
-                                    background: "#f1f5f9",
+                                    background: "var(--bg-tertiary)",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
@@ -1316,10 +1316,10 @@ export default function NewOrderPage() {
                                     transition: "all 0.2s ease",
                                   }}
                                   onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = "#e2e8f0";
+                                    e.currentTarget.style.background = "var(--component-border)";
                                   }}
                                   onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = "#f1f5f9";
+                                    e.currentTarget.style.background = "var(--bg-tertiary)";
                                   }}
                                 >
                                   <Plus size={16} style={{ color: "var(--text-secondary)" }} />
@@ -1338,7 +1338,7 @@ export default function NewOrderPage() {
             <div style={{
               marginTop: 16,
               borderRadius: 16,
-              border: "1px solid #e2e8f0",
+              border: "1px solid var(--component-border)",
               background: "var(--bg-surface)",
               padding: 20,
             }}>
@@ -1368,7 +1368,7 @@ export default function NewOrderPage() {
               </div>
               <div style={{
                 height: 1,
-                background: "#e2e8f0",
+                background: "var(--component-border)",
                 margin: "12px 0",
               }} />
               <div style={{
@@ -1380,7 +1380,7 @@ export default function NewOrderPage() {
                 fontSize: 20,
               }}>
                 <span>Total Payment</span>
-                <span style={{ fontSize: 24, color: "#8b5cf6" }}>₹{total.toFixed(2)}</span>
+                <span style={{ fontSize: 24, color: "var(--primary)" }}>₹{total.toFixed(2)}</span>
               </div>
             </div>
 
@@ -1392,9 +1392,9 @@ export default function NewOrderPage() {
                 height: 52,
                 borderRadius: 14,
                 background: !canContinueFromStep2 || creatingOrder || addingItems
-                  ? "#e2e8f0"
-                  : "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                color: !canContinueFromStep2 || creatingOrder || addingItems ? "#94a3b8" : "white",
+                  ? "var(--component-border)"
+                  : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
+                color: !canContinueFromStep2 || creatingOrder || addingItems ? "var(--text-tertiary)" : "white",
                 fontWeight: 700,
                 fontSize: 15,
                 boxShadow: !canContinueFromStep2 || creatingOrder || addingItems
@@ -1448,7 +1448,7 @@ export default function NewOrderPage() {
           }}>
             <div style={{ textAlign: "center", fontSize: 26, fontWeight: 800, marginBottom: 28, color: "var(--text-primary)" }}>Order Summary</div>
 
-            <div style={{ marginBottom: 24, padding: 20, background: "var(--component-bg)", borderRadius: 16, border: "1px solid #e2e8f0" }}>
+            <div style={{ marginBottom: 24, padding: 20, background: "var(--component-bg)", borderRadius: 16, border: "1px solid var(--component-border)" }}>
               <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 6, fontWeight: 600 }}>Order ID</div>
               <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>{currentOrder.id}</div>
             </div>
@@ -1460,7 +1460,7 @@ export default function NewOrderPage() {
                 padding: "8px 16px",
                 borderRadius: 20,
                 background: "rgba(139, 92, 246, 0.1)",
-                color: "#8b5cf6",
+                color: "var(--primary)",
                 fontSize: 14,
                 fontWeight: 700,
               }}>
@@ -1485,7 +1485,7 @@ export default function NewOrderPage() {
                       padding: "14px 16px",
                       background: "var(--component-bg)",
                       borderRadius: 12,
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid var(--component-border)",
                     }}
                   >
                     <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
@@ -1497,7 +1497,7 @@ export default function NewOrderPage() {
               </div>
             </div>
 
-            <div style={{ marginBottom: 28, padding: 20, background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)", borderRadius: 16, border: "1px solid #e2e8f0" }}>
+            <div style={{ marginBottom: 28, padding: 20, background: "linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%)", borderRadius: 16, border: "1px solid var(--component-border)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, fontSize: 14, color: "var(--text-secondary)", fontWeight: 600 }}>
                 <span>Subtotal:</span>
                 <span>₹{Number(currentOrder.subtotal).toFixed(2)}</span>
@@ -1512,12 +1512,12 @@ export default function NewOrderPage() {
               </div>
               <div style={{
                 height: 1,
-                background: "#e2e8f0",
+                background: "var(--component-border)",
                 marginBottom: 16,
               }} />
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>
                 <span>Grand Total:</span>
-                <span style={{ fontSize: 28, color: "#8b5cf6" }}>₹{Number(currentOrder.grandTotal).toFixed(2)}</span>
+                <span style={{ fontSize: 28, color: "var(--primary)" }}>₹{Number(currentOrder.grandTotal).toFixed(2)}</span>
               </div>
             </div>
 
@@ -1530,9 +1530,9 @@ export default function NewOrderPage() {
                   padding: "0 28px",
                   borderRadius: 14,
                   background: billingOrder
-                    ? "#e2e8f0"
-                    : "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                  color: billingOrder ? "#94a3b8" : "white",
+                    ? "var(--component-border)"
+                    : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
+                  color: billingOrder ? "var(--text-tertiary)" : "white",
                   fontWeight: 700,
                   fontSize: 15,
                   display: "inline-flex",
@@ -1591,11 +1591,11 @@ export default function NewOrderPage() {
             }}>
               <div style={{
                 padding: "20px 24px",
-                borderBottom: "1px solid #f1f5f9",
+                borderBottom: "1px solid var(--bg-tertiary)",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+                background: "linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%)",
               }}>
                 <div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)" }}>Complete Payment</div>
@@ -1610,8 +1610,8 @@ export default function NewOrderPage() {
                       borderRadius: 12,
                       background: paymentStatus.transactionStatus === "CAPTURED" ? "rgba(16, 185, 129, 0.1)" :
                                  paymentStatus.transactionStatus === "FAILED" ? "rgba(239, 68, 68, 0.1)" : "rgba(245, 158, 11, 0.1)",
-                      color: paymentStatus.transactionStatus === "CAPTURED" ? "#10b981" :
-                             paymentStatus.transactionStatus === "FAILED" ? "#ef4444" : "#f59e0b",
+                      color: paymentStatus.transactionStatus === "CAPTURED" ? "var(--success)" :
+                             paymentStatus.transactionStatus === "FAILED" ? "var(--danger)" : "var(--warning)",
                       fontSize: 13,
                       fontWeight: 700,
                       border: `1px solid ${paymentStatus.transactionStatus === "CAPTURED" ? "rgba(16, 185, 129, 0.2)" :
@@ -1675,7 +1675,7 @@ export default function NewOrderPage() {
                   style={{
                     padding: "12px 24px",
                     borderRadius: 14,
-                    background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                    background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                     color: "white",
                     fontSize: 14,
                     fontWeight: 700,
@@ -1711,7 +1711,7 @@ export default function NewOrderPage() {
 
               <div style={{ marginBottom: 32, textAlign: "center" }}>
                 <div style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 8, fontWeight: 600 }}>Total Amount</div>
-                <div style={{ fontSize: 42, fontWeight: 800, color: "#8b5cf6" }}>
+                <div style={{ fontSize: 42, fontWeight: 800, color: "var(--primary)" }}>
                   ₹{Number(currentOrder.grandTotal).toFixed(2)}
                 </div>
               </div>
@@ -1737,7 +1737,7 @@ export default function NewOrderPage() {
                         padding: "10px 14px",
                         background: "var(--component-bg)",
                         borderRadius: 10,
-                        border: "1px solid #e2e8f0",
+                        border: "1px solid var(--component-border)",
                       }}
                     >
                       <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
@@ -1752,10 +1752,10 @@ export default function NewOrderPage() {
               <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 16 }}>Payment Method</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, marginBottom: 32 }}>
                 {[
-                  { value: "CASH", label: "Cash", icon: Banknote, color: "#10b981" },
-                  { value: "CARD", label: "Card", icon: CreditCard, color: "#3b82f6" },
-                  { value: "UPI", label: "UPI", icon: Smartphone, color: "#8b5cf6" },
-                  { value: "GATEWAY", label: "Online", icon: Wallet, color: "#f59e0b" },
+                  { value: "CASH", label: "Cash", icon: Banknote, color: "var(--success)" },
+                  { value: "CARD", label: "Card", icon: CreditCard, color: "var(--info)" },
+                  { value: "UPI", label: "UPI", icon: Smartphone, color: "var(--primary)" },
+                  { value: "GATEWAY", label: "Online", icon: Wallet, color: "var(--warning)" },
                 ].map((method) => {
                   const Icon = method.icon;
                   return (
@@ -1765,7 +1765,7 @@ export default function NewOrderPage() {
                       disabled={processingPayment}
                       style={{
                         borderRadius: 16,
-                        border: `2px solid ${selectedPaymentMethod === method.value ? method.color : "#e2e8f0"}`,
+                        border: `2px solid ${selectedPaymentMethod === method.value ? method.color : "var(--component-border)"}`,
                         background: selectedPaymentMethod === method.value ? `${method.color}15` : "white",
                         padding: "24px 20px",
                         display: "flex",
@@ -1773,7 +1773,7 @@ export default function NewOrderPage() {
                         alignItems: "center",
                         gap: 12,
                         fontWeight: 700,
-                        color: selectedPaymentMethod === method.value ? method.color : "#64748b",
+                        color: selectedPaymentMethod === method.value ? method.color : "var(--text-secondary)",
                         fontSize: 14,
                         cursor: processingPayment ? "not-allowed" : "pointer",
                         transition: "all 0.2s ease",
@@ -1781,18 +1781,18 @@ export default function NewOrderPage() {
                       }}
                       onMouseEnter={(e) => {
                         if (!processingPayment && selectedPaymentMethod !== method.value) {
-                          e.currentTarget.style.borderColor = "#cbd5e1";
-                          e.currentTarget.style.background = "#f8fafc";
+                          e.currentTarget.style.borderColor = "var(--component-border-hover)";
+                          e.currentTarget.style.background = "var(--bg-secondary)";
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (selectedPaymentMethod !== method.value) {
-                          e.currentTarget.style.borderColor = "#e2e8f0";
+                          e.currentTarget.style.borderColor = "var(--component-border)";
                           e.currentTarget.style.background = "white";
                         }
                       }}
                     >
-                      <Icon size={32} style={{ color: selectedPaymentMethod === method.value ? method.color : "#64748b" }} />
+                      <Icon size={32} style={{ color: selectedPaymentMethod === method.value ? method.color : "var(--text-secondary)" }} />
                       <span>{method.label}</span>
                     </button>
                   );
@@ -1808,9 +1808,9 @@ export default function NewOrderPage() {
                     padding: "0 28px",
                     borderRadius: 14,
                     background: processingPayment
-                      ? "#e2e8f0"
-                      : "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                    color: processingPayment ? "#94a3b8" : "white",
+                      ? "var(--component-border)"
+                      : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
+                    color: processingPayment ? "var(--text-tertiary)" : "white",
                     fontWeight: 700,
                     fontSize: 15,
                     display: "inline-flex",
@@ -1891,7 +1891,7 @@ export default function NewOrderPage() {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              borderBottom: "1px solid #f1f5f9",
+              borderBottom: "1px solid var(--bg-tertiary)",
               background: "linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)",
             }}>
               <div style={{ fontWeight: 800, fontSize: 18, display: "inline-flex", gap: 10, alignItems: "center" }}>
@@ -1938,21 +1938,21 @@ export default function NewOrderPage() {
                   alt={openAddModalFor.name}
                   width={100}
                   height={100}
-                  style={{ objectFit: "cover", borderRadius: 14, border: "1px solid #e2e8f0" }}
+                  style={{ objectFit: "cover", borderRadius: 14, border: "1px solid var(--component-border)" }}
                 />
               ) : (
                 <div style={{
                   width: 100,
                   height: 100,
                   borderRadius: 14,
-                  background: "#f1f5f9",
+                  background: "var(--bg-tertiary)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   color: "var(--text-tertiary)",
                   fontSize: 11,
                   fontWeight: 600,
-                  border: "1px solid #e2e8f0",
+                  border: "1px solid var(--component-border)",
                 }}>
                   No Image
                 </div>
@@ -1963,7 +1963,7 @@ export default function NewOrderPage() {
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4, fontWeight: 600 }}>Base Price</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: "#8b5cf6" }}>₹{Number(openAddModalFor.basePrice).toFixed(2)}</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: "var(--primary)" }}>₹{Number(openAddModalFor.basePrice).toFixed(2)}</div>
               </div>
             </div>
 
@@ -1977,7 +1977,7 @@ export default function NewOrderPage() {
                 style={{
                   width: "100%",
                   borderRadius: 12,
-                  border: "1px solid #e2e8f0",
+                  border: "1px solid var(--component-border)",
                   padding: "12px 16px",
                   outline: "none",
                   background: "var(--component-bg)",
@@ -1988,13 +1988,13 @@ export default function NewOrderPage() {
                   transition: "all 0.2s ease",
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "#8b5cf6";
+                  e.currentTarget.style.borderColor = "var(--primary)";
                   e.currentTarget.style.background = "white";
                   e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "#e2e8f0";
-                  e.currentTarget.style.background = "#f8fafc";
+                  e.currentTarget.style.borderColor = "var(--component-border)";
+                  e.currentTarget.style.background = "var(--bg-secondary)";
                   e.currentTarget.style.boxShadow = "none";
                 }}
               />
@@ -2002,7 +2002,7 @@ export default function NewOrderPage() {
 
             <div style={{
               padding: "20px 24px",
-              borderTop: "1px solid #f1f5f9",
+              borderTop: "1px solid var(--bg-tertiary)",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
@@ -2015,7 +2015,7 @@ export default function NewOrderPage() {
                     width: 40,
                     height: 40,
                     borderRadius: 12,
-                    background: "#f1f5f9",
+                    background: "var(--bg-tertiary)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -2024,10 +2024,10 @@ export default function NewOrderPage() {
                     transition: "all 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#e2e8f0";
+                    e.currentTarget.style.background = "var(--component-border)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#f1f5f9";
+                    e.currentTarget.style.background = "var(--bg-tertiary)";
                   }}
                 >
                   <Minus size={18} style={{ color: "var(--text-secondary)" }} />
@@ -2047,7 +2047,7 @@ export default function NewOrderPage() {
                     width: 40,
                     height: 40,
                     borderRadius: 12,
-                    background: "#f1f5f9",
+                    background: "var(--bg-tertiary)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -2056,10 +2056,10 @@ export default function NewOrderPage() {
                     transition: "all 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#e2e8f0";
+                    e.currentTarget.style.background = "var(--component-border)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#f1f5f9";
+                    e.currentTarget.style.background = "var(--bg-tertiary)";
                   }}
                 >
                   <Plus size={18} style={{ color: "var(--text-secondary)" }} />
@@ -2072,7 +2072,7 @@ export default function NewOrderPage() {
                   height: 44,
                   padding: "0 24px",
                   borderRadius: 12,
-                  background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                  background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                   color: "white",
                   fontWeight: 700,
                   fontSize: 14,

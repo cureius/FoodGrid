@@ -536,7 +536,7 @@ export default function PaymentConfigPage() {
               alignItems: 'center',
               gap: '8px'
             }}>
-              <AlertCircle size={16} color="#f59e0b" />
+              <AlertCircle size={16} color="var(--warning)" />
               <span><strong>Note:</strong> For security reasons, API keys and secrets are encrypted and cannot be retrieved. Please re-enter all credentials to update this configuration.</span>
             </div>
           )}

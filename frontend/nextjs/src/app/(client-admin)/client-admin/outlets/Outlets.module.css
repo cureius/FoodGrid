@@ -66,7 +66,7 @@
 }
 
 .primaryButton {
-  background-color: #3b82f6;
+  background-color: var(--info);
   color: #fff;
 }
 
@@ -77,7 +77,7 @@
 }
 
 .dangerButton {
-    background-color: #ef4444;
+    background-color: var(--danger);
     color: #fff;
 }
 

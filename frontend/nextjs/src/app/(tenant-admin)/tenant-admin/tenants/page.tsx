@@ -1165,7 +1165,7 @@ export default function TenantsPage() {
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  <AlertCircle size={16} color="#3b82f6" />
+                  <AlertCircle size={16} color="var(--info)" />
                   <span>To update credentials, delete the current configuration and create a new one. This ensures secure handling of sensitive API keys.</span>
                 </div>
               </div>
@@ -1200,7 +1200,7 @@ export default function TenantsPage() {
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  <AlertCircle size={16} color="#3b82f6" />
+                  <AlertCircle size={16} color="var(--info)" />
                   <span>Configure your payment gateway credentials below. Each tenant can have one payment configuration at a time.</span>
                 </div>
 

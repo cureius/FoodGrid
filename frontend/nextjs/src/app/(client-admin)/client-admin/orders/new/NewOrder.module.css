@@ -319,11 +319,11 @@
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: #10b981;
+  background: var(--success);
 }
 
 .availNo .dot {
-  background: #ef4444;
+  background: var(--danger);
 }
 
 .expandIcon {

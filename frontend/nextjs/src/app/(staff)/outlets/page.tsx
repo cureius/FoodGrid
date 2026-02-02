@@ -54,7 +54,7 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
       right: 24,
       padding: "14px 20px",
       borderRadius: 12,
-      background: type === "success" ? "#10b981" : "#ef4444",
+      background: type === "success" ? "var(--success)" : "var(--danger)",
       color: "white",
       display: "flex",
       alignItems: "center",
@@ -232,13 +232,13 @@ export default function Page() {
             fontSize: 32,
             fontWeight: 800,
             margin: 0,
-            background: "linear-gradient(135deg, #1e293b 0%, #475569 100%)",
+            background: "var(--text-primary)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
           }}>
             Outlets
           </h1>
-          <p style={{ margin: "8px 0 0", color: "#64748b", fontSize: 15 }}>
+          <p style={{ margin: "8px 0 0", color: "var(--text-secondary)", fontSize: 15 }}>
             Manage your restaurant locations and branches
           </p>
         </div>
@@ -254,12 +254,12 @@ export default function Page() {
               width: 44,
               height: 44,
               borderRadius: 12,
-              border: "1px solid #e2e8f0",
+              border: "1px solid var(--component-border)",
               background: "white",
               cursor: loading ? "not-allowed" : "pointer",
             }}
           >
-            <RefreshCw size={18} style={{ color: "#64748b", animation: loading ? "spin 1s linear infinite" : "none" }} />
+            <RefreshCw size={18} style={{ color: "var(--text-secondary)", animation: loading ? "spin 1s linear infinite" : "none" }} />
           </button>
 
           <button
@@ -271,7 +271,7 @@ export default function Page() {
               padding: "12px 20px",
               borderRadius: 12,
               border: "none",
-              background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+              background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
               color: "white",
               fontSize: 14,
               fontWeight: 600,
@@ -303,7 +303,7 @@ export default function Page() {
             left: 14,
             top: "50%",
             transform: "translateY(-50%)",
-            color: "#94a3b8",
+            color: "var(--text-tertiary)",
           }} />
           <input
             type="text"
@@ -314,7 +314,7 @@ export default function Page() {
               width: "100%",
               padding: "12px 14px 12px 44px",
               borderRadius: 12,
-              border: "1px solid #e2e8f0",
+              border: "1px solid var(--component-border)",
               background: "white",
               fontSize: 14,
               outline: "none",
@@ -330,18 +330,18 @@ export default function Page() {
           padding: "10px 16px",
           background: "white",
           borderRadius: 12,
-          border: "1px solid #e2e8f0",
+          border: "1px solid var(--component-border)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981" }} />
-            <span style={{ fontSize: 13, color: "#64748b" }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--success)" }} />
+            <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
               {outlets.filter((o) => o.status === "ACTIVE").length} Active
             </span>
           </div>
-          <div style={{ width: 1, height: 16, background: "#e2e8f0" }} />
+          <div style={{ width: 1, height: 16, background: "var(--component-border)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#ef4444" }} />
-            <span style={{ fontSize: 13, color: "#64748b" }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--danger)" }} />
+            <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
               {outlets.filter((o) => o.status === "INACTIVE").length} Inactive
             </span>
           </div>
@@ -355,7 +355,7 @@ export default function Page() {
           borderRadius: 12,
           background: "rgba(239, 68, 68, 0.08)",
           border: "1px solid rgba(239, 68, 68, 0.2)",
-          color: "#dc2626",
+          color: "var(--danger)",
           marginBottom: 24,
         }}>
           {error}
@@ -374,14 +374,14 @@ export default function Page() {
               background: "white",
               borderRadius: 16,
               padding: 24,
-              border: "1px solid #e2e8f0",
+              border: "1px solid var(--component-border)",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
                 <div style={{
                   width: 52,
                   height: 52,
                   borderRadius: 12,
-                  background: "linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)",
+                  background: "linear-gradient(90deg, var(--bg-tertiary) 25%, var(--component-border) 50%, var(--bg-tertiary) 75%)",
                   backgroundSize: "200% 100%",
                   animation: "shimmer 1.5s infinite",
                 }} />
@@ -389,7 +389,7 @@ export default function Page() {
                   <div style={{
                     width: "60%",
                     height: 18,
-                    background: "linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)",
+                    background: "linear-gradient(90deg, var(--bg-tertiary) 25%, var(--component-border) 50%, var(--bg-tertiary) 75%)",
                     backgroundSize: "200% 100%",
                     animation: "shimmer 1.5s infinite",
                     borderRadius: 4,
@@ -398,7 +398,7 @@ export default function Page() {
                   <div style={{
                     width: "40%",
                     height: 14,
-                    background: "linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)",
+                    background: "linear-gradient(90deg, var(--bg-tertiary) 25%, var(--component-border) 50%, var(--bg-tertiary) 75%)",
                     backgroundSize: "200% 100%",
                     animation: "shimmer 1.5s infinite",
                     borderRadius: 4,
@@ -414,13 +414,13 @@ export default function Page() {
           padding: "60px 20px",
           background: "white",
           borderRadius: 20,
-          border: "1px solid #e2e8f0",
+          border: "1px solid var(--component-border)",
         }}>
-          <Store size={56} style={{ color: "#cbd5e1", marginBottom: 16 }} />
-          <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 600, color: "#1e293b" }}>
+          <Store size={56} style={{ color: "var(--component-border-hover)", marginBottom: 16 }} />
+          <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 600, color: "var(--text-primary)" }}>
             {searchQuery ? "No outlets found" : "No outlets yet"}
           </h3>
-          <p style={{ margin: "0 0 20px", color: "#64748b", fontSize: 14 }}>
+          <p style={{ margin: "0 0 20px", color: "var(--text-secondary)", fontSize: 14 }}>
             {searchQuery
               ? "Try a different search term"
               : "Create your first outlet to get started"}
@@ -435,7 +435,7 @@ export default function Page() {
                 padding: "12px 24px",
                 borderRadius: 12,
                 border: "none",
-                background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                 color: "white",
                 fontSize: 14,
                 fontWeight: 600,
@@ -457,7 +457,7 @@ export default function Page() {
             <div key={outlet.id} style={{
               background: "white",
               borderRadius: 16,
-              border: "1px solid #e2e8f0",
+              border: "1px solid var(--component-border)",
               overflow: "hidden",
               transition: "all 0.2s ease",
               boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
@@ -465,14 +465,14 @@ export default function Page() {
               {/* Card Header */}
               <div style={{
                 padding: "20px 20px 16px",
-                borderBottom: "1px solid #f1f5f9",
+                borderBottom: "1px solid var(--bg-tertiary)",
               }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
                   <div style={{
                     width: 52,
                     height: 52,
                     borderRadius: 14,
-                    background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                    background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -494,7 +494,7 @@ export default function Page() {
                         margin: 0,
                         fontSize: 16,
                         fontWeight: 600,
-                        color: "#1e293b",
+                        color: "var(--text-primary)",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
@@ -505,7 +505,7 @@ export default function Page() {
                         padding: "3px 8px",
                         borderRadius: 20,
                         background: outlet.status === "ACTIVE" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                        color: outlet.status === "ACTIVE" ? "#10b981" : "#ef4444",
+                        color: outlet.status === "ACTIVE" ? "var(--success)" : "var(--danger)",
                         fontSize: 11,
                         fontWeight: 600,
                         flexShrink: 0,
@@ -515,7 +515,7 @@ export default function Page() {
                     </div>
                     <div style={{
                       fontSize: 12,
-                      color: "#64748b",
+                      color: "var(--text-secondary)",
                       display: "flex",
                       alignItems: "center",
                       gap: 4,
@@ -531,16 +531,16 @@ export default function Page() {
               <div style={{ padding: "16px 20px" }}>
                 <div style={{
                   fontSize: 12,
-                  color: "#94a3b8",
+                  color: "var(--text-tertiary)",
                   marginBottom: 4,
                 }}>
                   Outlet ID
                 </div>
                 <div style={{
                   fontSize: 13,
-                  color: "#64748b",
+                  color: "var(--text-secondary)",
                   fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                  background: "#f8fafc",
+                  background: "var(--bg-secondary)",
                   padding: "8px 12px",
                   borderRadius: 8,
                   overflow: "hidden",
@@ -567,9 +567,9 @@ export default function Page() {
                     gap: 6,
                     padding: "8px 14px",
                     borderRadius: 8,
-                    border: "1px solid #e2e8f0",
+                    border: "1px solid var(--component-border)",
                     background: "white",
-                    color: "#64748b",
+                    color: "var(--text-secondary)",
                     fontSize: 13,
                     fontWeight: 500,
                     cursor: saving ? "not-allowed" : "pointer",
@@ -590,7 +590,7 @@ export default function Page() {
                     borderRadius: 8,
                     border: "1px solid rgba(239, 68, 68, 0.2)",
                     background: "rgba(239, 68, 68, 0.05)",
-                    color: "#ef4444",
+                    color: "var(--danger)",
                     fontSize: 13,
                     fontWeight: 500,
                     cursor: saving ? "not-allowed" : "pointer",
@@ -631,7 +631,7 @@ export default function Page() {
             {/* Modal Header */}
             <div style={{
               padding: "20px 24px",
-              borderBottom: "1px solid #f1f5f9",
+              borderBottom: "1px solid var(--bg-tertiary)",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
@@ -646,7 +646,7 @@ export default function Page() {
                   alignItems: "center",
                   justifyContent: "center",
                 }}>
-                  <Building2 size={20} style={{ color: "#8b5cf6" }} />
+                  <Building2 size={20} style={{ color: "var(--primary)" }} />
                 </div>
                 <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>
                   {editingOutlet ? "Edit Outlet" : "Create Outlet"}
@@ -659,14 +659,14 @@ export default function Page() {
                   height: 36,
                   borderRadius: 10,
                   border: "none",
-                  background: "#f1f5f9",
+                  background: "var(--bg-tertiary)",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <X size={18} style={{ color: "#64748b" }} />
+                <X size={18} style={{ color: "var(--text-secondary)" }} />
               </button>
             </div>
 
@@ -691,7 +691,7 @@ export default function Page() {
                     width: "100%",
                     padding: "12px 14px",
                     borderRadius: 10,
-                    border: "1px solid #e2e8f0",
+                    border: "1px solid var(--component-border)",
                     fontSize: 14,
                     outline: "none",
                     transition: "border-color 0.2s",
@@ -717,7 +717,7 @@ export default function Page() {
                     width: "100%",
                     padding: "12px 14px",
                     borderRadius: 10,
-                    border: "1px solid #e2e8f0",
+                    border: "1px solid var(--component-border)",
                     fontSize: 14,
                     outline: "none",
                     background: "white",
@@ -749,9 +749,9 @@ export default function Page() {
                       flex: 1,
                       padding: "12px 16px",
                       borderRadius: 10,
-                      border: form.status === "ACTIVE" ? "2px solid #10b981" : "1px solid #e2e8f0",
+                      border: form.status === "ACTIVE" ? "2px solid var(--success)" : "1px solid var(--component-border)",
                       background: form.status === "ACTIVE" ? "rgba(16, 185, 129, 0.05)" : "white",
-                      color: form.status === "ACTIVE" ? "#10b981" : "#64748b",
+                      color: form.status === "ACTIVE" ? "var(--success)" : "var(--text-secondary)",
                       fontSize: 14,
                       fontWeight: 500,
                       cursor: "pointer",
@@ -771,9 +771,9 @@ export default function Page() {
                       flex: 1,
                       padding: "12px 16px",
                       borderRadius: 10,
-                      border: form.status === "INACTIVE" ? "2px solid #ef4444" : "1px solid #e2e8f0",
+                      border: form.status === "INACTIVE" ? "2px solid var(--danger)" : "1px solid var(--component-border)",
                       background: form.status === "INACTIVE" ? "rgba(239, 68, 68, 0.05)" : "white",
-                      color: form.status === "INACTIVE" ? "#ef4444" : "#64748b",
+                      color: form.status === "INACTIVE" ? "var(--danger)" : "var(--text-secondary)",
                       fontSize: 14,
                       fontWeight: 500,
                       cursor: "pointer",
@@ -802,9 +802,9 @@ export default function Page() {
                   flex: 1,
                   padding: "12px 20px",
                   borderRadius: 10,
-                  border: "1px solid #e2e8f0",
+                  border: "1px solid var(--component-border)",
                   background: "white",
-                  color: "#64748b",
+                  color: "var(--text-secondary)",
                   fontSize: 14,
                   fontWeight: 600,
                   cursor: "pointer",
@@ -821,9 +821,9 @@ export default function Page() {
                   borderRadius: 10,
                   border: "none",
                   background: !canSubmit || saving
-                    ? "#e2e8f0"
-                    : "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                  color: !canSubmit || saving ? "#94a3b8" : "white",
+                    ? "var(--component-border)"
+                    : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
+                  color: !canSubmit || saving ? "var(--text-tertiary)" : "white",
                   fontSize: 14,
                   fontWeight: 600,
                   cursor: !canSubmit || saving ? "not-allowed" : "pointer",
@@ -868,12 +868,12 @@ export default function Page() {
               justifyContent: "center",
               margin: "0 auto 16px",
             }}>
-              <Trash2 size={28} style={{ color: "#ef4444" }} />
+              <Trash2 size={28} style={{ color: "var(--danger)" }} />
             </div>
-            <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 600, color: "#1e293b" }}>
+            <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 600, color: "var(--text-primary)" }}>
               Delete Outlet?
             </h3>
-            <p style={{ margin: "0 0 24px", color: "#64748b", fontSize: 14 }}>
+            <p style={{ margin: "0 0 24px", color: "var(--text-secondary)", fontSize: 14 }}>
               This action cannot be undone. All data associated with this outlet will be permanently removed.
             </p>
             <div style={{ display: "flex", gap: 12 }}>
@@ -883,9 +883,9 @@ export default function Page() {
                   flex: 1,
                   padding: "12px 20px",
                   borderRadius: 10,
-                  border: "1px solid #e2e8f0",
+                  border: "1px solid var(--component-border)",
                   background: "white",
-                  color: "#64748b",
+                  color: "var(--text-secondary)",
                   fontSize: 14,
                   fontWeight: 600,
                   cursor: "pointer",
@@ -901,7 +901,7 @@ export default function Page() {
                   padding: "12px 20px",
                   borderRadius: 10,
                   border: "none",
-                  background: "#ef4444",
+                  background: "var(--danger)",
                   color: "white",
                   fontSize: 14,
                   fontWeight: 600,

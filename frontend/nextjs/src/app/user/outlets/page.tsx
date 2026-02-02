@@ -13,8 +13,8 @@ const GRADIENTS = [
   'linear-gradient(135deg, #f43f5e, #fb7185)',
   'linear-gradient(135deg, #f97316, #fb923c)',
   'linear-gradient(135deg, #0ea5e9, #38bdf8)',
-  'linear-gradient(135deg, #10b981, #34d399)',
-  'linear-gradient(135deg, #8b5cf6, #a78bfa)',
+  'linear-gradient(135deg, var(--success), var(--success))',
+  'linear-gradient(135deg, var(--primary), #a78bfa)',
 ];
 
 function getBannerStyle(name: string) {
@@ -149,7 +149,7 @@ export default function OutletsPage() {
         }
 
         .pin-icon {
-          color: #ef4444;
+          color: var(--danger);
         }
 
         .loc-label {
@@ -169,7 +169,7 @@ export default function OutletsPage() {
           height: 36px;
           border-radius: 50%;
           background: #fee2e2;
-          color: #ef4444;
+          color: var(--danger);
           display: flex;
           align-items: center;
           justify-content: center;

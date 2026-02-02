@@ -174,7 +174,7 @@ export default function CheckoutPage() {
             {[
                 { id: 'UPI', label: 'UPI (GPay / PhonePe / Paytm)', icon: Wallet, color: '#4B70F5' },
                 { id: 'CARD', label: 'Credit / Debit Card', icon: CreditCard, color: '#F69B42' },
-                { id: 'NB', label: 'Net Banking', icon: Landmark, color: '#10B981' },
+                { id: 'NB', label: 'Net Banking', icon: Landmark, color: 'var(--success)' },
                 // { id: 'CASH', label: 'Pay on Delivery (Cash/UPI)', icon: ShieldCheck, color: '#6B7280' },
             ].map((method) => (
                 <button 
