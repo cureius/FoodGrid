@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useParams } from 'next/navigation';
 import { Home, ShoppingCart, ShoppingBag, User } from 'lucide-react';
 import { useCartStore } from '@/stores/cart';
 
@@ -9,11 +9,20 @@ export default function BottomNav() {
   const pathname = usePathname();
   const itemCount = useCartStore((state) => state.itemCount);
 
+  const params = useParams();
+  const outletId = params?.outletId as string;
+
+  const getHref = (path: string) => {
+    if (!outletId) return '/user/outlets';
+    // 'Home' is /user/[outletId], others are /user/[outletId]/[path]
+    return path === '' ? `/user/${outletId}` : `/user/${outletId}/${path}`;
+  };
+
   const navItems = [
-    { label: 'Home', icon: Home, href: '/user' },
-    { label: 'Cart', icon: ShoppingCart, href: '/user/cart' },
-    { label: 'Orders', icon: ShoppingBag, href: '/user/orders' },
-    { label: 'Account', icon: User, href: '/user/account' },
+    { label: 'Home', icon: Home, href: getHref('') },
+    { label: 'Cart', icon: ShoppingCart, href: getHref('cart') },
+    { label: 'Orders', icon: ShoppingBag, href: getHref('orders') },
+    { label: 'Account', icon: User, href: getHref('account') },
   ];
 
   return (

@@ -4,19 +4,20 @@ import { useQuery } from '@tanstack/react-query';
 import { listOrders, formatPrice, getOrderStatusInfo, createPaymentLink } from '@/lib/api/customer';
 import { useCartStore } from '@/stores/cart';
 import { ChevronLeft, ChevronRight, ShoppingBag, Receipt, ArrowRight } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useCustomer } from '@/contexts/CustomerContext';
 export default function OrdersHistoryPage() {
   const router = useRouter();
-  const { outletId } = useCartStore();
+  const params = useParams();
+  const outletId = params?.outletId as string;
   const { user } = useCustomer();
-  console.log("🚀 ~ OrdersHistoryPage ~ user:", user)
+
 
   
-  const { data: orders, isLoading } = useQuery({
+  const { data: orders, isLoading, isError, error } = useQuery({
     queryKey: ['orders-history', outletId],
     queryFn: () => listOrders(20, outletId || undefined, user?.id || undefined), 
-    enabled: true // Fetch all if no outlet selected, or filter if selected
+    enabled: true 
   });
 
   if (isLoading) {
@@ -36,10 +37,28 @@ export default function OrdersHistoryPage() {
     )
   }
 
+  if (isError) {
+      return (
+          <div className="error-container">
+              <h2>Something went wrong</h2>
+              <p>Failed to load orders. Please try again.</p>
+              <pre style={{ fontSize: 10, color: 'red', marginTop: 10 }}>
+                  {JSON.stringify(error, null, 2)}
+              </pre>
+              <button onClick={() => window.location.reload()} className="retry-btn">Retry</button>
+              <style jsx>{`
+                  .error-container { padding: 40px; text-align: center; }
+                  .retry-btn { margin-top: 20px; padding: 10px 20px; background: var(--primary); color: white; border-radius: 8px; font-weight: 800; }
+              `}</style>
+          </div>
+      );
+  }
+
   return (
     <div className="orders-history-page">
+      <div style={{ display: 'none' }}>DEBUG: Page Rendered. OutletID: {outletId}</div>
       <header className="history-header">
-        <button onClick={() => router.push('/user')} className="back-btn">
+        <button onClick={() => router.push(`/user/${outletId}`)} className="back-btn">
           <ChevronLeft size={24} />
         </button>
         <h1 className="header-title">Your Orders</h1>
@@ -50,6 +69,7 @@ export default function OrdersHistoryPage() {
             <div className="orders-groups">
                 <div className="group-header">Recent Orders</div>
                 {orders.map((order) => {
+                    if (!order || !order.status) return null;
                     const statusInfo = getOrderStatusInfo(order.status as any);
                     const formattedDate = new Date(order.createdAt).toLocaleDateString('en-GB', { 
                         day: '2-digit', 
@@ -64,7 +84,7 @@ export default function OrdersHistoryPage() {
                     return (
                         <div 
                             key={order.id}
-                            onClick={() => router.push(`/user/orders/${order.id}`)}
+                            onClick={() => router.push(`/user/${outletId}/orders/${order.id}`)}
                             className="order-item-card"
                         >
                             <div className="order-item-top">
@@ -132,7 +152,7 @@ export default function OrdersHistoryPage() {
                 <h2 className="empty-title">No orders yet</h2>
                 <p className="empty-text">You haven't placed any orders yet. Try something delicious today!</p>
                 <button 
-                  onClick={() => router.push('/user')}
+                  onClick={() => router.push(`/user/${outletId}`)}
                   className="start-btn"
                 >
                     Order Now

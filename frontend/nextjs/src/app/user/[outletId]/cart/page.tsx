@@ -62,7 +62,7 @@ export default function CartPage() {
         <h2 className="empty-cart-title">Your cart is empty</h2>
         <p className="empty-cart-text">Good food is always just a few taps away. Explore our menu now!</p>
         <button
-          onClick={() => router.push('/user')}
+          onClick={() => router.push(outletId ? `/user/${outletId}` : '/user/outlets')}
           className="empty-cart-btn"
         >
           Browse Menu
@@ -117,7 +117,7 @@ export default function CartPage() {
                         <div 
                           key={order.id} 
                           className="active-order-card"
-                          onClick={() => router.push(`/user/orders/${order.id}`)}
+                          onClick={() => router.push(`/user/${outletId}/orders/${order.id}`)}
                         >
                            <div className="order-main">
                               <div className="order-meta-info">
@@ -199,7 +199,7 @@ export default function CartPage() {
               </div>
 
               <button 
-                onClick={() => router.push('/user')}
+                onClick={() => router.push(outletId ? `/user/${outletId}` : '/user/outlets')}
                 className="add-more-btn"
               >
                 <Plus size={18} />
@@ -237,7 +237,7 @@ export default function CartPage() {
           <div className="no-items-card card">
               <p>Nothing in cart. Check your active orders above or browse the menu.</p>
               <button 
-                onClick={() => router.push('/user')}
+                onClick={() => router.push(outletId ? `/user/${outletId}` : '/user/outlets')}
                 className="browse-mini-btn"
               >
                 Browse Menu
@@ -251,7 +251,7 @@ export default function CartPage() {
         <div className="bottom-bar">
           <div 
               className="checkout-btn"
-              onClick={() => router.push('/user/checkout')}
+              onClick={() => router.push(`/user/${outletId}/checkout`)}
             >
               <div className="btn-total">
                 <span className="total-label">Subtotal</span>

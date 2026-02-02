@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useCartStore } from '@/stores/cart';
 import { createOrder, formatPrice, calculateCartTotal, createPaymentLink } from '@/lib/api/customer';
 import { ChevronLeft, ShieldCheck, Wallet, CreditCard, Landmark, CheckCircle2, Loader2, Lock, ExternalLink } from 'lucide-react';
@@ -12,7 +12,9 @@ import { getPaymentStatus } from '@/lib/api/customer';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, outletId, orderType, clearCart } = useCartStore();
+  const params = useParams();
+  const outletId = params?.outletId as string;
+  const { items, orderType, clearCart } = useCartStore();
   console.log("🚀 ~ CheckoutPage ~ orderType:", orderType)
   const [selectedMethod, setSelectedMethod] = useState<'UPI'|'CARD'|'NB'|'CASH'>('UPI');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -33,15 +35,15 @@ export default function CheckoutPage() {
 
   // Watch status changes
   useEffect(() => {
-    if (payStatus?.orderStatus === 'PAID') {
+        if (payStatus?.orderStatus === 'PAID') {
         setIsSuccess(true);
         setPaymentLink(null);
         setTimeout(() => {
             clearCart();
-            router.replace(`/user/orders/${createdOrderId}`);
+            router.replace(`/user/${outletId}/orders/${createdOrderId}`);
         }, 2500);
     }
-  }, [payStatus, createdOrderId, clearCart, router]);
+  }, [payStatus, createdOrderId, clearCart, router, outletId]);
 
   const orderMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -71,7 +73,7 @@ export default function CheckoutPage() {
         setIsSuccess(true);
         setTimeout(() => {
             clearCart();
-            router.replace(`/user/orders/${order.id}`);
+            router.replace(`/user/${outletId}/orders/${order.id}`);
         }, 2500);
       }
     },

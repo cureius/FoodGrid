@@ -5,12 +5,18 @@ import { Search, MapPin, ChevronDown } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
+import { useParams } from 'next/navigation';
+
 export default function UserHeader() {
+  const params = useParams();
+  const outletId = params?.outletId as string;
+  const homeLink = outletId ? `/user/${outletId}` : '/user/outlets';
+
   return (
     <header className="user-header">
       <div className="header-container">
         <div className="logo-section">
-          <Link href="/user">
+          <Link href={homeLink}>
             <Logo />
           </Link>
         </div>
