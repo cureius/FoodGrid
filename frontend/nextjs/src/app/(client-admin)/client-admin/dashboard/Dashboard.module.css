@@ -85,7 +85,7 @@
 }
 
 .statCard {
-  background: white;
+  background: var(--bg-surface);
   border-radius: var(--radius-card);
   padding: var(--spacing-lg);
   box-shadow: var(--shadow-card);
@@ -95,7 +95,7 @@
   min-height: 160px;
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(16, 24, 40, 0.06);
+  border: 1px solid var(--border-light);
   transition: var(--transition-fast);
 }
 
@@ -113,7 +113,7 @@
 
 .statLabel {
   font-size: 13px;
-  color: rgba(26, 28, 30, 0.7);
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -128,7 +128,7 @@
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: rgba(26, 28, 30, 0.6);
+  color: var(--text-tertiary);
 }
 
 .statIconWrapper {
@@ -178,14 +178,14 @@
 }
 
 .orderCard {
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border-radius: var(--radius-card);
   padding: var(--spacing-lg);
   box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  border: 1px solid rgba(16, 24, 40, 0.06);
+  border: 1px solid var(--border-light);
   transition: var(--transition-fast);
 }
 

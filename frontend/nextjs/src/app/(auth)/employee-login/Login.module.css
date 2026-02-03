@@ -30,7 +30,7 @@
   position: absolute;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(255, 171, 46, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--secondary-light) 0%, transparent 70%);
   top: -200px;
   right: -200px;
 }
@@ -102,7 +102,7 @@
   font-size: 24px;
   font-weight: 700;
   color: white;
-  box-shadow: 0 8px 16px rgba(255, 171, 46, 0.2);
+  box-shadow: 0 8px 16px var(--secondary-light);
 }
 
 .employeeName {
@@ -145,7 +145,7 @@
   font-size: 16px;
   font-weight: 700;
   margin-top: 40px;
-  box-shadow: 0 12px 24px rgba(255, 171, 46, 0.3);
+  box-shadow: 0 12px 24px var(--secondary-light);
   transition: var(--transition);
 }
 
@@ -166,8 +166,8 @@
   height: 80%;
   background: var(--bg-sidebar);
   border-radius: 40px;
-  border: 16px solid #1B1B33;
-  box-shadow: 0 50px 100px -20px rgba(0,0,0,0.25);
+  border: 16px solid var(--bg-app);
+  box-shadow: var(--shadow-xl);
   position: relative;
   overflow: hidden;
   padding: 40px;

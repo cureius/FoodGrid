@@ -6,7 +6,6 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8080";
  * Otherwise, prepends the API base URL and /uploads/ prefix.
  */
 export function getImageUrl(imagePath: string | null | undefined): string | null {
-  console.log("🚀 ~ getImageUrl ~ imagePath:", imagePath)
   if (!imagePath) return null;
   
   // If it's already an absolute URL, return as-is
@@ -1042,7 +1041,6 @@ export function getOrder(orderId: string) {
 }
 
 export function createOrder(input: OrderCreateInput, outletId?: string) {
-  console.log("🚀 ~ createOrder ~ input:", input)
   return http<OrderResponse>(`/api/v1/pos/orders?outletId=${encodeURIComponent(outletId || '')}`, {
     method: "POST",
     headers: { ...clientAdminAuthHeader() },

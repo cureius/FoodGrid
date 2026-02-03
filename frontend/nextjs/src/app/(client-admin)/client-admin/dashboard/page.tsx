@@ -79,6 +79,7 @@ const Title = styled.h1`
   font-size: clamp(18px, 1.7vw, 28px);
   font-weight: 800;
   margin: 0;
+  color: var(--text-primary);
 `;
 
 const SubTitle = styled.p`
@@ -116,7 +117,7 @@ const StatGrid = styled.div`
 `;
 
 const StatCard = styled.div`
-  background: white;
+  background: var(--bg-surface);
   padding: 14px;
   border-radius: var(--radius-card);
   display: flex;
@@ -136,6 +137,7 @@ const CardValue = styled.h2`
   font-size: clamp(22px, 2.1vw, 30px);
   font-weight: 800;
   margin: 0;
+  color: var(--text-primary);
 `;
 
 const IconBox = styled.div`
@@ -180,7 +182,7 @@ const TwoColSections = styled.div`
 `;
 
 const Section = styled.div`
-  background: white;
+  background: var(--bg-surface);
   border-radius: var(--radius-card);
   padding: 24px;
   border: 1px solid ${COLORS.border};
@@ -199,6 +201,7 @@ const SectionTitle = styled.h3`
   font-size: clamp(14px, 1.2vw, 18px);
   font-weight: 800;
   margin: 0 0 20px;
+  color: var(--text-primary);
 `;
 
 const SectionFooter = styled.div`
@@ -274,11 +277,12 @@ const ScrollBody = styled.div`
 `;
 
 const Select = styled.select`
-  background: none;
+  background: var(--component-bg);
   border: 1px solid ${COLORS.border};
   padding: 6px 10px;
   border-radius: var(--radius-button);
   font-size: 12px;
+  color: var(--text-primary);
 `;
 
 export default function Dashboard() {
@@ -418,16 +422,16 @@ export default function Dashboard() {
                       { name: "Veggie Supreme Pizza", time: "04:30 PM" },
                     ].map((item, i) => (
                       <div key={i} style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
-                        <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "#f0f0f0", overflow: "hidden", flex: "0 0 auto" }}>
+                        <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "var(--bg-tertiary)", overflow: "hidden", flex: "0 0 auto" }}>
                           <img
                             alt={item.name}
-                            src={`https://source.unsplash.com/100x100/?food,${i}`}
+                            src={`https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&h=100&fit=crop`}
                             style={{ width: "100%", height: "100%", objectFit: "cover" }}
                           />
                         </div>
                         <div style={{ minWidth: 0 }}>
-                          <div style={{ fontWeight: 700, fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
-                          <div style={{ color: COLORS.primary, fontSize: "12px", fontWeight: 600 }}>Available: {item.time}</div>
+                          <div style={{ fontWeight: 700, fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-primary)" }}>{item.name}</div>
+                          <div style={{ color: "var(--primary)", fontSize: "12px", fontWeight: 600 }}>Available: {item.time}</div>
                         </div>
                       </div>
                     ))}

@@ -1,0 +1,19 @@
+.switcher {
+  background: var(--component-bg);
+  border: 1px solid var(--component-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.switcher:hover {
+  background-color: var(--component-hover);
+  border-color: var(--component-border-hover);
+}

@@ -278,7 +278,7 @@ export default function HistoryPage() {
   };
 
   return (
-    <div style={{ padding: "24px 32px", display: "flex", flexDirection: "column", gap: 24, height: "100%", minHeight: 0 }}>
+    <div style={{ padding: "24px 32px", display: "flex", flexDirection: "column", gap: 24, height: "100%", minHeight: 0, background: "var(--bg-app)", color: "var(--text-primary)" }}>
       <div style={{ marginBottom: 8 }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, marginBottom: 4 }}>
           <div>
@@ -286,20 +286,18 @@ export default function HistoryPage() {
               fontSize: 32,
               fontWeight: 800,
               margin: 0,
-              background: "linear-gradient(135deg, #1e293b 0%, #475569 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
+              color: "var(--text-primary)",
               letterSpacing: "-0.5px",
             }}>
               Order History
             </h1>
-            <p style={{ margin: "8px 0 0", color: "#64748b", fontSize: 15 }}>
+            <p style={{ margin: "8px 0 0", color: "var(--text-secondary)", fontSize: 15 }}>
               View and print invoices for completed orders
             </p>
           </div>
           <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
             <div style={{ position: "relative", flex: 1, minWidth: 280, maxWidth: 500 }}>
-              <Search size={18} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#94a3b8", pointerEvents: "none" }} />
+              <Search size={18} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -308,21 +306,22 @@ export default function HistoryPage() {
                   width: "100%",
                   padding: "14px 16px 14px 44px",
                   borderRadius: 12,
-                  border: "1px solid #e2e8f0",
-                  background: "#f8fafc",
+                  border: "1px solid var(--component-border)",
+                  background: "var(--component-bg)",
+                  color: "var(--text-primary)",
                   fontSize: 14,
                   outline: "none",
                   boxSizing: "border-box",
                   transition: "all 0.2s ease",
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "#8b5cf6";
-                  e.currentTarget.style.background = "white";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
+                  e.currentTarget.style.borderColor = "var(--primary)";
+                  e.currentTarget.style.background = "var(--bg-surface)";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px var(--primary-light)";
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "#e2e8f0";
-                  e.currentTarget.style.background = "#f8fafc";
+                  e.currentTarget.style.borderColor = "var(--component-border)";
+                  e.currentTarget.style.background = "var(--component-bg)";
                   e.currentTarget.style.boxShadow = "none";
                 }}
               />
@@ -334,8 +333,8 @@ export default function HistoryPage() {
       {loading && (
         <div style={{ display: "flex", justifyContent: "center", padding: "60px" }}>
           <div style={{ textAlign: "center" }}>
-            <Loader2 size={40} className="animate-spin" style={{ color: "#8b5cf6", margin: "0 auto 16px" }} />
-            <p style={{ color: "#64748b", fontSize: 14 }}>Loading order history...</p>
+            <Loader2 size={40} className="animate-spin" style={{ color: "var(--primary)", margin: "0 auto 16px" }} />
+            <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Loading order history...</p>
           </div>
         </div>
       )}
@@ -346,7 +345,7 @@ export default function HistoryPage() {
           borderRadius: 12,
           background: "rgba(239, 68, 68, 0.08)",
           border: "1px solid rgba(239, 68, 68, 0.2)",
-          color: "#dc2626",
+          color: "var(--danger)",
           marginBottom: 24,
           display: "flex",
           alignItems: "center",
@@ -368,7 +367,7 @@ export default function HistoryPage() {
             minHeight: 0,
             overflow: "hidden",
           }}>
-            <div style={{ padding: 20, borderBottom: "1px solid #f1f5f9" }}>
+            <div style={{ padding: 20, borderBottom: "1px solid var(--bg-tertiary)" }}>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 {(["All", "DINE_IN", "TAKEAWAY", "DELIVERY", "CANCELLED"] as HistoryFilter[]).map((f) => {
                   const isActive = filter === f;
@@ -383,11 +382,11 @@ export default function HistoryPage() {
                   };
                   const getColor = (val: HistoryFilter) => {
                     switch (val) {
-                      case "DINE_IN": return { bg: "rgba(59, 130, 246, 0.1)", color: "#3b82f6", border: "rgba(59, 130, 246, 0.2)" };
-                      case "TAKEAWAY": return { bg: "rgba(139, 92, 246, 0.1)", color: "#8b5cf6", border: "rgba(139, 92, 246, 0.2)" };
-                      case "DELIVERY": return { bg: "rgba(16, 185, 129, 0.1)", color: "#10b981", border: "rgba(16, 185, 129, 0.2)" };
-                      case "CANCELLED": return { bg: "rgba(239, 68, 68, 0.1)", color: "#ef4444", border: "rgba(239, 68, 68, 0.2)" };
-                      default: return { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b", border: "rgba(100, 116, 139, 0.2)" };
+                      case "DINE_IN": return { bg: "rgba(59, 130, 246, 0.1)", color: "var(--info)", border: "rgba(59, 130, 246, 0.2)" };
+                      case "TAKEAWAY": return { bg: "rgba(139, 92, 246, 0.1)", color: "var(--primary)", border: "rgba(139, 92, 246, 0.2)" };
+                      case "DELIVERY": return { bg: "rgba(16, 185, 129, 0.1)", color: "var(--success)", border: "rgba(16, 185, 129, 0.2)" };
+                      case "CANCELLED": return { bg: "rgba(239, 68, 68, 0.1)", color: "var(--danger)", border: "rgba(239, 68, 68, 0.2)" };
+                      default: return { bg: "rgba(100, 116, 139, 0.1)", color: "var(--text-secondary)", border: "rgba(100, 116, 139, 0.2)" };
                     }
                   };
                   const colors = getColor(f);
@@ -404,7 +403,7 @@ export default function HistoryPage() {
                         borderRadius: 12,
                         border: `1px solid ${isActive ? colors.border : "rgba(0,0,0,0.08)"}`,
                         background: isActive ? colors.bg : "white",
-                        color: isActive ? colors.color : "#64748b",
+                        color: isActive ? colors.color : "var(--text-secondary)",
                         fontSize: 13,
                         fontWeight: 700,
                         cursor: "pointer",
@@ -413,7 +412,7 @@ export default function HistoryPage() {
                       }}
                       onMouseEnter={(e) => {
                         if (!isActive) {
-                          e.currentTarget.style.background = "#f8fafc";
+                          e.currentTarget.style.background = "var(--bg-secondary)";
                           e.currentTarget.style.transform = "translateY(-1px)";
                         }
                       }}
@@ -435,12 +434,12 @@ export default function HistoryPage() {
               flex: 1,
               overflowY: "auto",
               padding: 16,
-              background: "#f8fafc",
+              background: "var(--bg-app)",
             }}>
               {filtered.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "60px 20px", color: "#64748b" }}>
-                  <HistoryIcon size={48} style={{ color: "#cbd5e1", margin: "0 auto 16px" }} />
-                  <h3 style={{ fontSize: 18, fontWeight: 600, margin: "0 0 8px", color: "#1e293b" }}>No orders found</h3>
+                <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--text-secondary)" }}>
+                  <HistoryIcon size={48} style={{ color: "var(--text-tertiary)", margin: "0 auto 16px" }} />
+                  <h3 style={{ fontSize: 18, fontWeight: 600, margin: "0 0 8px", color: "var(--text-primary)" }}>No orders found</h3>
                   <p style={{ margin: 0, fontSize: 14 }}>
                     {query || filter !== "All" ? "Try adjusting your search or filter" : "No completed orders yet"}
                   </p>
@@ -456,52 +455,51 @@ export default function HistoryPage() {
                         onClick={() => setSelectedId(o.id)}
                         style={{
                           borderRadius: 16,
-                          border: `2px solid ${isSelected ? "#8b5cf6" : "#e2e8f0"}`,
-                          background: isSelected ? "rgba(139, 92, 246, 0.05)" : "white",
+                          border: `2px solid ${isSelected ? "var(--primary)" : "var(--component-border)"}`,
+                          background: isSelected ? "var(--primary-light)" : "var(--bg-surface)",
                           padding: 16,
                           textAlign: "left",
                           cursor: "pointer",
                           transition: "all 0.2s ease",
-                          boxShadow: isSelected ? "0 4px 12px rgba(139, 92, 246, 0.15)" : "0 1px 3px rgba(0,0,0,0.08)",
+                          boxShadow: isSelected ? "var(--shadow-md)" : "var(--shadow-sm)",
                         }}
                         onMouseEnter={(e) => {
                           if (!isSelected) {
-                            e.currentTarget.style.borderColor = "#cbd5e1";
+                            e.currentTarget.style.borderColor = "var(--component-border-hover)";
                             e.currentTarget.style.transform = "translateY(-2px)";
-                            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
+                            e.currentTarget.style.boxShadow = "var(--shadow-md)";
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!isSelected) {
-                            e.currentTarget.style.borderColor = "#e2e8f0";
+                            e.currentTarget.style.borderColor = "var(--component-border)";
                             e.currentTarget.style.transform = "translateY(0)";
-                            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08)";
+                            e.currentTarget.style.boxShadow = "var(--shadow-sm)";
                           }
-                        }}
-                      >
+                        }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: "#1e293b" }}>
-                            Order# <span style={{ color: "#8b5cf6" }}>{o.id.slice(-4).toUpperCase()}</span>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>
+                            Order# <span style={{ color: "var(--primary)" }}>{o.id.slice(-4).toUpperCase()}</span>
                           </div>
-                          <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>
+                          <div style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 600 }}>
                             {formatOrderTime(o.createdAt || null)}
                           </div>
                         </div>
 
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
                           <div>
-                            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 600 }}>Order Type</div>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: "#1e293b" }}>{mapOrderType(o.orderType)}</div>
+                            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginBottom: 4, fontWeight: 600 }}>Order Type</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{mapOrderType(o.orderType)}</div>
                           </div>
                           {o.tableId && (
                             <div>
-                              <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 600 }}>Table</div>
-                              <div style={{ fontSize: 13, fontWeight: 700, color: "#1e293b" }}>{o.tableId}</div>
+                              <div style={{ fontSize: 11, color: "var(--text-secondary)", marginBottom: 4, fontWeight: 600 }}>Table</div>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{o.tableId}</div>
                             </div>
                           )}
                           <div style={{ gridColumn: "1 / -1" }}>
-                            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 600 }}>Total</div>
-                            <div style={{ fontSize: 18, fontWeight: 800, color: "#8b5cf6" }}>{formatMoney(Number(o.grandTotal))}</div>
+                            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginBottom: 4, fontWeight: 600 }}>Total</div>
+                            <div style={{ fontSize: 18, fontWeight: 800, color: "var(--primary)" }}>{formatMoney(Number(o.grandTotal))}</div>
                           </div>
                         </div>
                       </button>
@@ -531,57 +529,57 @@ export default function HistoryPage() {
                 justifyContent: "center",
                 padding: 40,
                 textAlign: "center",
-                color: "#64748b",
+                color: "var(--text-secondary)",
               }}>
-                <Loader2 size={40} className="animate-spin" style={{ color: "#8b5cf6", marginBottom: 16 }} />
-                <div style={{ fontSize: 16, fontWeight: 600, color: "#1e293b" }}>Loading Bill...</div>
+                <Loader2 size={40} className="animate-spin" style={{ color: "var(--primary)", marginBottom: 16 }} />
+                <div style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>Loading Bill...</div>
               </div>
             ) : selectedOrder ? (
               <>
                 <div style={{
                   padding: "24px 28px",
-                  borderBottom: "1px solid #f1f5f9",
-                  background: "linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)",
+                  borderBottom: "1px solid var(--border-light)",
+                  background: "var(--bg-tertiary)",
                 }}>
-                  <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 4, color: "#1e293b" }}>Bill Information</div>
-                  <div style={{ fontSize: 13, color: "#64748b" }}>Invoice Details</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 4, color: "var(--text-primary)" }}>Bill Information</div>
+                  <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>Invoice Details</div>
                 </div>
 
-                <div style={{ padding: "20px 24px", borderBottom: "1px solid #f1f5f9" }}>
+                <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--border-light)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
                     <div style={{
                       width: 56,
                       height: 56,
                       borderRadius: 16,
-                      background: selectedOrder.orderType === "DINE_IN" ? "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)" : "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                      background: "var(--primary)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       color: "white",
                       fontWeight: 700,
                       fontSize: 18,
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      boxShadow: "var(--shadow-md)",
                     }}>
                       {selectedOrder.tableId ? selectedOrder.tableId.slice(0, 2) : "TA"}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, color: "#1e293b" }}>
+                      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, color: "var(--text-primary)" }}>
                         Order #{selectedOrder.id.slice(-4).toUpperCase()}
                       </div>
-                      <div style={{ fontSize: 13, color: "#64748b" }}>
+                      <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
                         {mapOrderType(selectedOrder.orderType)}
                         {selectedOrder.tableId && ` • Table ${selectedOrder.tableId}`}
                       </div>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>{formatOrderDateShort(selectedOrder.createdAt || null)}</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#1e293b" }}>{formatOrderTimeOnly(selectedOrder.createdAt || null)}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>{formatOrderDateShort(selectedOrder.createdAt || null)}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{formatOrderTimeOnly(selectedOrder.createdAt || null)}</div>
                     </div>
                   </div>
                 </div>
 
                 <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: "#64748b" }}>Order Details</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: "var(--text-secondary)" }}>Order Details</div>
 
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     {selectedOrder.items.filter(item => item.status !== "CANCELLED").map((item) => (
@@ -593,16 +591,16 @@ export default function HistoryPage() {
                           justifyContent: "space-between",
                           gap: 16,
                           paddingBottom: 12,
-                          borderBottom: "1px solid #f1f5f9",
+                          borderBottom: "1px solid var(--border-light)",
                         }}
                       >
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, color: "#1e293b" }}>{item.itemName}</div>
-                          <div style={{ fontSize: 12, color: "#64748b" }}>{formatMoney(Number(item.unitPrice))} per item</div>
+                          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, color: "var(--text-primary)" }}>{item.itemName}</div>
+                          <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{formatMoney(Number(item.unitPrice))} per item</div>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>x {Number(item.qty)}</div>
-                          <div style={{ fontSize: 15, fontWeight: 800, color: "#1e293b" }}>{formatMoney(Number(item.lineTotal))}</div>
+                          <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>x {Number(item.qty)}</div>
+                          <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>{formatMoney(Number(item.lineTotal))}</div>
                         </div>
                       </div>
                     ))}
@@ -611,35 +609,35 @@ export default function HistoryPage() {
 
                 <div style={{
                   padding: "20px 24px",
-                  borderTop: "1px solid #f1f5f9",
-                  background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+                  borderTop: "1px solid var(--border-light)",
+                  background: "var(--bg-tertiary)",
                 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, fontSize: 14, fontWeight: 600, color: "#64748b" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, fontSize: 14, fontWeight: 600, color: "var(--text-secondary)" }}>
                     <span>Sub Total</span>
                     <span>{formatMoney(selectedSubTotal)}</span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, fontSize: 14, fontWeight: 600, color: "#64748b" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, fontSize: 14, fontWeight: 600, color: "var(--text-secondary)" }}>
                     <span>Tax</span>
                     <span>{formatMoney(selectedTax)}</span>
                   </div>
                   {Number(selectedOrder.discountTotal) > 0 && (
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, fontSize: 14, fontWeight: 600, color: "#64748b" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, fontSize: 14, fontWeight: 600, color: "var(--text-secondary)" }}>
                       <span>Discount</span>
                       <span>-{formatMoney(Number(selectedOrder.discountTotal))}</span>
                     </div>
                   )}
                   <div style={{
                     height: 1,
-                    background: "#e2e8f0",
+                    background: "var(--component-border)",
                     margin: "12px 0",
                   }} />
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 20, fontWeight: 800, color: "#1e293b" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>
                     <span>Total Payment</span>
-                    <span style={{ fontSize: 24, color: "#8b5cf6" }}>{formatMoney(selectedTotal)}</span>
+                    <span style={{ fontSize: 24, color: "var(--primary)" }}>{formatMoney(selectedTotal)}</span>
                   </div>
                 </div>
 
-                <div style={{ padding: "20px 24px", borderTop: "1px solid #f1f5f9" }}>
+                <div style={{ padding: "20px 24px", borderTop: "1px solid var(--bg-tertiary)" }}>
                   <button
                     type="button"
                     onClick={handlePrint}
@@ -647,7 +645,7 @@ export default function HistoryPage() {
                       width: "100%",
                       height: 52,
                       borderRadius: 14,
-                      background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                      background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                       color: "white",
                       fontWeight: 700,
                       fontSize: 15,
@@ -739,23 +737,23 @@ export default function HistoryPage() {
                 justifyContent: "center",
                 padding: 40,
                 textAlign: "center",
-                color: "#64748b",
+                color: "var(--text-secondary)",
               }}>
                 <div style={{
                   width: 64,
                   height: 64,
                   borderRadius: 16,
-                  border: "1px solid #e2e8f0",
+                  border: "1px solid var(--component-border)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   marginBottom: 16,
-                  background: "#f8fafc",
+                  background: "var(--bg-secondary)",
                 }}>
-                  <ReceiptText size={32} style={{ color: "#cbd5e1" }} />
+                  <ReceiptText size={32} style={{ color: "var(--component-border-hover)" }} />
                 </div>
-                <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 8, color: "#1e293b" }}>Select Order</div>
-                <div style={{ fontSize: 14, color: "#64748b" }}>
+                <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 8, color: "var(--text-primary)" }}>Select Order</div>
+                <div style={{ fontSize: 14, color: "var(--text-secondary)" }}>
                   Select an order from the left to view and print the invoice
                 </div>
               </div>

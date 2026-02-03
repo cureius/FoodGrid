@@ -1,5 +1,6 @@
 package com.foodgrid.pos.service;
 
+import com.foodgrid.auth.model.Outlet;
 import com.foodgrid.auth.model.ShiftSession;
 import com.foodgrid.auth.repo.ShiftSessionRepository;
 import com.foodgrid.auth.repo.OutletRepository;
@@ -11,8 +12,6 @@ import com.foodgrid.common.util.Ids;
 import com.foodgrid.pos.dto.*;
 import com.foodgrid.pos.model.*;
 import com.foodgrid.pos.repo.*;
-import com.foodgrid.pos.dto.StockMovementCreateRequest;
-import com.foodgrid.pos.service.IngredientService;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -404,7 +403,19 @@ public class OrderPosService {
 
   public List<OrderResponse> listRecent(final Integer limit, final String outletIdParam) {
     final String outletId = (outletIdParam != null && !outletIdParam.isBlank()) ? outletIdParam : claimRequired("outletId");
-    guards.requireOutletInTenant(outletId);
+    final Outlet outlet = guards.requireOutletInTenant(outletId);
+
+    // Auto-migration: If outlet has no clientId but user accessing it does,
+    // and this user is the owner, or part of the same client admin group.
+    final String cid = claim("clientId");
+    if (outlet.clientId == null && cid != null && !cid.isBlank()) {
+        final String sub = claim("sub");
+        if (sub != null && sub.equals(outlet.ownerId)) {
+            outlet.clientId = cid;
+            outletRepository.persist(outlet);
+            audit.record("OUTLET_CLIENT_MIGRATED", outletId, "Outlet", outletId, "Migrated to clientId: " + cid);
+        }
+    }
 
     final int lim = (limit == null || limit <= 0 || limit > 200) ? 50 : limit;
 
@@ -415,7 +426,18 @@ public class OrderPosService {
 
   public List<OrderResponse> listByRange(final String outletIdParam, final Instant start, final Instant end) {
     final String outletId = (outletIdParam != null && !outletIdParam.isBlank()) ? outletIdParam : claimRequired("outletId");
-    guards.requireOutletInTenant(outletId);
+    final Outlet outlet = guards.requireOutletInTenant(outletId);
+
+    // Auto-migration: If outlet has no clientId but user accessing it does,
+    // and this user is the owner.
+    final String cid = claim("clientId");
+    if (outlet.clientId == null && cid != null && !cid.isBlank()) {
+        final String sub = claim("sub");
+        if (sub != null && sub.equals(outlet.ownerId)) {
+            outlet.clientId = cid;
+            outletRepository.persist(outlet);
+        }
+    }
 
     return orderRepository.listByOutletAndDateRange(outletId, start, end).stream()
       .map(o -> toResponse(o, orderItemRepository.listByOrder(o.id).stream().map(OrderPosService::toResponse).toList()))

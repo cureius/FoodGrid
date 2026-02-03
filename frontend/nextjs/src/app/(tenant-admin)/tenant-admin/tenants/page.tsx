@@ -157,7 +157,6 @@ export default function TenantsPage() {
       setError(null);
       setSuccess(null);
       const result = await createTenant(form);
-      console.log("🚀 ~ onCreate ~ result:", result)
       setForm({ name: "", contactEmail: "", status: "ACTIVE", adminEmail: "", adminPassword: "", adminDisplayName: "" });
       setShowForm(false);
 
@@ -240,7 +239,6 @@ export default function TenantsPage() {
 
     //get client_payment_configs for the tenant
     const clientPaymentConfigs = await listPaymentConfigs(tenant.id, false);
-    console.log("🚀 ~ startEditPaymentGateway ~ clientPaymentConfigs:", clientPaymentConfigs)
     if (clientPaymentConfigs.length === 0 || clientPaymentConfigs.length === undefined) {
       setPaymentGatewayForm(defaultPaymentGateway);
     } else {
@@ -1165,7 +1163,7 @@ export default function TenantsPage() {
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  <AlertCircle size={16} color="#3b82f6" />
+                  <AlertCircle size={16} color="var(--info)" />
                   <span>To update credentials, delete the current configuration and create a new one. This ensures secure handling of sensitive API keys.</span>
                 </div>
               </div>
@@ -1200,7 +1198,7 @@ export default function TenantsPage() {
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  <AlertCircle size={16} color="#3b82f6" />
+                  <AlertCircle size={16} color="var(--info)" />
                   <span>Configure your payment gateway credentials below. Each tenant can have one payment configuration at a time.</span>
                 </div>
 

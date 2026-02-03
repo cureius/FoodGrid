@@ -39,8 +39,6 @@ export default function DishCard({ item }: DishCardProps) {
     }
     setIsModalOpen(true);
   };
-
-            console.log("🚀 ~ DishCard ~ item:", item)
   return (
     <>
       <motion.div 

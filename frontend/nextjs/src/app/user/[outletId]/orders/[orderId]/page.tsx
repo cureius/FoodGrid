@@ -8,7 +8,9 @@ import { motion } from 'framer-motion';
 
 export default function OrderDetailsPage() {
   const router = useRouter();
-  const { orderId } = useParams();
+  const params = useParams();
+  const orderId = params?.orderId as string;
+  const outletId = params?.outletId as string;
 
   const { data: order, isLoading } = useQuery({
     queryKey: ['order', orderId],
@@ -69,7 +71,7 @@ export default function OrderDetailsPage() {
   return (
     <div className="order-details-page">
       <header className="track-header">
-        <button onClick={() => router.push('/user/orders')} className="back-btn">
+        <button onClick={() => router.push(`/user/${outletId}/orders`)} className="back-btn">
           <ChevronLeft size={24} strokeWidth={3} />
         </button>
         <div className="header-info">

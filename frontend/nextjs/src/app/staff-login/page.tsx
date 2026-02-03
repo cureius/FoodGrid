@@ -68,15 +68,11 @@ export default function StaffLoginPage() {
     // Move to PIN step
     setError(null);
     setSuccess(null);
-    console.log("🚀 ~ handleEmailSubmit ~ email:", email)
     setStep("pin");
   };
 
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("🚀 ~ handlePinSubmit ~ deviceId:", deviceId)
-    console.log("🚀 ~ handlePinSubmit ~ email:", email)
-    console.log("🚀 ~ handlePinSubmit ~ pin:", pin)
     if (!pin || pin.length !== 6 || !deviceId || !email.trim()) {
       setError("Please enter a valid 6-digit PIN");
       return;
@@ -147,7 +143,7 @@ export default function StaffLoginPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
         padding: "20px",
       }}
     >
@@ -167,7 +163,7 @@ export default function StaffLoginPage() {
               width: 64,
               height: 64,
               borderRadius: 16,
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -182,12 +178,12 @@ export default function StaffLoginPage() {
               fontSize: 28,
               fontWeight: 800,
               margin: "0 0 8px",
-              color: "#1e293b",
+              color: "var(--text-primary)",
             }}
           >
             Staff Login
           </h1>
-          <p style={{ fontSize: 14, color: "#64748b", margin: 0 }}>
+          <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: 0 }}>
             {step === "email" ? "Enter your email to continue" : "Enter your 6-digit PIN"}
           </p>
         </div>
@@ -199,7 +195,7 @@ export default function StaffLoginPage() {
               borderRadius: 12,
               background: "rgba(239, 68, 68, 0.1)",
               border: "1px solid rgba(239, 68, 68, 0.2)",
-              color: "#dc2626",
+              color: "var(--danger)",
               marginBottom: 20,
               display: "flex",
               alignItems: "center",
@@ -219,7 +215,7 @@ export default function StaffLoginPage() {
               borderRadius: 12,
               background: "rgba(16, 185, 129, 0.1)",
               border: "1px solid rgba(16, 185, 129, 0.2)",
-              color: "#10b981",
+              color: "var(--success)",
               marginBottom: 20,
               display: "flex",
               alignItems: "center",
@@ -241,7 +237,7 @@ export default function StaffLoginPage() {
                   display: "block",
                   fontSize: 13,
                   fontWeight: 600,
-                  color: "#64748b",
+                  color: "var(--text-secondary)",
                   marginBottom: 8,
                 }}
               >
@@ -255,7 +251,7 @@ export default function StaffLoginPage() {
                     left: 16,
                     top: "50%",
                     transform: "translateY(-50%)",
-                    color: "#94a3b8",
+                    color: "var(--text-tertiary)",
                     pointerEvents: "none",
                   }}
                 />
@@ -271,21 +267,21 @@ export default function StaffLoginPage() {
                     width: "100%",
                     padding: "14px 16px 14px 44px",
                     borderRadius: 12,
-                    border: "1px solid #e2e8f0",
-                    background: "#f8fafc",
+                    border: "1px solid var(--component-border)",
+                    background: "var(--bg-secondary)",
                     fontSize: 14,
                     outline: "none",
                     boxSizing: "border-box",
                     transition: "all 0.2s ease",
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = "#667eea";
+                    e.currentTarget.style.borderColor = "var(--primary)";
                     e.currentTarget.style.background = "white";
                     e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "#e2e8f0";
-                    e.currentTarget.style.background = "#f8fafc";
+                    e.currentTarget.style.borderColor = "var(--component-border)";
+                    e.currentTarget.style.background = "var(--bg-secondary)";
                     e.currentTarget.style.boxShadow = "none";
                   }}
                 />
@@ -301,9 +297,9 @@ export default function StaffLoginPage() {
                 borderRadius: 12,
                 background:
                   loading || !email.trim()
-                    ? "#e2e8f0"
-                    : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                color: loading || !email.trim() ? "#94a3b8" : "white",
+                    ? "var(--component-border)"
+                    : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
+                color: loading || !email.trim() ? "var(--text-tertiary)" : "white",
                 fontWeight: 700,
                 fontSize: 15,
                 border: "none",
@@ -352,7 +348,7 @@ export default function StaffLoginPage() {
                   display: "block",
                   fontSize: 13,
                   fontWeight: 600,
-                  color: "#64748b",
+                  color: "var(--text-secondary)",
                   marginBottom: 8,
                 }}
               >
@@ -366,7 +362,7 @@ export default function StaffLoginPage() {
                     left: 16,
                     top: "50%",
                     transform: "translateY(-50%)",
-                    color: "#94a3b8",
+                    color: "var(--text-tertiary)",
                     pointerEvents: "none",
                   }}
                 />
@@ -386,8 +382,8 @@ export default function StaffLoginPage() {
                     width: "100%",
                     padding: "14px 16px 14px 44px",
                     borderRadius: 12,
-                    border: "1px solid #e2e8f0",
-                    background: "#f8fafc",
+                    border: "1px solid var(--component-border)",
+                    background: "var(--bg-secondary)",
                     fontSize: 18,
                     letterSpacing: "8px",
                     textAlign: "center",
@@ -397,13 +393,13 @@ export default function StaffLoginPage() {
                     transition: "all 0.2s ease",
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = "#667eea";
+                    e.currentTarget.style.borderColor = "var(--primary)";
                     e.currentTarget.style.background = "white";
                     e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "#e2e8f0";
-                    e.currentTarget.style.background = "#f8fafc";
+                    e.currentTarget.style.borderColor = "var(--component-border)";
+                    e.currentTarget.style.background = "var(--bg-secondary)";
                     e.currentTarget.style.boxShadow = "none";
                   }}
                 />
@@ -411,7 +407,7 @@ export default function StaffLoginPage() {
               <div
                 style={{
                   fontSize: 12,
-                  color: "#64748b",
+                  color: "var(--text-secondary)",
                   marginTop: 8,
                   textAlign: "center",
                 }}
@@ -429,9 +425,9 @@ export default function StaffLoginPage() {
                   flex: 1,
                   height: 52,
                   borderRadius: 12,
-                  border: "1px solid #e2e8f0",
+                  border: "1px solid var(--component-border)",
                   background: "white",
-                  color: "#64748b",
+                  color: "var(--text-secondary)",
                   fontWeight: 600,
                   fontSize: 14,
                   cursor: loading ? "not-allowed" : "pointer",
@@ -439,13 +435,13 @@ export default function StaffLoginPage() {
                 }}
                 onMouseEnter={(e) => {
                   if (!loading) {
-                    e.currentTarget.style.background = "#f8fafc";
-                    e.currentTarget.style.borderColor = "#cbd5e1";
+                    e.currentTarget.style.background = "var(--bg-secondary)";
+                    e.currentTarget.style.borderColor = "var(--component-border-hover)";
                   }
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = "white";
-                  e.currentTarget.style.borderColor = "#e2e8f0";
+                  e.currentTarget.style.borderColor = "var(--component-border)";
                 }}
               >
                 Back
@@ -459,9 +455,9 @@ export default function StaffLoginPage() {
                   borderRadius: 12,
                   background:
                     loading || pin.length !== 6
-                      ? "#e2e8f0"
-                      : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  color: loading || pin.length !== 6 ? "#94a3b8" : "white",
+                      ? "var(--component-border)"
+                      : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
+                  color: loading || pin.length !== 6 ? "var(--text-tertiary)" : "white",
                   fontWeight: 700,
                   fontSize: 15,
                   border: "none",
@@ -508,11 +504,11 @@ export default function StaffLoginPage() {
           style={{
             marginTop: 24,
             paddingTop: 24,
-            borderTop: "1px solid #f1f5f9",
+            borderTop: "1px solid var(--bg-tertiary)",
             textAlign: "center",
           }}
         >
-          <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>
+          <p style={{ fontSize: 12, color: "var(--text-tertiary)", margin: 0 }}>
             Device ID: <code style={{ fontSize: 11 }}>{deviceId.slice(0, 20)}...</code>
           </p>
         </div>

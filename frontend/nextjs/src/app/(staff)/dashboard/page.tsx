@@ -72,13 +72,13 @@ function mapOrderType(orderType: string): "Dine In" | "Take Away" | "Delivery" {
 function getOrderTypeColor(orderType: string) {
   switch (orderType) {
     case "DINE_IN":
-      return { bg: "rgba(59, 130, 246, 0.1)", color: "#3b82f6", border: "rgba(59, 130, 246, 0.2)" };
+      return { bg: "rgba(59, 130, 246, 0.1)", color: "var(--info)", border: "rgba(59, 130, 246, 0.2)" };
     case "TAKEAWAY":
-      return { bg: "rgba(139, 92, 246, 0.1)", color: "#8b5cf6", border: "rgba(139, 92, 246, 0.2)" };
+      return { bg: "rgba(139, 92, 246, 0.1)", color: "var(--primary)", border: "rgba(139, 92, 246, 0.2)" };
     case "DELIVERY":
-      return { bg: "rgba(16, 185, 129, 0.1)", color: "#10b981", border: "rgba(16, 185, 129, 0.2)" };
+      return { bg: "rgba(16, 185, 129, 0.1)", color: "var(--success)", border: "rgba(16, 185, 129, 0.2)" };
     default:
-      return { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b", border: "rgba(100, 116, 139, 0.2)" };
+      return { bg: "rgba(100, 116, 139, 0.1)", color: "var(--text-secondary)", border: "rgba(100, 116, 139, 0.2)" };
   }
 }
 
@@ -86,15 +86,15 @@ function getStatusColor(status: string) {
   switch (status) {
     case "OPEN":
     case "KOT_SENT":
-      return { bg: "rgba(245, 158, 11, 0.1)", color: "#f59e0b", border: "rgba(245, 158, 11, 0.2)" };
+      return { bg: "rgba(245, 158, 11, 0.1)", color: "var(--warning)", border: "rgba(245, 158, 11, 0.2)" };
     case "SERVED":
-      return { bg: "rgba(59, 130, 246, 0.1)", color: "#3b82f6", border: "rgba(59, 130, 246, 0.2)" };
+      return { bg: "rgba(59, 130, 246, 0.1)", color: "var(--info)", border: "rgba(59, 130, 246, 0.2)" };
     case "BILLED":
-      return { bg: "rgba(139, 92, 246, 0.1)", color: "#8b5cf6", border: "rgba(139, 92, 246, 0.2)" };
+      return { bg: "rgba(139, 92, 246, 0.1)", color: "var(--primary)", border: "rgba(139, 92, 246, 0.2)" };
     case "PAID":
-      return { bg: "rgba(16, 185, 129, 0.1)", color: "#10b981", border: "rgba(16, 185, 129, 0.2)" };
+      return { bg: "rgba(16, 185, 129, 0.1)", color: "var(--success)", border: "rgba(16, 185, 129, 0.2)" };
     default:
-      return { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b", border: "rgba(100, 116, 139, 0.2)" };
+      return { bg: "rgba(100, 116, 139, 0.1)", color: "var(--text-secondary)", border: "rgba(100, 116, 139, 0.2)" };
   }
 }
 
@@ -226,7 +226,7 @@ export default function DashboardPage() {
       label: "Today's Earnings",
       value: formatMoney(stats.totalEarnings),
       icon: DollarSign,
-      gradient: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+      gradient: "linear-gradient(135deg, var(--success) 0%, #059669 100%)",
       bgGradient: "linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%)",
       iconBg: "rgba(16, 185, 129, 0.15)",
       color: "#059669"
@@ -235,7 +235,7 @@ export default function DashboardPage() {
       label: "In Progress",
       value: stats.inProgress.toString(),
       icon: Timer,
-      gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+      gradient: "linear-gradient(135deg, var(--warning) 0%, #d97706 100%)",
       bgGradient: "linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%)",
       iconBg: "rgba(245, 158, 11, 0.15)",
       color: "#d97706"
@@ -244,16 +244,16 @@ export default function DashboardPage() {
       label: "Waiting Payment",
       value: stats.waitingPayment.toString(),
       icon: Receipt,
-      gradient: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+      gradient: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
       bgGradient: "linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.05) 100%)",
       iconBg: "rgba(139, 92, 246, 0.15)",
-      color: "#7c3aed"
+      color: "var(--primary)"
     },
     {
       label: "Completed",
       value: stats.completed.toString(),
       icon: CheckCircle,
-      gradient: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+      gradient: "linear-gradient(135deg, var(--info) 0%, #2563eb 100%)",
       bgGradient: "linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%)",
       iconBg: "rgba(59, 130, 246, 0.15)",
       color: "#2563eb"
@@ -267,18 +267,18 @@ export default function DashboardPage() {
         justifyContent: "center", 
         alignItems: "center", 
         minHeight: "calc(100vh - 72px)",
-        background: "#f8fafc"
+        background: "var(--bg-secondary)"
       }}>
         <div style={{ textAlign: "center" }}>
           <Loader2 
             size={48} 
             style={{ 
-              color: "#8b5cf6", 
+              color: "var(--primary)", 
               animation: "spin 1s linear infinite",
               margin: "0 auto 16px" 
             }} 
           />
-          <p style={{ color: "#64748b", fontSize: 15 }}>Loading dashboard...</p>
+          <p style={{ color: "var(--text-secondary)", fontSize: 15 }}>Loading dashboard...</p>
         </div>
         <style jsx global>{`
           @keyframes spin {
@@ -293,7 +293,7 @@ export default function DashboardPage() {
   return (
     <div style={{ 
       padding: "24px 32px", 
-      background: "#f8fafc",
+      background: "var(--bg-secondary)",
       minHeight: "calc(100vh - 72px)"
     }}>
       {/* Header Section */}
@@ -310,14 +310,14 @@ export default function DashboardPage() {
             fontSize: 32,
             fontWeight: 800,
             margin: 0,
-            background: "linear-gradient(135deg, #1e293b 0%, #475569 100%)",
+            background: "var(--text-primary)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             letterSpacing: "-0.5px",
           }}>
             {getGreeting()}, Staff! 👋
           </h1>
-          <p style={{ margin: "8px 0 0", color: "#64748b", fontSize: 15 }}>
+          <p style={{ margin: "8px 0 0", color: "var(--text-secondary)", fontSize: 15 }}>
             Give your best services for customers, happy working!
           </p>
         </div>
@@ -327,12 +327,12 @@ export default function DashboardPage() {
             <div style={{
               fontSize: 28,
               fontWeight: 800,
-              color: "#1e293b",
+              color: "var(--text-primary)",
               fontVariantNumeric: "tabular-nums",
             }}>
               {currentTime}
             </div>
-            <div style={{ fontSize: 13, color: "#64748b", fontWeight: 500 }}>
+            <div style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 500 }}>
               {getCurrentDate()}
             </div>
           </div>
@@ -343,7 +343,7 @@ export default function DashboardPage() {
                 height: 52,
                 padding: "0 28px",
                 borderRadius: 14,
-                background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                 color: "white",
                 fontSize: 15,
                 fontWeight: 700,
@@ -377,7 +377,7 @@ export default function DashboardPage() {
           borderRadius: 12,
           background: "rgba(239, 68, 68, 0.08)",
           border: "1px solid rgba(239, 68, 68, 0.2)",
-          color: "#dc2626",
+          color: "var(--danger)",
           marginBottom: 24,
           display: "flex",
           alignItems: "center",
@@ -421,10 +421,10 @@ export default function DashboardPage() {
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <div style={{ fontSize: 13, color: "#64748b", fontWeight: 600, marginBottom: 6 }}>
+                <div style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600, marginBottom: 6 }}>
                   {stat.label}
                 </div>
-                <div style={{ fontSize: 32, fontWeight: 800, color: "#1e293b" }}>
+                <div style={{ fontSize: 32, fontWeight: 800, color: "var(--text-primary)" }}>
                   {stat.value}
                 </div>
               </div>
@@ -462,7 +462,7 @@ export default function DashboardPage() {
           }}>
             <div style={{
               padding: "20px 24px",
-              borderBottom: "1px solid #f1f5f9",
+              borderBottom: "1px solid var(--bg-tertiary)",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
@@ -477,11 +477,11 @@ export default function DashboardPage() {
                   alignItems: "center",
                   justifyContent: "center",
                 }}>
-                  <Timer size={20} style={{ color: "#f59e0b" }} />
+                  <Timer size={20} style={{ color: "var(--warning)" }} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#1e293b" }}>In Progress</h3>
-                  <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>{inProgressOrders.length} active orders</p>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>In Progress</h3>
+                  <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>{inProgressOrders.length} active orders</p>
                 </div>
               </div>
               <Link href="/orders">
@@ -491,21 +491,21 @@ export default function DashboardPage() {
                   gap: 6,
                   padding: "8px 14px",
                   borderRadius: 10,
-                  border: "1px solid #e2e8f0",
+                  border: "1px solid var(--component-border)",
                   background: "white",
                   fontSize: 13,
                   fontWeight: 600,
-                  color: "#64748b",
+                  color: "var(--text-secondary)",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#f8fafc";
-                  e.currentTarget.style.borderColor = "#cbd5e1";
+                  e.currentTarget.style.background = "var(--bg-secondary)";
+                  e.currentTarget.style.borderColor = "var(--component-border-hover)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = "white";
-                  e.currentTarget.style.borderColor = "#e2e8f0";
+                  e.currentTarget.style.borderColor = "var(--component-border)";
                 }}
                 >
                   View All <ChevronRight size={16} />
@@ -518,10 +518,10 @@ export default function DashboardPage() {
                 <div style={{ 
                   textAlign: "center", 
                   padding: "40px 20px", 
-                  color: "#64748b" 
+                  color: "var(--text-secondary)" 
                 }}>
-                  <Coffee size={40} style={{ color: "#cbd5e1", marginBottom: 12 }} />
-                  <p style={{ margin: 0, fontWeight: 600, color: "#1e293b" }}>No orders in progress</p>
+                  <Coffee size={40} style={{ color: "var(--component-border-hover)", marginBottom: 12 }} />
+                  <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>No orders in progress</p>
                   <p style={{ margin: "8px 0 0", fontSize: 13 }}>New orders will appear here</p>
                 </div>
               ) : (
@@ -535,18 +535,18 @@ export default function DashboardPage() {
                         style={{
                           padding: 16,
                           borderRadius: 14,
-                          border: "1px solid #e2e8f0",
+                          border: "1px solid var(--component-border)",
                           background: "#fafafa",
                           transition: "all 0.2s ease",
                           cursor: "pointer",
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = "#cbd5e1";
+                          e.currentTarget.style.borderColor = "var(--component-border-hover)";
                           e.currentTarget.style.transform = "translateY(-2px)";
                           e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = "#e2e8f0";
+                          e.currentTarget.style.borderColor = "var(--component-border)";
                           e.currentTarget.style.transform = "translateY(0)";
                           e.currentTarget.style.boxShadow = "none";
                         }}
@@ -569,10 +569,10 @@ export default function DashboardPage() {
                               {order.tableId ? order.tableId.slice(0, 2).toUpperCase() : "TA"}
                             </div>
                             <div>
-                              <div style={{ fontWeight: 700, fontSize: 14, color: "#1e293b" }}>
+                              <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>
                                 Order #{order.id.slice(-4).toUpperCase()}
                               </div>
-                              <div style={{ fontSize: 12, color: "#64748b" }}>
+                              <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
                                 {mapOrderType(order.orderType)}
                                 {order.tableId && ` • Table ${order.tableId}`}
                               </div>
@@ -591,14 +591,14 @@ export default function DashboardPage() {
                           </div>
                         </div>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <div style={{ fontSize: 12, color: "#64748b" }}>
+                          <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
                             {formatOrderTime(order.createdAt)}
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                            <span style={{ fontSize: 13, color: "#64748b", fontWeight: 600 }}>
+                            <span style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>
                               {order.items?.length || 0} items
                             </span>
-                            <span style={{ fontSize: 16, fontWeight: 800, color: "#8b5cf6" }}>
+                            <span style={{ fontSize: 16, fontWeight: 800, color: "var(--primary)" }}>
                               {formatMoney(Number(order.grandTotal))}
                             </span>
                           </div>
@@ -621,7 +621,7 @@ export default function DashboardPage() {
           }}>
             <div style={{
               padding: "20px 24px",
-              borderBottom: "1px solid #f1f5f9",
+              borderBottom: "1px solid var(--bg-tertiary)",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
@@ -636,11 +636,11 @@ export default function DashboardPage() {
                   alignItems: "center",
                   justifyContent: "center",
                 }}>
-                  <Receipt size={20} style={{ color: "#8b5cf6" }} />
+                  <Receipt size={20} style={{ color: "var(--primary)" }} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#1e293b" }}>Waiting for Payment</h3>
-                  <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>{waitingPaymentOrders.length} orders pending</p>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>Waiting for Payment</h3>
+                  <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>{waitingPaymentOrders.length} orders pending</p>
                 </div>
               </div>
               <Link href="/orders">
@@ -650,21 +650,21 @@ export default function DashboardPage() {
                   gap: 6,
                   padding: "8px 14px",
                   borderRadius: 10,
-                  border: "1px solid #e2e8f0",
+                  border: "1px solid var(--component-border)",
                   background: "white",
                   fontSize: 13,
                   fontWeight: 600,
-                  color: "#64748b",
+                  color: "var(--text-secondary)",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#f8fafc";
-                  e.currentTarget.style.borderColor = "#cbd5e1";
+                  e.currentTarget.style.background = "var(--bg-secondary)";
+                  e.currentTarget.style.borderColor = "var(--component-border-hover)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = "white";
-                  e.currentTarget.style.borderColor = "#e2e8f0";
+                  e.currentTarget.style.borderColor = "var(--component-border)";
                 }}
                 >
                   View All <ChevronRight size={16} />
@@ -677,10 +677,10 @@ export default function DashboardPage() {
                 <div style={{ 
                   textAlign: "center", 
                   padding: "40px 20px", 
-                  color: "#64748b" 
+                  color: "var(--text-secondary)" 
                 }}>
-                  <CheckCircle size={40} style={{ color: "#cbd5e1", marginBottom: 12 }} />
-                  <p style={{ margin: 0, fontWeight: 600, color: "#1e293b" }}>All payments processed!</p>
+                  <CheckCircle size={40} style={{ color: "var(--component-border-hover)", marginBottom: 12 }} />
+                  <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>All payments processed!</p>
                   <p style={{ margin: "8px 0 0", fontSize: 13 }}>No pending payments at the moment</p>
                 </div>
               ) : (
@@ -727,27 +727,27 @@ export default function DashboardPage() {
                               {order.tableId ? order.tableId.slice(0, 2).toUpperCase() : "TA"}
                             </div>
                             <div>
-                              <div style={{ fontWeight: 700, fontSize: 14, color: "#1e293b" }}>
+                              <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>
                                 Order #{order.id.slice(-4).toUpperCase()}
                               </div>
-                              <div style={{ fontSize: 12, color: "#64748b" }}>
+                              <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
                                 {mapOrderType(order.orderType)}
                                 {order.tableId && ` • Table ${order.tableId}`}
                               </div>
                             </div>
                           </div>
-                          <div style={{ fontSize: 20, fontWeight: 800, color: "#8b5cf6" }}>
+                          <div style={{ fontSize: 20, fontWeight: 800, color: "var(--primary)" }}>
                             {formatMoney(Number(order.grandTotal))}
                           </div>
                         </div>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <div style={{ fontSize: 12, color: "#64748b" }}>
+                          <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
                             {formatOrderTime(order.createdAt)}
                           </div>
                           <button style={{
                             padding: "8px 16px",
                             borderRadius: 10,
-                            background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                            background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                             color: "white",
                             fontSize: 13,
                             fontWeight: 700,
@@ -783,7 +783,7 @@ export default function DashboardPage() {
           }}>
             <div style={{
               padding: "20px 24px",
-              borderBottom: "1px solid #f1f5f9",
+              borderBottom: "1px solid var(--bg-tertiary)",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
@@ -798,11 +798,11 @@ export default function DashboardPage() {
                   alignItems: "center",
                   justifyContent: "center",
                 }}>
-                  <Users size={20} style={{ color: "#10b981" }} />
+                  <Users size={20} style={{ color: "var(--success)" }} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#1e293b" }}>Available Tables</h3>
-                  <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>Available Tables</h3>
+                  <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>
                     {availableTables.length} of {tables.length} tables free
                   </p>
                 </div>
@@ -814,10 +814,10 @@ export default function DashboardPage() {
                 <div style={{ 
                   textAlign: "center", 
                   padding: "32px 20px", 
-                  color: "#64748b" 
+                  color: "var(--text-secondary)" 
                 }}>
-                  <Users size={36} style={{ color: "#cbd5e1", marginBottom: 10 }} />
-                  <p style={{ margin: 0, fontWeight: 600, color: "#1e293b", fontSize: 14 }}>All tables occupied</p>
+                  <Users size={36} style={{ color: "var(--component-border-hover)", marginBottom: 10 }} />
+                  <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)", fontSize: 14 }}>All tables occupied</p>
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -830,16 +830,16 @@ export default function DashboardPage() {
                         alignItems: "center",
                         padding: "12px 14px",
                         borderRadius: 12,
-                        border: "1px solid #e2e8f0",
+                        border: "1px solid var(--component-border)",
                         background: "#fafafa",
                         transition: "all 0.2s ease",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = "#10b981";
+                        e.currentTarget.style.borderColor = "var(--success)";
                         e.currentTarget.style.background = "rgba(16, 185, 129, 0.05)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = "#e2e8f0";
+                        e.currentTarget.style.borderColor = "var(--component-border)";
                         e.currentTarget.style.background = "#fafafa";
                       }}
                     >
@@ -848,7 +848,7 @@ export default function DashboardPage() {
                           width: 36,
                           height: 36,
                           borderRadius: 8,
-                          background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                          background: "linear-gradient(135deg, var(--success) 0%, #059669 100%)",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -858,7 +858,7 @@ export default function DashboardPage() {
                         }}>
                           {table.tableCode}
                         </div>
-                        <div style={{ fontWeight: 600, fontSize: 14, color: "#1e293b" }}>
+                        <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>
                           {table.displayName}
                         </div>
                       </div>
@@ -868,7 +868,7 @@ export default function DashboardPage() {
                         background: "rgba(16, 185, 129, 0.1)",
                         fontSize: 12,
                         fontWeight: 600,
-                        color: "#10b981",
+                        color: "var(--success)",
                       }}>
                         {table.capacity} seats
                       </div>
@@ -890,7 +890,7 @@ export default function DashboardPage() {
           }}>
             <div style={{
               padding: "20px 24px",
-              borderBottom: "1px solid #f1f5f9",
+              borderBottom: "1px solid var(--bg-tertiary)",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
@@ -905,11 +905,11 @@ export default function DashboardPage() {
                   alignItems: "center",
                   justifyContent: "center",
                 }}>
-                  <AlertCircle size={20} style={{ color: "#ef4444" }} />
+                  <AlertCircle size={20} style={{ color: "var(--danger)" }} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#1e293b" }}>Unavailable Items</h3>
-                  <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>Unavailable Items</h3>
+                  <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>
                     {outOfStockItems.length} items inactive
                   </p>
                 </div>
@@ -921,10 +921,10 @@ export default function DashboardPage() {
                 <div style={{ 
                   textAlign: "center", 
                   padding: "32px 20px", 
-                  color: "#64748b" 
+                  color: "var(--text-secondary)" 
                 }}>
-                  <Utensils size={36} style={{ color: "#cbd5e1", marginBottom: 10 }} />
-                  <p style={{ margin: 0, fontWeight: 600, color: "#1e293b", fontSize: 14 }}>All items available!</p>
+                  <Utensils size={36} style={{ color: "var(--component-border-hover)", marginBottom: 10 }} />
+                  <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)", fontSize: 14 }}>All items available!</p>
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -945,7 +945,7 @@ export default function DashboardPage() {
                         width: 44,
                         height: 44,
                         borderRadius: 10,
-                        background: "#f1f5f9",
+                        background: "var(--bg-tertiary)",
                         overflow: "hidden",
                         flexShrink: 0,
                       }}>
@@ -963,7 +963,7 @@ export default function DashboardPage() {
                             alignItems: "center",
                             justifyContent: "center",
                           }}>
-                            <Utensils size={18} style={{ color: "#cbd5e1" }} />
+                            <Utensils size={18} style={{ color: "var(--component-border-hover)" }} />
                           </div>
                         )}
                       </div>
@@ -971,14 +971,14 @@ export default function DashboardPage() {
                         <div style={{
                           fontWeight: 600,
                           fontSize: 14,
-                          color: "#1e293b",
+                          color: "var(--text-primary)",
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                         }}>
                           {item.name}
                         </div>
-                        <div style={{ fontSize: 12, color: "#ef4444", fontWeight: 600 }}>
+                        <div style={{ fontSize: 12, color: "var(--danger)", fontWeight: 600 }}>
                           Currently unavailable
                         </div>
                       </div>

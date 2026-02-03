@@ -23,7 +23,6 @@ const Container = styled.main`
 
 const ContentWrapper = styled.div`
   height: calc(100dvh - ${NAV_HEIGHT_DESKTOP}px);
-  padding-top: ${NAV_HEIGHT_DESKTOP + 30}px;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -78,7 +77,7 @@ const FilterBar = styled.div`
 `;
 
 const Select = styled.select`
-  background: white;
+  background: var(--bg-surface);
   border: 1px solid ${COLORS.border};
   padding: 10px 16px;
   border-radius: 10px;
@@ -115,7 +114,7 @@ const StatGrid = styled.div`
 `;
 
 const StatCard = styled.div<{ $gradient?: string }>`
-  background: white;
+  background: var(--bg-surface);
   padding: 20px;
   border-radius: 16px;
   border: 1px solid ${COLORS.border};
@@ -168,7 +167,7 @@ const TableContainer = styled.div`
   flex: 1;
   min-height: 0;
   overflow: auto;
-  background: white;
+  background: var(--bg-surface);
   border-radius: 16px;
   border: 1px solid ${COLORS.border};
   position: relative;
@@ -285,7 +284,7 @@ const EmptyState = styled.div`
 const PaginationBar = styled.div`
   padding: 16px 20px;
   border-top: 1px solid ${COLORS.border};
-  background: white;
+  background: var(--bg-surface);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -311,7 +310,7 @@ const PageButton = styled.button`
   height: 32px;
   border-radius: 8px;
   border: 1px solid ${COLORS.border};
-  background: white;
+  background: var(--bg-surface);
   color: ${COLORS.textMain};
   cursor: pointer;
   
@@ -329,7 +328,7 @@ const PageButton = styled.button`
 const LoadingOverlay = styled.div`
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(var(--bg-surface-rgb), 0.7);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
@@ -339,7 +338,7 @@ const LoadingOverlay = styled.div`
 
 const RefreshBtn = styled.button`
   border: none;
-  background: white;
+  background: var(--bg-surface);
   color: ${COLORS.textMuted};
   width: 36px;
   height: 36px;
@@ -551,7 +550,7 @@ export default function PaymentsPage() {
               <StatValue>{stats.failedCount}</StatValue>
             </StatInfo>
             <StatIconBox $bgColor="rgba(239, 68, 68, 0.1)">
-              <XCircle size={24} color="#ef4444" />
+              <XCircle size={24} color="var(--danger)" />
             </StatIconBox>
           </StatCard>
         </StatGrid>

@@ -46,19 +46,19 @@ export default function StaffRootLayout({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#f8fafc',
+          background: 'var(--bg-secondary)',
         }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{
               width: 40,
               height: 40,
-              border: '4px solid #e2e8f0',
-              borderTopColor: '#8b5cf6',
+              border: '4px solid var(--component-border)',
+              borderTopColor: 'var(--primary)',
               borderRadius: '50%',
               animation: 'spin 1s linear infinite',
               margin: '0 auto 16px',
             }} />
-            <p style={{ color: '#64748b', fontSize: 14 }}>Loading...</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Loading...</p>
           </div>
           <style jsx>{`
           @keyframes spin {

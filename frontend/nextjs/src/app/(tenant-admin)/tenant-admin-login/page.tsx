@@ -68,7 +68,7 @@ export default function Page() {
         placeItems: "center",
         padding: 24,
         background:
-          "radial-gradient(ellipse at top, rgba(0,0,0,0.05), transparent 60%), linear-gradient(135deg, #f8fafc, #eef2ff)"
+          "radial-gradient(ellipse at top, rgba(0,0,0,0.05), transparent 60%), linear-gradient(135deg, var(--bg-secondary), #eef2ff)"
       }}
     >
       <div

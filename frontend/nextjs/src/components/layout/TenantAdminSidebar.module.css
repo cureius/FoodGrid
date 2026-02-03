@@ -1,7 +1,7 @@
 .sidebar {
   width: 260px;
   height: 100vh;
-  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  background: var(--navy);
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
@@ -9,7 +9,8 @@
   left: 0;
   top: 0;
   z-index: 100;
-  overflow-y: auto;
+  border-right: none;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
 }
 
 .logoContainer {
@@ -24,12 +25,12 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .logoText {
@@ -40,14 +41,14 @@
 .logoMain {
   font-size: 20px;
   font-weight: 700;
-  color: white;
+  color: #FFFFFF;
   letter-spacing: -0.5px;
 }
 
 .logoSub {
   font-size: 11px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -57,6 +58,15 @@
   flex-direction: column;
   gap: 24px;
   flex: 1;
+  overflow-y: auto;
+}
+
+.nav::-webkit-scrollbar {
+  display: none;
+}
+.nav {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .navSection {
@@ -67,10 +77,10 @@
 
 .navSectionTitle {
   font-size: 11px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.35);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.3);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   padding: 0 12px;
   margin-bottom: 8px;
 }
@@ -80,39 +90,46 @@
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  border-radius: 10px;
+  border-radius: 12px;
   color: rgba(255, 255, 255, 0.6);
   font-weight: 500;
   font-size: 14px;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
+  position: relative;
 }
 
 .navItem:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: white;
+  background: rgba(255, 255, 255, 0.05);
+  color: #FFFFFF;
+  transform: translateX(4px);
 }
 
 .activeNavItem {
-  background: rgba(59, 130, 246, 0.25);
-  color: white;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.activeNavItem:hover {
-  background: rgba(59, 130, 246, 0.35);
+.activeNavItem .navIcon {
+  color: var(--success);
 }
 
 .navIcon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
+  transition: all 0.2s ease;
 }
 
 .footer {
   margin-top: auto;
   padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .logoutBtn {
@@ -121,10 +138,10 @@
   gap: 12px;
   width: 100%;
   padding: 12px 14px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: none;
-  background: rgba(239, 68, 68, 0.12);
-  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
   font-weight: 500;
   font-size: 14px;
   cursor: pointer;
@@ -133,7 +150,20 @@
 
 .logoutBtn:hover {
   background: rgba(239, 68, 68, 0.2);
-  color: #fecaca;
+  transform: scale(0.98);
+}
+
+.themeSwitcher {
+  justify-content: flex-start !important;
+  width: 100% !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.themeSwitcher:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #FFFFFF !important;
 }
 
 /* Responsive */
@@ -146,7 +176,8 @@
   .logoText,
   .navSectionTitle,
   .navItem span,
-  .logoutBtn span {
+  .logoutBtn span,
+  .themeSwitcher span {
     display: none;
   }
 
@@ -156,8 +187,10 @@
   }
 
   .navItem,
-  .logoutBtn {
-    justify-content: center;
-    padding: 12px;
+  .logoutBtn,
+  .themeSwitcher {
+    justify-content: center !important;
+    padding: 12px !important;
+    transform: none !important;
   }
 }

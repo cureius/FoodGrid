@@ -2,47 +2,27 @@
 
 import React from 'react';
 import { useTheme } from '@/styles/ThemeProvider';
+import styles from './ThemeSwitcher.module.css';
 
-export function ThemeSwitcher() {
+export function ThemeSwitcher({ className }: { className?: string }) {
   const { mode, toggleTheme } = useTheme();
 
   return (
     <button
       onClick={toggleTheme}
+      className={`${styles.switcher} ${className || ''}`}
       aria-label={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}
       title={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}
-      style={{
-        background: 'var(--component-bg)',
-        border: '1px solid var(--component-border)',
-        borderRadius: '8px',
-        padding: '8px 12px',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        color: 'var(--text-primary)',
-        fontSize: '14px',
-        fontWeight: '500',
-        transition: 'all 0.2s ease',
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--component-hover)';
-        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--component-border-hover)';
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--component-bg)';
-        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--component-border)';
-      }}
     >
       {mode === 'light' ? (
         <>
           <SunIcon />
-          Light
+          <span>Light</span>
         </>
       ) : (
         <>
           <MoonIcon />
-          Dark
+          <span>Dark</span>
         </>
       )}
     </button>

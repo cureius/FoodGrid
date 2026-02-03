@@ -8,11 +8,16 @@ import CartFloatingBar from '@/components/user/layout/CartFloatingBar';
 import AuthGuard from '@/components/user/auth/AuthGuard';
 import { CustomerProvider } from '@/contexts/CustomerContext';
 
+import { usePathname } from 'next/navigation';
+
 export default function UserLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isLoginPage = pathname === '/user/login';
+
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
@@ -27,16 +32,19 @@ export default function UserLayout({
       <CustomerProvider>
         <AuthGuard>
           <div className="layout-root">
-          <UserHeader />
+          {!isLoginPage && <UserHeader />}
           
           <main className="layout-main">
             <div className="layout-container">
               {children}
             </div>
           </main>
-          <div className="mobile-nav-wrapper">
-            <BottomNav />
-          </div>
+          
+          {!isLoginPage && (
+            <div className="mobile-nav-wrapper">
+              <BottomNav />
+            </div>
+          )}
 
           <style jsx>{`
             .layout-root {
@@ -54,7 +62,7 @@ export default function UserLayout({
               margin: 0 auto;
               min-height: calc(100vh - 64px);
               position: relative;
-              background: white;
+              background: var(--bg-surface);
               box-shadow: var(--shadow-lg);
             }
             @media (min-width: 768px) {

@@ -197,8 +197,8 @@ function VegIcon() {
 function NonVegIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="2" y="2" width="20" height="20" rx="2" stroke="#dc2626" strokeWidth="2" />
-      <polygon points="12,7 17,17 7,17" fill="#dc2626" />
+      <rect x="2" y="2" width="20" height="20" rx="2" stroke="var(--danger)" strokeWidth="2" />
+      <polygon points="12,7 17,17 7,17" fill="var(--danger)" />
     </svg>
   );
 }
@@ -1059,7 +1059,6 @@ export default function InventoryPage() {
         return vegFilter === 'Veg' ? item.isVeg : !item.isVeg;
       });
   }, [menuItems, query, menuStatusFilter, menuCategoryFilter, vegFilter]);
-  console.log("🚀 ~ InventoryPage ~ filteredMenuItems:", filteredMenuItems)
 
   const filteredMenuCategories = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -1576,7 +1575,7 @@ export default function InventoryPage() {
                       {i.imageUrl ? (
                         <img className={styles.ingImg} src={i.imageUrl} alt={i.name} loading="lazy" />
                       ) : (
-                        <div className={styles.ingImg} style={{ background: 'rgba(243,244,246,1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>📦</div>
+                        <div className={styles.ingImg} style={{ background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>📦</div>
                       )}
                       <div style={{ minWidth: 0 }}>
                         <div className={styles.ingName}>{i.name}</div>
@@ -1681,7 +1680,7 @@ export default function InventoryPage() {
                       />
                       <div className={styles.categoryMgmtIcon}>📏</div>
                       <div>
-                        <div className={styles.categoryMgmtName}>{unit.name} <span style={{ fontWeight: 400, color: 'rgba(109,120,139,0.95)' }}>({unit.abbreviation})</span></div>
+                        <div className={styles.categoryMgmtName}>{unit.name} <span style={{ fontWeight: 400, color: 'var(--text-secondary)' }}>({unit.abbreviation})</span></div>
                         <div className={styles.categoryMgmtMeta}>
                           Type: <span style={{ fontWeight: 500 }}>{unit.unitType}</span> · Status: <span className={unit.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}>{unit.status}</span>
                           {unit.baseUnitId && unit.conversionFactor && (
@@ -1749,7 +1748,7 @@ export default function InventoryPage() {
           )}
 
           {activeTab === 'Request List' && (
-            <div style={{ padding: 16, color: 'rgba(109,120,139,0.95)' }}>
+            <div style={{ padding: 16, color: 'var(--text-secondary)' }}>
               Request List UI not implemented yet.
             </div>
           )}
@@ -2223,9 +2222,9 @@ export default function InventoryPage() {
               <button type="button" className={styles.iconClose} onClick={() => setIsStockMovementModalOpen(false)} aria-label="Close"><XIcon /></button>
             </div>
             <div className={styles.categoryModalBody}>
-              <div style={{ marginBottom: 16, padding: 12, background: 'rgba(243,244,246,1)', borderRadius: 12 }}>
+              <div style={{ marginBottom: 16, padding: 12, background: 'var(--bg-tertiary)', borderRadius: 12 }}>
                 <strong>{selectedIngredient.name}</strong>
-                <div style={{ fontSize: 12, color: 'rgba(109,120,139,0.95)', marginTop: 4 }}>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
                   Current Stock: {selectedIngredient.currentStock}
                 </div>
               </div>

@@ -1,0 +1,486 @@
+
+.pageContainer {
+  min-height: 100vh;
+  background: var(--bg-app);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.controls {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.backLink, .printBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  background: white;
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  transition: 0.2s;
+  box-shadow: var(--shadow-sm);
+}
+
+.printBtn {
+  background: var(--primary);
+  color: white;
+  border: none;
+}
+
+.backLink:hover {
+  background: var(--bg-muted);
+}
+
+.printBtn:hover {
+  background: var(--primary-hover);
+}
+
+/* Brochure Layout */
+.brochureWrapper {
+  width: 100%;
+  max-width: 1000px; /* A4 width approx when viewed on screen */
+  background: white;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Bi-fold screen simulation */
+  gap: 0;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.panel {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+.frontPanel {
+  grid-column: span 2; /* On mobile/screen stack or full width header feel */
+  background: linear-gradient(135deg, var(--bg-surface) 0%, var(--primary-light) 100%);
+  text-align: center;
+  align-items: center;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.insidePanel {
+  border-right: 1px solid var(--border-light);
+  background: white;
+}
+
+.backPanel {
+  background: var(--bg-muted);
+}
+
+/* Content Styles */
+.logoLarge {
+  margin-bottom: 32px;
+  transform: scale(1.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.mainHeadline {
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--navy);
+  line-height: 1.2;
+  margin-bottom: 16px;
+  max-width: 600px;
+}
+
+.subHeadline {
+  font-size: 18px;
+  color: var(--text-muted);
+  margin-bottom: 40px;
+  max-width: 500px;
+  line-height: 1.5;
+}
+
+.mockupPlaceholder {
+  width: 100%;
+  max-width: 500px;
+  height: 250px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mockupImage {
+  border-radius: 12px;
+}
+
+.mockupContent {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tagline {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 40px;
+}
+
+.ctaBlock {
+  background: white;
+  padding: 24px 32px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.ctaTitle {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ctaButtonMain {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary);
+  color: white;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 12px;
+  transition: 0.2s;
+}
+
+.ctaButtonMain:hover {
+  background: var(--primary-hover);
+}
+
+.trialNote {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Inside Panel Styles */
+.panelTitle {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--primary-light);
+}
+
+.benefitList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.benefitItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 15px;
+  color: var(--text-main);
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.checkIcon {
+  color: var(--success);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.bestForGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.bestForCard {
+  background: var(--bg-muted);
+  padding: 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  color: var(--navy);
+  text-align: center;
+  border: 1px solid var(--border-light);
+}
+
+/* Back Panel Styles */
+.pricingGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.priceCard {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.priceCard.highlight {
+  border: 2px solid var(--primary);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  background: var(--bg-surface);
+}
+
+.priceHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--bg-muted);
+  padding-bottom: 12px;
+}
+
+.priceHeader h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.priceVal {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--primary);
+}
+
+.period {
+  font-size: 12px;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.priceFeatures {
+  list-style: none;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+
+.extraCost {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-light);
+  font-style: italic;
+  margin-bottom: 32px;
+}
+
+.contactFooter {
+  margin-top: auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-light);
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--navy);
+  font-size: 14px;
+}
+
+.bookDemoBtn {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Responsive adjustments for Screen only */
+@media screen and (min-width: 1024px) {
+  .brochureWrapper {
+     /* Force A4 Landscape Dimensions on Screen */
+     width: 297mm;
+     height: 210mm;
+     max-width: none;
+     
+     display: grid;
+     grid-template-columns: 1fr 1fr 1fr;
+     grid-template-areas: "inside back front";
+     
+     /* Make it look like a paper on the screen */
+     transform-origin: top center;
+  }
+
+  .frontPanel { 
+      grid-area: front; 
+      border-bottom: none; 
+      border-left: 1px solid var(--border-light);
+      background: linear-gradient(135deg, var(--bg-surface) 0%, var(--primary-light) 100%);
+  }
+  
+  .insidePanel { 
+      grid-area: inside; 
+      border-right: 1px solid var(--border-light);
+  }
+  
+  .backPanel { 
+      grid-area: back; 
+      border-right: 1px solid var(--border-light);
+  }
+  
+  .panel {
+      height: 100%;
+      padding: 16px;
+      overflow: hidden; 
+      justify-content: flex-start;
+  }
+
+  /* Scale down content to fit on screen A4 simulation */
+  .logoLarge { margin-bottom: 24px; transform: scale(1.1); }
+  .mainHeadline { font-size: 20px; margin-bottom: 12px; }
+  .subHeadline { font-size: 13px; margin-bottom: 24px; max-width: 90%; }
+  .mockupPlaceholder { padding: 12px; }
+  .tagline { font-size: 12px; margin-bottom: 24px; }
+  
+  .ctaBlock { padding: 16px; }
+  .ctaTitle { font-size: 14px; margin-bottom: 8px; }
+  .ctaButtonMain { padding: 10px 20px; font-size: 14px; margin-bottom: 8px; }
+  
+  .panelTitle { font-size: 18px; margin-bottom: 16px; padding-bottom: 8px; }
+  
+  .benefitList { gap: 12px; }
+  .benefitItem { font-size: 12px; gap: 8px; }
+  
+  .bestForGrid { gap: 8px; }
+  .bestForCard { padding: 10px; font-size: 12px; }
+  
+  .pricingGrid { gap: 10px; margin-bottom: 16px; }
+  .priceCard { padding: 12px; border-radius: 12px; }
+  .priceHeader { margin-bottom: 8px; padding-bottom: 8px; }
+  .priceHeader h3 { font-size: 14px; }
+  .priceVal { font-size: 18px; }
+  .period { font-size: 10px; }
+  .priceFeatures { font-size: 10px; line-height: 1.5; margin: 0; padding: 0; }
+  .priceFeatures li { margin-bottom: 2px; }
+  
+  .extraCost { font-size: 11px; margin-bottom: 16px; }
+  
+  .contactFooter { padding-top: 16px; gap: 8px; }
+  .contactItem { font-size: 12px; }
+  .bookDemoBtn { font-size: 12px; margin-top: 4px; }
+}
+
+/* Print Styles - KEY REQUIREMENT */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+
+  .controls {
+    display: none !important;
+  }
+
+  .pageContainer {
+    padding: 0;
+    margin: 0;
+    display: block;
+    background: white;
+  }
+
+  .brochureWrapper {
+    width: 297mm;
+    height: 210mm;
+    max-width: none;
+    box-shadow: none;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-areas: "inside back front";
+    gap: 0;
+  }
+
+  .panel {
+    height: 210mm;
+    padding: 10mm; /* Reduced padding to fit content */
+    page-break-inside: avoid;
+    justify-content: flex-start;
+    overflow: hidden;
+  }
+
+  .frontPanel {
+    grid-area: front;
+    background: linear-gradient(135deg, #f8faff 0%, #eef2fe 100%) !important;
+    border: none;
+  }
+
+  .insidePanel {
+    grid-area: inside;
+    background: white !important;
+    border-right: 1px dashed #ccc;
+  }
+
+  .backPanel {
+    grid-area: back;
+    background: #f8fafc !important;
+    border-right: 1px dashed #ccc;
+  }
+  
+  /* Print specific downsizing */
+  .logoLarge { margin-bottom: 10mm; transform: scale(1.0); }
+  .mainHeadline { font-size: 16pt; margin-bottom: 5mm; }
+  .subHeadline { font-size: 10pt; margin-bottom: 8mm; }
+  .mockupPlaceholder { height: 50mm; margin-bottom: 8mm; }
+  .tagline { font-size: 9pt; margin-bottom: 8mm; }
+  .ctaBlock { padding: 5mm; box-shadow: none; border: 1px solid #ddd; }
+  
+  .panelTitle { font-size: 14pt; margin-bottom: 5mm; }
+  .benefitList { gap: 4mm; }
+  .benefitItem { font-size: 9pt; }
+  
+  .pricingGrid { gap: 3mm; margin-bottom: 5mm; }
+  .priceCard { padding: 3mm; border: 1px solid #ddd; }
+  .priceHeader { margin-bottom: 2mm; padding-bottom: 2mm; }
+  .priceHeader h3 { font-size: 10pt; }
+  .priceVal { font-size: 12pt; }
+  .period { font-size: 8pt; }
+  .priceFeatures { font-size: 8pt; line-height: 1.2; }
+  
+  .extraCost { font-size: 8pt; margin-bottom: 5mm; }
+  .contactFooter { padding-top: 5mm; gap: 2mm; }
+  .contactItem { font-size: 9pt; }
+}

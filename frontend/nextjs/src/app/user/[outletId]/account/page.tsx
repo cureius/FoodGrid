@@ -1,11 +1,13 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth';
 import { ChevronLeft, User, MapPin, CreditCard, Bell, Shield, LogOut, ChevronRight, Settings, Heart, Gift } from 'lucide-react';
 
 export default function AccountPage() {
   const router = useRouter();
+  const params = useParams();
+  const outletId = params?.outletId as string;
   const { user, logout, isAuthenticated } = useAuthStore();
   const [isMounting, setIsMounting] = useState(true);
 
@@ -15,9 +17,9 @@ export default function AccountPage() {
 
   useEffect(() => {
     if (!isMounting && !isAuthenticated) {
-      router.replace('/user');
+      router.replace(outletId ? `/user/${outletId}` : '/user/outlets');
     }
-  }, [isAuthenticated, router, isMounting]);
+  }, [isAuthenticated, router, isMounting, outletId]);
 
   const menuGroups = [
     {
@@ -48,7 +50,7 @@ export default function AccountPage() {
   return (
     <div className="account-page">
       <header className="account-header">
-        <button onClick={() => router.push('/user')} className="back-btn">
+        <button onClick={() => router.push(outletId ? `/user/${outletId}` : '/user/outlets')} className="back-btn">
           <ChevronLeft size={24} />
         </button>
         <h1 className="header-title">My Profile</h1>
