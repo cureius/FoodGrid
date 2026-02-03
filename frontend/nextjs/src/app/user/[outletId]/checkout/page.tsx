@@ -229,36 +229,36 @@ export default function CheckoutPage() {
 
       <style jsx>{`
         .checkout-page { background: var(--bg-app); min-height: 100vh; padding-bottom: 120px; }
-        .checkout-header { position: sticky; top: 0; z-index: 40; background: white; border-bottom: 1px solid var(--border-light); height: 64px; display: flex; align-items: center; padding: 0 16px; gap: 16px; }
-        .back-btn { padding: 4px; margin-left: -4px; color: var(--navy); }
-        .header-title { font-size: 18px; font-weight: 800; color: var(--navy); }
+        .checkout-header { position: sticky; top: 0; z-index: 40; background: var(--bg-surface); border-bottom: 1px solid var(--border-light); height: 64px; display: flex; align-items: center; padding: 0 16px; gap: 16px; }
+        .back-btn { padding: 4px; margin-left: -4px; color: var(--text-main); }
+        .header-title { font-size: 18px; font-weight: 800; color: var(--text-main); }
 
         .amount-banner { background: var(--primary-light); padding: 48px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; border-bottom: 1px solid var(--primary-border); }
         .banner-label { font-size: 10px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
-        .banner-val { font-size: 48px; font-weight: 900; color: var(--navy); letter-spacing: -1px; }
+        .banner-val { font-size: 48px; font-weight: 900; color: var(--text-main); letter-spacing: -1px; }
 
         .checkout-main { padding: 16px; display: flex; flex-direction: column; gap: 32px; }
         .method-group { display: flex; flex-direction: column; gap: 12px; }
         .group-title { font-size: 10px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; padding-left: 4px; }
-        .card { background: white; border-radius: 32px; border: 1px solid var(--border-light); overflow: hidden; box-shadow: var(--shadow-sm); }
+        .card { background: var(--bg-surface); border-radius: 32px; border: 1px solid var(--border-light); overflow: hidden; box-shadow: var(--shadow-sm); }
         
         .method-item { width: 100%; height: 64px; padding: 0 20px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--bg-muted); transition: var(--transition-fast); text-align: left; }
         .method-item:last-child { border-bottom: none; }
         .method-item.active { background: var(--primary-light); }
         .method-icon-wrap { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
-        .method-label { flex: 1; font-size: 14px; font-weight: 800; color: var(--navy); }
+        .method-label { flex: 1; font-size: 14px; font-weight: 800; color: var(--text-main); }
         
         .radio-outer { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border-medium); display: flex; align-items: center; justify-content: center; transition: var(--transition-fast); }
         .radio-outer.checked { border-color: var(--primary); background: var(--primary); }
         .radio-inner { width: 6px; height: 6px; background: white; border-radius: 50%; }
 
         .security-info { background: var(--success-light); border-radius: 20px; padding: 20px; border: 1px solid rgba(16, 185, 129, 0.1); display: flex; gap: 16px; }
-        .shield-icon { width: 44px; height: 44px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); flex-shrink: 0; }
+        .shield-icon { width: 44px; height: 44px; background: var(--bg-surface); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); flex-shrink: 0; }
         .security-text { display: flex; flex-direction: column; gap: 4px; }
         .security-tag { font-size: 10px; font-weight: 800; color: var(--success); text-transform: uppercase; letter-spacing: 1px; }
         .security-desc { font-size: 11px; font-weight: 600; color: var(--success); opacity: 0.8; line-height: 1.5; }
 
-        .payment-bar { position: fixed; bottom: 72px; left: 0; right: 0; z-index: 50; background: white; padding: 16px; border-top: 1px solid var(--border-light); padding-bottom: calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 32px rgba(0,0,0,0.06); }
+        .payment-bar { position: fixed; bottom: 72px; left: 0; right: 0; z-index: 50; background: var(--bg-surface); padding: 16px; border-top: 1px solid var(--border-light); padding-bottom: calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 32px rgba(0,0,0,0.06); }
         .pay-btn { max-width: 418px; margin: 0 auto; width: 100%; height: 56px; background: var(--navy); color: white; border-radius: 16px; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 12px; transition: var(--transition-fast); box-shadow: 0 12px 24px rgba(0,0,0,0.1); cursor: pointer; }
         .pay-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .pay-btn:active { transform: scale(0.98); }

@@ -55,7 +55,7 @@ export default function LandingPage() {
           Multi-tenant POS, KOT, online ordering and chain management system. Built for single outlets to multi-location restaurant chains.
         </p>
         <div className={styles.heroCta}>
-          <Link href="/user/register">
+          <Link href="/start-free-trial">
             <button className={styles.btnPrimary}>
               Start Free Trial <ArrowRight size={20} />
             </button>

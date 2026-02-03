@@ -56,9 +56,9 @@ export default function BottomNav() {
           bottom: 0;
           left: 0;
           right: 0;
-          background: #fff;
+          background: var(--bg-surface);
           padding-bottom: env(safe-area-inset-bottom);
-          border-top: 1px solid rgba(0, 0, 0, 0.06);
+          border-top: 1px solid var(--border-light);
           box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
           z-index: 50;
         }
@@ -80,13 +80,13 @@ export default function BottomNav() {
           align-items: center;
           justify-content: center;
           text-decoration: none;
-          color: #9ca3af;
+          color: var(--text-light);
           transition: all 0.25s ease;
           -webkit-tap-highlight-color: transparent;
         }
 
         .nav-item.active {
-          color: #e11d48;
+          color: var(--primary);
         }
 
         .icon-box {
@@ -101,7 +101,7 @@ export default function BottomNav() {
         }
 
         .nav-item.active .icon-box {
-          background: rgba(225, 29, 72, 0.12);
+          background: var(--primary-light);
           transform: translateY(-2px);
         }
 
@@ -116,15 +116,15 @@ export default function BottomNav() {
           position: absolute;
           top: -4px;
           right: -4px;
-          background: #e11d48;
-          color: #fff;
+          background: var(--primary);
+          color: white;
           font-size: 10px;
           font-weight: 700;
           height: 16px;
           min-width: 16px;
           padding: 0 4px;
           border-radius: 999px;
-          border: 2px solid #fff;
+          border: 2px solid var(--bg-surface);
           line-height: 1;
         }
       `}</style>

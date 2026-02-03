@@ -190,10 +190,10 @@ function RestaurantView({ outletId, onBack }: { outletId: string; onBack: () => 
         .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .back-btn { padding: 4px; margin-left: -8px; color: var(--navy); }
         .header-actions { display: flex; gap: 8px; }
-        .icon-btn { width: 36px; height: 36px; background: white; border: 1px solid var(--border-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); cursor: pointer; }
+        .icon-btn { width: 36px; height: 36px; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); cursor: pointer; }
         .icon-btn.heart { color: var(--danger); }
         
-        .restaurant-name { font-size: 26px; font-weight: 900; color: var(--navy); margin-bottom: 4px; letter-spacing: -0.5px; }
+        .restaurant-name { font-size: 26px; font-weight: 900; color: var(--text-main); margin-bottom: 4px; letter-spacing: -0.5px; }
         .restaurant-cuisines { font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: 16px; }
 
         .info-badges { display: flex; gap: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -202,25 +202,25 @@ function RestaurantView({ outletId, onBack }: { outletId: string; onBack: () => 
         .badge.primary { background: var(--primary-light); color: var(--primary); }
         .badge.info { background: var(--bg-muted); color: var(--text-muted); }
 
-        .sticky-filters { position: sticky; top: 0; z-index: 30; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-light); }
+        .sticky-filters { position: sticky; top: 0; z-index: 30; background: rgba(var(--bg-surface-rgb), 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-light); }
         .filters-row { padding: 12px 16px; display: flex; gap: 12px; }
         .search-box { position: relative; flex: 1; }
         .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light); }
         .search-input { width: 100%; height: 40px; background: var(--bg-muted); border: 2px solid transparent; border-radius: 12px; padding: 0 12px 0 36px; font-size: 14px; font-weight: 600; outline: none; transition: 0.2s; }
-        .search-input:focus { background: white; border-color: var(--primary-border); }
+        .search-input:focus { background: var(--bg-surface); border-color: var(--primary-border); }
         
-        .veg-toggle { display: flex; align-items: center; gap: 6px; padding: 0 12px; height: 40px; border-radius: 12px; border: 2px solid var(--border-light); font-size: 11px; font-weight: 800; color: var(--text-muted); background: white; cursor: pointer; }
+        .veg-toggle { display: flex; align-items: center; gap: 6px; padding: 0 12px; height: 40px; border-radius: 12px; border: 2px solid var(--border-light); font-size: 11px; font-weight: 800; color: var(--text-muted); background: var(--bg-surface); cursor: pointer; }
         .veg-toggle.active { background: var(--success); border-color: var(--success); color: white; }
         .veg-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
-        .veg-toggle.active .veg-dot { background: white; }
+        .veg-toggle.active .veg-dot { background: var(--bg-surface); }
 
         .category-nav { display: flex; gap: 12px; overflow-x: auto; padding: 0 16px 12px; }
         .cat-btn { flex-shrink: 0; padding: 8px 16px; border-radius: 999px; font-size: 11px; font-weight: 800; background: var(--bg-muted); color: var(--text-muted); text-transform: uppercase; cursor: pointer; }
-        .cat-btn.active { background: var(--navy); color: white; }
+        .cat-btn.active { background: var(--primary); color: white; }
 
         .menu-list { padding: 24px 16px; }
         .menu-section { scroll-margin-top: 120px; margin-bottom: 32px; }
-        .section-title { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 16px; }
+        .section-title { font-size: 20px; font-weight: 800; color: var(--text-main); margin-bottom: 16px; }
         .section-count { font-size: 10px; font-weight: 800; color: var(--text-light); text-transform: uppercase; margin-left: 8px; }
         
         .no-scrollbar::-webkit-scrollbar { display: none; }

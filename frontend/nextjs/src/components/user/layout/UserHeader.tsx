@@ -30,7 +30,7 @@ export default function UserHeader() {
           position: sticky;
           top: 0;
           z-index: 40;
-          background: var(--bg-surface);
+          background: rgba(var(--bg-surface-rgb), 0.85);
           backdrop-filter: blur(12px);
           border-bottom: 1px solid var(--border-light);
           height: 64px;
