@@ -86,6 +86,10 @@
 .logoLarge {
   margin-bottom: 32px;
   transform: scale(1.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
 }
 
 .mainHeadline {
@@ -369,7 +373,7 @@
   .logoLarge { margin-bottom: 24px; transform: scale(1.1); }
   .mainHeadline { font-size: 20px; margin-bottom: 12px; }
   .subHeadline { font-size: 13px; margin-bottom: 24px; max-width: 90%; }
-  .mockupPlaceholder { height: 160px; margin-bottom: 24px; }
+  .mockupPlaceholder { padding: 12px; }
   .tagline { font-size: 12px; margin-bottom: 24px; }
   
   .ctaBlock { padding: 16px; }

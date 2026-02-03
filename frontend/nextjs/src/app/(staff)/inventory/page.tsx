@@ -988,7 +988,6 @@ export default function InventoryPage() {
         return vegFilter === 'Veg' ? item.isVeg : !item.isVeg;
       });
   }, [menuItems, query, menuStatusFilter, menuCategoryFilter, vegFilter]);
-  console.log("🚀 ~ InventoryPage ~ filteredMenuItems:", filteredMenuItems)
 
   const filteredMenuCategories = useMemo(() => {
     const q = query.trim().toLowerCase();

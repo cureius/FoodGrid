@@ -242,10 +242,10 @@ public class RazorpayGateway implements PaymentGateway {
             
             // Add callback URL if provided
 
-            if (webhookUrl != null && !webhookUrl.isBlank()) {
-                paymentLinkRequest.put("callback_url", webhookUrl);
-                paymentLinkRequest.put("callback_method", "get");
-            }
+//            if (webhookUrl != null && !webhookUrl.isBlank()) {
+//                paymentLinkRequest.put("callback_url", webhookUrl);
+//                paymentLinkRequest.put("callback_method", "get");
+//            }
 
             final String requestBody = MAPPER.writeValueAsString(paymentLinkRequest);
 

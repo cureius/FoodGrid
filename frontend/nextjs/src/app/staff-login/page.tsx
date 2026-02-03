@@ -68,15 +68,11 @@ export default function StaffLoginPage() {
     // Move to PIN step
     setError(null);
     setSuccess(null);
-    console.log("🚀 ~ handleEmailSubmit ~ email:", email)
     setStep("pin");
   };
 
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("🚀 ~ handlePinSubmit ~ deviceId:", deviceId)
-    console.log("🚀 ~ handlePinSubmit ~ email:", email)
-    console.log("🚀 ~ handlePinSubmit ~ pin:", pin)
     if (!pin || pin.length !== 6 || !deviceId || !email.trim()) {
       setError("Please enter a valid 6-digit PIN");
       return;

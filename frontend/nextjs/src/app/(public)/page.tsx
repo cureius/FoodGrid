@@ -57,7 +57,7 @@ export default function LandingPage() {
         <div className={styles.heroCta}>
           <Link href="/start-free-trial">
             <button className={styles.btnPrimary}>
-              Start Free Trial <ArrowRight size={20} />
+              Start Today <ArrowRight size={20} />
             </button>
           </Link>
           <Link href="/user/login">
@@ -75,7 +75,7 @@ export default function LandingPage() {
           Everything you need to run and scale your restaurant business
         </p>
         <div className={styles.grid2}>
-          <div className={styles.featureCard}>
+          {/* <div className={styles.featureCard}>
             <div className={styles.featureIcon}>
               <Building2 size={24} />
             </div>
@@ -83,7 +83,7 @@ export default function LandingPage() {
             <p className={styles.featureDescription}>
               Isolated tenant environments with centralized management. Perfect for SaaS deployment and white-label solutions.
             </p>
-          </div>
+          </div> */}
 
           <div className={styles.featureCard}>
             <div className={styles.featureIcon}>
@@ -124,7 +124,7 @@ export default function LandingPage() {
           Tailored workflows for different user types
         </p>
         <div className={styles.grid2}>
-          <div className={styles.roleCard}>
+          {/* <div className={styles.roleCard}>
             <div className={styles.roleHeader}>
               <div className={styles.roleIconWrapper}>
                 <Shield size={28} />
@@ -137,7 +137,7 @@ export default function LandingPage() {
               <li>Payment gateway configuration</li>
               <li>Multi-tenant analytics dashboard</li>
             </ul>
-          </div>
+          </div> */}
 
           <div className={styles.roleCard}>
             <div className={styles.roleHeader}>
@@ -384,7 +384,7 @@ export default function LandingPage() {
         <div className={styles.heroCta}>
           <Link href="/user/register">
             <button className={styles.btnPrimary}>
-              Start Free Trial <ArrowRight size={20} />
+              Start Today <ArrowRight size={20} />
             </button>
           </Link>
           <Link href="/user/login">

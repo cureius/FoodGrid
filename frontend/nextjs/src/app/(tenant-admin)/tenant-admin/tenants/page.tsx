@@ -157,7 +157,6 @@ export default function TenantsPage() {
       setError(null);
       setSuccess(null);
       const result = await createTenant(form);
-      console.log("🚀 ~ onCreate ~ result:", result)
       setForm({ name: "", contactEmail: "", status: "ACTIVE", adminEmail: "", adminPassword: "", adminDisplayName: "" });
       setShowForm(false);
 
@@ -240,7 +239,6 @@ export default function TenantsPage() {
 
     //get client_payment_configs for the tenant
     const clientPaymentConfigs = await listPaymentConfigs(tenant.id, false);
-    console.log("🚀 ~ startEditPaymentGateway ~ clientPaymentConfigs:", clientPaymentConfigs)
     if (clientPaymentConfigs.length === 0 || clientPaymentConfigs.length === undefined) {
       setPaymentGatewayForm(defaultPaymentGateway);
     } else {

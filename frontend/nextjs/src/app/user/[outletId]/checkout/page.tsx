@@ -15,7 +15,6 @@ export default function CheckoutPage() {
   const params = useParams();
   const outletId = params?.outletId as string;
   const { items, orderType, clearCart } = useCartStore();
-  console.log("🚀 ~ CheckoutPage ~ orderType:", orderType)
   const [selectedMethod, setSelectedMethod] = useState<'UPI'|'CARD'|'NB'|'CASH'>('UPI');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);

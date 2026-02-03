@@ -30,7 +30,34 @@ export default function BrochurePage() {
         <section className={`${styles.panel} ${styles.frontPanel}`}>
           <div className={styles.frontContent}>
             <div className={styles.logoLarge}>
-               <Logo size={64} />
+               <div 
+        style={{ 
+          width: 64, 
+          height: 64, 
+          display: "grid", 
+          gridTemplateColumns: "1fr 1fr", 
+          gridTemplateRows: "1fr 1fr", 
+          gap: 64 * 0.1,
+          padding: 64 * 0.1,
+          background: "var(--primary)",
+          borderRadius: 64 * 0.25,
+          boxShadow: "0 4px 6px -1px rgba(59, 130, 246, 0.3)"
+        }}
+      >
+        <div style={{ background: "white", borderRadius: 64 * 0.08, opacity: 0.9 }}></div>
+        <div style={{ background: "white", borderRadius: 64 * 0.08, opacity: 0.5 }}></div>
+        <div style={{ background: "white", borderRadius: 64 * 0.08, opacity: 0.5 }}></div>
+        <div style={{ background: "white", borderRadius: 64 * 0.08, opacity: 0.9 }}></div>
+      </div>
+      <span style={{ 
+        fontSize: 64 * 0.65, 
+        fontWeight: 800, 
+        letterSpacing: "-0.03em", 
+        color: "var(--text-main)",
+        lineHeight: 1
+      }}>
+        FoodGrid
+      </span>
             </div>
             
             <h1 className={styles.mainHeadline}>
@@ -58,9 +85,9 @@ export default function BrochurePage() {
             <div className={styles.ctaBlock}>
                <div className={styles.ctaTitle}>Start your legacy today</div>
                <Link href="/user/register" className={styles.ctaButtonMain}>
-                 Start Free Trial <ArrowRight size={16} />
+                 Start Now <ArrowRight size={16} />
                </Link>
-               <div className={styles.trialNote}>14 days free trial. No card required.</div>
+               {/* <div className={styles.trialNote}>14 days free trial. No card required.</div> */}
             </div>
           </div>
         </section>
@@ -153,7 +180,7 @@ export default function BrochurePage() {
 
           <div className={styles.contactFooter}>
              <div className={styles.contactItem}>
-               <Phone size={16} /> +91 98765 43210
+               <Phone size={16} /> +91 8583944249
              </div>
              <div className={styles.contactItem}>
                <Globe size={16} /> www.foodgrid.com
