@@ -995,6 +995,8 @@ export type OrderResponse = {
   grandTotal: number;
   notes: string | null;
   createdAt: string; // ISO date string
+  sourceChannel?: string; // "FOODGRID" | "SWIGGY" | "ZOMATO"
+  externalOrderId?: string;
   items: OrderItemResponse[];
 };
 
@@ -1159,6 +1161,49 @@ export type PaymentStatusResponse = {
 export function getPaymentStatus(orderId: string) {
   return http<PaymentStatusResponse>(`/api/v1/payments/order/${encodeURIComponent(orderId)}/status`, {
     method: "GET",
+    headers: { ...clientAdminAuthHeader() }
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// Channel Integrations
+// ─────────────────────────────────────────────────────────────
+
+export type ChannelIntegration = {
+  id: string;
+  outletId: string;
+  channel: "SWIGGY" | "ZOMATO";
+  externalStoreId: string;
+  authPayload: string;
+  isActive: boolean;
+  lastSyncAt: string | null;
+};
+
+export function listIntegrations(outletId: string) {
+  return http<ChannelIntegration[]>(`/api/v1/outlets/${encodeURIComponent(outletId)}/integrations`, {
+    method: "GET",
+    headers: { ...clientAdminAuthHeader() }
+  });
+}
+
+export function saveIntegration(outletId: string, channel: string, data: Partial<ChannelIntegration>) {
+  return http<ChannelIntegration>(`/api/v1/outlets/${encodeURIComponent(outletId)}/integrations/${channel}`, {
+    method: "POST",
+    headers: { ...clientAdminAuthHeader() },
+    body: JSON.stringify(data)
+  });
+}
+
+export function testIntegration(outletId: string, channel: string) {
+  return http<void>(`/api/v1/outlets/${encodeURIComponent(outletId)}/integrations/${channel}/test`, {
+    method: "POST",
+    headers: { ...clientAdminAuthHeader() }
+  });
+}
+
+export function syncMenu(outletId: string, channel: string, direction: "PUSH" | "PULL") {
+  return http<void>(`/api/v1/outlets/${encodeURIComponent(outletId)}/integrations/${channel}/sync-menu?direction=${direction}`, {
+    method: "POST",
     headers: { ...clientAdminAuthHeader() }
   });
 }

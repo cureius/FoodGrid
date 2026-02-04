@@ -9,6 +9,7 @@ import com.foodgrid.common.idempotency.IdempotencyService;
 import com.foodgrid.common.idempotency.RequestHash;
 import com.foodgrid.common.security.TenantGuards;
 import com.foodgrid.common.util.Ids;
+import com.foodgrid.integration.service.IntegrationService;
 import com.foodgrid.pos.dto.*;
 import com.foodgrid.pos.model.*;
 import com.foodgrid.pos.repo.*;
@@ -44,6 +45,7 @@ public class OrderPosService {
   @Inject AuditLogService audit;
   @Inject JsonWebToken jwt;
   @Inject OutletRepository outletRepository;
+  @Inject IntegrationService integrationService;
 
   @Transactional
   public OrderResponse create(final OrderCreateRequest req, final String outletIdParam) {
@@ -150,6 +152,8 @@ public class OrderPosService {
     o.updatedAt = Instant.now();
     orderRepository.persist(o);
 
+    integrationService.updateExternalStatus(o, Order.Status.SERVED);
+
     audit.record("ORDER_SERVED", o.outletId, "Order", o.id, "Order marked as served");
 
     return get(orderId);
@@ -190,6 +194,7 @@ public class OrderPosService {
            o.status = Order.Status.SERVED;
            o.updatedAt = Instant.now();
            orderRepository.persist(o);
+           integrationService.updateExternalStatus(o, Order.Status.SERVED);
        }
     }
   }
@@ -270,6 +275,8 @@ public class OrderPosService {
     o.updatedAt = Instant.now();
     orderRepository.persist(o);
 
+    integrationService.updateExternalStatus(o, Order.Status.BILLED);
+
     return get(orderId);
   }
 
@@ -308,6 +315,8 @@ public class OrderPosService {
       o.status = newStatus;
       o.updatedAt = Instant.now();
       orderRepository.persist(o);
+      
+      integrationService.updateExternalStatus(o, newStatus);
       
       audit.record("ORDER_STATUS_UPDATED", o.outletId, "Order", o.id, "Status changed to " + statusVal);
       
@@ -388,6 +397,7 @@ public class OrderPosService {
       o.status = Order.Status.PAID;
       o.updatedAt = Instant.now();
       orderRepository.persist(o);
+      integrationService.updateExternalStatus(o, Order.Status.PAID);
     }
 
     return new PaymentResponse(p.id, p.orderId, p.method.name(), p.amount, p.status.name());

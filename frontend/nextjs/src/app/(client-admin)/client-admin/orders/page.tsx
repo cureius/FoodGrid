@@ -22,6 +22,8 @@ type Order = {
   progress: number;
   itemsCount: number;
   total: number;
+  sourceChannel: string;
+  externalOrderId: string | null;
   items: { name: string; qty: number; price: number; checked: boolean }[];
 };
 
@@ -151,16 +153,14 @@ function mapOrderResponse(order: OrderResponse): Order {
     progress,
     itemsCount: activeItems.length,
     total: Number(order.grandTotal),
-    items: activeItems.map((item) => {
-      const s = item.status ? item.status.toUpperCase() : "";
-      return {
-        name: item.itemName,
-        qty: Number(item.qty),
-        price: Number(item.lineTotal),
-        // Item is "checked" (done) if it is served, billed or paid
-        checked: ["SERVED", "BILLED", "PAID"].includes(s),
-      };
-    }),
+    sourceChannel: order.sourceChannel || "FOODGRID",
+    externalOrderId: order.externalOrderId || null,
+    items: activeItems.map((item) => ({
+      name: item.itemName,
+      qty: Number(item.qty),
+      price: Number(item.lineTotal),
+      checked: item.status === "OPEN", // OPEN items are checked (not served yet)
+    })),
   };
 }
 
@@ -196,6 +196,7 @@ export default function OrderPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+  const [activeChannel, setActiveChannel] = useState<string>("All");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const { selectedOutletId } = useOutlet();
@@ -382,6 +383,11 @@ export default function OrderPage() {
     const q = query.trim().toLowerCase();
     if (q) {
       filtered = filtered.filter((o) => o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q));
+    }
+
+    // Filter by channel
+    if (activeChannel !== "All") {
+      filtered = filtered.filter((o) => o.sourceChannel === activeChannel);
     }
 
     // Sort
@@ -933,6 +939,37 @@ export default function OrderPage() {
             );
           })}
         </div>
+        
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
+          {["All", "FOODGRID", "SWIGGY", "ZOMATO"].map((ch) => {
+            const isActive = ch === activeChannel;
+            const colors = {
+              All: { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b" },
+              FOODGRID: { bg: "rgba(139, 92, 246, 0.1)", color: "#8b5cf6" },
+              SWIGGY: { bg: "rgba(241, 79, 14, 0.1)", color: "#f14f0e" },
+              ZOMATO: { bg: "rgba(235, 34, 49, 0.1)", color: "#eb2231" },
+            }[ch] || { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b" };
+
+            return (
+              <button
+                key={ch}
+                onClick={() => setActiveChannel(ch)}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 10,
+                  border: `1px solid ${isActive ? colors.color : "transparent"}`,
+                  background: isActive ? colors.bg : "#f8fafc",
+                  color: colors.color,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                {ch}
+              </button>
+            );
+          })}
+        </div>
 
         {loading && (
           <div style={{ display: "flex", justifyContent: "center", padding: "60px" }}>
@@ -1108,12 +1145,28 @@ export default function OrderPage() {
                             <span style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 600 }}>
                               {order.type}
                             </span>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                          {order.sourceChannel !== "FOODGRID" && (
+                            <div style={{
+                              padding: "2px 6px",
+                              borderRadius: 4,
+                              background: order.sourceChannel === "SWIGGY" ? "#f14f0e" : "#eb2231",
+                              color: "white",
+                              fontSize: 10,
+                              fontWeight: 900,
+                              letterSpacing: "0.5px",
+                            }}>
+                              {order.sourceChannel}
+                            </div>
+                          )}
+                        </div>
                           </div>
                           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
                             Order #{order.id.slice(-4).toUpperCase()}
                           </div>
                           <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{order.time}</div>
                         </div>
+                        
                         <div style={{
                           width: 56,
                           height: 56,

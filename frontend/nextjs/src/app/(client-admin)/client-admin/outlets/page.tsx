@@ -20,7 +20,9 @@ import {
   XCircle,
   Building2,
   RefreshCw,
+  Zap,
 } from "lucide-react";
+import Link from "next/link";
 
 // Helper to decode JWT and get the subject (user ID)
 function getUserIdFromToken(): string | null {
@@ -580,6 +582,26 @@ export default function Page() {
                   <Edit3 size={14} />
                   Edit
                 </button>
+                <Link
+                  href={`/client-admin/outlets/${outlet.id}/integrations`}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "8px 14px",
+                    borderRadius: 8,
+                    border: "1px solid rgba(139, 92, 246, 0.2)",
+                    background: "rgba(139, 92, 246, 0.05)",
+                    color: "#8b5cf6",
+                    fontSize: 13,
+                    fontWeight: 500,
+                    textDecoration: "none",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <Zap size={14} />
+                  Integrations
+                </Link>
                 <button
                   onClick={() => setDeleteConfirm(outlet.id)}
                   disabled={saving}
