@@ -15,10 +15,27 @@ import {
   Activity,
   ChevronRight,
   MapPin,
-  ShoppingBag
+  ShoppingBag,
+  DollarSign,
+  BarChart3,
+  PieChart as PieChartIcon,
+  Zap,
+  AlertTriangle,
+  Info
 } from "lucide-react";
-import { listEmployees, listOrders, type OrderResponse } from "@/lib/api/clientAdmin";
+import { 
+  listEmployees, 
+  listOrders, 
+  getDashboardAnalytics, 
+  type OrderResponse, 
+  type DashboardAnalytics 
+} from "@/lib/api/clientAdmin";
 import { useOutlet } from "@/contexts/OutletContext";
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+  LineChart, Line, PieChart, Pie, Cell, Legend, AreaChart, Area 
+} from 'recharts';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function formatTime(d: Date) {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -76,7 +93,6 @@ function getTimeRangeDates(range: TimeRange): { start: Date; end: Date } {
 }
 
 function isOrderCompleted(order: OrderResponse): boolean {
-  // Orders are considered completed/served if they are SERVED, BILLED, or PAID
   return order.status === "SERVED" || order.status === "BILLED" || order.status === "PAID";
 }
 
@@ -183,6 +199,8 @@ export default function Page() {
   const [orders, setOrders] = useState<OrderResponse[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>("today");
+  const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -195,6 +213,7 @@ export default function Page() {
       setRefreshing(false);
       setEmployees([]);
       setOrders([]);
+      setAnalytics(null);
       return;
     }
 
@@ -203,13 +222,22 @@ export default function Page() {
       else setLoading(true);
       setError(null);
 
-      // Load employees for selected outlet
       const emps = await listEmployees(selectedOutletId);
       setEmployees(emps ?? []);
 
-      // Load orders for selected outlet (fetch a large number to cover all time ranges)
+      setAnalyticsLoading(true);
+      const { start, end } = getTimeRangeDates(timeRange);
+      try {
+        const data = await getDashboardAnalytics(selectedOutletId, start.toISOString(), end.toISOString());
+        setAnalytics(data);
+      } catch (err: any) {
+        console.error("Failed to load analytics:", err);
+      } finally {
+        setAnalyticsLoading(false);
+      }
+
       setOrdersLoading(true);
-      const allOrders = await listOrders(1000, selectedOutletId);
+      const allOrders = await listOrders(50, selectedOutletId);
       setOrders(allOrders ?? []);
     } catch (e: any) {
       setError(e?.message ?? "Failed to load dashboard data");
@@ -222,25 +250,18 @@ export default function Page() {
 
   useEffect(() => {
     load();
-  }, [selectedOutletId]);
+  }, [selectedOutletId, timeRange]);
 
   const stats = useMemo(() => {
     const activeEmployees = employees.filter((e) => (e.status ?? "ACTIVE") === "ACTIVE").length;
     const inactiveEmployees = employees.length - activeEmployees;
 
-    // Calculate completed orders for the selected time range
-    const { start, end } = getTimeRangeDates(timeRange);
-    const completedOrders = orders.filter(
-      (order) => isOrderCompleted(order) && isOrderInTimeRange(order, start, end)
-    ).length;
-
     return {
       employeesCount: employees.length,
       activeEmployees,
-      inactiveEmployees,
-      completedOrders
+      inactiveEmployees
     };
-  }, [employees, orders, timeRange]);
+  }, [employees]);
 
   const recentEmployees = employees.slice(0, 5);
 
@@ -299,73 +320,56 @@ export default function Page() {
               border: "none",
               background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
               color: "white",
-              fontSize: 14,
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: refreshing ? "not-allowed" : "pointer",
-              opacity: refreshing ? 0.7 : 1,
-              boxShadow: "0 4px 14px rgba(139, 92, 246, 0.35)",
-              transition: "all 0.2s ease",
+              boxShadow: "0 4px 14px rgba(139, 92, 246, 0.3)",
+              transition: "transform 0.2s ease, box-shadow 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-1px)";
+              e.currentTarget.style.boxShadow = "0 6px 20px rgba(139, 92, 246, 0.4)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 4px 14px rgba(139, 92, 246, 0.3)";
             }}
           >
-            <RefreshCw size={16} style={{ animation: refreshing ? "spin 1s linear infinite" : "none" }} />
-            {refreshing ? "Refreshing..." : "Refresh"}
+            <RefreshCw size={20} style={{ animation: refreshing ? "spin 2s linear infinite" : "none" }} />
+            {refreshing ? "Refreshing..." : "Refresh Data"}
           </button>
         </div>
       </div>
 
-      {/* Error Alert */}
-      {error && (
-        <div style={{
-          padding: "14px 18px",
-          borderRadius: 12,
-          background: "rgba(239, 68, 68, 0.08)",
-          border: "1px solid rgba(239, 68, 68, 0.2)",
-          color: "var(--danger)",
-          marginBottom: 24,
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-        }}>
-          <Activity size={18} />
-          {error}
-        </div>
-      )}
-
       {/* Time Range Selector */}
       <div style={{
         display: "flex",
-        alignItems: "center",
-        gap: 12,
+        gap: 8,
         marginBottom: 24,
-        flexWrap: "wrap",
+        background: "var(--bg-surface)",
+        padding: 6,
+        borderRadius: 14,
+        width: "fit-content",
+        boxShadow: "var(--shadow-sm)",
+        border: "1px solid var(--border-light)",
       }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-secondary)" }}>Time Range:</span>
         {(["today", "thisWeek", "thisMonth", "thisQuarter", "thisYear"] as TimeRange[]).map((range) => (
           <button
             key={range}
             onClick={() => setTimeRange(range)}
             style={{
               padding: "8px 16px",
-              borderRadius: 8,
+              borderRadius: 10,
               border: "none",
-              background: timeRange === range 
-                ? "var(--primary)"
-                : "var(--component-bg)",
+              background: timeRange === range ? "var(--primary)" : "transparent",
               color: timeRange === range ? "white" : "var(--text-secondary)",
               fontSize: 13,
               fontWeight: timeRange === range ? 600 : 500,
               cursor: "pointer",
-              boxShadow: timeRange === range 
-                ? "var(--shadow-md)"
-                : "var(--shadow-sm)",
               transition: "all 0.2s ease",
               textTransform: "capitalize",
             }}
           >
-            {range === "thisWeek" ? "This Week" :
-             range === "thisMonth" ? "This Month" :
-             range === "thisQuarter" ? "This Quarter" :
-             range === "thisYear" ? "This Year" : "Today"}
+            {range.replace(/([A-Z])/g, ' $1')}
           </button>
         ))}
       </div>
@@ -373,57 +377,305 @@ export default function Page() {
       {/* Stats Grid */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
         gap: 20,
         marginBottom: 32,
       }}>
         <StatCard
+          title="Total Revenue"
+          value={analytics ? `₹${analytics.summary.totalRevenue.toLocaleString()}` : "₹0"}
+          subtitle={timeRange === "today" ? "Today's earnings" : "Revenue in period"}
+          trend={analytics?.summary.growthRate && analytics.summary.growthRate > 0 ? `${analytics.summary.growthRate}%` : undefined}
+          icon={<DollarSign size={26} />}
+          color="var(--success)"
+          bgColor="rgba(16, 185, 129, 0.1)"
+          loading={loading || analyticsLoading}
+        />
+        <StatCard
           title="Completed Orders"
-          value={stats.completedOrders}
-          subtitle={timeRange === "today" ? "Today" :
-                   timeRange === "thisWeek" ? "This week" :
-                   timeRange === "thisMonth" ? "This month" :
-                   timeRange === "thisQuarter" ? "This quarter" : "This year"}
+          value={analytics ? analytics.summary.totalOrders : 0}
+          subtitle="Orders processed"
           icon={<ShoppingBag size={26} />}
           color="var(--primary)"
           bgColor="rgba(139, 92, 246, 0.1)"
-          loading={loading || ordersLoading}
+          loading={loading || analyticsLoading}
         />
         <StatCard
-          title="Total Employees"
-          value={stats.employeesCount}
-          subtitle={selectedOutlet ? `For ${selectedOutlet.name}` : "Select an outlet"}
+          title="Avg Order Value"
+          value={analytics ? `₹${analytics.summary.averageOrderValue.toFixed(0)}` : "₹0"}
+          subtitle="Revenue per ticket"
+          icon={<TrendingUp size={26} />}
+          color="var(--warning)"
+          bgColor="rgba(245, 158, 11, 0.1)"
+          loading={loading || analyticsLoading}
+        />
+        <StatCard
+          title="Active Employees"
+          value={stats.activeEmployees}
+          subtitle={`${employees.length} members total`}
           icon={<Users size={26} />}
           color="var(--info)"
           bgColor="rgba(59, 130, 246, 0.1)"
           loading={loading}
         />
-        <StatCard
-          title="Active Employees"
-          value={stats.activeEmployees}
-          subtitle="Currently enabled"
-          icon={<UserCheck size={26} />}
-          color="var(--success)"
-          bgColor="rgba(16, 185, 129, 0.1)"
-          loading={loading}
-        />
-        <StatCard
-          title="Inactive Employees"
-          value={stats.inactiveEmployees}
-          subtitle="Disabled accounts"
-          icon={<UserX size={26} />}
-          color="var(--warning)"
-          bgColor="rgba(245, 158, 11, 0.1)"
-          loading={loading}
-        />
       </div>
 
-      {/* Main Content Grid */}
+      {/* Analytics Insights */}
+      <AnimatePresence>
+        {analytics && analytics.insights.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{
+              background: "linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%)",
+              borderRadius: 20,
+              padding: "24px",
+              marginBottom: 32,
+              border: "1px solid rgba(139, 92, 246, 0.1)",
+              display: "flex",
+              gap: 16,
+              alignItems: "flex-start"
+            }}
+          >
+            <div style={{ 
+              background: "var(--primary)", 
+              color: "white", 
+              padding: 10, 
+              borderRadius: 12,
+              boxShadow: "0 4px 12px rgba(139, 92, 246, 0.3)"
+            }}>
+              <Zap size={20} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <h4 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>Smart Insights</h4>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                {analytics.insights.map((insight: string, i: number) => (
+                  <div key={i} style={{ 
+                    background: "var(--bg-surface)", 
+                    padding: "10px 16px", 
+                    borderRadius: 12, 
+                    fontSize: 13, 
+                    color: "var(--text-secondary)",
+                    border: "1px solid var(--border-light)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    boxShadow: "var(--shadow-sm)"
+                  }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--primary)" }} />
+                    {insight}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Visualizations Grid */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))",
+        gap: 24,
+        marginBottom: 32
+      }}>
+        {/* Hourly Trend Chart */}
+        <div style={{
+          background: "var(--bg-surface)",
+          borderRadius: 20,
+          padding: 24,
+          boxShadow: "var(--shadow-md)",
+          border: "1px solid var(--border-light)",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(139, 92, 246, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--primary)" }}>
+                <BarChart3 size={20} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Orders by Hour</h3>
+                <p style={{ margin: 0, fontSize: 12, color: "var(--text-secondary)" }}>Peak occupancy patterns</p>
+              </div>
+            </div>
+          </div>
+          <div style={{ height: 300, width: '100%' }}>
+            {analyticsLoading ? (
+              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <RefreshCw size={24} style={{ animation: "spin 2s linear infinite" }} color="var(--text-tertiary)" />
+              </div>
+            ) : analytics?.hourlyTrend?.length ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={analytics.hourlyTrend.map((d: any) => ({ ...d, hourLabel: `${d.hour}:00` }))}>
+                  <defs>
+                    <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-light)" />
+                  <XAxis dataKey="hourLabel" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--text-tertiary)' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--text-tertiary)' }} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: 12, border: 'none', boxShadow: 'var(--shadow-lg)', background: 'var(--bg-surface)' }}
+                    itemStyle={{ fontSize: 12, fontWeight: 600 }}
+                  />
+                  <Area type="monotone" dataKey="count" name="Orders" stroke="var(--primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorCount)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
+                <BarChart3 size={40} style={{ opacity: 0.2, marginBottom: 12 }} />
+                <p>Not enough data for trend</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Channel Distribution */}
+        <div style={{
+          background: "var(--bg-surface)",
+          borderRadius: 20,
+          padding: 24,
+          boxShadow: "var(--shadow-md)",
+          border: "1px solid var(--border-light)",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(16, 185, 129, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--success)" }}>
+                <PieChartIcon size={20} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Channel Revenue</h3>
+                <p style={{ margin: 0, fontSize: 12, color: "var(--text-secondary)" }}>Source contributions</p>
+              </div>
+            </div>
+          </div>
+          <div style={{ height: 300, width: '100%', display: 'flex' }}>
+            {analyticsLoading ? (
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <RefreshCw size={24} style={{ animation: "spin 2s linear infinite" }} color="var(--text-tertiary)" />
+              </div>
+            ) : analytics?.channelSplit?.length ? (
+              <>
+                <ResponsiveContainer width="55%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={analytics.channelSplit}
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="revenue"
+                      nameKey="label"
+                    >
+                      {analytics.channelSplit.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={[
+                          '#8b5cf6', // Indigo
+                          '#10b981', // Emerald
+                          '#f59e0b', // Amber
+                          '#3b82f6', // Blue
+                        ][index % 4]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: 12, border: 'none', boxShadow: 'var(--shadow-lg)', background: 'var(--bg-surface)' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div style={{ width: '45%', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 16 }}>
+                  {analytics.channelSplit.map((item: any, i: number) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ 
+                        width: 12, height: 12, borderRadius: 3, 
+                        background: ['#8b5cf6', '#10b981', '#f59e0b', '#3b82f6'][i % 4] 
+                      }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{item.label}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>₹{item.revenue.toLocaleString()}</div>
+                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
+                        {analytics.summary.totalRevenue > 0 ? ((item.revenue / analytics.summary.totalRevenue) * 100).toFixed(0) : '0'}%
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
+                <PieChartIcon size={40} style={{ opacity: 0.2, marginBottom: 12 }} />
+                <p>No channel data</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
         gap: 24,
+        marginBottom: 40
       }}>
+        {/* Top Selling Items */}
+        <div style={{
+          background: "var(--bg-surface)",
+          borderRadius: 20,
+          boxShadow: "var(--shadow-md)",
+          border: "1px solid var(--border-light)",
+          overflow: "hidden",
+        }}>
+          <div style={{
+            padding: "20px 24px",
+            borderBottom: "1px solid var(--border-light)",
+            display: "flex",
+            alignItems: "center",
+            gap: 12
+          }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(245, 158, 11, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--warning)" }}>
+              <TrendingUp size={20} />
+            </div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Top Selling Items</h3>
+              <p style={{ margin: 0, fontSize: 12, color: "var(--text-secondary)" }}>Ranked by revenue</p>
+            </div>
+          </div>
+          <div style={{ padding: 16 }}>
+            {analyticsLoading ? (
+               <div style={{ padding: 40, textAlign: 'center' }}>
+                 <RefreshCw size={24} style={{ animation: "spin 2s linear infinite" }} color="var(--text-tertiary)" />
+               </div>
+            ) : analytics?.topItemsByRevenue?.length ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {analytics.topItemsByRevenue.map((item: any, i: number) => (
+                  <div key={i} style={{
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 16, 
+                    padding: '12px 16px',
+                    borderRadius: 12,
+                    background: 'var(--bg-tertiary)',
+                  }}>
+                    <div style={{ 
+                      width: 28, height: 28, borderRadius: 8, 
+                      background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                      fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', border: '1px solid var(--border-light)'
+                    }}>
+                      {i + 1}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{item.label}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{item.count} orders</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>₹{item.revenue.toLocaleString()}</div>
+                      <div style={{ fontSize: 11, color: 'var(--success)', fontWeight: 600 }}>Hot Seller</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>No item data found</div>
+            )}
+          </div>
+        </div>
+
         {/* Employees Section */}
         <div style={{
           background: "var(--bg-surface)",
@@ -471,26 +723,13 @@ export default function Page() {
 
           <div style={{ padding: 16 }}>
             {loading ? (
-              <div style={{ padding: 20, textAlign: "center", color: "var(--text-secondary)" }}>Loading employees...</div>
+              <div style={{ padding: 40, textAlign: "center" }}>
+                <RefreshCw size={24} style={{ animation: "spin 2s linear infinite" }} color="var(--text-tertiary)" />
+              </div>
             ) : recentEmployees.length === 0 ? (
               <div style={{ padding: 40, textAlign: "center" }}>
                 <Users size={40} style={{ color: "var(--text-tertiary)", marginBottom: 12 }} />
                 <p style={{ color: "var(--text-secondary)", margin: 0 }}>No employees found</p>
-                <Link href="/client-admin/employees" style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  marginTop: 12,
-                  padding: "10px 18px",
-                  borderRadius: 10,
-                  background: "linear-gradient(135deg, var(--info) 0%, #2563eb 100%)",
-                  color: "white",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  textDecoration: "none",
-                }}>
-                  Add Employee <ArrowRight size={14} />
-                </Link>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -499,14 +738,14 @@ export default function Page() {
                     display: "flex",
                     alignItems: "center",
                     gap: 14,
-                    padding: "14px 16px",
+                    padding: "12px 16px",
                     borderRadius: 12,
                     background: "var(--bg-tertiary)",
                     transition: "all 0.15s ease",
                   }}>
                     <div style={{
-                      width: 44,
-                      height: 44,
+                      width: 40,
+                      height: 40,
                       borderRadius: "50%",
                       background: emp.avatarUrl 
                         ? `url(${emp.avatarUrl}) center/cover`
@@ -525,7 +764,7 @@ export default function Page() {
                         {emp.displayName ?? "Employee"}
                       </div>
                       <div style={{ fontSize: 12, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {emp.email ?? "No email"} • {emp.outletName ?? "Unknown outlet"}
+                        {emp.role ?? "Staff"} • {emp.outletName ?? "Active"}
                       </div>
                     </div>
                     <div style={{
@@ -547,103 +786,52 @@ export default function Page() {
       </div>
 
       {/* Quick Actions */}
-      <div style={{ marginTop: 32 }}>
-        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16, color: "var(--text-primary)" }}>Quick Actions</h3>
+      <div style={{ marginBottom: 32 }}>
+        <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: "var(--text-primary)" }}>Quick Actions</h3>
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
           gap: 16,
         }}>
-          <Link href="/client-admin/outlets" style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            padding: 20,
-            borderRadius: 16,
-            background: "var(--bg-surface)",
-            border: "1px solid var(--border-light)",
-            boxShadow: "var(--shadow-sm)",
-            textDecoration: "none",
-            transition: "all 0.2s ease",
-          }}>
-            <div style={{
-              width: 48,
-              height: 48,
-              borderRadius: 12,
-              background: "var(--bg-tertiary)",
+          {[
+            { href: "/client-admin/outlets", icon: <Store size={22} />, label: "Manage Outlets", sub: "Add or edit stores", color: "var(--primary)" },
+            { href: "/client-admin/employees", icon: <Users size={22} />, label: "Staff Management", sub: "Roles and permissions", color: "var(--info)" },
+            { href: "/client-admin/orders", icon: <Activity size={22} />, label: "Live Orders", sub: "Track current activity", color: "var(--success)" },
+            { href: "/client-admin/menu", icon: <BarChart3 size={22} />, label: "Menu Editor", sub: "Prices and items", color: "var(--warning)" }
+          ].map((action, i) => (
+            <Link key={i} href={action.href} style={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
+              gap: 14,
+              padding: 20,
+              borderRadius: 16,
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border-light)",
+              boxShadow: "var(--shadow-sm)",
+              textDecoration: "none",
+              transition: "all 0.2s ease",
             }}>
-              <Store size={24} style={{ color: "var(--primary)" }} />
-            </div>
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>Manage Outlets</div>
-              <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>Add or edit outlets</div>
-            </div>
-          </Link>
-
-          <Link href="/client-admin/employees" style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            padding: 20,
-            borderRadius: 16,
-            background: "var(--bg-surface)",
-            border: "1px solid var(--border-light)",
-            boxShadow: "var(--shadow-sm)",
-            textDecoration: "none",
-            transition: "all 0.2s ease",
-          }}>
-            <div style={{
-              width: 48,
-              height: 48,
-              borderRadius: 12,
-              background: "var(--bg-tertiary)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}>
-              <Users size={24} style={{ color: "var(--primary)" }} />
-            </div>
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>Manage Employees</div>
-              <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>Add or edit staff</div>
-            </div>
-          </Link>
-
-          <Link href="/client-admin/orders" style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            padding: 20,
-            borderRadius: 16,
-            background: "var(--bg-surface)",
-            border: "1px solid var(--border-light)",
-            boxShadow: "var(--shadow-sm)",
-            textDecoration: "none",
-            transition: "all 0.2s ease",
-          }}>
-            <div style={{
-              width: 48,
-              height: 48,
-              borderRadius: 12,
-              background: "var(--bg-tertiary)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}>
-              <Activity size={24} style={{ color: "var(--success)" }} />
-            </div>
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>View Orders</div>
-              <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>Track all orders</div>
-            </div>
-          </Link>
+              <div style={{
+                width: 48,
+                height: 48,
+                borderRadius: 12,
+                background: "var(--bg-tertiary)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: action.color
+              }}>
+                {action.icon}
+              </div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{action.label}</div>
+                <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{action.sub}</div>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
 
-      {/* Global Styles */}
       <style jsx global>{`
         @keyframes spin {
           from { transform: rotate(0deg); }

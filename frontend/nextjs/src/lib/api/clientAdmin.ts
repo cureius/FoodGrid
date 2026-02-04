@@ -1100,6 +1100,31 @@ export function deleteOrder(orderId: string) {
   });
 }
 
+export type DashboardAnalytics = {
+  summary: {
+    totalOrders: number;
+    totalRevenue: number;
+    averageOrderValue: number;
+    growthRate: number;
+  };
+  channelSplit: { label: string; count: number; revenue: number }[];
+  topItemsByQuantity: { label: string; count: number; revenue: number }[];
+  topItemsByRevenue: { label: string; count: number; revenue: number }[];
+  categorySplit: { label: string; count: number; revenue: number }[];
+  hourlyTrend: { hour: number; count: number; revenue: number }[];
+  insights: string[];
+};
+
+export function getDashboardAnalytics(outletId: string, start?: string, end?: string) {
+  const params = new URLSearchParams({ outletId });
+  if (start) params.append("start", start);
+  if (end) params.append("end", end);
+  return http<DashboardAnalytics>(`/api/v1/admin/analytics?${params.toString()}`, {
+    method: "GET",
+    headers: { ...clientAdminAuthHeader() }
+  });
+}
+
 export type PaymentCreateInput = {
   method: string; // "CASH" | "CARD" | "UPI" | "GATEWAY"
   amount: number;
