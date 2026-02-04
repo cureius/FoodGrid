@@ -3,12 +3,14 @@
 import React, { useMemo, useState, useEffect } from "react";
 import styles from "./Orders.module.css";
 import Card from "@/components/ui/Card";
-import { Plus, Search, ChevronDown, ArrowRight, FileText, X, Timer, CheckCircle2, UtensilsCrossed, Loader2, RefreshCw, Zap, CreditCard, Utensils, Trash2, CheckSquare, Square, ReceiptText, Calendar } from "lucide-react";
+import { Plus, Search, ChevronDown, ArrowRight, FileText, X, Timer, CheckCircle2, UtensilsCrossed, Loader2, RefreshCw, Zap, CreditCard, Utensils, Trash2, CheckSquare, Square, ReceiptText, Calendar, LayoutGrid, Kanban as KanbanIcon } from "lucide-react";
 import Link from "next/link";
 import { listOrders, getOrder, cancelOrderItem, markOrderServed, billOrder, deleteOrder, updateOrderStatus, updateOrderItemStatus, type OrderResponse, type OrderItemResponse } from "@/lib/api/clientAdmin";
 import { useOutlet } from "@/contexts/OutletContext";
 import { getImageUrl } from "@/lib/api/clientAdmin";
 import Image from "next/image";
+import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
+import { motion, AnimatePresence } from "framer-motion";
 
 type OrderStatus = "All" | "Preparation" | "Payment" | "Ready" | "Completed" | "Cancelled" | "Open" | "KOT Sent" | "Served" | "Billed" | "Paid";
 
@@ -153,7 +155,7 @@ function mapOrderResponse(order: OrderResponse): Order {
     progress,
     itemsCount: activeItems.length,
     total: Number(order.grandTotal),
-    sourceChannel: order.sourceChannel || "FOODGRID",
+    sourceChannel: (order.sourceChannel || "FOODGRID").toUpperCase(),
     externalOrderId: order.externalOrderId || null,
     items: activeItems.map((item) => ({
       name: item.itemName,
@@ -199,6 +201,7 @@ export default function OrderPage() {
   const [activeChannel, setActiveChannel] = useState<string>("All");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "kanban">("grid");
   const { selectedOutletId } = useOutlet();
 
   // Fetch orders function
@@ -323,44 +326,28 @@ export default function OrderPage() {
 
   const selectedOrder = useMemo(() => mappedOrders.find((o) => o.id === selectedOrderId) ?? null, [mappedOrders, selectedOrderId]);
 
-  const statusFilters: { label: string; value: string; count: number }[] = useMemo(() => {
-    // Preparation: Dine-In (Open, KOT Sent), Takeaway (Paid/KOT Sent)
-    const prep = mappedOrders.filter(o =>
-      (o.type === "Dine In" && (o.status === "Open" || o.status === "KOT Sent")) ||
-      (o.type === "Take Away" && (o.status === "Paid" || o.status === "KOT Sent"))
-    );
-
-    // Payment: Dine-In (Served, Billed), Takeaway (Open, Billed)
-    const payment = mappedOrders.filter(o =>
-      (o.type === "Dine In" && (o.status === "Served" || o.status === "Billed")) ||
-      (o.type === "Take Away" && (o.status === "Open" || o.status === "Billed"))
-    );
-
-    // Ready/Pickup: Takeaway ready after KOT Sent
-    const ready = mappedOrders.filter(o => o.type === "Take Away" && o.status === "Served");
-
-    // Completed: Dine-In Paid, Takeaway Served
-    const completed = mappedOrders.filter(o =>
-      (o.type === "Dine In" && o.status === "Paid") ||
-      (o.type === "Take Away" && o.status === "Served")
-    );
-
-    return [
-      { label: "All Orders", value: "All", count: mappedOrders.length },
-      { label: "Preparation", value: "Preparation", count: prep.length },
-      { label: "Payment", value: "Payment", count: payment.length },
-      { label: "Ready", value: "Ready", count: ready.length },
-      { label: "Completed", value: "Completed", count: completed.length },
-      { label: "Cancelled", value: "Cancelled", count: mappedOrders.filter(o => o.status === "Cancelled").length },
-    ];
-  }, [mappedOrders]);
-
+  // Centralized filtering logic
   const filteredOrders = useMemo(() => {
-    let filtered = mappedOrders;
+    let result = mappedOrders;
 
-    // Filter by Tab
+    // 1. Search filter
+    const q = query.trim().toLowerCase();
+    if (q) {
+      result = result.filter(o => 
+        o.id.toLowerCase().includes(q) || 
+        o.customer.toLowerCase().includes(q) ||
+        o.table.toLowerCase().includes(q.toLowerCase())
+      );
+    }
+
+    // 2. Channel filter
+    if (activeChannel !== "All") {
+      result = result.filter(o => o.sourceChannel === activeChannel.toUpperCase());
+    }
+
+    // 3. Status filter (Tab)
     if (activeStatus !== "All") {
-      filtered = filtered.filter(o => {
+      result = result.filter(o => {
         if (activeStatus === "Preparation") {
           return (o.type === "Dine In" && (o.status === "Open" || o.status === "KOT Sent")) ||
             (o.type === "Take Away" && (o.status === "Paid" || o.status === "KOT Sent"));
@@ -379,24 +366,99 @@ export default function OrderPage() {
       });
     }
 
-    // Filter by query
-    const q = query.trim().toLowerCase();
-    if (q) {
-      filtered = filtered.filter((o) => o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q));
-    }
-
-    // Filter by channel
-    if (activeChannel !== "All") {
-      filtered = filtered.filter((o) => o.sourceChannel === activeChannel);
-    }
-
-    // Sort
+    // 4. Sort
     if (sortBy === "Oldest Order") {
-      filtered = [...filtered].reverse();
+      result = [...result].reverse();
     }
 
-    return filtered;
-  }, [mappedOrders, activeStatus, query, sortBy]);
+    return result;
+  }, [mappedOrders, query, activeChannel, activeStatus, sortBy]);
+
+  const statusFilters = useMemo(() => {
+    // Counts for status tabs should reflect current Channel and Search Query
+    let base = mappedOrders;
+    const q = query.trim().toLowerCase();
+    if (q) base = base.filter(o => o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q));
+    if (activeChannel !== "All") base = base.filter(o => o.sourceChannel === activeChannel.toUpperCase());
+
+    const getCount = (status: string) => {
+      let filtered = base;
+      if (status === "All") return filtered.length;
+      if (status === "Preparation") {
+        return filtered.filter(o => 
+          (o.type === "Dine In" && (o.status === "Open" || o.status === "KOT Sent")) ||
+          (o.type === "Take Away" && (o.status === "Paid" || o.status === "KOT Sent"))
+        ).length;
+      }
+      if (status === "Payment") {
+        return filtered.filter(o => 
+          (o.type === "Dine In" && (o.status === "Served" || o.status === "Billed")) ||
+          (o.type === "Take Away" && (o.status === "Open" || o.status === "Billed"))
+        ).length;
+      }
+      if (status === "Ready") {
+        return filtered.filter(o => o.type === "Take Away" && o.status === "Served").length;
+      }
+      if (status === "Completed") {
+        return filtered.filter(o => 
+          (o.type === "Dine In" && o.status === "Paid") || (o.type === "Take Away" && o.status === "Served")
+        ).length;
+      }
+      return filtered.filter(o => o.status === status).length;
+    };
+
+    return [
+      { label: "All Orders", value: "All", count: getCount("All") },
+      { label: "Preparation", value: "Preparation", count: getCount("Preparation") },
+      { label: "Payment", value: "Payment", count: getCount("Payment") },
+      { label: "Ready", value: "Ready", count: getCount("Ready") },
+      { label: "Completed", value: "Completed", count: getCount("Completed") },
+      { label: "Cancelled", value: "Cancelled", count: getCount("Cancelled") },
+    ];
+  }, [mappedOrders, query, activeChannel]);
+
+  const channelFilters = useMemo(() => {
+    // Counts for channel pills should reflect current Status and Search Query
+    let base = mappedOrders;
+    const q = query.trim().toLowerCase();
+    if (q) base = base.filter(o => o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q));
+    
+    // Status filtering logic for channel counts
+    const filterByStatus = (orders: Order[]) => {
+      if (activeStatus === "All") return orders;
+      return orders.filter(o => {
+        if (activeStatus === "Preparation") {
+          return (o.type === "Dine In" && (o.status === "Open" || o.status === "KOT Sent")) ||
+            (o.type === "Take Away" && (o.status === "Paid" || o.status === "KOT Sent"));
+        }
+        if (activeStatus === "Payment") {
+          return (o.type === "Dine In" && (o.status === "Served" || o.status === "Billed")) ||
+            (o.type === "Take Away" && (o.status === "Open" || o.status === "Billed"));
+        }
+        if (activeStatus === "Ready") {
+          return o.type === "Take Away" && o.status === "Served";
+        }
+        if (activeStatus === "Completed") {
+          return (o.type === "Dine In" && o.status === "Paid") || (o.type === "Take Away" && o.status === "Served");
+        }
+        return o.status === activeStatus;
+      });
+    };
+
+    const ordersWithQuery = base;
+
+    return ["All", "FOODGRID", "SWIGGY", "ZOMATO"].map(ch => {
+      let filtered = ordersWithQuery;
+      if (ch !== "All") {
+        filtered = filtered.filter(o => o.sourceChannel === ch);
+      }
+      return {
+        id: ch,
+        label: ch === "FOODGRID" ? "FoodGrid" : ch.charAt(0) + ch.slice(1).toLowerCase(),
+        count: filterByStatus(filtered).length
+      };
+    });
+  }, [mappedOrders, query, activeStatus]);
 
   const handleCancelItem = async (orderId: string, orderItemId: string) => {
     if (!selectedOutletId) return;
@@ -863,6 +925,21 @@ export default function OrderPage() {
                 <ChevronDown size={16} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-tertiary)" }} />
               </div>
             </div>
+
+            <div className={styles.viewToggle}>
+              <button 
+                className={clsx(styles.toggleBtn, viewMode === "grid" && styles.toggleBtnActive)}
+                onClick={() => setViewMode("grid")}
+              >
+                <LayoutGrid size={16} /> Grid
+              </button>
+              <button 
+                className={clsx(styles.toggleBtn, viewMode === "kanban" && styles.toggleBtnActive)}
+                onClick={() => setViewMode("kanban")}
+              >
+                <KanbanIcon size={16} /> Kanban
+              </button>
+            </div>
           </div>
         </div>
 
@@ -941,31 +1018,43 @@ export default function OrderPage() {
         </div>
         
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
-          {["All", "FOODGRID", "SWIGGY", "ZOMATO"].map((ch) => {
-            const isActive = ch === activeChannel;
+          {channelFilters.map((f) => {
+            const isActive = f.id === activeChannel;
             const colors = {
               All: { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b" },
               FOODGRID: { bg: "rgba(139, 92, 246, 0.1)", color: "#8b5cf6" },
               SWIGGY: { bg: "rgba(241, 79, 14, 0.1)", color: "#f14f0e" },
               ZOMATO: { bg: "rgba(235, 34, 49, 0.1)", color: "#eb2231" },
-            }[ch] || { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b" };
+            }[f.id] || { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b" };
 
             return (
               <button
-                key={ch}
-                onClick={() => setActiveChannel(ch)}
+                key={f.id}
+                onClick={() => setActiveChannel(f.id)}
                 style={{
-                  padding: "6px 12px",
-                  borderRadius: 10,
-                  border: `1px solid ${isActive ? colors.color : "transparent"}`,
-                  background: isActive ? colors.bg : "#f8fafc",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "8px 14px",
+                  borderRadius: 12,
+                  border: `1px solid ${isActive ? colors.color : "rgba(0,0,0,0.05)"}`,
+                  background: isActive ? colors.bg : "white",
                   color: colors.color,
-                  fontSize: 12,
-                  fontWeight: 700,
+                  fontSize: 13,
+                  fontWeight: 800,
                   cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  boxShadow: isActive ? "0 2px 6px rgba(0,0,0,0.05)" : "none",
                 }}
               >
-                {ch}
+                {f.label}
+                <span style={{ 
+                  opacity: 0.6, 
+                  fontSize: 11, 
+                  background: isActive ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.05)",
+                  padding: "1px 6px",
+                  borderRadius: 6,
+                }}>{f.count}</span>
               </button>
             );
           })}
@@ -999,363 +1088,373 @@ export default function OrderPage() {
 
         {!loading && !error && (
           <div>
-            {filteredOrders.length > 0 && (
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, padding: "12px 16px", background: "var(--bg-surface)", borderRadius: 12, border: "1px solid var(--component-border)", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-                <button
-                  onClick={handleSelectAll}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "8px 12px",
-                    borderRadius: 8,
-                    border: "1px solid var(--component-border)",
-                    background: "var(--bg-surface)",
-                    cursor: "pointer",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: "var(--text-secondary)",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "var(--bg-secondary)";
-                    e.currentTarget.style.borderColor = "var(--primary)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "white";
-                    e.currentTarget.style.borderColor = "var(--component-border)";
-                  }}
-                >
-                  {selectedOrderIds.size === filteredOrders.length ? (
-                    <CheckSquare size={18} style={{ color: "var(--primary)" }} />
-                  ) : (
-                    <Square size={18} />
-                  )}
-                  <span>{selectedOrderIds.size === filteredOrders.length ? "Deselect All" : "Select All"}</span>
-                </button>
-                {selectedOrderIds.size > 0 && (
-                  <span style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>
-                    {selectedOrderIds.size} order{selectedOrderIds.size !== 1 ? "s" : ""} selected
-                  </span>
-                )}
-              </div>
-            )}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: 24 }}>
-              {filteredOrders.length === 0 ? (
-                <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "60px", background: "var(--bg-surface)", borderRadius: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-                  <FileText size={48} style={{ color: "var(--component-border-hover)", margin: "0 auto 16px" }} />
-                  <h3 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px", color: "var(--text-primary)" }}>No orders found</h3>
-                  <p style={{ color: "var(--text-secondary)", margin: 0 }}>
-                    {query || activeStatus !== "All" ? "Try adjusting your search or filter criteria" : "Get started by creating your first order"}
-                  </p>
-                </div>
-              ) : (
-                filteredOrders.map((order) => {
-                  const isSelected = selectedOrderIds.has(order.id);
-                  const getStatusConfig = (status: Exclude<OrderStatus, "All">) => {
-                    switch (status) {
-                      case "Open":
-                      case "KOT Sent":
-                        return { bg: "rgba(59, 130, 246, 0.1)", color: "var(--info)", icon: Timer };
-                      case "Served":
-                        return { bg: "rgba(16, 185, 129, 0.1)", color: "var(--success)", icon: Utensils };
-                      case "Billed":
-                      case "Paid":
-                        return { bg: "rgba(245, 158, 11, 0.1)", color: "var(--warning)", icon: CreditCard };
-                      case "Cancelled":
-                        return { bg: "rgba(239, 68, 68, 0.1)", color: "var(--danger)", icon: X };
-                      default:
-                        return { bg: "rgba(100, 116, 139, 0.1)", color: "var(--text-secondary)", icon: FileText };
-                    }
-                  };
-                  const statusConfig = getStatusConfig(order.status);
-                  const StatusIcon = statusConfig.icon;
-                  return (
-                    <div
-                      key={order.id}
+            {viewMode === "grid" ? (
+              <>
+                {filteredOrders.length > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, padding: "12px 16px", background: "var(--bg-surface)", borderRadius: 12, border: "1px solid var(--component-border)", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+                    <button
+                      onClick={handleSelectAll}
                       style={{
-                        background: isSelected ? "#fef2f2" : "white",
-                        borderRadius: 20,
-                        padding: 24,
-                        boxShadow: isSelected ? "0 4px 12px rgba(239, 68, 68, 0.15), 0 8px 20px rgba(0,0,0,0.08)" : "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
-                        border: isSelected ? "2px solid var(--danger)" : "1px solid rgba(0,0,0,0.04)",
-                        transition: "all 0.3s ease",
-                        cursor: "default",
-                        position: "relative",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "8px 12px",
+                        borderRadius: 8,
+                        border: "1px solid var(--component-border)",
+                        background: "var(--bg-surface)",
+                        cursor: "pointer",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: "var(--text-secondary)",
+                        transition: "all 0.2s ease",
                       }}
                       onMouseEnter={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.transform = "translateY(-4px)";
-                          e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12), 0 16px 32px rgba(0,0,0,0.08)";
-                        }
+                        e.currentTarget.style.background = "var(--bg-secondary)";
+                        e.currentTarget.style.borderColor = "var(--primary)";
                       }}
                       onMouseLeave={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.transform = "translateY(0)";
-                          e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)";
-                        }
+                        e.currentTarget.style.background = "white";
+                        e.currentTarget.style.borderColor = "var(--component-border)";
                       }}
                     >
-                      {/* Checkbox */}
-                      <div style={{ position: "absolute", top: 20, right: 20 }}>
-                        <button
-                          onClick={() => handleToggleSelectOrder(order.id)}
+                      {selectedOrderIds.size === filteredOrders.length ? (
+                        <CheckSquare size={18} style={{ color: "var(--primary)" }} />
+                      ) : (
+                        <Square size={18} />
+                      )}
+                      <span>{selectedOrderIds.size === filteredOrders.length ? "Deselect All" : "Select All"}</span>
+                    </button>
+                    {selectedOrderIds.size > 0 && (
+                      <span style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>
+                        {selectedOrderIds.size} order{selectedOrderIds.size !== 1 ? "s" : ""} selected
+                      </span>
+                    )}
+                  </div>
+                )}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: 24 }}>
+                  {filteredOrders.length === 0 ? (
+                    <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "60px", background: "var(--bg-surface)", borderRadius: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+                      <FileText size={48} style={{ color: "var(--component-border-hover)", margin: "0 auto 16px" }} />
+                      <h3 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px", color: "var(--text-primary)" }}>No orders found</h3>
+                      <p style={{ color: "var(--text-secondary)", margin: 0 }}>
+                        {query || activeStatus !== "All" ? "Try adjusting your search or filter criteria" : "Get started by creating your first order"}
+                      </p>
+                    </div>
+                  ) : (
+                    filteredOrders.map((order) => {
+                      const isSelected = selectedOrderIds.has(order.id);
+                      const getStatusConfig = (status: Exclude<OrderStatus, "All">) => {
+                        switch (status) {
+                          case "Open":
+                          case "KOT Sent":
+                            return { bg: "rgba(59, 130, 246, 0.1)", color: "var(--info)", icon: Timer };
+                          case "Served":
+                            return { bg: "rgba(16, 185, 129, 0.1)", color: "var(--success)", icon: Utensils };
+                          case "Billed":
+                          case "Paid":
+                            return { bg: "rgba(245, 158, 11, 0.1)", color: "var(--warning)", icon: CreditCard };
+                          case "Cancelled":
+                            return { bg: "rgba(239, 68, 68, 0.1)", color: "var(--danger)", icon: X };
+                          default:
+                            return { bg: "rgba(100, 116, 139, 0.1)", color: "var(--text-secondary)", icon: FileText };
+                        }
+                      };
+                      const statusConfig = getStatusConfig(order.status);
+                      const StatusIcon = statusConfig.icon;
+                      return (
+                        <div
+                          key={order.id}
                           style={{
-                            width: 24,
-                            height: 24,
-                            borderRadius: 6,
-                            border: isSelected ? "2px solid var(--danger)" : "2px solid var(--component-border-hover)",
-                            background: isSelected ? "var(--danger)" : "white",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
+                            background: isSelected ? "#fef2f2" : "white",
+                            borderRadius: 20,
+                            padding: 24,
+                            boxShadow: isSelected ? "0 4px 12px rgba(239, 68, 68, 0.15), 0 8px 20px rgba(0,0,0,0.08)" : "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
+                            border: isSelected ? "2px solid var(--danger)" : "1px solid rgba(0,0,0,0.04)",
+                            transition: "all 0.3s ease",
+                            cursor: "default",
+                            position: "relative",
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor = "var(--danger)";
+                            if (!isSelected) {
+                              e.currentTarget.style.transform = "translateY(-4px)";
+                              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12), 0 16px 32px rgba(0,0,0,0.08)";
+                            }
                           }}
                           onMouseLeave={(e) => {
                             if (!isSelected) {
-                              e.currentTarget.style.borderColor = "var(--component-border-hover)";
+                              e.currentTarget.style.transform = "translateY(0)";
+                              e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)";
                             }
                           }}
                         >
-                          {isSelected && <CheckCircle2 size={16} style={{ color: "white" }} />}
-                        </button>
-                      </div>
-                      {/* Header */}
-                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-                            <div style={{
-                              padding: "6px 12px",
-                              borderRadius: 20,
-                              background: statusConfig.bg,
-                              color: statusConfig.color,
-                              fontSize: 12,
-                              fontWeight: 700,
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 6,
-                            }}>
-                              <StatusIcon size={14} />
-                              {order.status}
-                            </div>
-                            <span style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 600 }}>
-                              {order.type}
-                            </span>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                          {order.sourceChannel !== "FOODGRID" && (
-                            <div style={{
-                              padding: "2px 6px",
-                              borderRadius: 4,
-                              background: order.sourceChannel === "SWIGGY" ? "#f14f0e" : "#eb2231",
-                              color: "white",
-                              fontSize: 10,
-                              fontWeight: 900,
-                              letterSpacing: "0.5px",
-                            }}>
-                              {order.sourceChannel}
-                            </div>
-                          )}
-                        </div>
+                          {/* Checkbox */}
+                          <div style={{ position: "absolute", top: 20, right: 20 }}>
+                            <button
+                              onClick={() => handleToggleSelectOrder(order.id)}
+                              style={{
+                                width: 24,
+                                height: 24,
+                                borderRadius: 6,
+                                border: isSelected ? "2px solid var(--danger)" : "2px solid var(--component-border-hover)",
+                                background: isSelected ? "var(--danger)" : "white",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                cursor: "pointer",
+                                transition: "all 0.2s ease",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.borderColor = "var(--danger)";
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!isSelected) {
+                                  e.currentTarget.style.borderColor = "var(--component-border-hover)";
+                                }
+                              }}
+                            >
+                              {isSelected && <CheckCircle2 size={16} style={{ color: "white" }} />}
+                            </button>
                           </div>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
-                            Order #{order.id.slice(-4).toUpperCase()}
-                          </div>
-                          <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{order.time}</div>
-                        </div>
-                        
-                        <div style={{
-                          width: 56,
-                          height: 56,
-                          borderRadius: 14,
-                          background: order.type === "Dine In" ? "linear-gradient(135deg, var(--info) 0%, #2563eb 100%)" : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "white",
-                          fontWeight: 700,
-                          fontSize: 16,
-                          flexShrink: 0,
-                          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                        }}>
-                          {order.table === "N/A" ? "TA" : order.table.slice(0, 2)}
-                        </div>
-                      </div>
-
-                      {/* Progress Bar */}
-                      <div style={{ marginBottom: 20 }}>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary)" }}>Progress</span>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{order.progress}%</span>
-                        </div>
-                        <div style={{
-                          width: "100%",
-                          height: 8,
-                          borderRadius: 20,
-                          background: "var(--bg-tertiary)",
-                          overflow: "hidden",
-                        }}>
-                          <div style={{
-                            width: `${order.progress}%`,
-                            height: "100%",
-                            backgroundColor: statusConfig.color, 
-                            // 2. Add the gradient look using a semi-transparent overlay
-                            backgroundImage: "linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.1) 100%)",
-                            transition: "width 0.3s ease",
-                          }} />
-                        </div>
-                      </div>
-
-                      {/* Items Preview */}
-                      <div style={{
-                        background: "var(--component-bg)",
-                        borderRadius: 12,
-                        padding: 16,
-                        marginBottom: 20,
-                        border: "1px solid var(--component-border)",
-                      }}>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary)" }}>Items ({order.itemsCount})</span>
-                          <span style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>₹{order.total.toFixed(2)}</span>
-                        </div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 120, overflowY: "auto" }}>
-                          {order.items.slice(0, 3).map((it, idx) => (
-                            <div key={idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13 }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+                          {/* Header */}
+                          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
                                 <div style={{
-                                  width: 6,
-                                  height: 6,
-                                  borderRadius: "50%",
-                                  // Change this line:
-                                  background: it.checked ? "var(--success)" : "var(--info)",
-                                  flexShrink: 0,
-                                }} />
-                                <span style={{
-                                  fontSize: 20,
-                                  fontWeight: 600,
-                                  color: "var(--text-primary)",
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  whiteSpace: "nowrap",
+                                  padding: "6px 12px",
+                                  borderRadius: 20,
+                                  background: statusConfig.bg,
+                                  color: statusConfig.color,
+                                  fontSize: 12,
+                                  fontWeight: 700,
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 6,
                                 }}>
-                                  {it.name}
+                                  <StatusIcon size={14} />
+                                  {order.status}
+                                </div>
+                                <span style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 600 }}>
+                                  {order.type}
                                 </span>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                              {order.sourceChannel !== "FOODGRID" && (
+                                <div style={{
+                                  padding: "2px 6px",
+                                  borderRadius: 4,
+                                  background: order.sourceChannel === "SWIGGY" ? "#f14f0e" : "#eb2231",
+                                  color: "white",
+                                  fontSize: 10,
+                                  fontWeight: 900,
+                                  letterSpacing: "0.5px",
+                                }}>
+                                  {order.sourceChannel}
+                                </div>
+                              )}
+                            </div>
                               </div>
-                              <span style={{ fontWeight: 700, color: "var(--text-secondary)", marginLeft: 8 }}>x{it.qty}</span>
+                              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
+                                Order #{order.id.slice(-4).toUpperCase()}
+                              </div>
+                              <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{order.time}</div>
                             </div>
-                          ))}
-                          {order.items.length > 3 && (
-                            <div style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 600, textAlign: "center", paddingTop: 4 }}>
-                              +{order.items.length - 3} more items
+                            
+                            <div style={{
+                              width: 56,
+                              height: 56,
+                              borderRadius: 14,
+                              background: order.type === "Dine In" ? "linear-gradient(135deg, var(--info) 0%, #2563eb 100%)" : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "white",
+                              fontWeight: 700,
+                              fontSize: 16,
+                              flexShrink: 0,
+                              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                            }}>
+                              {order.table === "N/A" ? "TA" : order.table.slice(0, 2)}
                             </div>
-                          )}
-                        </div>
-                      </div>
+                          </div>
 
-                      {/* Quick Actions */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                        <button
-                          onClick={() => setSelectedOrderId(order.id)}
-                          style={{ width: "100%", padding: "12px 18px", borderRadius: 12, border: "1px solid var(--component-border)", background: "var(--bg-surface)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer", fontSize: 14, fontWeight: 600, color: "var(--text-secondary)", transition: "all 0.2s ease" }}
-                        >
-                          <FileText size={16} /> Order Details
-                        </button>
-                        <div style={{ display: "flex", gap: 10, width: "100%" }}>
-                          {order.type === "Dine In" ? (
-                            <>
-                              {order.status === "Open" && (
-                                <button
-                                  onClick={() => handleStatusChange(order.id, "KOT Sent")}
-                                  disabled={actionLoading === `status-${order.id}`}
-                                  style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "var(--primary)", color: "white", fontWeight: 700, cursor: actionLoading === `status-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
-                                >
-                                  {actionLoading === `status-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
-                                  Kitchen
-                                </button>
-                              )}
-                              {order.status === "KOT Sent" && (
-                                <button
-                                  onClick={() => handleMarkServed(order.id)}
-                                  disabled={actionLoading === `serve-${order.id}`}
-                                  style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "var(--success)", color: "white", fontWeight: 700, cursor: actionLoading === `serve-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
-                                >
-                                  {actionLoading === `serve-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <Utensils size={16} />}
-                                  Serve
-                                </button>
-                              )}
-                              {order.status === "Served" && (
-                                <button
-                                  onClick={() => handleBillOrder(order.id)}
-                                  disabled={actionLoading === `bill-${order.id}`}
-                                  style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "var(--warning)", color: "white", fontWeight: 700, cursor: actionLoading === `bill-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
-                                >
-                                  {actionLoading === `bill-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <ReceiptText size={16} />}
-                                  Bill
-                                </button>
-                              )}
-                              {order.status === "Billed" && (
-                                <Link href={`/client-admin/orders/new?orderId=${order.id}&step=4`} style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "var(--success)", color: "white", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, textDecoration: "none", fontSize: 13 }}>
-                                  <CreditCard size={16} /> Pay
-                                </Link>
-                              )}
-                            </>
-                          ) : (
-                            <>
-                              {order.status === "Open" && (
-                                <button
-                                  onClick={() => handleBillOrder(order.id)}
-                                  disabled={actionLoading === `bill-${order.id}`}
-                                  style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "var(--warning)", color: "white", fontWeight: 700, cursor: actionLoading === `bill-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
-                                >
-                                  {actionLoading === `bill-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <ReceiptText size={16} />}
-                                  Bill
-                                </button>
-                              )}
-                              {order.status === "Billed" && (
-                                <Link href={`/client-admin/orders/new?orderId=${order.id}&step=4`} style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "var(--success)", color: "white", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, textDecoration: "none", fontSize: 13 }}>
-                                  <CreditCard size={16} /> Pay
-                                </Link>
-                              )}
-                              {order.status === "Paid" && (
-                                <button
-                                  onClick={() => handleStatusChange(order.id, "KOT Sent")}
-                                  disabled={actionLoading === `status-${order.id}`}
-                                  style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "var(--primary)", color: "white", fontWeight: 700, cursor: actionLoading === `status-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
-                                >
-                                  {actionLoading === `status-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
-                                  Kitchen
-                                </button>
-                              )}
-                              {order.status === "KOT Sent" && (
-                                <button
-                                  onClick={() => handleMarkServed(order.id)}
-                                  disabled={actionLoading === `serve-${order.id}`}
-                                  style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "var(--success)", color: "white", fontWeight: 700, cursor: actionLoading === `serve-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
-                                >
-                                  {actionLoading === `serve-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <Utensils size={16} />}
-                                  Pickup
-                                </button>
-                              )}
-                            </>
-                          )}
-                          <div style={{ position: "relative" }}>
-                            <select value={order.status} onChange={(e) => handleStatusChange(order.id, e.target.value as any)} style={{ width: 44, height: 44, padding: 0, borderRadius: 12, border: "1px solid var(--component-border)", background: "var(--bg-surface)", fontSize: 0, cursor: "pointer", outline: "none", appearance: "none" }}>
-                              {(["Open", "KOT Sent", "Served", "Billed", "Paid", "Cancelled"] as const).map(s => (
-                                <option key={s} value={s}>{s}</option>
+                          {/* Progress Bar */}
+                          <div style={{ marginBottom: 20 }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary)" }}>Progress</span>
+                              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{order.progress}%</span>
+                            </div>
+                            <div style={{
+                              width: "100%",
+                              height: 8,
+                              borderRadius: 20,
+                              background: "var(--bg-tertiary)",
+                              overflow: "hidden",
+                            }}>
+                              <div style={{
+                                width: `${order.progress}%`,
+                                height: "100%",
+                                backgroundColor: statusConfig.color, 
+                                // 2. Add the gradient look using a semi-transparent overlay
+                                backgroundImage: "linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.1) 100%)",
+                                transition: "width 0.3s ease",
+                              }} />
+                            </div>
+                          </div>
+
+                          {/* Items Preview */}
+                          <div style={{
+                            background: "var(--component-bg)",
+                            borderRadius: 12,
+                            padding: 16,
+                            marginBottom: 20,
+                            border: "1px solid var(--component-border)",
+                          }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary)" }}>Items ({order.itemsCount})</span>
+                              <span style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>₹{order.total.toFixed(2)}</span>
+                            </div>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 120, overflowY: "auto" }}>
+                              {order.items.slice(0, 3).map((it, idx) => (
+                                <div key={idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13 }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+                                    <div style={{
+                                      width: 6,
+                                      height: 6,
+                                      borderRadius: "50%",
+                                      // Change this line:
+                                      background: it.checked ? "var(--success)" : "var(--info)",
+                                      flexShrink: 0,
+                                    }} />
+                                    <span style={{
+                                      fontSize: 20,
+                                      fontWeight: 600,
+                                      color: "var(--text-primary)",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      whiteSpace: "nowrap",
+                                    }}>
+                                      {it.name}
+                                    </span>
+                                  </div>
+                                  <span style={{ fontWeight: 700, color: "var(--text-secondary)", marginLeft: 8 }}>x{it.qty}</span>
+                                </div>
                               ))}
-                            </select>
-                            <ChevronDown size={14} style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", pointerEvents: "none", color: "var(--text-secondary)" }} />
+                              {order.items.length > 3 && (
+                                <div style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 600, textAlign: "center", paddingTop: 4 }}>
+                                  +{order.items.length - 3} more items
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Quick Actions */}
+                          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            <button
+                              onClick={() => setSelectedOrderId(order.id)}
+                              style={{ width: "100%", padding: "12px 18px", borderRadius: 12, border: "1px solid var(--component-border)", background: "var(--bg-surface)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer", fontSize: 14, fontWeight: 600, color: "var(--text-secondary)", transition: "all 0.2s ease" }}
+                            >
+                              <FileText size={16} /> Order Details
+                            </button>
+                            <div style={{ display: "flex", gap: 10, width: "100%" }}>
+                              {order.type === "Dine In" ? (
+                                <>
+                                  {order.status === "Open" && (
+                                    <button
+                                      onClick={() => handleStatusChange(order.id, "KOT Sent")}
+                                      disabled={actionLoading === `status-${order.id}`}
+                                      style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "var(--primary)", color: "white", fontWeight: 700, cursor: actionLoading === `status-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                                    >
+                                      {actionLoading === `status-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+                                      Kitchen
+                                    </button>
+                                  )}
+                                  {order.status === "KOT Sent" && (
+                                    <button
+                                      onClick={() => handleMarkServed(order.id)}
+                                      disabled={actionLoading === `serve-${order.id}`}
+                                      style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "var(--success)", color: "white", fontWeight: 700, cursor: actionLoading === `serve-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                                    >
+                                      {actionLoading === `serve-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <Utensils size={16} />}
+                                      Serve
+                                    </button>
+                                  )}
+                                  {order.status === "Served" && (
+                                    <button
+                                      onClick={() => handleBillOrder(order.id)}
+                                      disabled={actionLoading === `bill-${order.id}`}
+                                      style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "var(--warning)", color: "white", fontWeight: 700, cursor: actionLoading === `bill-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                                    >
+                                      {actionLoading === `bill-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <ReceiptText size={16} />}
+                                      Bill
+                                    </button>
+                                  )}
+                                  {order.status === "Billed" && (
+                                    <Link href={`/client-admin/orders/new?orderId=${order.id}&step=4`} style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "var(--success)", color: "white", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, textDecoration: "none", fontSize: 13 }}>
+                                      <CreditCard size={16} /> Pay
+                                    </Link>
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  {order.status === "Open" && (
+                                    <button
+                                      onClick={() => handleBillOrder(order.id)}
+                                      disabled={actionLoading === `bill-${order.id}`}
+                                      style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "var(--warning)", color: "white", fontWeight: 700, cursor: actionLoading === `bill-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                                    >
+                                      {actionLoading === `bill-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <ReceiptText size={16} />}
+                                      Bill
+                                    </button>
+                                  )}
+                                  {order.status === "Billed" && (
+                                    <Link href={`/client-admin/orders/new?orderId=${order.id}&step=4`} style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "var(--success)", color: "white", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, textDecoration: "none", fontSize: 13 }}>
+                                      <CreditCard size={16} /> Pay
+                                    </Link>
+                                  )}
+                                  {order.status === "Paid" && (
+                                    <button
+                                      onClick={() => handleStatusChange(order.id, "KOT Sent")}
+                                      disabled={actionLoading === `status-${order.id}`}
+                                      style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "var(--primary)", color: "white", fontWeight: 700, cursor: actionLoading === `status-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                                    >
+                                      {actionLoading === `status-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+                                      Kitchen
+                                    </button>
+                                  )}
+                                  {order.status === "KOT Sent" && (
+                                    <button
+                                      onClick={() => handleMarkServed(order.id)}
+                                      disabled={actionLoading === `serve-${order.id}`}
+                                      style={{ flex: 1, padding: "10px", borderRadius: 12, border: "none", background: "var(--success)", color: "white", fontWeight: 700, cursor: actionLoading === `serve-${order.id}` ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                                    >
+                                      {actionLoading === `serve-${order.id}` ? <Loader2 size={16} className="animate-spin" /> : <Utensils size={16} />}
+                                      Pickup
+                                    </button>
+                                  )}
+                                </>
+                              )}
+                              <div style={{ position: "relative" }}>
+                                <select value={order.status} onChange={(e) => handleStatusChange(order.id, e.target.value as any)} style={{ width: 44, height: 44, padding: 0, borderRadius: 12, border: "1px solid var(--component-border)", background: "var(--bg-surface)", fontSize: 0, cursor: "pointer", outline: "none", appearance: "none" }}>
+                                  {(["Open", "KOT Sent", "Served", "Billed", "Paid", "Cancelled"] as const).map(s => (
+                                    <option key={s} value={s}>{s}</option>
+                                  ))}
+                                </select>
+                                <ChevronDown size={14} style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", pointerEvents: "none", color: "var(--text-secondary)" }} />
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            ) : (
+              <KanbanView 
+                orders={filteredOrders} 
+                onStatusChange={handleStatusChange} 
+                onOrderClick={(id) => setSelectedOrderId(id)}
+              />
+            )}
           </div>
         )}
 
@@ -1905,7 +2004,6 @@ export default function OrderPage() {
         )}
       </div>
 
-      {/* Global Styles */}
       <style jsx global>{`
         @keyframes spin {
           from { transform: rotate(0deg); }
@@ -1923,7 +2021,106 @@ export default function OrderPage() {
           to { transform: translateY(0); opacity: 1; }
         }
       `}</style>
-
     </div>
   );
+}
+
+const KANBAN_COLUMNS: { id: Exclude<OrderStatus, "All">; label: string; icon: any }[] = [
+  { id: "Open", label: "Incoming", icon: FileText },
+  { id: "KOT Sent", label: "Kitchen", icon: Zap },
+  { id: "Served", label: "Ready / Served", icon: Utensils },
+  { id: "Billed", label: "Billed", icon: ReceiptText },
+  { id: "Paid", label: "Completed", icon: CheckCircle2 },
+];
+
+function KanbanView({ orders, onStatusChange, onOrderClick }: { orders: Order[], onStatusChange: (id: string, s: any) => void, onOrderClick: (id: string) => void }) {
+  const onDragEnd = (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+    if (!destination) return;
+    if (destination.droppableId === source.droppableId) return;
+
+    onStatusChange(draggableId, destination.droppableId as any);
+  };
+
+  return (
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div className={styles.kanbanContainer}>
+        {KANBAN_COLUMNS.map((col) => (
+          <div key={col.id} className={styles.kanbanColumn}>
+            <div className={styles.kanbanColumnHeader}>
+              <h3>
+                <col.icon size={16} />
+                {col.label}
+              </h3>
+              <span className={styles.columnCount}>
+                {orders.filter(o => o.status === col.id).length}
+              </span>
+            </div>
+            <Droppable droppableId={col.id}>
+              {(provided, snapshot) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className={styles.kanbanList}
+                  style={{
+                    background: snapshot.isDraggingOver ? "rgba(224, 211, 255, 0.61)" : "transparent",
+                    transition: "background 0.2s ease"
+                  }}
+                >
+                  <AnimatePresence>
+                    {orders
+                      .filter((o) => o.status === col.id)
+                      .map((order, index) => (
+                        <Draggable key={order.id} draggableId={order.id} index={index}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className={`${styles.kanbanCard} ${snapshot.isDragging ? styles.kanbanCardDragging : ""}`}
+                              onClick={() => onOrderClick(order.id)}
+                            >
+                              <motion.div 
+                                layoutId={order.id}
+                                className={styles.kanbanCardContent}
+                                initial={{ opacity: 0, scale: 0.5 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.5 }}
+                              >
+                                <div className={styles.cardHeader}>
+                                  <span className={styles.orderId}>#{order.id.slice(-4).toUpperCase()}</span>
+                                  <span className={styles.timeText}>{order.time.split(' ').slice(-2).join(' ')}</span>
+                                </div>
+                                <div className={styles.cardTitle}>{order.type} - {order.table}</div>
+                                <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 4 }}>
+                                  {order.items.slice(0, 5).map((it, i) => (
+                                    <span key={i} style={{ fontSize: 20, color: "var(--text-secondary)", background: "var(--bg-tertiary)", padding: "2px 6px", borderRadius: 4 }}>
+                                      {it.qty}x {it.name}
+                                    </span>
+                                  ))}
+                                  {order.items.length > 5 && <span style={{ fontSize: 16, color: "var(--text-tertiary)" }}>+{order.items.length - 5} more</span>}
+                                </div>
+                                <div className={styles.cardFooter}>
+                                  <span className={styles.priceTag}>₹{order.total.toFixed(0)}</span>
+                                  <span className={styles.tableTag}>{order.table}</span>
+                                </div>
+                              </motion.div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                  </AnimatePresence>
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </div>
+        ))}
+      </div>
+    </DragDropContext>
+  );
+}
+
+function clsx(...args: any[]) {
+  return args.filter(Boolean).join(" ");
 }
