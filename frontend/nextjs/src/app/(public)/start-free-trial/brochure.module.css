@@ -329,40 +329,151 @@
   letter-spacing: 1px;
 }
 
+/* Journey Styles */
+.reverseWrapper {
+  width: 100%;
+  max-width: 1000px;
+  background: white;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.journeyGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  width: 100%;
+  height: 100%;
+}
+
+.journeyPanel {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-right: 1px solid var(--border-light);
+}
+
+.journeyPanel:last-child {
+  border-right: none;
+}
+
+.journeyTitle {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.journeySubtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.journeyStepContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.journeyStep {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  text-align: center;
+}
+
+.stepIconCircle {
+  width: 40px;
+  height: 40px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  border: 4px solid var(--primary-light);
+}
+
+.journeyImageWrapper {
+  width: 100%;
+  height: 140px;
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  background: var(--bg-muted);
+}
+
+.journeyStepContent h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+
+.journeyStepContent p {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.pageLabel {
+  background: var(--navy);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: inline-block;
+}
+
 /* Responsive adjustments for Screen only */
 @media screen and (min-width: 1024px) {
-  .brochureWrapper {
+  .brochureWrapper, .reverseWrapper {
      /* Force A4 Landscape Dimensions on Screen */
      width: 297mm;
      height: 210mm;
      max-width: none;
-     
+
      display: grid;
      grid-template-columns: 1fr 1fr 1fr;
      grid-template-areas: "inside back front";
-     
+
      /* Make it look like a paper on the screen */
      transform-origin: top center;
   }
 
-  .frontPanel { 
-      grid-area: front; 
-      border-bottom: none; 
+  .frontPanel {
+      grid-area: front;
+      border-bottom: none;
       border-left: 1px solid var(--border-light);
       background: linear-gradient(135deg, var(--bg-surface) 0%, var(--primary-light) 100%);
   }
-  
-  .insidePanel { 
-      grid-area: inside; 
+
+  .insidePanel {
+      grid-area: inside;
       border-right: 1px solid var(--border-light);
   }
-  
-  .backPanel { 
-      grid-area: back; 
+
+  .backPanel {
+      grid-area: back;
       border-right: 1px solid var(--border-light);
   }
-  
-  .panel {
+
+  .panel, .journeyPanel {
       height: 100%;
       padding: 16px;
       overflow: hidden; 
@@ -379,15 +490,15 @@
   .ctaBlock { padding: 16px; }
   .ctaTitle { font-size: 14px; margin-bottom: 8px; }
   .ctaButtonMain { padding: 10px 20px; font-size: 14px; margin-bottom: 8px; }
-  
+
   .panelTitle { font-size: 18px; margin-bottom: 16px; padding-bottom: 8px; }
-  
+
   .benefitList { gap: 12px; }
   .benefitItem { font-size: 12px; gap: 8px; }
-  
+
   .bestForGrid { gap: 8px; }
   .bestForCard { padding: 10px; font-size: 12px; }
-  
+
   .pricingGrid { gap: 10px; margin-bottom: 16px; }
   .priceCard { padding: 12px; border-radius: 12px; }
   .priceHeader { margin-bottom: 8px; padding-bottom: 8px; }
@@ -396,15 +507,15 @@
   .period { font-size: 10px; }
   .priceFeatures { font-size: 10px; line-height: 1.5; margin: 0; padding: 0; }
   .priceFeatures li { margin-bottom: 2px; }
-  
+
   .extraCost { font-size: 11px; margin-bottom: 16px; }
-  
+
   .contactFooter { padding-top: 16px; gap: 8px; }
   .contactItem { font-size: 12px; }
   .bookDemoBtn { font-size: 12px; margin-top: 4px; }
 }
 
-/* Print Styles - KEY REQUIREMENT */
+/* Print Styles */
 @media print {
   @page {
     size: A4 landscape;
@@ -422,7 +533,7 @@
     background: white;
   }
 
-  .brochureWrapper {
+  .brochureWrapper, .reverseWrapper {
     width: 297mm;
     height: 210mm;
     max-width: none;
@@ -432,11 +543,20 @@
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-areas: "inside back front";
     gap: 0;
+    page-break-after: always;
   }
 
-  .panel {
+  .brochureWrapper {
+    grid-template-areas: "inside back front";
+  }
+
+  .reverseWrapper {
+    grid-template-areas:  "inside back front";
+  }
+
+  .panel, .journeyPanel {
     height: 210mm;
-    padding: 10mm; /* Reduced padding to fit content */
+    padding: 10mm;
     page-break-inside: avoid;
     justify-content: flex-start;
     overflow: hidden;
@@ -459,7 +579,7 @@
     background: #f8fafc !important;
     border-right: 1px dashed #ccc;
   }
-  
+
   /* Print specific downsizing */
   .logoLarge { margin-bottom: 10mm; transform: scale(1.0); }
   .mainHeadline { font-size: 16pt; margin-bottom: 5mm; }
@@ -467,11 +587,11 @@
   .mockupPlaceholder { height: 50mm; margin-bottom: 8mm; }
   .tagline { font-size: 9pt; margin-bottom: 8mm; }
   .ctaBlock { padding: 5mm; box-shadow: none; border: 1px solid #ddd; }
-  
+
   .panelTitle { font-size: 14pt; margin-bottom: 5mm; }
   .benefitList { gap: 4mm; }
   .benefitItem { font-size: 9pt; }
-  
+
   .pricingGrid { gap: 3mm; margin-bottom: 5mm; }
   .priceCard { padding: 3mm; border: 1px solid #ddd; }
   .priceHeader { margin-bottom: 2mm; padding-bottom: 2mm; }
@@ -479,7 +599,7 @@
   .priceVal { font-size: 12pt; }
   .period { font-size: 8pt; }
   .priceFeatures { font-size: 8pt; line-height: 1.2; }
-  
+
   .extraCost { font-size: 8pt; margin-bottom: 5mm; }
   .contactFooter { padding-top: 5mm; gap: 2mm; }
   .contactItem { font-size: 9pt; }

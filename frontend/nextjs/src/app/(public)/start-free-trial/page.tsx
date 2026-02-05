@@ -193,6 +193,101 @@ export default function BrochurePage() {
         </section>
 
       </div>
+
+      {/* REVERSE SIDE / BACK PAGE of Brochure */}
+      <div className={styles.reverseWrapper}>
+        
+        {/* Panel 4: Ordering Journey */}
+        <section className={styles.journeyPanel} style={{ gridArea: 'p4' }}>
+          <div className={styles.pageLabel}>Back Outside</div>
+          <h2 className={styles.journeyTitle}>1. Seamless Ordering</h2>
+          <p className={styles.journeySubtitle}>Enhance the guest experience from the second they arrive.</p>
+          
+          <div className={styles.journeyStepContainer}>
+             <div className={styles.journeyStep}>
+                <div className={styles.stepIconCircle}>1</div>
+                <div className={styles.journeyImageWrapper}>
+                  <Image src="/customer_qr_scan_step_1770261133855.png" alt="QR Scan" fill style={{ objectFit: 'cover' }} />
+                </div>
+                <div className={styles.journeyStepContent}>
+                   <h4>Scan & Discover</h4>
+                   <p>Customers scan the table QR code to view your digital menu instantly.</p>
+                </div>
+             </div>
+             <div className={styles.journeyStep}>
+                <div className={styles.stepIconCircle}>2</div>
+                <div className={styles.journeyImageWrapper}>
+                  <Image src="/res/Screenshot 2026-02-03 at 9.05.08 AM.png" alt="Menu" fill style={{ objectFit: 'cover' }} />
+                </div>
+                <div className={styles.journeyStepContent}>
+                   <h4>Select & Order</h4>
+                   <p>Beautiful images and descriptions help customers order more, faster.</p>
+                </div>
+             </div>
+          </div>
+        </section>
+
+        {/* Panel 5: Kitchen Flow */}
+        <section className={styles.journeyPanel} style={{ gridArea: 'p5' }}>
+          <div className={styles.pageLabel}>Back Inside</div>
+          <h2 className={styles.journeyTitle}>2. Kitchen Workflow</h2>
+          <p className={styles.journeySubtitle}>Direct integration between the customer and the chef.</p>
+          
+          <div className={styles.journeyStepContainer}>
+             <div className={styles.journeyStep}>
+                <div className={styles.stepIconCircle}>3</div>
+                <div className={styles.journeyImageWrapper}>
+                  <Image src="/kitchen_kot_workflow_step_1770261152761.png" alt="KOT" fill style={{ objectFit: 'cover' }} />
+                </div>
+                <div className={styles.journeyStepContent}>
+                   <h4>Instant KOT</h4>
+                   <p>Orders flow directly to the kitchen via KOT or digital display system.</p>
+                </div>
+             </div>
+             <div className={styles.journeyStep}>
+                <div className={styles.stepIconCircle}>4</div>
+                <div className={styles.journeyStepContent}>
+                   <div style={{ background: '#f8fafc', padding: 20, borderRadius: 12, border: '1px dashed #cbd5e1' }}>
+                      <CheckCircle2 className={styles.checkIcon} size={24} style={{ color: 'var(--primary)', marginBottom: 8 }} />
+                      <h4 style={{ margin: 0 }}>Zero Confusion</h4>
+                      <p style={{ margin: 0 }}>No manual entry errors, no lost tickets, and faster preparation times.</p>
+                   </div>
+                </div>
+             </div>
+          </div>
+        </section>
+
+        {/* Panel 6: Admin Control */}
+        <section className={styles.journeyPanel} style={{ gridArea: 'p6' }}>
+          <div className={styles.pageLabel}>Back Center</div>
+          <h2 className={styles.journeyTitle}>3. Growth & Billing</h2>
+          <p className={styles.journeySubtitle}>Settle bills and track every rupee in real-time.</p>
+          
+          <div className={styles.journeyStepContainer}>
+             <div className={styles.journeyStep}>
+                <div className={styles.stepIconCircle}>5</div>
+                <div className={styles.journeyImageWrapper}>
+                  <Image src="/billing_payment_step_1770261172221.png" alt="Payment" fill style={{ objectFit: 'cover' }} />
+                </div>
+                <div className={styles.journeyStepContent}>
+                   <h4>Quick Billing</h4>
+                   <p>One-tap checkout with multiple payment options and GST invoices.</p>
+                </div>
+             </div>
+             <div className={styles.journeyStep}>
+                <div className={styles.stepIconCircle}>6</div>
+                <div className={styles.journeyImageWrapper}>
+                  <Image src="/landing_hero_pos_illustration_1770261115917.png" alt="Analytics" fill style={{ objectFit: 'cover' }} />
+                </div>
+                <div className={styles.journeyStepContent}>
+                   <h4>Real-time Analytics</h4>
+                   <p>Track live sales and top-performing items from your mobile app anywhere.</p>
+                </div>
+             </div>
+          </div>
+        </section>
+
+      </div>
       <style jsx global>{`
         @media print {
           @page {

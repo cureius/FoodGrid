@@ -291,7 +291,12 @@ public class TenantAdminService {
     return v == null ? null : v.toString();
   }
 
-  private ClientResponse toResponse(final Client client, final AdminUser adminUser, final String adminPassword) {
+  public ClientResponse toResponse(final Client client) {
+    final AdminUser adminUser = adminUserRepository.find("clientId", client.id).firstResult();
+    return toResponse(client, adminUser, null);
+  }
+
+  public ClientResponse toResponse(final Client client, final AdminUser adminUser, final String adminPassword) {
     // Fetch payment config from ClientPaymentConfig (primary active config)
     PaymentGatewayType defaultGatewayType = null;
     boolean paymentEnabled = false;
