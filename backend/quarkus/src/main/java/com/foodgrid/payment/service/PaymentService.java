@@ -1,9 +1,13 @@
 package com.foodgrid.payment.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.foodgrid.admin.repo.AdminUserRepository;
 import com.foodgrid.admin.repo.ClientRepository;
 import com.foodgrid.auth.repo.OutletRepository;
 import com.foodgrid.common.audit.AuditLogService;
+import com.foodgrid.common.exception.*;
+import com.foodgrid.common.logging.AppLogger;
 import com.foodgrid.common.util.EncryptionUtil;
 import com.foodgrid.common.util.Ids;
 import com.foodgrid.payment.dto.*;
@@ -14,16 +18,12 @@ import com.foodgrid.pos.model.Order;
 import com.foodgrid.pos.model.Payment;
 import com.foodgrid.pos.repo.OrderRepository;
 import com.foodgrid.pos.repo.PaymentRepository;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import org.jboss.logging.Logger;
-import jakarta.enterprise.event.Observes;
 import io.quarkus.runtime.StartupEvent;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.NotFoundException;
+import org.jboss.logging.Logger;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -69,6 +69,9 @@ public class PaymentService {
 
     @Inject
     OutletRepository outletRepository;
+
+    @Inject
+    AppLogger appLogger;
 
     public void onStart(@Observes final StartupEvent ev) {
         backfillClientId();
@@ -161,7 +164,8 @@ public class PaymentService {
             auditService.record("PAYMENT_INITIATE_FAILED", outletId, "GatewayTransaction", tx.id,
                 "order=" + request.orderId() + ", error=" + result.errorMessage());
 
-            throw new BadRequestException("Payment initiation failed: " + result.errorMessage());
+            appLogger.error(LOG, "Payment initiation failed for order=%s: %s", request.orderId(), result.errorMessage());
+            throw PaymentException.initiationFailed(request.orderId(), result.errorMessage());
         }
 
         // Update transaction with gateway order info
@@ -185,9 +189,10 @@ public class PaymentService {
      */
     @Transactional
     public GatewayTransactionResponse verifyPayment(final String clientId, final VerifyPaymentRequest request) {
+        appLogger.info(LOG, "Verifying payment for transaction=%s", request.transactionId());
         final GatewayTransaction tx = transactionRepository.findById(request.transactionId());
         if (tx == null) {
-            throw new NotFoundException("Transaction not found");
+            throw ResourceNotFoundException.transaction(request.transactionId());
         }
 
         // Use clientId from transaction if not provided
@@ -201,9 +206,10 @@ public class PaymentService {
      */
     @Transactional
     public GatewayTransactionResponse verifyPaymentPublic(final VerifyPaymentRequest request) {
+        appLogger.info(LOG, "Public payment verification for transaction=%s", request.transactionId());
         final GatewayTransaction tx = transactionRepository.findById(request.transactionId());
         if (tx == null) {
-            throw new NotFoundException("Transaction not found");
+            throw ResourceNotFoundException.transaction(request.transactionId());
         }
         return verifyPaymentInternal(tx, tx.clientId, request);
     }
@@ -213,11 +219,13 @@ public class PaymentService {
 
         if (tx.status == GatewayTransactionStatus.CAPTURED) {
             // Already captured, return success
+            appLogger.info(LOG, "Transaction %s already captured, returning existing result", tx.id);
             return toResponse(tx);
         }
 
         if (tx.status != GatewayTransactionStatus.PENDING && tx.status != GatewayTransactionStatus.AUTHORIZED) {
-            throw new BadRequestException("Transaction cannot be verified in status: " + tx.status);
+            appLogger.warn(LOG, "Cannot verify transaction %s in status %s", tx.id, tx.status);
+            throw BusinessException.paymentAlreadyProcessed(tx.id);
         }
 
         final PaymentGateway gateway = gatewayFactory.getGateway(clientId, tx.gatewayType);
@@ -258,14 +266,17 @@ public class PaymentService {
      */
     @Transactional
     public RefundResponse processRefund(final String clientId, final RefundRequest request) {
+        appLogger.info(LOG, "Processing refund for transaction=%s, amount=%s", request.transactionId(), request.amount());
+
         final GatewayTransaction tx = transactionRepository.findById(request.transactionId());
         if (tx == null) {
-            throw new NotFoundException("Transaction not found");
+            throw ResourceNotFoundException.transaction(request.transactionId());
         }
 
         if (tx.status != GatewayTransactionStatus.CAPTURED &&
             tx.status != GatewayTransactionStatus.PARTIALLY_REFUNDED) {
-            throw new BadRequestException("Transaction cannot be refunded in status: " + tx.status);
+            appLogger.warn(LOG, "Cannot refund transaction %s in status %s", tx.id, tx.status);
+            throw BusinessException.paymentAlreadyProcessed(tx.id);
         }
 
         // Calculate total already refunded
@@ -274,8 +285,10 @@ public class PaymentService {
             .map(r -> r.amount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        final BigDecimal available = tx.amount.subtract(totalRefunded);
         if (totalRefunded.add(request.amount()).compareTo(tx.amount) > 0) {
-            throw new BadRequestException("Refund amount exceeds available balance");
+            appLogger.warn(LOG, "Refund amount %s exceeds available %s for transaction %s", request.amount(), available, tx.id);
+            throw BusinessException.refundExceedsAmount(request.amount().toString(), available.toString());
         }
 
         final PaymentGateway gateway = gatewayFactory.getGateway(clientId, tx.gatewayType);
@@ -334,7 +347,7 @@ public class PaymentService {
     public GatewayTransactionResponse getTransaction(final String transactionId) {
         final GatewayTransaction tx = transactionRepository.findById(transactionId);
         if (tx == null) {
-            throw new NotFoundException("Transaction not found");
+            throw ResourceNotFoundException.transaction(transactionId);
         }
         return toResponse(tx);
     }
@@ -345,7 +358,7 @@ public class PaymentService {
     public GatewayTransactionResponse getTransactionByOrderId(final String orderId) {
         return transactionRepository.findByOrderId(orderId)
             .map(this::toResponse)
-            .orElseThrow(() -> new NotFoundException("No transaction found for order"));
+            .orElseThrow(() -> ResourceNotFoundException.transaction(orderId));
     }
 
     /**
@@ -360,12 +373,12 @@ public class PaymentService {
         final Order order = orderRepository.findById(orderId);
         String derivedClientId;
         if (order == null) {
-            throw new NotFoundException("Order not found");
+            throw ResourceNotFoundException.order(orderId);
         }
 
 
         if (order.orderType != Order.OrderType.TAKEAWAY && order.status != Order.Status.BILLED && order.status != Order.Status.PAID) {
-            throw new BadRequestException("Order must be billed before creating payment link for take away orders");
+            throw BusinessException.orderMustBeBilled();
         }
 
         if(outletId == null){
@@ -376,24 +389,24 @@ public class PaymentService {
             //find the admin id of the outletId -> outlet to adminuser -> adminuser to client
             final var outlet = outletRepository.findById(outletId);
             if (outlet == null) {
-                throw new NotFoundException("Outlet not found: " + outletId);
+                throw ResourceNotFoundException.outlet(outletId);
             }
-            
+
             derivedClientId = outlet.clientId;
             if(derivedClientId == null){
                 final String adminUserId = outlet.ownerId;
                 if (adminUserId == null) {
-                    throw new BadRequestException("Outlet has no owner");
+                    throw BusinessException.outletNoOwner(outletId);
                 }
-                
+
                 final var adminUser = adminUserRepository.findById(adminUserId);
                 if (adminUser == null) {
-                    throw new NotFoundException("Admin user not found: " + adminUserId);
+                    throw ResourceNotFoundException.admin(adminUserId);
                 }
-                
+
                 derivedClientId = adminUser.clientId;
                 if (derivedClientId == null) {
-                    throw new BadRequestException("Admin user has no clientId");
+                    throw ValidationException.missingField("clientId");
                 }
             }
         }else{
@@ -443,7 +456,7 @@ public class PaymentService {
         );
         
         if (!linkResult.success()) {
-            throw new BadRequestException("Failed to create payment link: " + linkResult.errorMessage());
+            throw PaymentException.initiationFailed(orderId, linkResult.errorMessage());
         }
         
         // Create transaction record
@@ -483,35 +496,35 @@ public class PaymentService {
     public PaymentLinkResponse createPaymentLinkForCustomer(final String orderId, final String idempotencyKey) {
         final Order order = orderRepository.findById(orderId);
         if (order == null) {
-            throw new NotFoundException("Order not found");
+            throw ResourceNotFoundException.order(orderId);
         }
 
         // Derive context from order/outlet with proper null checks
         final String outletId = order.outletId;
         if (outletId == null) {
-            throw new BadRequestException("Order has no outletId");
+            throw ValidationException.invalidInput("Order has no outletId");
         }
-        
+
         final var outlet = outletRepository.findById(outletId);
         if (outlet == null) {
-            throw new NotFoundException("Outlet not found: " + outletId);
+            throw ResourceNotFoundException.outlet(outletId);
         }
-        
+
         final String adminUserId = outlet.ownerId;
         if (adminUserId == null) {
-            throw new BadRequestException("Outlet has no owner");
+            throw BusinessException.outletNoOwner(outletId);
         }
-        
+
         final var adminUser = adminUserRepository.findById(adminUserId);
         if (adminUser == null) {
-            throw new NotFoundException("Admin user not found: " + adminUserId);
+            throw ResourceNotFoundException.admin(adminUserId);
         }
-        
+
         final String clientId = adminUser.clientId;
         if (clientId == null) {
-            throw new BadRequestException("Admin user has no clientId");
+            throw ValidationException.missingField("clientId");
         }
-        
+
         // Tenant ID is usually the clientId in our multi-tenant model
         final String tenantId = clientId;
 
@@ -556,7 +569,7 @@ public class PaymentService {
     public PaymentStatusResponse getPaymentStatus(final String orderId) {
         final Order order = orderRepository.findById(orderId);
         if (order == null) {
-            throw new NotFoundException("Order not found");
+            throw ResourceNotFoundException.order(orderId);
         }
 
         final var txOpt = transactionRepository.findByOrderId(orderId);

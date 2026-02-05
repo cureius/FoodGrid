@@ -3,14 +3,14 @@ package com.foodgrid.auth.service;
 import com.foodgrid.auth.dto.*;
 import com.foodgrid.auth.model.*;
 import com.foodgrid.auth.repo.*;
-import com.foodgrid.common.security.JwtIssuer;
 import com.foodgrid.common.audit.AuditLogService;
+import com.foodgrid.common.exception.*;
+import com.foodgrid.common.logging.AppLogger;
+import com.foodgrid.common.security.JwtIssuer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.ForbiddenException;
-import jakarta.ws.rs.NotFoundException;
+import org.jboss.logging.Logger;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -20,6 +20,7 @@ import java.util.List;
 @ApplicationScoped
 public class AuthService {
 
+  private static final Logger LOG = Logger.getLogger(AuthService.class);
   private static final int PIN_LENGTH = 6;
   private static final Duration OTP_TTL = Duration.ofMinutes(10);
 
@@ -37,20 +38,23 @@ public class AuthService {
   @Inject OtpService otpService;
   @Inject JwtIssuer jwtIssuer;
   @Inject AuditLogService audit;
+  @Inject AppLogger appLogger;
 
   @Transactional
   public LoginContextResponse getLoginContext(final String deviceCode, final String email) {
+    appLogger.info(LOG, "Getting login context for email=%s, deviceCode=%s", email, deviceCode);
+
     // Find employee by email to determine outlet
     final Employee employee = employeeRepository.findByEmail(email)
-      .orElseThrow(() -> new NotFoundException("Employee not found with email: " + email));
-    
+      .orElseThrow(() -> ResourceNotFoundException.employeeByEmail(email));
+
     final String outletId = employee.outletId;
 
     final PosDevice device = deviceRepository.findByDeviceCode(deviceCode)
       .orElseGet(() -> {
         // Auto-register device for the employee's outlet
         outletRepository.findByIdOptional(outletId)
-          .orElseThrow(() -> new NotFoundException("Outlet not found"));
+          .orElseThrow(() -> ResourceNotFoundException.outlet(outletId));
 
         final PosDevice d = new PosDevice();
         d.id = com.foodgrid.common.util.Ids.uuid();
@@ -58,16 +62,18 @@ public class AuthService {
         d.deviceCode = deviceCode;
         d.name = null;
         deviceRepository.persist(d);
+        appLogger.info(LOG, "Auto-registered new device deviceCode=%s for outlet=%s", deviceCode, outletId);
         return d;
       });
 
     // Ensure device is associated with the employee's outlet
     if (!device.outletId.equals(outletId)) {
-      throw new ForbiddenException("Device is registered to a different outlet");
+      appLogger.logSecurityWarning(LOG, "DEVICE_OUTLET_MISMATCH", "deviceCode=" + deviceCode + ", expected=" + outletId + ", actual=" + device.outletId);
+      throw AuthorizationException.deviceMismatch();
     }
 
     final Outlet outlet = outletRepository.findByIdOptional(outletId)
-      .orElseThrow(() -> new NotFoundException("Outlet not found"));
+      .orElseThrow(() -> ResourceNotFoundException.outlet(outletId));
 
     final ZoneId zone = ZoneId.of(outlet.timezone);
 
@@ -92,31 +98,35 @@ public class AuthService {
 
   @Transactional
   public LoginResponse loginWithPin(final LoginWithPinRequest request) {
+    appLogger.info(LOG, "PIN login attempt for employee=%s, device=%s", request.employeeId(), request.deviceId());
     validateSixDigit(request.pin());
 
     final PosDevice device = deviceRepository.findByDeviceCode(request.deviceId())
-      .orElseThrow(() -> new NotFoundException("Unknown device"));
+      .orElseThrow(() -> ResourceNotFoundException.device(request.deviceId()));
 
     final Outlet outlet = outletRepository.findByIdOptional(device.outletId)
-      .orElseThrow(() -> new NotFoundException("Outlet not found"));
+      .orElseThrow(() -> ResourceNotFoundException.outlet(device.outletId));
 
     final Employee employee = employeeRepository.findByIdOptional(request.employeeId())
-      .orElseThrow(() -> new NotFoundException("Employee not found"));
+      .orElseThrow(() -> ResourceNotFoundException.employee(request.employeeId()));
 
     if (!employee.outletId.equals(device.outletId)) {
-      throw new ForbiddenException("Employee not in outlet");
+      appLogger.logSecurityWarning(LOG, "EMPLOYEE_OUTLET_MISMATCH", "employee=" + employee.id + ", deviceOutlet=" + device.outletId);
+      throw AuthorizationException.outletMismatch();
     }
 
     final EmployeeCredential cred = credentialRepository.findByEmployeeId(employee.id)
-      .orElseThrow(() -> new ForbiddenException("PIN not set"));
+      .orElseThrow(() -> AuthenticationException.invalidCredentials("PIN not configured"));
 
     if (cred.lockedUntil != null && cred.lockedUntil.toInstant().isAfter(Instant.now())) {
-      throw new ForbiddenException("Employee locked");
+      appLogger.logSecurityEvent(LOG, "LOGIN_ATTEMPT_LOCKED_ACCOUNT", "employee=" + employee.id);
+      throw AuthenticationException.accountLocked();
     }
 
     if (!pinHasher.matches(request.pin(), cred.pinHash)) {
       credentialRepository.incrementFailedAttempts(employee.id);
-      throw new ForbiddenException("Invalid PIN");
+      appLogger.logSecurityEvent(LOG, "INVALID_PIN_ATTEMPT", "employee=" + employee.id);
+      throw AuthenticationException.invalidPin();
     }
 
     credentialRepository.resetFailedAttempts(employee.id);
@@ -141,18 +151,21 @@ public class AuthService {
 
   @Transactional
   public PinOtpRequestResponse requestPinOtp(final PinOtpRequest request) {
+    appLogger.info(LOG, "OTP request for email=%s, device=%s", request.email(), request.deviceId());
+
     // Find employee by email to determine outlet
     final Employee employee = employeeRepository.findByEmail(request.email())
-      .orElseThrow(() -> new NotFoundException("Employee not found with email: " + request.email()));
-    
+      .orElseThrow(() -> ResourceNotFoundException.employeeByEmail(request.email()));
+
     final String outletId = employee.outletId;
 
     final PosDevice device = deviceRepository.findByDeviceCode(request.deviceId())
-      .orElseThrow(() -> new NotFoundException("Unknown device"));
+      .orElseThrow(() -> ResourceNotFoundException.device(request.deviceId()));
 
     // Ensure device is associated with the employee's outlet
     if (!device.outletId.equals(outletId)) {
-      throw new ForbiddenException("Device is registered to a different outlet");
+      appLogger.logSecurityWarning(LOG, "DEVICE_OUTLET_MISMATCH_OTP", "device=" + request.deviceId() + ", expected=" + outletId);
+      throw AuthorizationException.deviceMismatch();
     }
 
     final String otp = otpService.generateOtp(PIN_LENGTH);
@@ -173,18 +186,20 @@ public class AuthService {
 
   @Transactional
   public PinOtpResendResponse resendPinOtp(final PinOtpResendRequest request) {
+    appLogger.info(LOG, "OTP resend request for challenge=%s", request.challengeId());
+
     final PinOtpChallenge ch = otpRepository.findByIdOptional(request.challengeId())
-      .orElseThrow(() -> new NotFoundException("Challenge not found"));
+      .orElseThrow(() -> ResourceNotFoundException.challenge(request.challengeId()));
 
     if (ch.consumedAt != null) {
-      throw new BadRequestException("Challenge already used");
+      throw BusinessException.challengeAlreadyUsed(request.challengeId());
     }
     if (ch.expiresAt.toInstant().isBefore(Instant.now())) {
-      throw new BadRequestException("Challenge expired");
+      throw BusinessException.challengeExpired(request.challengeId());
     }
 
     final Employee employee = employeeRepository.findByIdOptional(ch.employeeId)
-      .orElseThrow(() -> new NotFoundException("Employee not found"));
+      .orElseThrow(() -> ResourceNotFoundException.employee(ch.employeeId));
 
     final String otp = otpService.generateOtp(PIN_LENGTH);
     ch.otpHash = pinHasher.hash(otp);
@@ -198,37 +213,40 @@ public class AuthService {
 
   @Transactional
   public LoginResponse verifyPinOtp(final PinOtpVerifyRequest request) {
+    appLogger.info(LOG, "OTP verification for challenge=%s, device=%s", request.challengeId(), request.deviceId());
     validateSixDigit(request.otp());
 
     final PosDevice device = deviceRepository.findByDeviceCode(request.deviceId())
-      .orElseThrow(() -> new NotFoundException("Unknown device"));
+      .orElseThrow(() -> ResourceNotFoundException.device(request.deviceId()));
 
     final Outlet outlet = outletRepository.findByIdOptional(device.outletId)
-      .orElseThrow(() -> new NotFoundException("Outlet not found"));
+      .orElseThrow(() -> ResourceNotFoundException.outlet(device.outletId));
 
     final PinOtpChallenge ch = otpRepository.findByIdOptional(request.challengeId())
-      .orElseThrow(() -> new NotFoundException("Challenge not found"));
+      .orElseThrow(() -> ResourceNotFoundException.challenge(request.challengeId()));
 
     if (!ch.outletId.equals(device.outletId)) {
-      throw new ForbiddenException("Challenge not valid for outlet");
+      appLogger.logSecurityWarning(LOG, "CHALLENGE_OUTLET_MISMATCH", "challenge=" + ch.id + ", deviceOutlet=" + device.outletId);
+      throw AuthorizationException.outletMismatch();
     }
 
     if (ch.consumedAt != null) {
-      throw new BadRequestException("Challenge already used");
+      throw BusinessException.challengeAlreadyUsed(request.challengeId());
     }
     if (ch.expiresAt.toInstant().isBefore(Instant.now())) {
-      throw new BadRequestException("Challenge expired");
+      throw BusinessException.challengeExpired(request.challengeId());
     }
 
     if (!pinHasher.matches(request.otp(), ch.otpHash)) {
-      throw new ForbiddenException("Invalid OTP");
+      appLogger.logSecurityEvent(LOG, "INVALID_OTP_ATTEMPT", "challenge=" + ch.id);
+      throw AuthenticationException.invalidOtp();
     }
 
     ch.consumedAt = java.util.Date.from(Instant.now());
     otpRepository.persist(ch);
 
     final Employee employee = employeeRepository.findByIdOptional(ch.employeeId)
-      .orElseThrow(() -> new NotFoundException("Employee not found"));
+      .orElseThrow(() -> ResourceNotFoundException.employee(ch.employeeId));
 
     final Shift shift = shiftRepository.findActive(device.outletId, employee.id, device.id)
       .orElseGet(() -> shiftRepository.createActive(device.outletId, employee.id, device.id));
@@ -249,7 +267,7 @@ public class AuthService {
 
   private static void validateSixDigit(final String value) {
     if (value == null || value.length() != PIN_LENGTH || !value.chars().allMatch(Character::isDigit)) {
-      throw new BadRequestException("Must be a 6-digit code");
+      throw ValidationException.invalidPinFormat();
     }
   }
 }
