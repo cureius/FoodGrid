@@ -57,6 +57,15 @@ public class LeadResource {
     }
 
     @Inject
+    com.foodgrid.lead.service.LeadNormalizationService normalizationService;
+
+    @POST
+    @Path("/normalize")
+    public void normalize() {
+        normalizationService.normalizeUnprocessedLeads();
+    }
+
+    @Inject
     com.foodgrid.lead.service.LeadEnrichmentService enrichmentService;
 
     @POST

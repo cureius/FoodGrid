@@ -114,7 +114,7 @@ export default function LandingPage() {
         >
           <div className={styles.heroImage}>
              <Image 
-                src="/landing_hero_pos_illustration_1770261115917.png" 
+                src="/landing_hero_pos_illustration.svg" 
                 alt="FoodGrid Dashboard" 
                 width={600} 
                 height={500} 

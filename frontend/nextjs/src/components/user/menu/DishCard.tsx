@@ -222,8 +222,8 @@ export default function DishCard({ item }: DishCardProps) {
           .add-button {
             width: 100%;
             height: 36px;
-            background: white;
-            border: 1px solid rgba(75, 112, 245, 0.2);
+            background: var(--bg-surface);
+            border: 2px solid var(--primary);
             border-radius: var(--radius-sm);
             color: var(--primary);
             font-weight: 800;
@@ -237,7 +237,8 @@ export default function DishCard({ item }: DishCardProps) {
           }
           .add-button:hover {
             transform: scale(1.05);
-            background: var(--primary-light);
+            background: var(--primary);
+            color: white;
           }
           .plus-icon {
             transition: transform 0.3s ease;

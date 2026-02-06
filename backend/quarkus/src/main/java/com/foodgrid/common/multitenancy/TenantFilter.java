@@ -101,6 +101,7 @@ public class TenantFilter implements ContainerRequestFilter {
       || p.startsWith("q/")
       || p.startsWith("openapi")
       || p.startsWith("health")
+      || p.startsWith("api/v1/demo")
       || p.startsWith("user");
   }
 
