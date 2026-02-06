@@ -109,6 +109,7 @@ export default function DishCard({ item }: DishCardProps) {
               />
             ) : (
               <button
+                data-demo-action="add-to-cart"
                 onClick={handleAddClick}
                 className="add-button"
               >

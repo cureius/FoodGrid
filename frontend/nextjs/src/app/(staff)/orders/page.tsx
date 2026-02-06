@@ -554,6 +554,7 @@ export default function OrderPage() {
               </button>
               <Link
                 href="/orders/new"
+                data-demo-action="create-order"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -1064,6 +1065,7 @@ export default function OrderPage() {
                       </button>
                       {order.status === "Ready to Served" && (
                         <button
+                          data-demo-action="mark-served"
                           onClick={() => handleMarkServed(order.id)}
                           disabled={actionLoading === `serve-${order.id}`}
                           style={{
@@ -1104,6 +1106,7 @@ export default function OrderPage() {
                       )}
                       {order.status === "Waiting for Payment" && (
                         <button
+                          data-demo-action="generate-bill"
                           onClick={() => handleBillOrder(order.id)}
                           disabled={actionLoading === `bill-${order.id}`}
                           style={{
@@ -1595,6 +1598,7 @@ export default function OrderPage() {
                       )}
                       {selectedOrderResponse?.status === "KOT_SENT" && (
                         <button
+                          data-demo-action="mark-served"
                           onClick={() => handleMarkServed(selectedOrder.id)}
                           disabled={!!actionLoading}
                           className={styles.primaryBtn}
@@ -1604,6 +1608,7 @@ export default function OrderPage() {
                       )}
                       {selectedOrderResponse?.status === "SERVED" && (
                         <button
+                          data-demo-action="generate-bill"
                           onClick={() => handleBillOrder(selectedOrder.id)}
                           disabled={!!actionLoading}
                           className={styles.primaryBtn}
@@ -1614,6 +1619,7 @@ export default function OrderPage() {
                       )}
                       {selectedOrderResponse?.status === "BILLED" && (
                         <Link
+                          data-demo-action="record-payment"
                           href={`/orders/new?orderId=${selectedOrder.id}&step=4`}
                           className={styles.primaryBtn}
                           style={{ background: "var(--success)", color: "white", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
@@ -1637,6 +1643,7 @@ export default function OrderPage() {
                       )}
                       {selectedOrderResponse?.status === "BILLED" && (
                         <Link
+                          data-demo-action="record-payment"
                           href={`/orders/new?orderId=${selectedOrder.id}&step=4`}
                           className={styles.primaryBtn}
                           style={{ background: "var(--success)", color: "white", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}

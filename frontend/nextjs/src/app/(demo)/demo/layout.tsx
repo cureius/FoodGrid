@@ -1,25 +1,16 @@
 'use client';
 
 import React from 'react';
-import StyledComponentsRegistry from '@/lib/registry';
 import { DemoProvider } from '@/contexts/DemoContext';
-import DemoRoleBar from '@/components/demo/DemoRoleBar';
-import DemoOverlay from '@/components/demo/DemoOverlay';
+import { DemoOverlay } from '@/components/demo/DemoOverlay';
+import { DemoToolbar } from '@/components/demo/DemoToolbar';
 
-export default function DemoLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DemoLayout({ children }: { children: React.ReactNode }) {
   return (
-    <StyledComponentsRegistry>
-      <DemoProvider>
-        <div className="demo-shell" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-          {children}
-          <DemoRoleBar />
-          <DemoOverlay />
-        </div>
-      </DemoProvider>
-    </StyledComponentsRegistry>
+    <DemoProvider>
+      {children}
+      <DemoOverlay />
+      <DemoToolbar />
+    </DemoProvider>
   );
 }

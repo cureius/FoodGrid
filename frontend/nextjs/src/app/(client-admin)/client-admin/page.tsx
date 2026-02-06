@@ -309,6 +309,7 @@ export default function Page() {
           </div>
 
           <button
+            data-demo-action="refresh-dashboard"
             onClick={() => load(true)}
             disabled={refreshing}
             style={{

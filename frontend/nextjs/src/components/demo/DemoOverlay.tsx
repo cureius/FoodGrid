@@ -1,162 +1,231 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDemo } from '@/contexts/DemoContext';
-import { DemoHint } from '@/constants/demo';
-import { Info, ArrowRight, X } from 'lucide-react';
 
-export default function DemoOverlay() {
-  const { isActive, currentHint, hideHint } = useDemo();
-  const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
-  const [mounted, setMounted] = useState(false);
+interface TargetRect {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
+
+export function DemoOverlay() {
+  const { currentStep, advanceFlow, currentStepIndex, flow, flowStarted } = useDemo();
+  const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const observerRef = useRef<MutationObserver | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
-
-  // Update target rect when currentHint changes or window resizes
-  useEffect(() => {
-    if (!currentHint) {
+    if (!flowStarted || !currentStep) {
       setTargetRect(null);
       return;
     }
 
-    const updatePosition = () => {
-      const element = document.querySelector(`[data-demo-anchor="${currentHint.anchor}"]`);
-      if (element) {
-        setTargetRect(element.getBoundingClientRect());
-      } else {
-        // Retry for a bit in case of dynamic loading
-        const interval = setInterval(() => {
-          const el = document.querySelector(`[data-demo-anchor="${currentHint.anchor}"]`);
-          if (el) {
-            setTargetRect(el.getBoundingClientRect());
-            clearInterval(interval);
-          }
-        }, 500);
-        
-        // Timeout after 5s
-        setTimeout(() => clearInterval(interval), 5000);
-      }
-    };
+    if (!currentStep.targetAction) {
+      setTargetRect(null);
+      return;
+    }
 
-    updatePosition();
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition, true);
+    function findTarget() {
+      const el = document.querySelector(`[data-demo-action="${currentStep!.targetAction}"]`);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        setTargetRect({
+          top: rect.top + window.scrollY,
+          left: rect.left + window.scrollX,
+          width: rect.width,
+          height: rect.height,
+        });
+
+        // Position tooltip below the target
+        const tooltipWidth = 320;
+        let tLeft = rect.left + rect.width / 2 - tooltipWidth / 2;
+        tLeft = Math.max(16, Math.min(tLeft, window.innerWidth - tooltipWidth - 16));
+        let tTop = rect.bottom + 16;
+        if (tTop + 200 > window.innerHeight) {
+          tTop = rect.top - 200 - 16 + window.scrollY;
+        } else {
+          tTop += window.scrollY;
+        }
+        setTooltipPos({ top: tTop, left: tLeft });
+
+        // Scroll into view if needed
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    findTarget();
+
+    // Poll for element appearance
+    pollRef.current = setInterval(findTarget, 500);
+
+    // Also observe DOM mutations
+    observerRef.current = new MutationObserver(findTarget);
+    observerRef.current.observe(document.body, { childList: true, subtree: true });
 
     return () => {
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
+      if (pollRef.current) clearInterval(pollRef.current);
+      if (observerRef.current) observerRef.current.disconnect();
     };
-  }, [currentHint]);
+  }, [currentStep, flowStarted]);
 
-  if (!mounted || !isActive || !currentHint || !targetRect) return null;
+  if (!flowStarted || !currentStep) return null;
 
-  return createPortal(
-    <div style={{ position: 'fixed', inset: 0, zIndex: 10000, pointerEvents: 'none' }}>
-      {/* Dimmed Background with Hole (using clip-path or heavy optimization) 
-          For simplicity, we use 4 divs to create the frame around the target 
-      */}
-      <div style={{ // Top
-        position: 'absolute', top: 0, left: 0, right: 0, height: targetRect.top,
-        background: 'rgba(0, 0, 0, 0.5)', pointerEvents: 'auto'
-      }} />
-      <div style={{ // Bottom
-        position: 'absolute', top: targetRect.bottom, left: 0, right: 0, bottom: 0,
-        background: 'rgba(0, 0, 0, 0.5)', pointerEvents: 'auto'
-      }} />
-      <div style={{ // Left
-        position: 'absolute', top: targetRect.top, left: 0, width: targetRect.left, height: targetRect.height,
-        background: 'rgba(0, 0, 0, 0.5)', pointerEvents: 'auto'
-      }} />
-      <div style={{ // Right
-        position: 'absolute', top: targetRect.top, left: targetRect.right, right: 0, height: targetRect.height,
-        background: 'rgba(0, 0, 0, 0.5)', pointerEvents: 'auto'
-      }} />
-
-      {/* Spotlight Border */}
-      <div style={{
-        position: 'absolute',
-        top: targetRect.top - 4,
-        left: targetRect.left - 4,
-        width: targetRect.width + 8,
-        height: targetRect.height + 8,
-        border: '2px solid #3b82f6',
-        borderRadius: 4,
-        boxShadow: '0 0 0 4px rgba(59, 130, 246, 0.3)',
-        pointerEvents: 'none',
-        transition: 'all 0.3s ease-out'
-      }} />
-
-      {/* Hint Card */}
-      <HintCard hint={currentHint} targetRect={targetRect} onDismiss={hideHint} />
-    </div>,
-    document.body
-  );
-}
-
-function HintCard({ hint, targetRect, onDismiss }: { hint: DemoHint, targetRect: DOMRect, onDismiss: () => void }) {
-  // Simple positioning logic
-  const spacing = 16;
-  let top = targetRect.bottom + spacing;
-  let left = targetRect.left;
-  const cardWidth = 320;
-
-  // Adjust if going off screen
-  if (left + cardWidth > window.innerWidth) {
-    left = window.innerWidth - cardWidth - spacing;
-  }
-  
-  if (top + 150 > window.innerHeight) {
-    top = targetRect.top - 150 - spacing; // Flip to top
-  }
+  const isLastStep = currentStepIndex === flow.length - 1;
+  const hasCompletionEvent = !!currentStep.completionEvent;
+  const progress = ((currentStepIndex + 1) / flow.length) * 100;
 
   return (
-    <div style={{
-      position: 'absolute',
-      top,
-      left,
-      width: cardWidth,
-      background: 'white',
-      borderRadius: '12px',
-      padding: '16px',
-      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-      pointerEvents: 'auto',
-      animation: 'fadeIn 0.3s ease-out',
-      color: '#1e293b'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ background: '#eff6ff', padding: 4, borderRadius: 6, color: '#3b82f6' }}>
-            <Info size={16} />
-          </div>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{hint.title}</h3>
-        </div>
-        <button onClick={onDismiss} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
-          <X size={16} />
-        </button>
-      </div>
-      
-      {hint.description && (
-        <p style={{ margin: '0 0 16px 0', fontSize: 14, color: '#64748b', lineHeight: 1.5 }}>
-          {hint.description}
-        </p>
+    <>
+      {/* Backdrop with spotlight cutout */}
+      {targetRect && (
+        <svg
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 9998,
+            pointerEvents: 'none',
+          }}
+        >
+          <defs>
+            <mask id="demo-spotlight-mask">
+              <rect width="100%" height="100%" fill="white" />
+              <rect
+                x={targetRect.left - window.scrollX - 8}
+                y={targetRect.top - window.scrollY - 8}
+                width={targetRect.width + 16}
+                height={targetRect.height + 16}
+                rx="8"
+                fill="black"
+              />
+            </mask>
+          </defs>
+          <rect
+            width="100%"
+            height="100%"
+            fill="rgba(0,0,0,0.5)"
+            mask="url(#demo-spotlight-mask)"
+          />
+        </svg>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <div style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>
-          Waiting for action...
+      {/* Target highlight ring */}
+      {targetRect && (
+        <div
+          style={{
+            position: 'absolute',
+            top: targetRect.top - 8,
+            left: targetRect.left - 8,
+            width: targetRect.width + 16,
+            height: targetRect.height + 16,
+            border: '2px solid #10b981',
+            borderRadius: 8,
+            zIndex: 9999,
+            pointerEvents: 'none',
+            boxShadow: '0 0 0 4px rgba(16, 185, 129, 0.3)',
+            animation: 'demo-pulse 2s infinite',
+          }}
+        />
+      )}
+
+      {/* Tooltip */}
+      <div
+        style={{
+          position: targetRect ? 'absolute' : 'fixed',
+          top: targetRect ? tooltipPos.top : '50%',
+          left: targetRect ? tooltipPos.left : '50%',
+          transform: targetRect ? 'none' : 'translate(-50%, -50%)',
+          width: 320,
+          background: '#1e293b',
+          color: 'white',
+          borderRadius: 12,
+          padding: 20,
+          zIndex: 10000,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>
+            Step {currentStepIndex + 1} of {flow.length}
+          </span>
+          <span style={{
+            fontSize: 10,
+            fontWeight: 700,
+            padding: '2px 8px',
+            borderRadius: 999,
+            background: currentStep.role === 'staff' ? '#3b82f6' : currentStep.role === 'admin' ? '#8b5cf6' : '#10b981',
+            color: 'white',
+            textTransform: 'uppercase',
+          }}>
+            {currentStep.role}
+          </span>
+        </div>
+
+        <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 6 }}>
+          {currentStep.title}
+        </h3>
+        <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.5, marginBottom: 16 }}>
+          {currentStep.description}
+        </p>
+
+        {/* Progress bar */}
+        <div style={{ height: 3, background: '#334155', borderRadius: 2, marginBottom: 12 }}>
+          <div style={{ height: '100%', width: `${progress}%`, background: '#10b981', borderRadius: 2, transition: 'width 0.3s' }} />
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          {hasCompletionEvent ? (
+            <span style={{ fontSize: 12, color: '#64748b', fontStyle: 'italic' }}>
+              Perform the action to continue...
+            </span>
+          ) : isLastStep ? (
+            <a
+              href="/start-free-trial"
+              style={{
+                padding: '8px 16px',
+                background: '#10b981',
+                color: 'white',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 700,
+                textDecoration: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Start Free Trial
+            </a>
+          ) : (
+            <button
+              onClick={advanceFlow}
+              style={{
+                padding: '8px 16px',
+                background: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Next
+            </button>
+          )}
         </div>
       </div>
-      
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
+
+      <style>{`
+        @keyframes demo-pulse {
+          0%, 100% { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.3); }
+          50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.1); }
         }
       `}</style>
-    </div>
+    </>
   );
 }
