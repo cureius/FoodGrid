@@ -37,9 +37,9 @@ export default function LandingPage() {
           <Logo size={32} />
           <div className={styles.headerActions}>
             <ThemeSwitcher />
-            <Link href="/user/login">
+            <Link href="/start-free-trial">
               <button className={`${styles.btnSecondary} ${styles.btnSmall}`}>
-                Login
+                Get Brochure
               </button>
             </Link>
             <Link href="/user/register">

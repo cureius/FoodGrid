@@ -604,3 +604,109 @@
   .contactFooter { padding-top: 5mm; gap: 2mm; }
   .contactItem { font-size: 9pt; }
 }
+
+
+/* ... keep your existing variables and base styles ... */
+
+/* Unified Wrapper for both sides */
+.brochureWrapper, .reverseWrapper {
+  width: 100%;
+  max-width: 1000px;
+  background: white;
+  display: grid;
+  grid-template-columns: 1fr; /* Stacked on mobile */
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+/* Landscape Desktop & Print Simulation */
+@media screen and (min-width: 1024px), print {
+  .brochureWrapper, .reverseWrapper {
+     width: 297mm;
+     height: 210mm;
+     max-width: none;
+     grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  /* Side A Layout */
+  .brochureWrapper {
+    grid-template-areas: "inside back front";
+  }
+
+  /* Side B Layout */
+  .reverseWrapper {
+    grid-template-areas: "p4 p5 p6";
+  }
+
+  .panel, .journeyPanel {
+      height: 210mm;
+      padding: 25px; /* Reduced padding to fit content */
+      overflow: hidden; 
+      display: flex;
+      flex-direction: column;
+  }
+}
+
+/* Front Side Assignments */
+.frontPanel { grid-area: front; }
+.insidePanel { grid-area: inside; }
+.backPanel { grid-area: back; }
+
+/* Back Side Assignments */
+.p4 { grid-area: p4; border-right: 1px solid var(--border-light); }
+.p5 { grid-area: p5; border-right: 1px solid var(--border-light); }
+.p6 { grid-area: p6; }
+
+/* Journey Content Tightening - This is key to making it fit */
+.journeyStepContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Reduced from 32px */
+}
+
+.journeyStep {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  text-align: center;
+}
+
+.journeyImageWrapper {
+  width: 100%;
+  height: 110px; /* Reduced from 140px to ensure vertical fit */
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  background: var(--bg-muted);
+}
+
+.stepIconCircle {
+  width: 32px; /* Smaller icons */
+  height: 32px;
+  font-size: 14px;
+}
+
+.journeyTitle {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.journeySubtitle {
+  font-size: 12px;
+  margin-bottom: 15px;
+}
+
+/* Print Specifics */
+@media print {
+  .pageContainer { padding: 0; }
+  .brochureWrapper, .reverseWrapper {
+    page-break-after: always;
+    box-shadow: none;
+    border: none;
+  }
+  /* Force background colors in print */
+  .frontPanel { -webkit-print-color-adjust: exact; background: #eef2fe !important; }
+}

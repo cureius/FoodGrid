@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Logo from '@/components/Logo';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { CheckCircle2, Phone, Globe, ArrowLeft, ArrowRight, Printer } from 'lucide-react';
 import styles from './brochure.module.css';
 
@@ -19,9 +20,12 @@ export default function BrochurePage() {
         <Link href="/" className={styles.backLink}>
            <ArrowLeft size={16} /> Back to Home
         </Link>
-        <button onClick={handlePrint} className={styles.printBtn}>
-           <Printer size={16} /> Print Brochure
-        </button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <ThemeSwitcher />
+          <button onClick={handlePrint} className={styles.printBtn}>
+             <Printer size={16} /> Print Brochure
+          </button>
+        </div>
       </div>
 
       <div className={styles.brochureWrapper}>
@@ -96,8 +100,8 @@ export default function BrochurePage() {
         <section className={`${styles.panel} ${styles.insidePanel}`}>
            
            <div className={styles.insideSection}>
-             <h2 className={styles.panelTitle}>Key Benefits</h2>
-             <ul className={styles.benefitList}>
+           <h2 className={styles.panelTitle}>Key Benefits</h2>
+           <ul className={styles.benefitList}>
                {[
                  'QR based ordering for dine-in customers',
                  'Fast and simple POS billing',
@@ -106,12 +110,12 @@ export default function BrochurePage() {
                  'Customer ordering website',
                  'Multiple outlet support'
                ].map((item, i) => (
-                 <li key={i} className={styles.benefitItem}>
+               <li key={i} className={styles.benefitItem}>
                    <CheckCircle2 className={styles.checkIcon} size={20} />
                    <span>{item}</span>
-                 </li>
-               ))}
-             </ul>
+               </li>
+             ))}
+           </ul>
            </div>
 
            <div className={styles.insideSection} style={{ marginTop: 'auto' }}>
@@ -199,7 +203,6 @@ export default function BrochurePage() {
         
         {/* Panel 4: Ordering Journey */}
         <section className={styles.journeyPanel} style={{ gridArea: 'p4' }}>
-          <div className={styles.pageLabel}>Back Outside</div>
           <h2 className={styles.journeyTitle}>1. Seamless Ordering</h2>
           <p className={styles.journeySubtitle}>Enhance the guest experience from the second they arrive.</p>
           
@@ -211,7 +214,7 @@ export default function BrochurePage() {
                 </div>
                 <div className={styles.journeyStepContent}>
                    <h4>Scan & Discover</h4>
-                   <p>Customers scan the table QR code to view your digital menu instantly.</p>
+                   <p>Instant digital menu access via QR.</p>
                 </div>
              </div>
              <div className={styles.journeyStep}>
@@ -221,7 +224,7 @@ export default function BrochurePage() {
                 </div>
                 <div className={styles.journeyStepContent}>
                    <h4>Select & Order</h4>
-                   <p>Beautiful images and descriptions help customers order more, faster.</p>
+                   <p>Visual ordering for faster service.</p>
                 </div>
              </div>
           </div>
@@ -229,7 +232,6 @@ export default function BrochurePage() {
 
         {/* Panel 5: Kitchen Flow */}
         <section className={styles.journeyPanel} style={{ gridArea: 'p5' }}>
-          <div className={styles.pageLabel}>Back Inside</div>
           <h2 className={styles.journeyTitle}>2. Kitchen Workflow</h2>
           <p className={styles.journeySubtitle}>Direct integration between the customer and the chef.</p>
           
@@ -241,7 +243,7 @@ export default function BrochurePage() {
                 </div>
                 <div className={styles.journeyStepContent}>
                    <h4>Instant KOT</h4>
-                   <p>Orders flow directly to the kitchen via KOT or digital display system.</p>
+                   <p>Orders flow directly to the kitchen.</p>
                 </div>
              </div>
              <div className={styles.journeyStep}>
@@ -257,50 +259,34 @@ export default function BrochurePage() {
           </div>
         </section>
 
-        {/* Panel 6: Admin Control */}
-        <section className={styles.journeyPanel} style={{ gridArea: 'p6' }}>
-          <div className={styles.pageLabel}>Back Center</div>
-          <h2 className={styles.journeyTitle}>3. Growth & Billing</h2>
-          <p className={styles.journeySubtitle}>Settle bills and track every rupee in real-time.</p>
-          
+        {/* Panel 6 */}
+        <section className={`${styles.journeyPanel} ${styles.p6}`}>
+          <h2 className={styles.journeyTitle}>Growth & Billing</h2>
           <div className={styles.journeyStepContainer}>
              <div className={styles.journeyStep}>
                 <div className={styles.stepIconCircle}>5</div>
                 <div className={styles.journeyImageWrapper}>
-                  <Image src="/billing_payment_step_1770261172221.png" alt="Payment" fill style={{ objectFit: 'cover' }} />
+                  <Image src="/billing_payment_step_1770261172221.png" alt="Billing" fill style={{ objectFit: 'cover' }} />
                 </div>
                 <div className={styles.journeyStepContent}>
-                   <h4>Quick Billing</h4>
-                   <p>One-tap checkout with multiple payment options and GST invoices.</p>
+                   <h4>Quick Checkout</h4>
+                   <p>One-tap billing and GST invoices.</p>
                 </div>
              </div>
              <div className={styles.journeyStep}>
                 <div className={styles.stepIconCircle}>6</div>
                 <div className={styles.journeyImageWrapper}>
-                  <Image src="/landing_hero_pos_illustration_1770261115917.png" alt="Analytics" fill style={{ objectFit: 'cover' }} />
+                  <Image src="/landing_hero_pos_illustration_1770261115917.png" alt="Data" fill style={{ objectFit: 'cover' }} />
                 </div>
                 <div className={styles.journeyStepContent}>
-                   <h4>Real-time Analytics</h4>
-                   <p>Track live sales and top-performing items from your mobile app anywhere.</p>
+                   <h4>Analytics</h4>
+                   <p>Track sales from anywhere, live.</p>
                 </div>
              </div>
           </div>
         </section>
 
       </div>
-      <style jsx global>{`
-        @media print {
-          @page {
-            size: A4 landscape;
-            margin: 0;
-          }
-          body {
-            background: white;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-        }
-      `}</style>
     </div>
   );
 }
