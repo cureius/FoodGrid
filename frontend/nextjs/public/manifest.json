@@ -1,0 +1,20 @@
+{
+  "name": "FoodGrid - Restaurant Management System",
+  "short_name": "FoodGrid",
+  "description": "Advanced Restaurant POS System",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4B70F5",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "food", "productivity"],
+  "screenshots": []
+}
