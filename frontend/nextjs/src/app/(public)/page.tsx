@@ -3,10 +3,10 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  Building2, 
-  Store, 
-  Users, 
+import {
+  Building2,
+  Store,
+  Users,
   ShoppingCart,
   Receipt,
   Utensils,
@@ -53,19 +53,19 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className={styles.hero}>
-        <motion.div 
+        <motion.div
           className={styles.heroContent}
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <div style={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            gap: 8, 
-            padding: '8px 16px', 
-            background: 'var(--primary-light)', 
-            color: 'var(--primary)', 
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '8px 16px',
+            background: 'var(--primary-light)',
+            color: 'var(--primary)',
             borderRadius: 100,
             fontSize: 14,
             fontWeight: 700,
@@ -80,7 +80,7 @@ export default function LandingPage() {
           <p className={styles.heroSubtitle}>
             From local cafés to national chains. Manage orders, kitchen workflows, and real-time sales with India's most powerful restaurant management cloud.
           </p>
-          <div className={styles.heroCta}>
+          <div className={styles.heroCta} style={{ display: 'flex', justifyContent: 'flex-start' }}>
             <Link href="/start-free-trial">
               <button className={styles.btnPrimary}>
                 Start Today <ArrowRight size={20} />
@@ -92,7 +92,7 @@ export default function LandingPage() {
               </button>
             </Link>
           </div>
-          
+
           <div style={{ marginTop: 40, display: 'flex', gap: 24, alignItems: 'center' }}>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)' }}>10k+</div>
@@ -106,56 +106,55 @@ export default function LandingPage() {
           </div>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           className={styles.heroImageContainer}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, delay: 0.2 }}
         >
           <div className={styles.heroImage}>
-             <Image 
-                src="/landing_hero_pos_illustration.svg" 
-                alt="FoodGrid Dashboard" 
-                width={600} 
-                height={500} 
-                className={styles.heroImage}
-                priority
-             />
+            <Image
+              src="/landing_hero_pos_illustration.svg"
+              alt="FoodGrid Dashboard"
+              width={600}
+              height={500}
+              className={styles.heroImage}
+              priority
+            />
           </div>
           <div className={`${styles.floatingCard} ${styles.card1}`}>
-             <div style={{ background: '#10b981', padding: 8, borderRadius: 10, color: 'white' }}><TrendingUp size={20} /></div>
-             <div>
-               <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Live Sales</div>
-               <div style={{ fontSize: 16, fontWeight: 800 }}>₹42,500</div>
-             </div>
+            <div style={{ background: '#10b981', padding: 8, borderRadius: 10, color: 'white' }}><TrendingUp size={20} /></div>
+            <div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Live Sales</div>
+              <div style={{ fontSize: 16, fontWeight: 800 }}>₹42,500</div>
+            </div>
           </div>
           <div className={`${styles.floatingCard} ${styles.card2}`}>
-             <div style={{ background: '#3b82f6', padding: 8, borderRadius: 10, color: 'white' }}><ShoppingCart size={20} /></div>
-             <div>
-               <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Orders</div>
-               <div style={{ fontSize: 16, fontWeight: 800 }}>124 Today</div>
-             </div>
+            <div style={{ background: '#3b82f6', padding: 8, borderRadius: 10, color: 'white' }}><ShoppingCart size={20} /></div>
+            <div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Orders</div>
+              <div style={{ fontSize: 16, fontWeight: 800 }}>124 Today</div>
+            </div>
           </div>
         </motion.div>
       </section>
 
       {/* Trust Bar */}
-      <section style={{ padding: '2rem 0', borderTop: '1px solid var(--border-light)', borderBottom: '1px solid var(--border-light)', background: 'var(--bg-secondary)' }}>
+      {/* <section style={{ padding: '2rem 0', borderTop: '1px solid var(--border-light)', borderBottom: '1px solid var(--border-light)', background: 'var(--bg-secondary)' }}>
         <div className={styles.section} style={{ padding: 0, display: 'flex', justifyContent: 'space-around', alignItems: 'center', opacity: 0.6, filter: 'grayscale(1)' }}>
-           {/* Logos placeholders */}
            <div style={{ fontSize: 18, fontWeight: 900, letterSpacing: 2 }}>TECHBURST</div>
            <div style={{ fontSize: 18, fontWeight: 900, letterSpacing: 2 }}>FOODIFY</div>
            <div style={{ fontSize: 18, fontWeight: 900, letterSpacing: 2 }}>RESTROCLOUD</div>
            <div style={{ fontSize: 18, fontWeight: 900, letterSpacing: 2 }}>QUICKSERVE</div>
         </div>
-      </section>
+      </section> */}
 
       {/* Platform Overview */}
       <section className={styles.section}>
         <motion.div
-           initial={{ opacity: 0, y: 30 }}
-           whileInView={{ opacity: 1, y: 0 }}
-           viewport={{ once: true }}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
         >
           <h2 className={styles.sectionTitle}>Everything You Need to Scale</h2>
           <p className={styles.sectionSubtitle}>
@@ -172,8 +171,8 @@ export default function LandingPage() {
             { icon: <Store size={24} />, title: 'Multi-Outlet', desc: 'Manage your entire chain centralized. Sync menus and view reports across all locations.' },
             { icon: <Users size={24} />, title: 'CRM & Loyalty', desc: 'Understand your customers better and keep them coming back with automated rewards.' }
           ].map((f, i) => (
-            <motion.div 
-              key={i} 
+            <motion.div
+              key={i}
               className={styles.featureCard}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -189,13 +188,13 @@ export default function LandingPage() {
       </section>
 
       {/* Role-Based Flows */}
-      <section className={styles.section} style={{ background: 'var(--bg-secondary)', borderRadius: 40, margin: '0 1.5rem 6rem' }}>
+      <section className={styles.section} style={{ background: 'var(--bg-secondary)', borderRadius: 40 }}>
         <h2 className={styles.sectionTitle}>Tailored for Every Role</h2>
         <p className={styles.sectionSubtitle}>
           Specific interfaces for owners, staff, and customers to ensure maximum efficiency.
         </p>
         <div className={styles.grid3}>
-          <div className={styles.roleCard}>
+          <div className={styles.roleCard} style={{ border: '2px solid var(--primary)' }}>
             <div className={styles.roleHeader}>
               <div className={styles.roleIconWrapper}>
                 <Building2 size={28} />
@@ -210,7 +209,7 @@ export default function LandingPage() {
             </ul>
           </div>
 
-          <div className={styles.roleCard}>
+          <div className={styles.roleCard} style={{ border: '2px solid var(--primary)' }}>
             <div className={styles.roleHeader}>
               <div className={styles.roleIconWrapper}>
                 <Users size={28} />
@@ -255,8 +254,8 @@ export default function LandingPage() {
             { num: '3', title: 'Setup Menu', desc: 'Upload your categories and items in bulk or manually.' },
             { num: '4', title: 'Go Live', desc: 'Deploy POS tablets and QR codes to start taking orders.' }
           ].map((s, i) => (
-            <motion.div 
-              key={i} 
+            <motion.div
+              key={i}
               className={styles.step}
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
@@ -272,7 +271,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className={styles.section} style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #4338ca 100%)', textAlign: 'center', borderRadius: 40, color: 'white' }}>
+      <section className={styles.section} style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #4338ca 100%)', textAlign: 'center', borderRadius: 40, color: 'white', marginBottom: '3rem' }}>
         <h2 className={styles.sectionTitle} style={{ color: 'white' }}>Transform Your Restaurant Today</h2>
         <p className={styles.sectionSubtitle} style={{ color: 'rgba(255,255,255,0.8)' }}>
           Join thousands of successful restaurants who scaled their business with FoodGrid.

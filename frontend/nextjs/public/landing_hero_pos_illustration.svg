@@ -38,8 +38,8 @@
   <!-- Main POS Device -->
   <g filter="url(#shadow)">
     <!-- Tablet/POS Stand -->
-    <rect x="180" y="320" width="240" height="140" rx="12" fill="#1E293B"/>
-    <rect x="180" y="320" width="240" height="12" rx="6" fill="#334155"/>
+    <rect x="180" y="320" width="240" height="140" rx="12" fill="#1e293b24"/>
+    <rect x="180" y="320" width="240" height="12" rx="6" fill="#33415580"/>
     
     <!-- POS Screen -->
     <rect x="150" y="80" width="300" height="240" rx="20" fill="#1E293B"/>
