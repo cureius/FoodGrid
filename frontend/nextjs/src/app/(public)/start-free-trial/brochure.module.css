@@ -25,9 +25,9 @@
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  background: white;
+  background: var(--bg-surface);
   border: 1px solid var(--border-light);
-  color: var(--text-main);
+  color: var(--text-primary);
   transition: 0.2s;
   box-shadow: var(--shadow-sm);
 }
@@ -50,7 +50,7 @@
 .brochureWrapper {
   width: 100%;
   max-width: 1000px; /* A4 width approx when viewed on screen */
-  background: white;
+  background: var(--bg-surface);
   display: grid;
   grid-template-columns: 1fr 1fr; /* Bi-fold screen simulation */
   gap: 0;
@@ -75,11 +75,11 @@
 
 .insidePanel {
   border-right: 1px solid var(--border-light);
-  background: white;
+  background: var(--bg-surface);
 }
 
 .backPanel {
-  background: var(--bg-muted);
+  background: var(--bg-secondary);
 }
 
 /* Content Styles */
@@ -95,7 +95,7 @@
 .mainHeadline {
   font-size: 36px;
   font-weight: 900;
-  color: var(--navy);
+  color: var(--text-primary);
   line-height: 1.2;
   margin-bottom: 16px;
   max-width: 600px;
@@ -113,7 +113,7 @@
   width: 100%;
   max-width: 500px;
   height: 250px;
-  background: white;
+  background: var(--bg-primary);
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--border-light);
@@ -147,17 +147,18 @@
 }
 
 .ctaBlock {
-  background: white;
+  background: var(--bg-primary);
   padding: 24px 32px;
   border-radius: 20px;
   box-shadow: var(--shadow-md);
   text-align: center;
+  border: 1px solid var(--border-light);
 }
 
 .ctaTitle {
   font-size: 14px;
   font-weight: 800;
-  color: var(--navy);
+  color: var(--text-primary);
   margin-bottom: 16px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -191,7 +192,7 @@
 .panelTitle {
   font-size: 24px;
   font-weight: 800;
-  color: var(--navy);
+  color: var(--text-primary);
   margin-bottom: 24px;
   padding-bottom: 12px;
   border-bottom: 2px solid var(--primary-light);
@@ -209,7 +210,7 @@
   align-items: flex-start;
   gap: 12px;
   font-size: 15px;
-  color: var(--text-main);
+  color: var(--text-primary);
   line-height: 1.4;
   font-weight: 500;
 }
@@ -227,11 +228,11 @@
 }
 
 .bestForCard {
-  background: var(--bg-muted);
+  background: var(--bg-secondary);
   padding: 16px;
   border-radius: 12px;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--text-primary);
   text-align: center;
   border: 1px solid var(--border-light);
 }
@@ -245,7 +246,7 @@
 }
 
 .priceCard {
-  background: white;
+  background: var(--bg-primary);
   border: 1px solid var(--border-light);
   border-radius: 16px;
   padding: 20px;
@@ -270,7 +271,7 @@
 .priceHeader h3 {
   font-size: 16px;
   font-weight: 800;
-  color: var(--navy);
+  color: var(--text-primary);
 }
 
 .priceVal {
@@ -316,7 +317,7 @@
   align-items: center;
   gap: 8px;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--text-primary);
   font-size: 14px;
 }
 
@@ -333,7 +334,7 @@
 .reverseWrapper {
   width: 100%;
   max-width: 1000px;
-  background: white;
+  background: var(--bg-surface);
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0;
@@ -353,7 +354,7 @@
   padding: 32px;
   display: flex;
   flex-direction: column;
-  background: white;
+  background: var(--bg-surface);
   border-right: 1px solid var(--border-light);
 }
 
@@ -364,7 +365,7 @@
 .journeyTitle {
   font-size: 20px;
   font-weight: 800;
-  color: var(--navy);
+  color: var(--text-primary);
   margin-bottom: 12px;
   text-align: center;
 }
@@ -406,8 +407,8 @@
 }
 
 .journeyImageWrapper {
-  width: 100%;
-  height: 140px;
+  width: 50%;
+  height: 300px;
   position: relative;
   border-radius: 12px;
   overflow: hidden;
@@ -418,7 +419,7 @@
 .journeyStepContent h4 {
   font-size: 15px;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
@@ -674,8 +675,8 @@
 }
 
 .journeyImageWrapper {
-  width: 100%;
-  height: 110px; /* Reduced from 140px to ensure vertical fit */
+  width: 40%;
+  height: 280px; /* Reduced from 140px to ensure vertical fit */
   position: relative;
   border-radius: 8px;
   overflow: hidden;

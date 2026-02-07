@@ -112,9 +112,9 @@ export default function CheckoutPage() {
                 Payment Verified by FoodGrid Secure
             </div>
             <style jsx>{`
-                .success-screen { min-height: 100vh; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; }
+                .success-screen { min-height: 100vh; background: var(--bg-surface); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; }
                 .success-icon { width: 96px; height: 96px; background: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin-bottom: 32px; box-shadow: 0 12px 32px rgba(16, 185, 129, 0.3); }
-                .success-title { font-size: 32px; font-weight: 800; color: var(--navy); margin-bottom: 12px; }
+                .success-title { font-size: 32px; font-weight: 800; color: var(--text-primary); margin-bottom: 12px; }
                 .success-meta { color: var(--text-light); font-weight: 700; font-size: 14px; margin-bottom: 8px; }
                 .success-text { color: var(--text-muted); font-weight: 600; line-height: 1.5; max-width: 280px; }
                 .verified-badge { margin-top: 48px; display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 800; color: var(--success); text-transform: uppercase; letter-spacing: 1px; padding: 12px 24px; background: var(--success-light); border-radius: 999px; }
@@ -143,9 +143,9 @@ export default function CheckoutPage() {
              </div>
              <style jsx>{`
                 .payment-link-screen { min-height: 100vh; background: var(--bg-app); display: flex; align-items: center; justify-content: center; padding: 24px; }
-                .link-card { background: white; border-radius: 32px; padding: 40px 24px; width: 100%; max-width: 400px; text-align: center; box-shadow: var(--shadow-lg); }
+                .link-card { background: var(--bg-surface); border-radius: 32px; padding: 40px 24px; width: 100%; max-width: 400px; text-align: center; box-shadow: var(--shadow-lg); }
                 .link-icon { width: 64px; height: 64px; background: var(--primary-light); color: var(--primary); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
-                .link-title { font-size: 24px; font-weight: 800; color: var(--navy); margin-bottom: 12px; }
+                .link-title { font-size: 24px; font-weight: 800; color: var(--text-primary); margin-bottom: 12px; }
                 .link-text { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 32px; }
                 .link-btn { display: block; width: 100%; height: 56px; background: var(--primary); color: white; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 8px 24px rgba(75, 112, 245, 0.2); }
                 .link-cancel { margin-top: 24px; font-size: 12px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; }
@@ -249,7 +249,7 @@ export default function CheckoutPage() {
         
         .radio-outer { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border-medium); display: flex; align-items: center; justify-content: center; transition: var(--transition-fast); }
         .radio-outer.checked { border-color: var(--primary); background: var(--primary); }
-        .radio-inner { width: 6px; height: 6px; background: white; border-radius: 50%; }
+        .radio-inner { width: 6px; height: 6px; background: var(--bg-surface); border-radius: 50%; }
 
         .security-info { background: var(--success-light); border-radius: 20px; padding: 20px; border: 1px solid rgba(16, 185, 129, 0.1); display: flex; gap: 16px; }
         .shield-icon { width: 44px; height: 44px; background: var(--bg-surface); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); flex-shrink: 0; }
@@ -258,7 +258,7 @@ export default function CheckoutPage() {
         .security-desc { font-size: 11px; font-weight: 600; color: var(--success); opacity: 0.8; line-height: 1.5; }
 
         .payment-bar { position: fixed; bottom: 72px; left: 0; right: 0; z-index: 50; background: var(--bg-surface); padding: 16px; border-top: 1px solid var(--border-light); padding-bottom: calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 32px rgba(0,0,0,0.06); }
-        .pay-btn { max-width: 418px; margin: 0 auto; width: 100%; height: 56px; background: var(--navy); color: white; border-radius: 16px; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 12px; transition: var(--transition-fast); box-shadow: 0 12px 24px rgba(0,0,0,0.1); cursor: pointer; }
+        .pay-btn { max-width: 418px; margin: 0 auto; width: 100%; height: 56px; background: var(--text-primary); color: white; border-radius: 16px; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 12px; transition: var(--transition-fast); box-shadow: 0 12px 24px rgba(0,0,0,0.1); cursor: pointer; }
         .pay-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .pay-btn:active { transform: scale(0.98); }
 

@@ -209,8 +209,8 @@ export default function BrochurePage() {
           <div className={styles.journeyStepContainer}>
              <div className={styles.journeyStep}>
                 <div className={styles.stepIconCircle}>1</div>
-                <div className={styles.journeyImageWrapper}>
-                  <Image src="/customer_qr_scan_step_1770261133855.png" alt="QR Scan" fill style={{ objectFit: 'cover' }} />
+                <div className={styles.journeyImageWrapper} style={{ width: '200px', height: '100px' }}>
+                  <Image src="/qr.png" alt="QR Scan" fill style={{ objectFit: 'cover' }} />
                 </div>
                 <div className={styles.journeyStepContent}>
                    <h4>Scan & Discover</h4>
@@ -220,7 +220,7 @@ export default function BrochurePage() {
              <div className={styles.journeyStep}>
                 <div className={styles.stepIconCircle}>2</div>
                 <div className={styles.journeyImageWrapper}>
-                  <Image src="/res/Screenshot 2026-02-03 at 9.05.08 AM.png" alt="Menu" fill style={{ objectFit: 'cover' }} />
+                  <Image src="/mockup1.png" alt="Menu" fill style={{ objectFit: 'cover' }} />
                 </div>
                 <div className={styles.journeyStepContent}>
                    <h4>Select & Order</h4>
@@ -239,11 +239,11 @@ export default function BrochurePage() {
              <div className={styles.journeyStep}>
                 <div className={styles.stepIconCircle}>3</div>
                 <div className={styles.journeyImageWrapper}>
-                  <Image src="/kitchen_kot_workflow_step_1770261152761.png" alt="KOT" fill style={{ objectFit: 'cover' }} />
+                  <Image src="/mockup3.png" alt="Cart" fill style={{ objectFit: 'cover' }} />
                 </div>
                 <div className={styles.journeyStepContent}>
-                   <h4>Instant KOT</h4>
-                   <p>Orders flow directly to the kitchen.</p>
+                   <h4>Review Cart</h4>
+                   <p>Easy cart management and checkout.</p>
                 </div>
              </div>
              <div className={styles.journeyStep}>
@@ -266,7 +266,7 @@ export default function BrochurePage() {
              <div className={styles.journeyStep}>
                 <div className={styles.stepIconCircle}>5</div>
                 <div className={styles.journeyImageWrapper}>
-                  <Image src="/billing_payment_step_1770261172221.png" alt="Billing" fill style={{ objectFit: 'cover' }} />
+                  <Image src="/mockup4.png" alt="Billing" fill style={{ objectFit: 'cover' }} />
                 </div>
                 <div className={styles.journeyStepContent}>
                    <h4>Quick Checkout</h4>
@@ -276,11 +276,11 @@ export default function BrochurePage() {
              <div className={styles.journeyStep}>
                 <div className={styles.stepIconCircle}>6</div>
                 <div className={styles.journeyImageWrapper}>
-                  <Image src="/landing_hero_pos_illustration_1770261115917.png" alt="Data" fill style={{ objectFit: 'cover' }} />
+                  <Image src="/mockup5.png" alt="Order Confirmation" fill style={{ objectFit: 'cover' }} />
                 </div>
                 <div className={styles.journeyStepContent}>
-                   <h4>Analytics</h4>
-                   <p>Track sales from anywhere, live.</p>
+                   <h4>Order Placed</h4>
+                   <p>Instant confirmation and tracking.</p>
                 </div>
              </div>
           </div>
