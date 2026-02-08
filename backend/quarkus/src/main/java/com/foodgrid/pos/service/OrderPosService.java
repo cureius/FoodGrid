@@ -524,12 +524,22 @@ public class OrderPosService {
     }
 
     // Validate that the outlet belongs to the tenant
-    guards.requireOutletInTenant(outletId);
+    final Outlet outlet = guards.requireOutletInTenant(outletId);
 
     // Defensive tenant check
     final String tenantId = guards.requireTenant();
     if (o.tenantId != null && !o.tenantId.isBlank() && !tenantId.equals(o.tenantId)) {
-      throw AuthorizationException.tenantMismatch();
+      // Allow it if it matches the outlet's ownerId (migration case)
+      // This handles cases where orders were created when tenantId was resolved as ownerId, 
+      // but now it's resolved as clientId.
+      if (o.tenantId.equals(outlet.ownerId)) {
+          // Auto-migrate order tenantId to current tenantId if possible
+          o.tenantId = tenantId;
+          orderRepository.persist(o);
+          appLogger.info(LOG, "Auto-migrated order %s tenantId from %s (ownerId) to %s (clientId)", o.id, outlet.ownerId, tenantId);
+      } else {
+          throw AuthorizationException.tenantMismatch();
+      }
     }
 
     return o;

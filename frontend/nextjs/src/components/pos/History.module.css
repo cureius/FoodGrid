@@ -1,0 +1,411 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 12px 16px 24px 16px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.titlePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-button);
+  border: 1px solid var(--border-light);
+  background: var(--component-bg);
+  font-weight: 900;
+  color: var(--text-primary);
+}
+
+.searchWrap {
+  flex: 1;
+  max-width: 560px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-button);
+  border: 1px solid var(--border-light);
+  background: var(--component-bg);
+}
+
+.searchWrap svg {
+  color: var(--text-muted);
+}
+
+.searchWrap input {
+  border: none;
+  outline: none;
+  width: 100%;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(340px, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.left {
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-light);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-card);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  padding: 6px 6px 10px;
+}
+
+.filterBtn {
+  padding: 8px 12px;
+  border-radius: var(--radius-button);
+  border: 1px solid var(--border-light);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-weight: 900;
+}
+
+.filterBtnActive {
+  background: rgba(75, 112, 245, 0.12);
+  border-color: rgba(75, 112, 245, 0.22);
+  color: var(--primary-blue);
+}
+
+.list {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-card);
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+.orderCard {
+  all: unset;
+  display: block;
+  cursor: pointer;
+  box-sizing: border-box;
+  width: calc(100% - 24px);
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  background: var(--component-bg);
+  overflow: hidden;
+  margin: 12px;
+}
+
+.orderCard:last-child {
+  border-bottom: none;
+}
+
+.orderCardSelected {
+  box-shadow: inset 0 0 0 2px rgba(75, 112, 245, 0.65);
+}
+
+.orderCardSelected .orderCardHeader {
+  border-radius: 12px 12px 0 0;
+  background: var(--primary-light);
+}
+
+.orderCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.orderId {
+  font-size: 13px;
+  color: rgba(109, 120, 139, 0.95);
+}
+
+.orderId b {
+  color: var(--text-primary);
+}
+
+.orderWhen {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.orderCardBody {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+}
+
+.kv {
+  padding-right: 8px;
+  border-right: 1px solid var(--border-light);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.kv:last-child {
+  border-right: none;
+}
+
+.kLabel {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kValue {
+  margin-top: 2px;
+  font-weight: 900;
+  color: var(--text-primary);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.right {
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-light);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-card);
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 8px;
+  overflow: hidden;
+}
+
+.billCard {
+  width: 100%;
+  border-radius: var(--radius-card);
+  background: var(--component-bg);
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.billHeaderTitle {
+  font-weight: 900;
+  padding: 8px 8px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+}
+
+.billHeader {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.tableBadge {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(75, 112, 245, 1);
+  color: white;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.billCustomer {
+  font-weight: 900;
+}
+
+.billMeta {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.billWhen {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.billSectionTitle {
+  font-weight: 900;
+  padding: 12px 14px;
+  color: var(--text-primary);
+}
+
+.billLines {
+  padding: 0 14px;
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.billLine {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.billLine:last-child {
+  border-bottom: none;
+}
+
+.billLineName {
+  font-weight: 900;
+}
+
+.billLineUnit {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.billLineRight {
+  text-align: right;
+}
+
+.billLineQty {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.billLineTotal {
+  font-weight: 900;
+  margin-top: 2px;
+}
+
+.billTotalsWrap {
+  margin-top: 10px;
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-tertiary);
+  padding: 12px 14px;
+}
+
+.billTotalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-weight: 800;
+  color: var(--text-secondary);
+}
+
+.billDivider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 10px 0;
+}
+
+.billTotalPayment {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 900;
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+.printBtn {
+  margin: 12px 14px 14px;
+  height: 48px;
+  border-radius: var(--radius-button);
+  background: rgba(75, 112, 245, 1);
+  color: white;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: var(--shadow-button);
+}
+
+.emptyState {
+  text-align: center;
+  max-width: 320px;
+  padding: 18px;
+  margin: auto;
+}
+
+.emptyIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid var(--border-light);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--component-bg);
+  color: var(--text-secondary);
+}
+
+.emptyTitle {
+  margin-top: 12px;
+  font-weight: 900;
+  font-size: 18px;
+}
+
+.emptySub {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 980px) {
+  .shell {
+    grid-template-columns: 1fr;
+    overflow: auto;
+  }
+
+  .left {
+    min-height: 400px;
+  }
+
+  .right {
+    min-height: 340px;
+  }
+
+  .orderCardBody {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .kv:nth-child(2n) {
+    border-right: none;
+  }
+}
+

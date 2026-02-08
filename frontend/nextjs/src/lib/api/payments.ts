@@ -2,8 +2,15 @@ import { PaginatedResponse } from "./common";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8080";
 
-function clientAdminAuthHeader(): Record<string, string> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("fg_client_admin_access_token") : null;
+function getAuthHeader(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const path = window.location.pathname;
+  let token: string | null = null;
+  if (path.includes("/client-admin")) {
+    token = localStorage.getItem("fg_client_admin_access_token");
+  } else {
+    token = localStorage.getItem("fg_staff_access_token");
+  }
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
@@ -12,7 +19,7 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
     headers: {
       "content-type": "application/json",
-      ...clientAdminAuthHeader(),
+      ...getAuthHeader(),
       ...(init?.headers ?? {})
     },
     cache: "no-store"
