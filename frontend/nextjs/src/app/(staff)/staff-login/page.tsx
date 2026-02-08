@@ -91,11 +91,20 @@ export default function StaffLoginPage() {
       }); // chaneg
 
       if (loginResponse?.accessToken) {
-        // Success! Store tokens and redirect
+        // Success! Store tokens and data
         localStorage.setItem("fg_staff_access_token", loginResponse.accessToken);
         if (loginResponse.refreshToken) {
           localStorage.setItem("fg_staff_refresh_token", loginResponse.refreshToken);
         }
+        
+        // Store employee and outlet info
+        if (loginResponse.employee) {
+          localStorage.setItem("fg_staff_user", JSON.stringify(loginResponse.employee));
+        }
+        if (loginResponse.outlet) {
+          localStorage.setItem("fg_staff_outlet", JSON.stringify(loginResponse.outlet));
+        }
+
         setSuccess("Login successful! Redirecting...");
         
         // Small delay to show success message

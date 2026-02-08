@@ -338,7 +338,7 @@ export default function TablesPage() {
                   height: 48,
                   borderRadius: 14,
                   border: "1px solid rgba(0,0,0,0.08)",
-                  background: "white",
+                  background: "var(--bg-surface)",
                   cursor: refreshing || !selectedOutletId ? "not-allowed" : "pointer",
                   opacity: refreshing || !selectedOutletId ? 0.6 : 1,
                   transition: "all 0.2s ease",
@@ -410,7 +410,7 @@ export default function TablesPage() {
                 <div
                   key={index}
                   style={{
-                    background: "white",
+                    background: "var(--bg-surface)",
                     borderRadius: 20,
                     padding: 24,
                     boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
@@ -447,7 +447,7 @@ export default function TablesPage() {
         {selectedOutletId && (
           <div
             style={{
-              background: "white",
+              background: "var(--bg-surface)",
               borderRadius: 20,
               padding: 20,
               boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
@@ -469,7 +469,7 @@ export default function TablesPage() {
                       padding: "14px 16px 14px 44px",
                       borderRadius: 12,
                       border: "1px solid var(--component-border)",
-                      background: "var(--bg-secondary)",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -497,7 +497,7 @@ export default function TablesPage() {
                       padding: "14px 16px 14px 38px",
                       borderRadius: 12,
                       border: "1px solid var(--component-border)",
-                      background: "var(--bg-secondary)",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       cursor: "pointer",
                       outline: "none",
@@ -647,14 +647,14 @@ export default function TablesPage() {
             </div>
           </Card>
         ) : viewMode === "grid" ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 24 }}>
             {filteredTables.map((table) => {
               const statusColors = getStatusColor(table.status);
               return (
                 <div
                   key={table.id}
                   style={{
-                    background: "white",
+                    background: "var(--bg-surface)",
                     borderRadius: 20,
                     padding: 24,
                     boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
@@ -714,7 +714,7 @@ export default function TablesPage() {
                     alignItems: "center",
                     gap: 10,
                     padding: "12px 16px",
-                    background: "var(--bg-secondary)",
+                    background: "var(--component-bg)",
                     borderRadius: 12,
                     marginBottom: 20,
                   }}>
@@ -733,7 +733,7 @@ export default function TablesPage() {
                         padding: "12px 18px",
                         borderRadius: 12,
                         border: "1px solid var(--component-border)",
-                        background: "white",
+                        background: "var(--bg-surface)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -796,7 +796,7 @@ export default function TablesPage() {
                 <div
                   key={table.id}
                   style={{
-                    background: "white",
+                    background: "var(--bg-surface)",
                     borderRadius: 16,
                     padding: 20,
                     boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
@@ -865,7 +865,7 @@ export default function TablesPage() {
                         padding: "10px 16px",
                         borderRadius: 10,
                         border: "1px solid var(--component-border)",
-                        background: "white",
+                        background: "var(--bg-surface)",
                         display: "flex",
                         alignItems: "center",
                         gap: 8,
@@ -938,7 +938,7 @@ export default function TablesPage() {
           >
             <div
               style={{
-                background: "white",
+                background: "var(--bg-surface)",
                 borderRadius: 24,
                 maxWidth: 480,
                 width: "100%",
@@ -969,7 +969,7 @@ export default function TablesPage() {
                       padding: "12px 16px",
                       borderRadius: 12,
                       border: "1px solid var(--component-border)",
-                      background: "var(--bg-secondary)",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -999,7 +999,7 @@ export default function TablesPage() {
                       padding: "12px 16px",
                       borderRadius: 12,
                       border: "1px solid var(--component-border)",
-                      background: "var(--bg-secondary)",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -1031,7 +1031,7 @@ export default function TablesPage() {
                       padding: "12px 16px",
                       borderRadius: 12,
                       border: "1px solid var(--component-border)",
-                      background: "var(--bg-secondary)",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -1059,7 +1059,7 @@ export default function TablesPage() {
                       padding: "12px 16px",
                       borderRadius: 12,
                       border: "1px solid var(--component-border)",
-                      background: "var(--bg-secondary)",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       cursor: "pointer",
                       outline: "none",
@@ -1090,7 +1090,7 @@ export default function TablesPage() {
                     padding: "14px 20px",
                     borderRadius: 12,
                     border: "1px solid var(--component-border)",
-                    background: "white",
+                    background: "var(--bg-surface)",
                     fontSize: 14,
                     fontWeight: 600,
                     color: "var(--text-secondary)",
@@ -1166,7 +1166,7 @@ export default function TablesPage() {
           >
             <div
               style={{
-                background: "white",
+                background: "var(--bg-surface)",
                 borderRadius: 24,
                 maxWidth: 480,
                 width: "100%",
@@ -1197,7 +1197,7 @@ export default function TablesPage() {
                       padding: "12px 16px",
                       borderRadius: 12,
                       border: "1px solid var(--component-border)",
-                      background: "var(--bg-secondary)",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -1227,7 +1227,7 @@ export default function TablesPage() {
                       padding: "12px 16px",
                       borderRadius: 12,
                       border: "1px solid var(--component-border)",
-                      background: "var(--bg-secondary)",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -1259,7 +1259,7 @@ export default function TablesPage() {
                       padding: "12px 16px",
                       borderRadius: 12,
                       border: "1px solid var(--component-border)",
-                      background: "var(--bg-secondary)",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -1287,7 +1287,7 @@ export default function TablesPage() {
                       padding: "12px 16px",
                       borderRadius: 12,
                       border: "1px solid var(--component-border)",
-                      background: "var(--bg-secondary)",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       cursor: "pointer",
                       outline: "none",
@@ -1318,7 +1318,7 @@ export default function TablesPage() {
                     padding: "14px 20px",
                     borderRadius: 12,
                     border: "1px solid var(--component-border)",
-                    background: "white",
+                    background: "var(--bg-surface)",
                     fontSize: 14,
                     fontWeight: 600,
                     color: "var(--text-secondary)",
@@ -1394,7 +1394,7 @@ export default function TablesPage() {
           >
             <div
               style={{
-                background: "white",
+                background: "var(--bg-surface)",
                 borderRadius: 24,
                 maxWidth: 440,
                 width: "100%",
@@ -1420,7 +1420,7 @@ export default function TablesPage() {
                     padding: "14px 20px",
                     borderRadius: 12,
                     border: "1px solid var(--component-border)",
-                    background: "white",
+                    background: "var(--bg-surface)",
                     fontSize: 14,
                     fontWeight: 600,
                     color: "var(--text-secondary)",

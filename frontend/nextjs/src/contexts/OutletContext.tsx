@@ -21,12 +21,19 @@ interface OutletContextType {
 
 const OutletContext = createContext<OutletContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'fg_client_admin_selected_outlet_id';
-
 export function OutletProvider({ children }: { readonly children: ReactNode }) {
   const [selectedOutletId, setSelectedOutletIdState] = useState<string | null>(null);
   const [outlets, setOutlets] = useState<Outlet[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Determine if we are in the client-admin section or staff section
+  const isClientAdmin = typeof window !== "undefined" && (
+    window.location.pathname.startsWith('/client-admin') || 
+    window.location.pathname.startsWith('/tenant-admin') ||
+    window.location.pathname.startsWith('/internal-admin')
+  );
+
+  const STORAGE_KEY = isClientAdmin ? 'fg_client_admin_selected_outlet_id' : 'fg_staff_selected_outlet_id';
 
   // Load selected outlet from localStorage on mount
   useEffect(() => {
@@ -34,20 +41,37 @@ export function OutletProvider({ children }: { readonly children: ReactNode }) {
     if (stored) {
       setSelectedOutletIdState(stored);
     }
-  }, []);
+  }, [STORAGE_KEY]);
 
   const refreshOutlets = useCallback(async () => {
     try {
       setLoading(true);
       const data = await listOutlets();
       setOutlets(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch outlets:', error);
+      
+      // If we are in staff section, we might only have access to one outlet
+      if (!isClientAdmin) {
+        const staffOutletJson = localStorage.getItem('fg_staff_outlet');
+        if (staffOutletJson) {
+          try {
+            const staffOutlet = JSON.parse(staffOutletJson);
+            setOutlets([staffOutlet]);
+            if (!selectedOutletId) {
+              setSelectedOutletIdState(staffOutlet.id);
+            }
+          } catch (e) {
+            setOutlets([]);
+          }
+          return;
+        }
+      }
       setOutlets([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedOutletId, isClientAdmin]);
 
   // Fetch outlets on mount
   useEffect(() => {
@@ -66,7 +90,7 @@ export function OutletProvider({ children }: { readonly children: ReactNode }) {
         localStorage.setItem(STORAGE_KEY, outlets[0].id);
       }
     }
-  }, [outlets, selectedOutletId, loading]);
+  }, [outlets, selectedOutletId, loading, STORAGE_KEY]);
 
   const setSelectedOutletId = useCallback((outletId: string | null) => {
     setSelectedOutletIdState(outletId);
@@ -75,7 +99,7 @@ export function OutletProvider({ children }: { readonly children: ReactNode }) {
     } else {
       localStorage.removeItem(STORAGE_KEY);
     }
-  }, []);
+  }, [STORAGE_KEY]);
 
   const selectedOutlet = useMemo(() => {
     return outlets.find((o) => o.id === selectedOutletId) || null;

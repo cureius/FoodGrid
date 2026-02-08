@@ -69,15 +69,13 @@ export function verifyPinOtp(input: { challengeId: string; otp: string; deviceId
  */
 export async function loginWithEmail(input: { email: string; pin: string; deviceId: string }) {
   // Step 1: Try to get login context
-  // This will fail if device doesn't exist and outletId is not provided
+  // This validates the email exists and auto-registers the device
   let context: any;
   try {
     context = await getLoginContext(input.deviceId, input.email);
   } catch (err: any) {
-    // Device doesn't exist - need outletId to auto-register
-    // For now, throw a helpful error
-    if (err?.message?.includes("404") || err?.message?.includes("not found") || err?.message?.includes("Unknown device")) {
-      throw new Error("Device not registered. Please contact administrator to register this device first.");
+    if (err?.message?.includes("404") || err?.message?.includes("not found")) {
+      throw new Error("Employee not found. Please check your email address.");
     }
     throw err;
   }
@@ -86,48 +84,24 @@ export async function loginWithEmail(input: { email: string; pin: string; device
     throw new Error("Device not configured. Please contact administrator.");
   }
 
-  // Step 2: Validate email exists for this outlet using requestPinOtp
-  // This will throw if email doesn't exist or device doesn't exist
-  let challengeId: string | null = null;
+  const employeeId = context.matchedEmployeeId;
+  if (!employeeId) {
+    throw new Error("Could not identify employee for this login.");
+  }
+
+  // Step 2: Directly try PIN login with the matched employee ID
   try {
-    const otpResponse = await requestPinOtp({
-      email: input.email.trim(),
+    const loginResponse = await loginWithPin({
+      employeeId: employeeId,
+      pin: input.pin,
       deviceId: input.deviceId,
     });
-    challengeId = otpResponse?.challengeId || null;
+
+    if (loginResponse?.accessToken) {
+      return loginResponse;
+    }
+    throw new Error("Login failed. No access token received.");
   } catch (err: any) {
-    // Check if it's a device not found error
-    if (err?.message?.includes("404") || err?.message?.includes("not found") || err?.message?.includes("Unknown device")) {
-      throw new Error("Device not registered. Please contact administrator to register this device first.");
-    }
-    throw new Error(err?.message || "Invalid email or employee not found for this device");
+    throw new Error(err?.message || "Invalid PIN. Please try again.");
   }
-
-  // Step 3: Get employee list and try PIN login for each
-  // Since we can't get employeeId directly from email, we try PIN login for all employees
-  if (!context?.employees || context.employees.length === 0) {
-    throw new Error("No employees found for this device. Please contact administrator.");
-  }
-
-  let lastError: any = null;
-  for (const employee of context.employees) {
-    try {
-      const loginResponse = await loginWithPin({
-        employeeId: employee.id,
-        pin: input.pin,
-        deviceId: input.deviceId,
-      });
-
-      if (loginResponse?.accessToken) {
-        return loginResponse;
-      }
-    } catch (pinErr: any) {
-      // Continue trying other employees
-      lastError = pinErr;
-      continue;
-    }
-  }
-
-  // If we get here, PIN didn't match any employee
-  throw new Error(lastError?.message || "Invalid PIN. Please try again.");
 }

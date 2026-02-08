@@ -6,10 +6,10 @@ import {
   createEmployee,
   deleteEmployee,
   listEmployees,
-  listOutlets,
   updateEmployee,
   type EmployeeUpsertInput,
 } from "@/lib/api/clientAdmin";
+import { useOutlet } from "@/contexts/OutletContext";
 import {
   Plus,
   Users,
@@ -31,11 +31,9 @@ import {
   Eye,
   EyeOff,
   UserPlus,
-  Store,
   Loader2,
 } from "lucide-react";
 import Card from "@/components/ui/Card";
-import Badge from "@/components/ui/Badge";
 
 interface Employee {
   id: string;
@@ -46,20 +44,14 @@ interface Employee {
   status: string;
 }
 
-interface Outlet {
-  id: string;
-  name: string;
-  status?: string;
-}
 
 export default function EmployeesPage() {
   const router = useRouter();
+  const { selectedOutletId, selectedOutlet } = useOutlet();
 
   // State
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
-  const [outlets, setOutlets] = useState<Outlet[]>([]);
-  const [selectedOutletId, setSelectedOutletId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -115,15 +107,14 @@ export default function EmployeesPage() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  // Fetch outlets on mount
-  useEffect(() => {
-    fetchOutlets();
-  }, []);
-
   // Fetch employees when outlet changes
   useEffect(() => {
     if (selectedOutletId) {
       fetchEmployees();
+    } else {
+      setEmployees([]);
+      setFilteredEmployees([]);
+      setLoading(false);
     }
   }, [selectedOutletId]);
 
@@ -131,22 +122,6 @@ export default function EmployeesPage() {
   useEffect(() => {
     filterEmployees();
   }, [employees, searchQuery, statusFilter]);
-
-  const fetchOutlets = async () => {
-    try {
-      const data = await listOutlets();
-      setOutlets(data || []);
-      const envOutletId = process.env.NEXT_PUBLIC_OUTLET_ID;
-      if (envOutletId && data?.find((o: Outlet) => o.id === envOutletId)) {
-        setSelectedOutletId(envOutletId);
-      } else if (data && data.length > 0) {
-        setSelectedOutletId(data[0].id);
-      }
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Failed to fetch outlets";
-      showToast("Error", message, "error");
-    }
-  };
 
   const fetchEmployees = async () => {
     if (!selectedOutletId) return;
@@ -282,10 +257,11 @@ export default function EmployeesPage() {
   };
 
   const handleToggleStatus = async (employee: Employee) => {
+    if (!selectedOutletId) return;
     const newStatus = employee.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
     try {
       setSaving(true);
-      await updateEmployee(selectedOutletId, employee.id, {
+      await updateEmployee(selectedOutletId as string, employee.id, {
         displayName: employee.displayName,
         email: employee.email,
         avatarUrl: employee.avatarUrl || "",
@@ -314,7 +290,6 @@ export default function EmployeesPage() {
 
   const activeCount = employees.filter((e) => e.status === "ACTIVE").length;
   const inactiveCount = employees.filter((e) => e.status !== "ACTIVE").length;
-  const selectedOutlet = outlets.find((o) => o.id === selectedOutletId);
 
   const stats = [
     { title: "Total Employees", value: employees.length, icon: Users, color: "#6366f1", bgColor: "rgba(99, 102, 241, 0.1)" },
@@ -325,7 +300,7 @@ export default function EmployeesPage() {
   const canSubmit = form.displayName.trim() && form.email.trim();
 
   return (
-    <div style={{ minHeight: "100vh" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg-app)", color: "var(--text-primary)" }}>
       {/* Toast Notification */}
       {toast && (
         <div
@@ -358,17 +333,17 @@ export default function EmployeesPage() {
         </div>
       )}
 
-      <div style={{ padding: 32 }}>
+      <div style={{ padding: "32px" }}>
         {/* Header */}
-        <div style={{ marginBottom: 28 }}>
+        <div style={{ marginBottom: 32 }}>
           <div
             style={{
               display: "flex",
               flexWrap: "wrap",
               alignItems: "flex-start",
               justifyContent: "space-between",
-              gap: 16,
-              marginBottom: 18,
+              gap: 20,
+              marginBottom: 24,
             }}
           >
             <div>
@@ -377,9 +352,7 @@ export default function EmployeesPage() {
                   fontSize: 32,
                   fontWeight: 800,
                   margin: 0,
-                  background: "var(--text-primary)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
+                  color: "var(--text-primary)",
                   letterSpacing: "-0.5px",
                 }}
               >
@@ -397,15 +370,27 @@ export default function EmployeesPage() {
                 style={{
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: "center",
                   gap: 8,
-                  width: 44,
-                  height: 44,
-                  borderRadius: 12,
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
                   border: "1px solid var(--component-border)",
-                  background: "white",
+                  background: "var(--component-bg)",
                   cursor: refreshing || !selectedOutletId ? "not-allowed" : "pointer",
                   opacity: refreshing || !selectedOutletId ? 0.6 : 1,
-                  transition: "transform 0.15s ease, box-shadow 0.15s ease",
+                  transition: "all 0.2s ease",
+                  boxShadow: "var(--shadow-sm)",
+                }}
+                onMouseEnter={(e) => {
+                  if (!refreshing && selectedOutletId) {
+                    e.currentTarget.style.transform = "scale(1.05)";
+                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                  e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08)";
                 }}
                 title="Refresh"
                 aria-label="Refresh employee list"
@@ -420,8 +405,8 @@ export default function EmployeesPage() {
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
-                  padding: "12px 18px",
-                  borderRadius: 12,
+                  padding: "14px 20px",
+                  borderRadius: 14,
                   border: "none",
                   background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                   color: "white",
@@ -429,8 +414,18 @@ export default function EmployeesPage() {
                   opacity: !selectedOutletId ? 0.6 : 1,
                   fontSize: 14,
                   fontWeight: 700,
-                  boxShadow: "0 6px 18px rgba(139, 92, 246, 0.28)",
-                  transition: "transform 0.15s ease, box-shadow 0.15s ease",
+                  boxShadow: "0 4px 14px rgba(139, 92, 246, 0.35)",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  if (selectedOutletId) {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(139, 92, 246, 0.45)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 4px 14px rgba(139, 92, 246, 0.35)";
                 }}
               >
                 <UserPlus size={18} />
@@ -439,89 +434,48 @@ export default function EmployeesPage() {
             </div>
           </div>
 
-          {/* Outlet Selector */}
-          <Card style={{ marginBottom: 20 }}>
-            <div style={{ padding: 20, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-              <div style={{ padding: 12, borderRadius: 14, background: "rgba(249, 115, 22, 0.1)" }}>
-                <Building2 size={24} style={{ color: "#f97316" }} />
-              </div>
-              <div style={{ flex: 1, minWidth: 240 }}>
-                <label
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: "var(--text-secondary)",
-                    display: "block",
-                    marginBottom: 8,
-                    letterSpacing: 0.2,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Outlet
-                </label>
-                <select
-                  value={selectedOutletId}
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedOutletId(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: 12,
-                    border: "1px solid var(--component-border)",
-                    background: "var(--bg-secondary)",
-                    fontSize: 14,
-                    cursor: "pointer",
-                    outline: "none",
-                  }}
-                >
-                  <option value="">Choose an outlet to manage employees</option>
-                  {outlets.map((outlet) => (
-                    <option key={outlet.id} value={outlet.id}>
-                      {outlet.name}
-                    </option>
-                  ))}
-                </select>
-                <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-tertiary)" }}>
-                  Tip: Use the dropdown to switch outlet context.
-                </div>
-              </div>
-
-              {selectedOutlet ? (
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  <Badge variant="info">
-                    <Store size={14} style={{ marginRight: 6 }} />
-                    {selectedOutlet.name}
-                  </Badge>
-                  <Badge variant={selectedOutlet.status === "INACTIVE" ? "danger" : "success"}>
-                    {selectedOutlet.status === "INACTIVE" ? <ShieldX size={14} style={{ marginRight: 6 }} /> : <ShieldCheck size={14} style={{ marginRight: 6 }} />}
-                    {selectedOutlet.status ?? "ACTIVE"}
-                  </Badge>
-                </div>
-              ) : null}
-            </div>
-          </Card>
-
           {/* Stats */}
           {selectedOutletId && (
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: 16,
-                marginBottom: 20,
+                gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                gap: 20,
+                marginBottom: 24,
               }}
             >
               {stats.map((stat, index) => (
-                <Card key={index} style={{ transition: "transform 0.2s, box-shadow 0.2s" }}>
-                  <div style={{ padding: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div>
-                      <p style={{ margin: 0, fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>{stat.title}</p>
-                      <p style={{ margin: "8px 0 0", fontSize: 34, fontWeight: 800, color: "var(--text-primary)" }}>{stat.value}</p>
-                    </div>
-                    <div style={{ padding: 14, borderRadius: 14, background: stat.bgColor }}>
-                      <stat.icon size={26} style={{ color: stat.color }} />
-                    </div>
+                <div
+                  key={index}
+                  style={{
+                    background: "var(--bg-surface)",
+                    borderRadius: 20,
+                    padding: 24,
+                    boxShadow: "var(--shadow-md)",
+                    border: "1px solid var(--border-light)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    transition: "all 0.2s ease",
+                    cursor: "default",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "var(--shadow-md)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "var(--shadow-sm)";
+                  }}
+                >
+                  <div>
+                    <p style={{ margin: 0, fontSize: 14, color: "var(--text-secondary)", fontWeight: 500 }}>{stat.title}</p>
+                    <p style={{ margin: "8px 0 0", fontSize: 36, fontWeight: 800, color: "var(--text-primary)", fontFeatureSettings: "'tnum' on, 'lnum' on" }}>{stat.value}</p>
                   </div>
-                </Card>
+                  <div style={{ padding: 16, borderRadius: 16, background: stat.bgColor }}>
+                    <stat.icon size={28} style={{ color: stat.color }} />
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -529,11 +483,20 @@ export default function EmployeesPage() {
 
         {/* Filters */}
         {selectedOutletId && (
-          <Card style={{ marginBottom: 20 }}>
-            <div style={{ padding: 16, display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
+          <div
+            style={{
+              background: "var(--bg-surface)",
+              borderRadius: 20,
+              padding: 20,
+              boxShadow: "var(--shadow-md)",
+              border: "1px solid var(--border-light)",
+              marginBottom: 24,
+            }}
+          >
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
               <div style={{ display: "flex", gap: 12, flex: 1, flexWrap: "wrap" }}>
-                <div style={{ position: "relative", flex: 1, minWidth: 220, maxWidth: 460 }}>
-                  <Search size={18} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)" }} />
+                <div style={{ position: "relative", flex: 1, minWidth: 240, maxWidth: 480 }}>
+                  <Search size={18} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
                   <input
                     type="text"
                     placeholder="Search employees by name or email..."
@@ -541,31 +504,55 @@ export default function EmployeesPage() {
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                     style={{
                       width: "100%",
-                      padding: "12px 14px 12px 42px",
+                      padding: "14px 16px 14px 44px",
                       borderRadius: 12,
-                      border: "1px solid var(--component-border)",
-                      background: "var(--bg-secondary)",
+                      border: "1px solid var(--border-light)",
+                      background: "var(--bg-tertiary)",
                       fontSize: 14,
                       outline: "none",
+                      color: "var(--text-primary)",
                       boxSizing: "border-box",
+                      transition: "all 0.2s ease",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = "var(--primary)";
+                      e.currentTarget.style.background = "white";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
+                      e.currentTarget.style.boxShadow = "none";
                     }}
                   />
                 </div>
                 <div style={{ position: "relative", minWidth: 180 }}>
-                  <Filter size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)" }} />
+                  <Filter size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
                   <select
                     value={statusFilter}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
                     style={{
                       width: "100%",
-                      padding: "12px 14px 12px 36px",
+                      padding: "14px 16px 14px 38px",
                       borderRadius: 12,
-                      border: "1px solid var(--component-border)",
-                      background: "var(--bg-secondary)",
+                      border: "1px solid var(--border-light)",
+                      background: "var(--bg-tertiary)",
                       fontSize: 14,
                       cursor: "pointer",
                       outline: "none",
+                      color: "var(--text-primary)",
                       boxSizing: "border-box",
+                      transition: "all 0.2s ease",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = "var(--primary)";
+                      e.currentTarget.style.background = "white";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
+                      e.currentTarget.style.boxShadow = "none";
                     }}
                   >
                     <option value="all">All status</option>
@@ -574,19 +561,32 @@ export default function EmployeesPage() {
                   </select>
                 </div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>{filteredEmployees.length} employees</span>
-                <div style={{ display: "flex", background: "var(--bg-tertiary)", borderRadius: 10, padding: 4 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <span style={{ fontSize: 14, color: "var(--text-secondary)", fontWeight: 600, whiteSpace: "nowrap" }}>
+                  {filteredEmployees.length} {filteredEmployees.length === 1 ? "employee" : "employees"}
+                </span>
+                <div style={{ display: "flex", background: "var(--bg-tertiary)", borderRadius: 12, padding: 4, gap: 4 }}>
                   <button
                     onClick={() => setViewMode("grid")}
                     aria-label="Grid view"
                     style={{
-                      padding: "8px 12px",
-                      borderRadius: 8,
+                      padding: "10px 14px",
+                      borderRadius: 10,
                       border: "none",
-                      background: viewMode === "grid" ? "white" : "transparent",
-                      boxShadow: viewMode === "grid" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                      background: viewMode === "grid" ? "var(--bg-surface)" : "transparent",
+                      boxShadow: viewMode === "grid" ? "var(--shadow-sm)" : "none",
                       cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (viewMode !== "grid") {
+                        e.currentTarget.style.background = "var(--component-hover)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (viewMode !== "grid") {
+                        e.currentTarget.style.background = "transparent";
+                      }
                     }}
                   >
                     <Grid3X3 size={18} style={{ color: viewMode === "grid" ? "var(--primary)" : "var(--text-secondary)" }} />
@@ -595,12 +595,23 @@ export default function EmployeesPage() {
                     onClick={() => setViewMode("list")}
                     aria-label="List view"
                     style={{
-                      padding: "8px 12px",
-                      borderRadius: 8,
+                      padding: "10px 14px",
+                      borderRadius: 10,
                       border: "none",
-                      background: viewMode === "list" ? "white" : "transparent",
-                      boxShadow: viewMode === "list" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                      background: viewMode === "list" ? "var(--bg-surface)" : "transparent",
+                      boxShadow: viewMode === "list" ? "var(--shadow-sm)" : "none",
                       cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (viewMode !== "list") {
+                        e.currentTarget.style.background = "var(--component-hover)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (viewMode !== "list") {
+                        e.currentTarget.style.background = "transparent";
+                      }
                     }}
                   >
                     <List size={18} style={{ color: viewMode === "list" ? "var(--primary)" : "var(--text-secondary)" }} />
@@ -608,7 +619,7 @@ export default function EmployeesPage() {
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
         )}
 
         {/* Content */}
@@ -676,56 +687,162 @@ export default function EmployeesPage() {
             </div>
           </Card>
         ) : viewMode === "grid" ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 24 }}>
             {filteredEmployees.map((employee) => (
-              <Card key={employee.id} style={{ overflow: "hidden", transition: "transform 0.2s, box-shadow 0.2s" }}>
+              <div
+                key={employee.id}
+                style={{
+                  background: "var(--bg-surface)",
+                  borderRadius: 20,
+                  overflow: "hidden",
+                  boxShadow: "var(--shadow-md)",
+                  border: "1px solid var(--border-light)",
+                  transition: "all 0.3s ease",
+                  cursor: "default",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12), 0 16px 32px rgba(0,0,0,0.08)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)";
+                }}
+              >
                 {/* Gradient Header */}
-                <div style={{ position: "relative", height: 80, background: "linear-gradient(135deg, var(--primary) 0%, #6366f1 50%, #4f46e5 100%)" }}>
-                  <div style={{ position: "absolute", top: 12, right: 12 }}>
-                    <Badge variant={employee.status === "ACTIVE" ? "success" : "danger"}>
-                      {employee.status === "ACTIVE" ? <ShieldCheck size={12} style={{ marginRight: 4 }} /> : <ShieldX size={12} style={{ marginRight: 4 }} />}
+                <div style={{ position: "relative", height: 100, background: "linear-gradient(135deg, var(--primary) 0%, #6366f1 50%, #4f46e5 100%)" }}>
+                  <div style={{ position: "absolute", top: 14, right: 14 }}>
+                    <div
+                      style={{
+                        padding: "6px 12px",
+                        borderRadius: 20,
+                        background: employee.status === "ACTIVE" ? "rgba(16, 185, 129, 0.2)" : "rgba(239, 68, 68, 0.2)",
+                        backdropFilter: "blur(10px)",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: "white",
+                      }}
+                    >
+                      {employee.status === "ACTIVE" ? <ShieldCheck size={12} /> : <ShieldX size={12} />}
                       {employee.status}
-                    </Badge>
+                    </div>
                   </div>
-                  <div style={{ position: "absolute", top: 12, left: 12 }}>
+                  <div style={{ position: "absolute", top: 14, left: 14 }}>
                     <div style={{ position: "relative" }}>
                       <button
                         onClick={() => setDropdownOpen(dropdownOpen === employee.id ? null : employee.id)}
                         style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: 8,
+                          width: 36,
+                          height: 36,
+                          borderRadius: 10,
                           border: "none",
-                          background: "rgba(255,255,255,0.2)",
+                          background: "rgba(255,255,255,0.25)",
+                          backdropFilter: "blur(10px)",
                           color: "white",
                           cursor: "pointer",
                           display: "flex",
                           alignItems: "center",
-                          justifyContent: "center"
+                          justifyContent: "center",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "rgba(255,255,255,0.35)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "rgba(255,255,255,0.25)";
                         }}
                       >
-                        <MoreVertical size={16} />
+                        <MoreVertical size={18} />
                       </button>
                       {dropdownOpen === employee.id && (
                         <div style={{
                           position: "absolute",
-                          top: 40,
+                          top: 44,
                           left: 0,
-                          background: "white",
-                          borderRadius: 12,
-                          boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
-                          minWidth: 180,
+                          background: "var(--bg-surface)",
+                          borderRadius: 14,
+                          boxShadow: "var(--shadow-lg)",
+                          minWidth: 200,
                           zIndex: 100,
-                          overflow: "hidden"
+                          overflow: "hidden",
+                          animation: "slideDown 0.2s ease",
                         }}>
-                          <button onClick={() => handleEditClick(employee)} style={{ width: "100%", padding: "12px 16px", border: "none", background: "none", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14 }}>
+                          <button
+                            onClick={() => handleEditClick(employee)}
+                            style={{
+                              width: "100%",
+                              padding: "12px 18px",
+                              border: "none",
+                              background: "none",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 10,
+                              cursor: "pointer",
+                              fontSize: 14,
+                              fontWeight: 500,
+                              color: "var(--text-primary)",
+                              transition: "background 0.15s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "var(--bg-tertiary)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "transparent";
+                            }}
+                          >
                             <Edit size={16} style={{ color: "var(--text-secondary)" }} /> Edit Employee
                           </button>
-                          <button onClick={() => handleToggleStatus(employee)} style={{ width: "100%", padding: "12px 16px", border: "none", background: "none", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14 }}>
+                          <button
+                            onClick={() => handleToggleStatus(employee)}
+                            style={{
+                              width: "100%",
+                              padding: "12px 18px",
+                              border: "none",
+                              background: "none",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 10,
+                              cursor: "pointer",
+                              fontSize: 14,
+                              fontWeight: 500,
+                              transition: "background 0.15s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "var(--bg-secondary)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "transparent";
+                            }}
+                          >
                             {employee.status === "ACTIVE" ? <><XCircle size={16} style={{ color: "var(--text-secondary)" }} /> Deactivate</> : <><CheckCircle2 size={16} style={{ color: "var(--text-secondary)" }} /> Activate</>}
                           </button>
-                          <div style={{ height: 1, background: "var(--component-border)" }} />
-                          <button onClick={() => handleDeleteClick(employee)} style={{ width: "100%", padding: "12px 16px", border: "none", background: "none", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14, color: "var(--danger)" }}>
+                          <div style={{ height: 1, background: "var(--component-border)", margin: "4px 0" }} />
+                          <button
+                            onClick={() => handleDeleteClick(employee)}
+                            style={{
+                              width: "100%",
+                              padding: "12px 18px",
+                              border: "none",
+                              background: "none",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 10,
+                              cursor: "pointer",
+                              fontSize: 14,
+                              fontWeight: 500,
+                              color: "var(--danger)",
+                              transition: "background 0.15s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "#fef2f2";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "transparent";
+                            }}
+                          >
                             <Trash2 size={16} /> Delete Employee
                           </button>
                         </div>
@@ -733,54 +850,226 @@ export default function EmployeesPage() {
                     </div>
                   </div>
                   {/* Avatar */}
-                  <div style={{ position: "absolute", bottom: -40, left: "50%", transform: "translateX(-50%)" }}>
+                  <div style={{ position: "absolute", bottom: -48, left: "50%", transform: "translateX(-50%)" }}>
                     <div style={{
-                      width: 80,
-                      height: 80,
+                      width: 96,
+                      height: 96,
                       borderRadius: "50%",
                       background: employee.avatarUrl ? `url(${employee.avatarUrl}) center/cover` : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
-                      border: "4px solid white",
+                      border: "5px solid white",
                       boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       color: "white",
-                      fontSize: 24,
-                      fontWeight: 600
+                      fontSize: 28,
+                      fontWeight: 700,
                     }}>
                       {!employee.avatarUrl && getInitials(employee.displayName)}
                     </div>
                   </div>
                 </div>
 
-                <div style={{ padding: "56px 20px 20px", textAlign: "center" }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 600, margin: "0 0 4px" }}>{employee.displayName}</h3>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, color: "var(--text-secondary)", fontSize: 13 }}>
-                    <Mail size={14} />
-                    <span>{employee.email}</span>
+                <div style={{ padding: "64px 24px 24px", textAlign: "center" }}>
+                  <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px", color: "var(--text-primary)" }}>{employee.displayName}</h3>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, color: "var(--text-secondary)", fontSize: 14 }}>
+                    <Mail size={16} />
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 240 }}>{employee.email}</span>
                   </div>
                 </div>
 
-                <div style={{ padding: "0 20px 20px", display: "flex", gap: 8 }}>
+                <div style={{ padding: "0 24px 24px", display: "flex", gap: 10 }}>
                   <button
                     onClick={() => handleEditClick(employee)}
                     style={{
                       flex: 1,
-                      padding: "10px 16px",
-                      borderRadius: 10,
-                      border: "1px solid var(--component-border)",
-                      background: "white",
+                      padding: "12px 18px",
+                      borderRadius: 12,
+                      border: "1px solid var(--border-light)",
+                      background: "var(--bg-surface)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       gap: 8,
                       cursor: "pointer",
                       fontSize: 14,
-                      fontWeight: 500,
-                      transition: "all 0.2s"
+                      fontWeight: 600,
+                      color: "var(--text-secondary)",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = "var(--primary)";
+                      e.currentTarget.style.color = "var(--primary)";
+                      e.currentTarget.style.background = "var(--primary-light)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "var(--border-light)";
+                      e.currentTarget.style.color = "var(--text-secondary)";
+                      e.currentTarget.style.background = "var(--bg-surface)";
                     }}
                   >
                     <Edit size={16} /> Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(employee)}
+                    style={{
+                      padding: "12px 14px",
+                      borderRadius: 12,
+                      border: "1px solid #fecaca",
+                      background: "#fef2f2",
+                      color: "var(--danger)",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#fee2e2";
+                      e.currentTarget.style.borderColor = "#fca5a5";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#fef2f2";
+                      e.currentTarget.style.borderColor = "#fecaca";
+                    }}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* List View */
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {filteredEmployees.map((employee) => (
+              <div
+                key={employee.id}
+                style={{
+                  background: "white",
+                  borderRadius: 16,
+                  padding: 20,
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
+                  border: "1px solid rgba(0,0,0,0.04)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 20,
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12), 0 12px 24px rgba(0,0,0,0.08)";
+                  e.currentTarget.style.transform = "translateX(4px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)";
+                  e.currentTarget.style.transform = "translateX(0)";
+                }}
+              >
+                {/* Avatar */}
+                <div style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: "50%",
+                  background: employee.avatarUrl ? `url(${employee.avatarUrl}) center/cover` : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
+                  border: "3px solid rgba(139, 92, 246, 0.2)",
+                  boxShadow: "0 4px 12px rgba(139, 92, 246, 0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "white",
+                  fontSize: 20,
+                  fontWeight: 700,
+                  flexShrink: 0
+                }}>
+                  {!employee.avatarUrl && getInitials(employee.displayName)}
+                </div>
+
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 6 }}>
+                    <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>{employee.displayName}</h3>
+                    <div
+                      style={{
+                        padding: "4px 12px",
+                        borderRadius: 20,
+                        background: employee.status === "ACTIVE" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                        color: employee.status === "ACTIVE" ? "var(--success)" : "var(--danger)",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                      }}
+                    >
+                      {employee.status === "ACTIVE" ? <ShieldCheck size={12} /> : <ShieldX size={12} />}
+                      {employee.status}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-secondary)", fontSize: 14 }}>
+                    <Mail size={16} />
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{employee.email}</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <button
+                    onClick={() => handleEditClick(employee)}
+                    style={{
+                      padding: "10px 16px",
+                      borderRadius: 10,
+                      border: "1px solid var(--border-light)",
+                      background: "var(--bg-surface)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      cursor: "pointer",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "var(--text-secondary)",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = "var(--primary)";
+                      e.currentTarget.style.color = "var(--primary)";
+                      e.currentTarget.style.background = "var(--primary-light)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "var(--border-light)";
+                      e.currentTarget.style.color = "var(--text-secondary)";
+                      e.currentTarget.style.background = "var(--bg-surface)";
+                    }}
+                  >
+                    <Edit size={16} /> Edit
+                  </button>
+                  <button
+                    onClick={() => handleToggleStatus(employee)}
+                    style={{
+                      padding: "10px 16px",
+                      borderRadius: 10,
+                      border: "1px solid var(--component-border)",
+                      background: "white",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      cursor: "pointer",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "var(--text-secondary)",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = employee.status === "ACTIVE" ? "var(--warning)" : "var(--success)";
+                      e.currentTarget.style.color = employee.status === "ACTIVE" ? "var(--warning)" : "var(--success)";
+                      e.currentTarget.style.background = employee.status === "ACTIVE" ? "#fffbeb" : "#f0fdf4";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.color = "var(--text-secondary)";
+                      e.currentTarget.style.background = "white";
+                    }}
+                  >
+                    {employee.status === "ACTIVE" ? <><XCircle size={16} /> Deactivate</> : <><CheckCircle2 size={16} /> Activate</>}
                   </button>
                   <button
                     onClick={() => handleDeleteClick(employee)}
@@ -793,108 +1082,21 @@ export default function EmployeesPage() {
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "center"
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#fee2e2";
+                      e.currentTarget.style.borderColor = "#fca5a5";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#fef2f2";
+                      e.currentTarget.style.borderColor = "#fecaca";
                     }}
                   >
                     <Trash2 size={16} />
                   </button>
                 </div>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          /* List View */
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {filteredEmployees.map((employee) => (
-              <Card key={employee.id} style={{ transition: "box-shadow 0.2s" }}>
-                <div style={{ padding: 16, display: "flex", alignItems: "center", gap: 16 }}>
-                  {/* Avatar */}
-                  <div style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: "50%",
-                    background: employee.avatarUrl ? `url(${employee.avatarUrl}) center/cover` : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
-                    border: "2px solid rgba(139, 92, 246, 0.2)",
-                    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "white",
-                    fontSize: 18,
-                    fontWeight: 600,
-                    flexShrink: 0
-                  }}>
-                    {!employee.avatarUrl && getInitials(employee.displayName)}
-                  </div>
-
-                  {/* Info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                      <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>{employee.displayName}</h3>
-                      <Badge variant={employee.status === "ACTIVE" ? "success" : "danger"}>
-                        {employee.status}
-                      </Badge>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-secondary)", fontSize: 13, marginTop: 4 }}>
-                      <Mail size={14} />
-                      <span>{employee.email}</span>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <button
-                      onClick={() => handleEditClick(employee)}
-                      style={{
-                        padding: "8px 14px",
-                        borderRadius: 8,
-                        border: "1px solid var(--component-border)",
-                        background: "white",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                        cursor: "pointer",
-                        fontSize: 13,
-                        fontWeight: 500
-                      }}
-                    >
-                      <Edit size={14} /> Edit
-                    </button>
-                    <button
-                      onClick={() => handleToggleStatus(employee)}
-                      style={{
-                        padding: "8px 14px",
-                        borderRadius: 8,
-                        border: "1px solid var(--component-border)",
-                        background: "white",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                        cursor: "pointer",
-                        fontSize: 13,
-                        fontWeight: 500
-                      }}
-                    >
-                      {employee.status === "ACTIVE" ? <><XCircle size={14} /> Deactivate</> : <><CheckCircle2 size={14} /> Activate</>}
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClick(employee)}
-                      style={{
-                        padding: "8px 10px",
-                        borderRadius: 8,
-                        border: "1px solid #fecaca",
-                        background: "#fef2f2",
-                        color: "var(--danger)",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center"
-                      }}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-              </Card>
+              </div>
             ))}
           </div>
         )}
@@ -910,59 +1112,167 @@ export default function EmployeesPage() {
 
         {/* Create Employee Modal */}
         {createDialogOpen && (
-          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 20 }}>
-            <div style={{ background: "white", borderRadius: 20, maxWidth: 440, width: "100%", maxHeight: "90vh", overflow: "auto" }}>
-              <div style={{ padding: 24, textAlign: "center", borderBottom: "1px solid var(--component-border)" }}>
-                <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(139, 92, 246, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-                  <UserPlus size={28} style={{ color: "var(--primary)" }} />
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.6)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 200,
+              padding: 20,
+              animation: "fadeIn 0.2s ease",
+            }}
+            onClick={() => setCreateDialogOpen(false)}
+          >
+            <div
+              style={{
+                background: "var(--bg-surface)",
+                borderRadius: 24,
+                maxWidth: 480,
+                width: "100%",
+                maxHeight: "90vh",
+                overflow: "auto",
+                boxShadow: "var(--shadow-xl)",
+                animation: "slideUp 0.3s ease",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ padding: 28, textAlign: "center", borderBottom: "1px solid var(--border-light)", background: "var(--bg-tertiary)" }}>
+                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(139, 92, 246, 0.3)" }}>
+                  <UserPlus size={32} style={{ color: "white" }} />
                 </div>
-                <h2 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 4px" }}>Add New Employee</h2>
-                <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: 0 }}>Create a new employee for {selectedOutlet?.name}</p>
+                <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 6px", color: "var(--text-primary)" }}>Add New Employee</h2>
+                <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: 0 }}>Create a new employee for {selectedOutlet?.name || 'the selected outlet'}</p>
               </div>
-              <div style={{ padding: 24 }}>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Display Name *</label>
+              <div style={{ padding: 28 }}>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>Display Name *</label>
                   <input
                     type="text"
                     placeholder="Enter employee name"
                     value={form.displayName}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, displayName: e.target.value })}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      borderRadius: 12,
+                      border: "1px solid var(--border-light)",
+                      background: "var(--bg-tertiary)",
+                      fontSize: 14,
+                      outline: "none",
+                      boxSizing: "border-box",
+                      color: "var(--text-primary)",
+                      transition: "all 0.2s ease",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = "var(--primary)";
+                      e.currentTarget.style.background = "white";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   />
                 </div>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Email Address *</label>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>Email Address *</label>
                   <input
                     type="email"
                     placeholder="employee@example.com"
                     value={form.email}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, email: e.target.value })}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      borderRadius: 12,
+                      border: "1px solid var(--component-border)",
+                      background: "var(--bg-secondary)",
+                      fontSize: 14,
+                      outline: "none",
+                      boxSizing: "border-box",
+                      transition: "all 0.2s ease",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = "var(--primary)";
+                      e.currentTarget.style.background = "white";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   />
                 </div>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Avatar URL</label>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>Avatar URL</label>
                   <input
-                    type="text"
+                    type="url"
                     placeholder="https://example.com/avatar.jpg"
                     value={form.avatarUrl}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, avatarUrl: e.target.value })}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      borderRadius: 12,
+                      border: "1px solid var(--component-border)",
+                      background: "var(--bg-secondary)",
+                      fontSize: 14,
+                      outline: "none",
+                      boxSizing: "border-box",
+                      transition: "all 0.2s ease",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = "var(--primary)";
+                      e.currentTarget.style.background = "white";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   />
                 </div>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Status</label>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>Status</label>
                   <select
                     value={form.status}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setForm({ ...form, status: e.target.value })}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", cursor: "pointer", boxSizing: "border-box" }}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      borderRadius: 12,
+                      border: "1px solid var(--component-border)",
+                      background: "var(--bg-secondary)",
+                      fontSize: 14,
+                      outline: "none",
+                      cursor: "pointer",
+                      boxSizing: "border-box",
+                      transition: "all 0.2s ease",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = "var(--primary)";
+                      e.currentTarget.style.background = "white";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   >
                     <option value="ACTIVE">Active</option>
                     <option value="INACTIVE">Inactive</option>
                   </select>
                 </div>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 500, marginBottom: 6 }}>PIN Code (6 digits)</label>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>PIN Code (6 digits)</label>
                   <div style={{ position: "relative" }}>
                     <input
                       type={showPin ? "text" : "password"}
@@ -970,22 +1280,78 @@ export default function EmployeesPage() {
                       value={form.pin}
                       onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, pin: e.target.value })}
                       maxLength={6}
-                      style={{ width: "100%", padding: "10px 44px 10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                      style={{
+                        width: "100%",
+                        padding: "12px 44px 12px 16px",
+                        borderRadius: 12,
+                        border: "1px solid var(--component-border)",
+                        background: "var(--bg-secondary)",
+                        fontSize: 14,
+                        outline: "none",
+                        boxSizing: "border-box",
+                        transition: "all 0.2s ease",
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = "var(--primary)";
+                        e.currentTarget.style.background = "white";
+                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = "var(--component-border)";
+                        e.currentTarget.style.background = "var(--bg-secondary)";
+                        e.currentTarget.style.boxShadow = "none";
+                      }}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPin(!showPin)}
-                      style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: 4 }}
+                      style={{
+                        position: "absolute",
+                        right: 10,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: 6,
+                        borderRadius: 6,
+                        transition: "background 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "var(--bg-tertiary)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "transparent";
+                      }}
                     >
                       {showPin ? <EyeOff size={18} style={{ color: "var(--text-tertiary)" }} /> : <Eye size={18} style={{ color: "var(--text-tertiary)" }} />}
                     </button>
                   </div>
                 </div>
               </div>
-              <div style={{ padding: "16px 24px 24px", display: "flex", gap: 12 }}>
+              <div style={{ padding: "20px 28px 28px", display: "flex", gap: 12, borderTop: "1px solid var(--bg-tertiary)" }}>
                 <button
                   onClick={() => setCreateDialogOpen(false)}
-                  style={{ flex: 1, padding: "12px 20px", borderRadius: 10, border: "1px solid var(--component-border)", background: "white", fontSize: 14, fontWeight: 500, cursor: "pointer" }}
+                  style={{
+                    flex: 1,
+                    padding: "14px 20px",
+                    borderRadius: 12,
+                    border: "1px solid var(--border-light)",
+                    background: "var(--bg-surface)",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "var(--text-secondary)",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "var(--border-medium)";
+                    e.currentTarget.style.background = "var(--bg-tertiary)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "var(--border-light)";
+                    e.currentTarget.style.background = "var(--bg-surface)";
+                  }}
                 >
                   Cancel
                 </button>
@@ -994,22 +1360,34 @@ export default function EmployeesPage() {
                   disabled={!canSubmit || saving}
                   style={{
                     flex: 1,
-                    padding: "12px 20px",
-                    borderRadius: 10,
+                    padding: "14px 20px",
+                    borderRadius: 12,
                     border: "none",
                     background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
                     color: "white",
                     fontSize: 14,
-                    fontWeight: 600,
+                    fontWeight: 700,
                     cursor: !canSubmit || saving ? "not-allowed" : "pointer",
                     opacity: !canSubmit || saving ? 0.6 : 1,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: 8
+                    gap: 8,
+                    boxShadow: "0 4px 14px rgba(139, 92, 246, 0.35)",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (canSubmit && !saving) {
+                      e.currentTarget.style.transform = "translateY(-1px)";
+                      e.currentTarget.style.boxShadow = "0 6px 20px rgba(139, 92, 246, 0.45)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 4px 14px rgba(139, 92, 246, 0.35)";
                   }}
                 >
-                  {saving ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Creating...</> : <><Plus size={16} /> Create</>}
+                  {saving ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Creating...</> : <><Plus size={16} /> Create Employee</>}
                 </button>
               </div>
             </div>
@@ -1018,59 +1396,167 @@ export default function EmployeesPage() {
 
         {/* Edit Employee Modal */}
         {editDialogOpen && (
-          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 20 }}>
-            <div style={{ background: "white", borderRadius: 20, maxWidth: 440, width: "100%", maxHeight: "90vh", overflow: "auto" }}>
-              <div style={{ padding: 24, textAlign: "center", borderBottom: "1px solid var(--component-border)" }}>
-                <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(59, 130, 246, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-                  <Edit size={28} style={{ color: "var(--info)" }} />
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.6)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 200,
+              padding: 20,
+              animation: "fadeIn 0.2s ease",
+            }}
+            onClick={() => { setEditDialogOpen(false); setSelectedEmployee(null); resetForm(); }}
+          >
+            <div
+              style={{
+                background: "var(--bg-surface)",
+                borderRadius: 24,
+                maxWidth: 480,
+                width: "100%",
+                maxHeight: "90vh",
+                overflow: "auto",
+                boxShadow: "var(--shadow-xl)",
+                animation: "slideUp 0.3s ease",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ padding: 28, textAlign: "center", borderBottom: "1px solid var(--border-light)", background: "var(--bg-tertiary)" }}>
+                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(59, 130, 246, 0.3)" }}>
+                  <Edit size={32} style={{ color: "white" }} />
                 </div>
-                <h2 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 4px" }}>Edit Employee</h2>
-                <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: 0 }}>Update employee information</p>
+                <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 6px", color: "var(--text-primary)" }}>Edit Employee</h2>
+                <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: 0 }}>Update employee information</p>
               </div>
-              <div style={{ padding: 24 }}>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Display Name *</label>
+              <div style={{ padding: 28 }}>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>Display Name *</label>
                   <input
                     type="text"
                     placeholder="Enter employee name"
                     value={form.displayName}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, displayName: e.target.value })}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      borderRadius: 12,
+                      border: "1px solid var(--border-light)",
+                      background: "var(--bg-tertiary)",
+                      fontSize: 14,
+                      outline: "none",
+                      boxSizing: "border-box",
+                      color: "var(--text-primary)",
+                      transition: "all 0.2s ease",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = "var(--info)";
+                      e.currentTarget.style.background = "white";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   />
                 </div>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Email Address *</label>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>Email Address *</label>
                   <input
                     type="email"
                     placeholder="employee@example.com"
                     value={form.email}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, email: e.target.value })}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      borderRadius: 12,
+                      border: "1px solid var(--component-border)",
+                      background: "var(--bg-secondary)",
+                      fontSize: 14,
+                      outline: "none",
+                      boxSizing: "border-box",
+                      transition: "all 0.2s ease",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = "var(--info)";
+                      e.currentTarget.style.background = "white";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   />
                 </div>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Avatar URL</label>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>Avatar URL</label>
                   <input
-                    type="text"
+                    type="url"
                     placeholder="https://example.com/avatar.jpg"
                     value={form.avatarUrl}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, avatarUrl: e.target.value })}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      borderRadius: 12,
+                      border: "1px solid var(--component-border)",
+                      background: "var(--bg-secondary)",
+                      fontSize: 14,
+                      outline: "none",
+                      boxSizing: "border-box",
+                      transition: "all 0.2s ease",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = "var(--info)";
+                      e.currentTarget.style.background = "white";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   />
                 </div>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Status</label>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>Status</label>
                   <select
                     value={form.status}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setForm({ ...form, status: e.target.value })}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", cursor: "pointer", boxSizing: "border-box" }}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      borderRadius: 12,
+                      border: "1px solid var(--component-border)",
+                      background: "var(--bg-secondary)",
+                      fontSize: 14,
+                      outline: "none",
+                      cursor: "pointer",
+                      boxSizing: "border-box",
+                      transition: "all 0.2s ease",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = "var(--info)";
+                      e.currentTarget.style.background = "white";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = "var(--component-border)";
+                      e.currentTarget.style.background = "var(--bg-secondary)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   >
                     <option value="ACTIVE">Active</option>
                     <option value="INACTIVE">Inactive</option>
                   </select>
                 </div>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 500, marginBottom: 6 }}>New PIN Code (optional)</label>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--text-primary)" }}>New PIN Code (optional)</label>
                   <div style={{ position: "relative" }}>
                     <input
                       type={showPin ? "text" : "password"}
@@ -1078,22 +1564,78 @@ export default function EmployeesPage() {
                       value={form.pin}
                       onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, pin: e.target.value })}
                       maxLength={6}
-                      style={{ width: "100%", padding: "10px 44px 10px 14px", borderRadius: 10, border: "1px solid var(--component-border)", background: "var(--bg-secondary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                      style={{
+                        width: "100%",
+                        padding: "12px 44px 12px 16px",
+                        borderRadius: 12,
+                        border: "1px solid var(--component-border)",
+                        background: "var(--bg-secondary)",
+                        fontSize: 14,
+                        outline: "none",
+                        boxSizing: "border-box",
+                        transition: "all 0.2s ease",
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = "var(--info)";
+                        e.currentTarget.style.background = "white";
+                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = "var(--component-border)";
+                        e.currentTarget.style.background = "var(--bg-secondary)";
+                        e.currentTarget.style.boxShadow = "none";
+                      }}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPin(!showPin)}
-                      style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: 4 }}
+                      style={{
+                        position: "absolute",
+                        right: 10,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: 6,
+                        borderRadius: 6,
+                        transition: "background 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "var(--bg-tertiary)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "transparent";
+                      }}
                     >
                       {showPin ? <EyeOff size={18} style={{ color: "var(--text-tertiary)" }} /> : <Eye size={18} style={{ color: "var(--text-tertiary)" }} />}
                     </button>
                   </div>
                 </div>
               </div>
-              <div style={{ padding: "16px 24px 24px", display: "flex", gap: 12 }}>
+              <div style={{ padding: "20px 28px 28px", display: "flex", gap: 12, borderTop: "1px solid var(--bg-tertiary)" }}>
                 <button
                   onClick={() => { setEditDialogOpen(false); setSelectedEmployee(null); resetForm(); }}
-                  style={{ flex: 1, padding: "12px 20px", borderRadius: 10, border: "1px solid var(--component-border)", background: "white", fontSize: 14, fontWeight: 500, cursor: "pointer" }}
+                  style={{
+                    flex: 1,
+                    padding: "14px 20px",
+                    borderRadius: 12,
+                    border: "1px solid var(--component-border)",
+                    background: "white",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "var(--text-secondary)",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "var(--component-border-hover)";
+                    e.currentTarget.style.background = "var(--bg-secondary)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "var(--component-border)";
+                    e.currentTarget.style.background = "white";
+                  }}
                 >
                   Cancel
                 </button>
@@ -1102,19 +1644,31 @@ export default function EmployeesPage() {
                   disabled={!canSubmit || saving}
                   style={{
                     flex: 1,
-                    padding: "12px 20px",
-                    borderRadius: 10,
+                    padding: "14px 20px",
+                    borderRadius: 12,
                     border: "none",
                     background: "linear-gradient(135deg, var(--info) 0%, #2563eb 100%)",
                     color: "white",
                     fontSize: 14,
-                    fontWeight: 600,
+                    fontWeight: 700,
                     cursor: !canSubmit || saving ? "not-allowed" : "pointer",
                     opacity: !canSubmit || saving ? 0.6 : 1,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: 8
+                    gap: 8,
+                    boxShadow: "0 4px 14px rgba(59, 130, 246, 0.35)",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (canSubmit && !saving) {
+                      e.currentTarget.style.transform = "translateY(-1px)";
+                      e.currentTarget.style.boxShadow = "0 6px 20px rgba(59, 130, 246, 0.45)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 4px 14px rgba(59, 130, 246, 0.35)";
                   }}
                 >
                   {saving ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Saving...</> : <><CheckCircle2 size={16} /> Save Changes</>}
@@ -1126,21 +1680,64 @@ export default function EmployeesPage() {
 
         {/* Delete Confirmation Modal */}
         {deleteDialogOpen && (
-          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 20 }}>
-            <div style={{ background: "white", borderRadius: 20, maxWidth: 400, width: "100%" }}>
-              <div style={{ padding: 24, textAlign: "center" }}>
-                <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(239, 68, 68, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-                  <AlertCircle size={28} style={{ color: "var(--danger)" }} />
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.6)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 200,
+              padding: 20,
+              animation: "fadeIn 0.2s ease",
+            }}
+            onClick={() => { setDeleteDialogOpen(false); setSelectedEmployee(null); }}
+          >
+            <div
+              style={{
+                background: "white",
+                borderRadius: 24,
+                maxWidth: 440,
+                width: "100%",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+                animation: "slideUp 0.3s ease",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ padding: 32, textAlign: "center", borderBottom: "1px solid var(--bg-tertiary)", background: "linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)" }}>
+                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, var(--danger) 0%, var(--danger) 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(239, 68, 68, 0.3)" }}>
+                  <AlertCircle size={32} style={{ color: "white" }} />
                 </div>
-                <h2 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px" }}>Delete Employee</h2>
-                <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: 0 }}>
+                <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 8px", color: "var(--text-primary)" }}>Delete Employee</h2>
+                <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: 0 }}>
                   Are you sure you want to delete <strong style={{ color: "var(--text-primary)" }}>{selectedEmployee?.displayName}</strong>? This action cannot be undone.
                 </p>
               </div>
-              <div style={{ padding: "16px 24px 24px", display: "flex", gap: 12 }}>
+              <div style={{ padding: "24px 28px 28px", display: "flex", gap: 12 }}>
                 <button
                   onClick={() => { setDeleteDialogOpen(false); setSelectedEmployee(null); }}
-                  style={{ flex: 1, padding: "12px 20px", borderRadius: 10, border: "1px solid var(--component-border)", background: "white", fontSize: 14, fontWeight: 500, cursor: "pointer" }}
+                  style={{
+                    flex: 1,
+                    padding: "14px 20px",
+                    borderRadius: 12,
+                    border: "1px solid var(--component-border)",
+                    background: "white",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "var(--text-secondary)",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "var(--component-border-hover)";
+                    e.currentTarget.style.background = "var(--bg-secondary)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "var(--component-border)";
+                    e.currentTarget.style.background = "white";
+                  }}
                 >
                   Cancel
                 </button>
@@ -1149,22 +1746,34 @@ export default function EmployeesPage() {
                   disabled={saving}
                   style={{
                     flex: 1,
-                    padding: "12px 20px",
-                    borderRadius: 10,
+                    padding: "14px 20px",
+                    borderRadius: 12,
                     border: "none",
-                    background: "var(--danger)",
+                    background: "linear-gradient(135deg, var(--danger) 0%, var(--danger) 100%)",
                     color: "white",
                     fontSize: 14,
-                    fontWeight: 600,
+                    fontWeight: 700,
                     cursor: saving ? "not-allowed" : "pointer",
                     opacity: saving ? 0.6 : 1,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: 8
+                    gap: 8,
+                    boxShadow: "0 4px 14px rgba(239, 68, 68, 0.35)",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!saving) {
+                      e.currentTarget.style.transform = "translateY(-1px)";
+                      e.currentTarget.style.boxShadow = "0 6px 20px rgba(239, 68, 68, 0.45)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 4px 14px rgba(239, 68, 68, 0.35)";
                   }}
                 >
-                  {saving ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Deleting...</> : <><Trash2 size={16} /> Delete</>}
+                  {saving ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Deleting...</> : <><Trash2 size={16} /> Delete Employee</>}
                 </button>
               </div>
             </div>
@@ -1185,6 +1794,18 @@ export default function EmployeesPage() {
         @keyframes slideIn {
           from { transform: translateX(100%); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideDown {
+          from { transform: translateY(-10px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
         }
 
         /* Better focus visibility */

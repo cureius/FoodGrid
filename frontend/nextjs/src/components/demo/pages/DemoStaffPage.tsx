@@ -6,7 +6,7 @@ import { OutletProvider } from '@/contexts/OutletContext';
 import { StaffProvider } from '@/contexts/StaffContext';
 import { Navbar } from '@/components/ui/Navbar';
 
-const StaffOrdersPage = lazy(() => import('@/app/(staff)/orders/page'));
+const StaffOrdersPage = lazy(() => import('@/app/(client-admin)/client-admin/orders/page'));
 
 function LoadingFallback() {
   return (

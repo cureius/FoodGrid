@@ -252,10 +252,43 @@ export const Navbar = () => {
           <Bell size={20} />
         </BellButton>
         <ProfilePill>
-          <img src="https://i.pravatar.cc/150?u=richardo" alt="Richardo" style={{ width: "32px", height: "32px", borderRadius: "50%" }} />
-          <div style={{ fontSize: "13px" }}>
-            <b>Richardo</b> <span style={{ color: "var(--text-muted)" }}>/ Waiter</span>
-          </div>
+          {(() => {
+            if (typeof window === "undefined") return null;
+
+            const isClientAdmin = pathname.startsWith('/client-admin') || 
+                                  pathname.startsWith('/tenant-admin') ||
+                                  pathname.startsWith('/internal-admin');
+            
+            const userStr = isClientAdmin 
+              ? localStorage.getItem("fg_client_admin_user") 
+              : localStorage.getItem("fg_staff_user");
+              
+            const user = userStr ? JSON.parse(userStr) : null;
+            const displayName = user?.displayName || user?.email?.split('@')[0] || "User";
+            const roleStr = user?.roles?.[0] || (isClientAdmin ? "Admin" : "Staff");
+            const avatarUrl = user?.avatarUrl || "";
+
+            return (
+              <>
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={displayName} style={{ width: "32px", height: "32px", borderRadius: "50%" }} />
+                ) : (
+                  <div style={{ 
+                    width: "32px", height: "32px", borderRadius: "50%", 
+                    background: "var(--bg-secondary)", 
+                    color: "var(--text-main)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "13px", fontWeight: "bold", border: "1px solid var(--border-light)"
+                  }}>
+                    {displayName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div style={{ fontSize: "13px" }}>
+                  <b>{displayName}</b> <span style={{ color: "var(--text-muted)" }}>/ {roleStr}</span>
+                </div>
+              </>
+            );
+          })()}
         </ProfilePill>
       </RightWrap>
     </Nav>

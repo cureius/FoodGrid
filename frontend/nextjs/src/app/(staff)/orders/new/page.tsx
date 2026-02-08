@@ -21,9 +21,10 @@ import {
   Banknote,
   Smartphone,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   createOrder,
+  getOrder,
   addOrderItem,
   billOrder,
   payOrder,
@@ -96,7 +97,43 @@ export default function NewOrderPage() {
   // Quick add mode - add item directly without modal
   const [quickAddMode, setQuickAddMode] = useState(true);
 
+  const searchParams = useSearchParams();
+  const orderIdParam = searchParams.get("orderId");
   const outletId = selectedOutletId || "";
+
+  // Load existing order if orderId is provided
+  const stepParam = searchParams.get("step");
+
+  useEffect(() => {
+    if (orderIdParam) {
+      async function loadExistingOrder() {
+        try {
+          const order = await getOrder(orderIdParam!);
+          setCurrentOrder(order);
+          
+          // Use step from URL if provided, otherwise default to 2
+          if (stepParam) {
+            const parsedStep = parseInt(stepParam);
+            if (parsedStep >= 1 && parsedStep <= 4) {
+              setStep(parsedStep as 1 | 2 | 3 | 4);
+            } else {
+              setStep(2);
+            }
+          } else {
+            setStep(2); // Start from select menu
+          }
+          
+          setOrderType(order.orderType as any);
+          setSelectedTableId(order.tableId);
+          setOrderNotes(order.notes || "");
+        } catch (err) {
+          console.error("Failed to load existing order:", err);
+          router.push("/client-admin/orders");
+        }
+      }
+      loadExistingOrder();
+    }
+  }, [orderIdParam, stepParam, router]);
   // Fetch menu categories
   useEffect(() => {
     if (!selectedOutletId) return;
@@ -121,7 +158,7 @@ export default function NewOrderPage() {
         if (categoryId && categoryId !== "all") {
           params.categoryId = categoryId;
         }
-        if(!selectedOutletId) return;
+        if (!selectedOutletId) return;
         const data = await listMenuItems(selectedOutletId, params);
         setMenuItems(data || []);
       } catch (err) {
@@ -157,15 +194,22 @@ export default function NewOrderPage() {
   }, [menuItems, query]);
 
   const subTotal = useMemo(() => {
-    return cart.reduce((sum, line) => {
+    const cartSubTotal = cart.reduce((sum, line) => {
       return sum + Number(line.menuItem.basePrice) * line.qty;
     }, 0);
-  }, [cart]);
+    const existingSubTotal = currentOrder ? Number(currentOrder.subtotal) : 0;
+    return cartSubTotal + existingSubTotal;
+  }, [cart, currentOrder]);
 
   const tax = useMemo(() => {
-    // Tax is calculated by backend, but we'll estimate for display
-    return subTotal * 0.0; // 12% tax estimate
-  }, [subTotal]);
+    // For cart items, estimate 12% tax. For existing items, use backend value.
+    const cartSubTotal = cart.reduce((sum, line) => {
+      return sum + Number(line.menuItem.basePrice) * line.qty;
+    }, 0);
+    const cartTax = cartSubTotal * 0.0;
+    const existingTax = currentOrder ? Number(currentOrder.taxTotal) : 0;
+    return cartTax + existingTax;
+  }, [cart, currentOrder]);
 
   const total = useMemo(() => subTotal + tax, [subTotal, tax]);
 
@@ -341,7 +385,7 @@ export default function NewOrderPage() {
         await payOrder(currentOrder.id, paymentInput, idempotencyKey);
         
         // Redirect to orders page on success
-        router.push("/orders");
+        router.push("/client-admin/orders");
       }
     } catch (err: any) {
       alert(err?.message || "Failed to process payment");
@@ -377,7 +421,7 @@ export default function NewOrderPage() {
             if (status.transactionStatus === "CAPTURED" || status.orderStatus === "PAID") {
               // Payment successful
               alert("Payment successful!");
-              router.push("/orders");
+              router.push("/client-admin/orders");
             } else {
               // Payment failed
               alert("Payment failed. Please try again.");
@@ -442,7 +486,7 @@ export default function NewOrderPage() {
           className={styles.backBtn}
           onClick={() => {
             if (step > 1) setStep((s) => (s - 1) as 1 | 2 | 3 | 4);
-            else router.push("/orders");
+            else router.push("/client-admin/orders");
           }}
           aria-label="Back"
         >
@@ -468,7 +512,7 @@ export default function NewOrderPage() {
           </div>
         </div>
 
-        <button className={styles.closeBtn} onClick={() => router.push("/orders")} aria-label="Close">
+        <button className={styles.closeBtn} onClick={() => router.push("/client-admin/orders")} aria-label="Close">
           <X size={18} />
         </button>
       </div>
@@ -478,7 +522,7 @@ export default function NewOrderPage() {
         <div style={{ display: "flex", justifyContent: "center", padding: "40px 20px" }}>
           <div style={{
             width: "min(600px, 95vw)",
-            background: "white",
+            background: "var(--bg-surface)",
             border: "1px solid rgba(0,0,0,0.08)",
             borderRadius: 24,
             padding: 32,
@@ -546,7 +590,7 @@ export default function NewOrderPage() {
                     border: "1px solid var(--component-border)",
                     padding: "0 16px",
                     outline: "none",
-                    background: "var(--bg-secondary)",
+                    background: "var(--component-bg)",
                     fontSize: 14,
                     cursor: "pointer",
                     boxSizing: "border-box",
@@ -587,7 +631,7 @@ export default function NewOrderPage() {
                 border: "1px solid var(--component-border)",
                 padding: "0 16px",
                 outline: "none",
-                background: "var(--bg-secondary)",
+                background: "var(--component-bg)",
                 fontSize: 14,
                 boxSizing: "border-box",
                 transition: "all 0.2s ease",
@@ -618,7 +662,7 @@ export default function NewOrderPage() {
                 border: "1px solid var(--component-border)",
                 padding: "12px 16px",
                 outline: "none",
-                background: "var(--bg-secondary)",
+                background: "var(--component-bg)",
                 fontSize: 14,
                 fontFamily: "inherit",
                 resize: "vertical",
@@ -728,7 +772,7 @@ export default function NewOrderPage() {
                       padding: "12px 14px 12px 44px",
                       borderRadius: 12,
                       border: "1px solid var(--component-border)",
-                      background: "var(--bg-secondary)",
+                      background: "var(--component-bg)",
                       fontSize: 14,
                       outline: "none",
                       boxSizing: "border-box",
@@ -850,7 +894,7 @@ export default function NewOrderPage() {
                       borderRadius: 16,
                       border: "1px solid var(--component-border)",
                       overflow: "hidden",
-                      background: "white",
+                      background: "var(--bg-surface)",
                       transition: "all 0.2s ease",
                     }}
                     onMouseEnter={(e) => {
@@ -1087,12 +1131,12 @@ export default function NewOrderPage() {
               marginTop: 12,
               border: "1px solid var(--component-border)",
               borderRadius: 16,
-              background: "var(--bg-secondary)",
+              background: "var(--component-bg)",
               overflow: "hidden",
               display: "flex",
               flexDirection: "column",
             }}>
-              {cart.length === 0 ? (
+              {cart.length === 0 && (!currentOrder || currentOrder.items.length === 0) ? (
                 <div style={{
                   height: "100%",
                   display: "flex",
@@ -1112,7 +1156,7 @@ export default function NewOrderPage() {
                     alignItems: "center",
                     justifyContent: "center",
                     marginBottom: 16,
-                    background: "white",
+                    background: "var(--bg-surface)",
                   }}>
                     <ShoppingCart size={32} style={{ color: "var(--component-border-hover)" }} />
                   </div>
@@ -1130,136 +1174,163 @@ export default function NewOrderPage() {
                   overflowY: "auto",
                   flex: 1,
                 }}>
-                  {cart.map((line, idx) => (
-                    <div
-                      key={`${line.menuItem.id}-${idx}`}
-                      style={{
-                        borderRadius: 14,
-                        border: "1px solid var(--component-border)",
-                        background: "white",
-                        padding: 14,
-                        transition: "all 0.2s ease",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.boxShadow = "none";
-                      }}
-                    >
-                      <div style={{ display: "grid", gridTemplateColumns: "64px 1fr 32px", gap: 12, alignItems: "start", marginBottom: 12 }}>
-                        {line.menuItem.images && line.menuItem.images.length > 0 ? (
-                          <Image
-                            src={getImageUrl(line.menuItem.images[0].imageUrl) || ""}
-                            alt={line.menuItem.name}
-                            width={64}
-                            height={64}
-                            style={{ objectFit: "cover", borderRadius: 12, border: "1px solid var(--component-border)" }}
-                          />
-                        ) : (
-                          <div style={{
-                            width: 64,
-                            height: 64,
-                            borderRadius: 12,
-                            background: "var(--bg-tertiary)",
-                            border: "1px solid var(--component-border)",
-                          }} />
-                        )}
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>{line.menuItem.name}</div>
-                          {line.note && (
-                            <div style={{ fontSize: 12, color: "var(--text-secondary)", fontStyle: "italic" }}>Note: {line.note}</div>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => removeLine(idx)}
-                          aria-label="Remove"
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 8,
-                            background: "rgba(239, 68, 68, 0.1)",
-                            color: "var(--danger)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            border: "none",
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)";
-                          }}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 12, borderTop: "1px solid var(--bg-tertiary)" }}>
-                        <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>₹{Number(line.menuItem.basePrice).toFixed(2)}</div>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-                          <button
-                            onClick={() => updateLineQty(idx, -1)}
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: 10,
-                              background: "var(--bg-tertiary)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              border: "none",
-                              cursor: "pointer",
-                              transition: "all 0.2s ease",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = "var(--component-border)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = "var(--bg-tertiary)";
-                            }}
-                          >
-                            <Minus size={16} style={{ color: "var(--text-secondary)" }} />
-                          </button>
-                          <div style={{
-                            width: 40,
-                            textAlign: "center",
-                            fontSize: 16,
-                            fontWeight: 800,
-                            color: "var(--text-primary)",
-                          }}>
-                            {line.qty}
+                  {/* Existing Items */}
+                  {currentOrder && currentOrder.items.length > 0 && (
+                    <div style={{ marginBottom: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-tertiary)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Existing Items</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {currentOrder.items.map((item) => (
+                          <div key={item.id} style={{ padding: "10px 12px", background: "var(--bg-surface)", borderRadius: 12, border: "1px solid var(--component-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+                              {item.itemName} <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>x {Number(item.qty)}</span>
+                            </div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-secondary)" }}>₹{Number(item.lineTotal).toFixed(2)}</div>
                           </div>
-                          <button
-                            onClick={() => updateLineQty(idx, 1)}
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: 10,
-                              background: "var(--bg-tertiary)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              border: "none",
-                              cursor: "pointer",
-                              transition: "all 0.2s ease",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = "var(--component-border)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = "var(--bg-tertiary)";
-                            }}
-                          >
-                            <Plus size={16} style={{ color: "var(--text-secondary)" }} />
-                          </button>
-                        </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
+                  )}
+
+                  {/* New Items (Cart) */}
+                  {cart.length > 0 && (
+                    <div style={{ marginTop: currentOrder && currentOrder.items.length > 0 ? 8 : 0 }}>
+                      {currentOrder && currentOrder.items.length > 0 && (
+                        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--primary)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>New Items</div>
+                      )}
+                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        {cart.map((line, idx) => (
+                          <div
+                            key={`${line.menuItem.id}-${idx}`}
+                            style={{
+                              borderRadius: 14,
+                              border: "1px solid var(--component-border)",
+                              background: "var(--bg-surface)",
+                              padding: 14,
+                              transition: "all 0.2s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.boxShadow = "none";
+                            }}
+                          >
+                            <div style={{ display: "grid", gridTemplateColumns: "64px 1fr 32px", gap: 12, alignItems: "start", marginBottom: 12 }}>
+                              {line.menuItem.images && line.menuItem.images.length > 0 ? (
+                                <Image
+                                  src={getImageUrl(line.menuItem.images[0].imageUrl) || ""}
+                                  alt={line.menuItem.name}
+                                  width={64}
+                                  height={64}
+                                  style={{ objectFit: "cover", borderRadius: 12, border: "1px solid var(--component-border)" }}
+                                />
+                              ) : (
+                                <div style={{
+                                  width: 64,
+                                  height: 64,
+                                  borderRadius: 12,
+                                  background: "var(--bg-tertiary)",
+                                  border: "1px solid var(--component-border)",
+                                }} />
+                              )}
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>{line.menuItem.name}</div>
+                                {line.note && (
+                                  <div style={{ fontSize: 12, color: "var(--text-secondary)", fontStyle: "italic" }}>Note: {line.note}</div>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => removeLine(idx)}
+                                aria-label="Remove"
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: 8,
+                                  background: "rgba(239, 68, 68, 0.1)",
+                                  color: "var(--danger)",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  transition: "all 0.2s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)";
+                                }}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 12, borderTop: "1px solid var(--bg-tertiary)" }}>
+                              <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>₹{Number(line.menuItem.basePrice).toFixed(2)}</div>
+                              <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                                <button
+                                  onClick={() => updateLineQty(idx, -1)}
+                                  style={{
+                                    width: 36,
+                                    height: 36,
+                                    borderRadius: 10,
+                                    background: "var(--bg-tertiary)",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    transition: "all 0.2s ease",
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = "var(--component-border)";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = "var(--bg-tertiary)";
+                                  }}
+                                >
+                                  <Minus size={16} style={{ color: "var(--text-secondary)" }} />
+                                </button>
+                                <div style={{
+                                  width: 40,
+                                  textAlign: "center",
+                                  fontSize: 16,
+                                  fontWeight: 800,
+                                  color: "var(--text-primary)",
+                                }}>
+                                  {line.qty}
+                                </div>
+                                <button
+                                  onClick={() => updateLineQty(idx, 1)}
+                                  style={{
+                                    width: 36,
+                                    height: 36,
+                                    borderRadius: 10,
+                                    background: "var(--bg-tertiary)",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    transition: "all 0.2s ease",
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = "var(--component-border)";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = "var(--bg-tertiary)";
+                                  }}
+                                >
+                                  <Plus size={16} style={{ color: "var(--text-secondary)" }} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1268,7 +1339,7 @@ export default function NewOrderPage() {
               marginTop: 16,
               borderRadius: 16,
               border: "1px solid var(--component-border)",
-              background: "white",
+              background: "var(--bg-surface)",
               padding: 20,
             }}>
               <div style={{
@@ -1369,7 +1440,7 @@ export default function NewOrderPage() {
         <div style={{ display: "flex", justifyContent: "center", padding: "40px 20px" }}>
           <div style={{
             width: "min(600px, 95vw)",
-            background: "white",
+            background: "var(--bg-surface)",
             border: "1px solid rgba(0,0,0,0.08)",
             borderRadius: 24,
             padding: 32,
@@ -1377,7 +1448,7 @@ export default function NewOrderPage() {
           }}>
             <div style={{ textAlign: "center", fontSize: 26, fontWeight: 800, marginBottom: 28, color: "var(--text-primary)" }}>Order Summary</div>
 
-            <div style={{ marginBottom: 24, padding: 20, background: "var(--bg-secondary)", borderRadius: 16, border: "1px solid var(--component-border)" }}>
+            <div style={{ marginBottom: 24, padding: 20, background: "var(--component-bg)", borderRadius: 16, border: "1px solid var(--component-border)" }}>
               <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 6, fontWeight: 600 }}>Order ID</div>
               <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>{currentOrder.id}</div>
             </div>
@@ -1412,7 +1483,7 @@ export default function NewOrderPage() {
                       justifyContent: "space-between",
                       alignItems: "center",
                       padding: "14px 16px",
-                      background: "var(--bg-secondary)",
+                      background: "var(--component-bg)",
                       borderRadius: 12,
                       border: "1px solid var(--component-border)",
                     }}
@@ -1512,7 +1583,7 @@ export default function NewOrderPage() {
               height: "600px",
               display: "flex",
               flexDirection: "column",
-              background: "white",
+              background: "var(--bg-surface)",
               borderRadius: 24,
               boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
               border: "1px solid rgba(0,0,0,0.08)",
@@ -1630,7 +1701,7 @@ export default function NewOrderPage() {
             // Payment method selection view
             <div style={{
               width: "min(600px, 95vw)",
-              background: "white",
+              background: "var(--bg-surface)",
               border: "1px solid rgba(0,0,0,0.08)",
               borderRadius: 24,
               padding: 32,
@@ -1642,6 +1713,39 @@ export default function NewOrderPage() {
                 <div style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 8, fontWeight: 600 }}>Total Amount</div>
                 <div style={{ fontSize: 42, fontWeight: 800, color: "var(--primary)" }}>
                   ₹{Number(currentOrder.grandTotal).toFixed(2)}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 12 }}>Order Items ({currentOrder.items.length})</div>
+                <div style={{ 
+                  display: "flex", 
+                  flexDirection: "column", 
+                  gap: 8, 
+                  maxHeight: "200px", 
+                  overflowY: "auto",
+                  padding: "4px",
+                  marginBottom: 16
+                }}>
+                  {currentOrder.items.map((item) => (
+                    <div
+                      key={item.id}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "10px 14px",
+                        background: "var(--component-bg)",
+                        borderRadius: 10,
+                        border: "1px solid var(--component-border)",
+                      }}
+                    >
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+                        {item.itemName} <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>x {Number(item.qty)}</span>
+                      </span>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>₹{Number(item.lineTotal).toFixed(2)}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -1771,7 +1875,7 @@ export default function NewOrderPage() {
             style={{
               width: "min(520px, 96vw)",
               maxHeight: "86vh",
-              background: "white",
+              background: "var(--bg-surface)",
               borderRadius: 24,
               border: "1px solid rgba(0,0,0,0.08)",
               boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
@@ -1876,7 +1980,7 @@ export default function NewOrderPage() {
                   border: "1px solid var(--component-border)",
                   padding: "12px 16px",
                   outline: "none",
-                  background: "var(--bg-secondary)",
+                  background: "var(--component-bg)",
                   fontSize: 14,
                   fontFamily: "inherit",
                   resize: "vertical",

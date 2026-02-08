@@ -42,7 +42,7 @@ public class AuthService {
 
   @Transactional
   public LoginContextResponse getLoginContext(final String deviceCode, final String email) {
-    appLogger.info(LOG, "Getting login context for email=%s, deviceCode=%s", email, deviceCode);
+    appLogger.info(LOG, "DEBUG: Getting login context for email=%s, deviceCode=%s", email, deviceCode);
 
     // Find employee by email to determine outlet
     final Employee employee = employeeRepository.findByEmail(email)
@@ -92,7 +92,8 @@ public class AuthService {
 
     return new LoginContextResponse(
       new OutletDto(outlet.id, outlet.name, outlet.timezone),
-      employees
+      employees,
+      employee.id
     );
   }
 

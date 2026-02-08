@@ -56,10 +56,23 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
   }
 }
 
-function clientAdminAuthHeader(): Record<string, string> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("fg_client_admin_access_token") : null;
+function getAuthHeader(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  
+  // Determine if we are in the client-admin section or staff section
+  const isClientAdmin = window.location.pathname.startsWith('/client-admin') || 
+                        window.location.pathname.startsWith('/tenant-admin') ||
+                        window.location.pathname.startsWith('/internal-admin');
+  
+  const token = isClientAdmin 
+    ? localStorage.getItem("fg_client_admin_access_token")
+    : localStorage.getItem("fg_staff_access_token");
+    
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
+
+// Rename clientAdminAuthHeader to a more generic name if needed, or keep for compatibility
+const clientAdminAuthHeader = getAuthHeader;
 
 // Backend currently exposes these as /api/v1/admin/*; client-admin is a UI separation.
 export function adminLogin(input: { email: string; password: string }) {

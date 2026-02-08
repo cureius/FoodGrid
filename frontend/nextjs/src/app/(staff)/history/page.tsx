@@ -96,7 +96,7 @@ export default function HistoryPage() {
         setLoading(true);
         setError(null);
         // Fetch paid/billed orders for history
-        if(!selectedOutletId) return;
+        if (!selectedOutletId) return;
         const data = await listOrders(500, selectedOutletId);
         // Show terminal states: PAID (Dine-in), SERVED (Takeaway), CANCELLED
         const historyOrders = data.filter(o => 
@@ -121,7 +121,7 @@ export default function HistoryPage() {
       async function fetchOrderDetails() {
         try {
           setDetailsLoading(true);
-          if(!selectedId) return;
+          if (!selectedId) return;
           const data = await getOrder(selectedId);
           setSelectedOrder(data);
         } catch (err: any) {
@@ -278,7 +278,7 @@ export default function HistoryPage() {
   };
 
   return (
-    <div style={{ padding: "24px 32px", display: "flex", flexDirection: "column", gap: 24, height: "100%", minHeight: 0 }}>
+    <div style={{ padding: "24px 32px", display: "flex", flexDirection: "column", gap: 24, height: "100%", minHeight: 0, background: "var(--bg-app)", color: "var(--text-primary)" }}>
       <div style={{ marginBottom: 8 }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, marginBottom: 4 }}>
           <div>
@@ -286,9 +286,7 @@ export default function HistoryPage() {
               fontSize: 32,
               fontWeight: 800,
               margin: 0,
-              background: "var(--text-primary)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
+              color: "var(--text-primary)",
               letterSpacing: "-0.5px",
             }}>
               Order History
@@ -309,7 +307,8 @@ export default function HistoryPage() {
                   padding: "14px 16px 14px 44px",
                   borderRadius: 12,
                   border: "1px solid var(--component-border)",
-                  background: "var(--bg-secondary)",
+                  background: "var(--component-bg)",
+                  color: "var(--text-primary)",
                   fontSize: 14,
                   outline: "none",
                   boxSizing: "border-box",
@@ -317,12 +316,12 @@ export default function HistoryPage() {
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = "var(--primary)";
-                  e.currentTarget.style.background = "white";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
+                  e.currentTarget.style.background = "var(--bg-surface)";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px var(--primary-light)";
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.borderColor = "var(--component-border)";
-                  e.currentTarget.style.background = "var(--bg-secondary)";
+                  e.currentTarget.style.background = "var(--component-bg)";
                   e.currentTarget.style.boxShadow = "none";
                 }}
               />
@@ -435,11 +434,11 @@ export default function HistoryPage() {
               flex: 1,
               overflowY: "auto",
               padding: 16,
-              background: "var(--bg-secondary)",
+              background: "var(--bg-app)",
             }}>
               {filtered.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--text-secondary)" }}>
-                  <HistoryIcon size={48} style={{ color: "var(--component-border-hover)", margin: "0 auto 16px" }} />
+                  <HistoryIcon size={48} style={{ color: "var(--text-tertiary)", margin: "0 auto 16px" }} />
                   <h3 style={{ fontSize: 18, fontWeight: 600, margin: "0 0 8px", color: "var(--text-primary)" }}>No orders found</h3>
                   <p style={{ margin: 0, fontSize: 14 }}>
                     {query || filter !== "All" ? "Try adjusting your search or filter" : "No completed orders yet"}
@@ -457,28 +456,27 @@ export default function HistoryPage() {
                         style={{
                           borderRadius: 16,
                           border: `2px solid ${isSelected ? "var(--primary)" : "var(--component-border)"}`,
-                          background: isSelected ? "rgba(139, 92, 246, 0.05)" : "white",
+                          background: isSelected ? "var(--primary-light)" : "var(--bg-surface)",
                           padding: 16,
                           textAlign: "left",
                           cursor: "pointer",
                           transition: "all 0.2s ease",
-                          boxShadow: isSelected ? "0 4px 12px rgba(139, 92, 246, 0.15)" : "0 1px 3px rgba(0,0,0,0.08)",
+                          boxShadow: isSelected ? "var(--shadow-md)" : "var(--shadow-sm)",
                         }}
                         onMouseEnter={(e) => {
                           if (!isSelected) {
                             e.currentTarget.style.borderColor = "var(--component-border-hover)";
                             e.currentTarget.style.transform = "translateY(-2px)";
-                            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
+                            e.currentTarget.style.boxShadow = "var(--shadow-md)";
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!isSelected) {
                             e.currentTarget.style.borderColor = "var(--component-border)";
                             e.currentTarget.style.transform = "translateY(0)";
-                            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08)";
+                            e.currentTarget.style.boxShadow = "var(--shadow-sm)";
                           }
-                        }}
-                      >
+                        }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>
                             Order# <span style={{ color: "var(--primary)" }}>{o.id.slice(-4).toUpperCase()}</span>
@@ -540,27 +538,27 @@ export default function HistoryPage() {
               <>
                 <div style={{
                   padding: "24px 28px",
-                  borderBottom: "1px solid var(--bg-tertiary)",
-                  background: "linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)",
+                  borderBottom: "1px solid var(--border-light)",
+                  background: "var(--bg-tertiary)",
                 }}>
                   <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 4, color: "var(--text-primary)" }}>Bill Information</div>
                   <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>Invoice Details</div>
                 </div>
 
-                <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--bg-tertiary)" }}>
+                <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--border-light)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
                     <div style={{
                       width: 56,
                       height: 56,
                       borderRadius: 16,
-                      background: selectedOrder.orderType === "DINE_IN" ? "linear-gradient(135deg, var(--info) 0%, #2563eb 100%)" : "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)",
+                      background: "var(--primary)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       color: "white",
                       fontWeight: 700,
                       fontSize: 18,
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      boxShadow: "var(--shadow-md)",
                     }}>
                       {selectedOrder.tableId ? selectedOrder.tableId.slice(0, 2) : "TA"}
                     </div>
@@ -593,7 +591,7 @@ export default function HistoryPage() {
                           justifyContent: "space-between",
                           gap: 16,
                           paddingBottom: 12,
-                          borderBottom: "1px solid var(--bg-tertiary)",
+                          borderBottom: "1px solid var(--border-light)",
                         }}
                       >
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -611,8 +609,8 @@ export default function HistoryPage() {
 
                 <div style={{
                   padding: "20px 24px",
-                  borderTop: "1px solid var(--bg-tertiary)",
-                  background: "linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%)",
+                  borderTop: "1px solid var(--border-light)",
+                  background: "var(--bg-tertiary)",
                 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, fontSize: 14, fontWeight: 600, color: "var(--text-secondary)" }}>
                     <span>Sub Total</span>
@@ -677,7 +675,7 @@ export default function HistoryPage() {
                 <div ref={printRef} style={{ display: "none" }}>
                   <div className="invoice-header">
                     <div className="invoice-title">INVOICE</div>
-                    <div style={{ fontSize: "11px" }}>Order #{selectedOrder.id.slice(-4).toUpperCase()}</div>
+                    <div style={{ fontSize: "11px" }}>Order #{selectedOrder.id}</div>
                   </div>
                   <div className="invoice-info">
                     <div className="invoice-row">
