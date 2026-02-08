@@ -28,9 +28,15 @@ import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import styles from './landing.module.css';
 import { motion } from 'framer-motion';
 
+import { LeadsForm } from '@/components/ui/LeadsForm';
+
 export default function LandingPage() {
+  const [showLeadsForm, setShowLeadsForm] = React.useState(false);
+
   return (
     <div className={styles.landingPage}>
+      {/* Leads Form Modal */}
+      {showLeadsForm && <LeadsForm onClose={() => setShowLeadsForm(false)} />}
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerContent}>
@@ -42,7 +48,7 @@ export default function LandingPage() {
                 Get Brochure
               </button>
             </Link>
-            <Link href="/user/register">
+            <Link href="/auth-selection">
               <button className={`${styles.btnPrimary} ${styles.btnSmall}`}>
                 Login
               </button>
@@ -81,16 +87,12 @@ export default function LandingPage() {
             From local cafés to national chains. Manage orders, kitchen workflows, and real-time sales with India's most powerful restaurant management cloud.
           </p>
           <div className={styles.heroCta}>
-            <Link href="/start-free-trial">
-              <button className={styles.btnPrimary}>
-                Start Today <ArrowRight size={20} />
-              </button>
-            </Link>
-            <Link href="/user/login">
-              <button className={styles.btnSecondary}>
-                Book a Demo
-              </button>
-            </Link>
+            <button className={styles.btnPrimary} onClick={() => setShowLeadsForm(true)}>
+              Start Today <ArrowRight size={20} />
+            </button>
+            <button className={styles.btnSecondary} onClick={() => setShowLeadsForm(true)}>
+              Book a Demo
+            </button>
           </div>
 
           <div style={{ marginTop: 40, display: 'flex', gap: 24, alignItems: 'center' }}>
@@ -277,16 +279,12 @@ export default function LandingPage() {
           Join thousands of successful restaurants who scaled their business with FoodGrid.
         </p>
         <div className={styles.heroCta}>
-          <Link href="/user/register">
-            <button className={styles.btnPrimary} style={{ background: 'var(--text-primary)', color: 'var(--primary)', boxShadow: 'none' }}>
-              Create Free Account <ArrowRight size={20} />
-            </button>
-          </Link>
-          <Link href="/user/login">
-            <button className={styles.btnSecondary} style={{ color: 'var(--primary)', borderColor: 'var(--primary)' }}>
-              Contact Sales
-            </button>
-          </Link>
+          <button className={styles.btnPrimary} onClick={() => setShowLeadsForm(true)} style={{ background: 'var(--text-primary)', color: 'var(--primary)', boxShadow: 'none' }}>
+            Create Free Account <ArrowRight size={20} />
+          </button>
+          <button className={styles.btnSecondary} onClick={() => setShowLeadsForm(true)} style={{ color: 'var(--primary)', borderColor: 'var(--primary)' }}>
+            Contact Sales
+          </button>
         </div>
       </section>
 

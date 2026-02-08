@@ -119,3 +119,10 @@ export function triggerLeadEnrichment() {
     });
 }
 
+export function submitLead(data: { name: string; phone: string; email: string; restaurantName: string; city: string }) {
+    return http<{ success: boolean }>(`/api/v1/public/leads/submit`, {
+        method: "POST",
+        body: JSON.stringify(data)
+    });
+}
+
