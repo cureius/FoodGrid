@@ -80,7 +80,7 @@ export default function LandingPage() {
           <p className={styles.heroSubtitle}>
             From local cafés to national chains. Manage orders, kitchen workflows, and real-time sales with India's most powerful restaurant management cloud.
           </p>
-          <div className={styles.heroCta} style={{ display: 'flex', justifyContent: 'flex-start' }}>
+          <div className={styles.heroCta}>
             <Link href="/start-free-trial">
               <button className={styles.btnPrimary}>
                 Start Today <ArrowRight size={20} />

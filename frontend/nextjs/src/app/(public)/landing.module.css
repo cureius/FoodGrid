@@ -57,6 +57,21 @@
   align-items: center;
 }
 
+@media (max-width: 640px) {
+  .headerContent {
+    padding: 0.75rem 1rem;
+  }
+  
+  .headerActions {
+    gap: 0.5rem;
+  }
+
+  /* Hide the first Link (Get Brochure) on small mobile */
+  .headerActions > a:first-of-type {
+    display: none;
+  }
+}
+
 /* Hero Section */
 .hero {
   max-width: 1200px;
@@ -101,8 +116,14 @@
 .heroCta {
   display: flex;
   gap: 1.25rem;
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
+}
+
+@media (max-width: 1024px) {
+  .heroCta {
+    justify-content: center;
+  }
 }
 
 .heroImageContainer {
@@ -364,6 +385,21 @@
 .btnSmall {
   padding: 0.625rem 1.5rem;
   font-size: 0.9375rem;
+}
+
+@media (max-width: 640px) {
+  .btnPrimary, .btnSecondary {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .btnSmall {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    width: auto;
+  }
 }
 
 /* Footer */
