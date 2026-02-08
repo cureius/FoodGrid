@@ -265,7 +265,7 @@ export default function TablesPage({ loginPath = "/client-admin/login" }: { logi
   };
 
   return (
-    <div style={{ minHeight: "100vh" }}>
+    <div className="page-container" style={{ minHeight: "100vh" }}>
       {/* Toast Notification */}
       {toast && (
         <div
@@ -299,7 +299,7 @@ export default function TablesPage({ loginPath = "/client-admin/login" }: { logi
       <div style={{ padding: "32px" }}>
         {/* Header */}
         <div style={{ marginBottom: 32 }}>
-          <div
+            <div className="header-row"
             style={{
               display: "flex",
               flexWrap: "wrap",
@@ -400,7 +400,7 @@ export default function TablesPage({ loginPath = "/client-admin/login" }: { logi
 
           {/* Stats */}
           {selectedOutletId && (
-            <div
+            <div className="stats-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
@@ -457,9 +457,9 @@ export default function TablesPage({ loginPath = "/client-admin/login" }: { logi
               marginBottom: 24,
             }}
           >
-            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+            <div className="filter-bar" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
               <div style={{ display: "flex", gap: 12, flex: 1, flexWrap: "wrap" }}>
-                <div style={{ position: "relative", flex: 1, minWidth: 240, maxWidth: 480 }}>
+                <div className="search-input-wrap" style={{ position: "relative", flex: 1, minWidth: 240, maxWidth: 480 }}>
                   <Search size={18} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
                   <input
                     type="text"
@@ -649,7 +649,7 @@ export default function TablesPage({ loginPath = "/client-admin/login" }: { logi
             </div>
           </Card>
         ) : viewMode === "grid" ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 24 }}>
+          <div className="grid-view" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 24 }}>
             {filteredTables.map((table) => {
               const statusColors = getStatusColor(table.status);
               return (
@@ -938,19 +938,18 @@ export default function TablesPage({ loginPath = "/client-admin/login" }: { logi
             }}
             onClick={() => setCreateDialogOpen(false)}
           >
-            <div
-              style={{
-                background: "var(--bg-surface)",
-                borderRadius: 24,
-                maxWidth: 480,
-                width: "100%",
-                maxHeight: "90vh",
-                overflow: "auto",
-                boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-                animation: "slideUp 0.3s ease",
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
+                <div className="dialog-content"
+                  style={{
+                    background: "white",
+                    borderRadius: 24,
+                    width: 480,
+                    maxWidth: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
               <div style={{ padding: 28, textAlign: "center", borderBottom: "1px solid var(--bg-tertiary)", background: "linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)" }}>
                 <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(139, 92, 246, 0.3)" }}>
                   <LayoutGrid size={32} style={{ color: "white" }} />
@@ -1166,19 +1165,18 @@ export default function TablesPage({ loginPath = "/client-admin/login" }: { logi
             }}
             onClick={() => { setEditDialogOpen(false); setSelectedTable(null); resetForm(); }}
           >
-            <div
-              style={{
-                background: "var(--bg-surface)",
-                borderRadius: 24,
-                maxWidth: 480,
-                width: "100%",
-                maxHeight: "90vh",
-                overflow: "auto",
-                boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-                animation: "slideUp 0.3s ease",
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
+                <div className="dialog-content"
+                  style={{
+                    background: "white",
+                    borderRadius: 24,
+                    width: 480,
+                    maxWidth: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
               <div style={{ padding: 28, textAlign: "center", borderBottom: "1px solid var(--bg-tertiary)", background: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)" }}>
                 <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, var(--info) 0%, #2563eb 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(59, 130, 246, 0.3)" }}>
                   <Edit size={32} style={{ color: "white" }} />
@@ -1499,8 +1497,39 @@ export default function TablesPage({ loginPath = "/client-admin/login" }: { logi
           to { opacity: 1; }
         }
         @keyframes slideUp {
-          from { transform: translateY(20px); opacity: 0; }
+          from { transform: translateY(100%); opacity: 0; }
           to { transform: translateY(0); opacity: 1; }
+        }
+        @media (max-width: 1024px) {
+          .stats-grid {
+            grid-template-columns: 1fr 1fr !important;
+          }
+        }
+        @media (max-width: 768px) {
+          .page-container {
+            padding: 16px !important;
+          }
+          .stats-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .filter-bar {
+            flex-direction: column !important;
+            align-items: stretch !important;
+          }
+          .grid-view {
+             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+             gap: 16px !important;
+          }
+          .dialog-content {
+            width: 100% !important;
+            max-height: 94vh !important;
+            border-radius: 12px 12px 0 0 !important;
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            animation: slideUp 0.3s ease-out !important;
+          }
         }
         input:focus-visible, select:focus-visible, button:focus-visible {
           outline: 3px solid rgba(139,92,246,0.35) !important;

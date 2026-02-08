@@ -535,8 +535,8 @@ export default function NewOrderPage({
 
       {/* Step 1: Customer Information */}
       {step === 1 && (
-        <div style={{ display: "flex", justifyContent: "center", padding: "40px 20px" }}>
-          <div style={{
+        <div className={styles.centerStage} style={{ display: "flex", justifyContent: "center", padding: "40px 20px" }}>
+          <div className={styles.orderInfoCard} style={{
             width: "min(600px, 95vw)",
             background: "var(--bg-surface)",
             border: "1px solid rgba(0,0,0,0.08)",
@@ -547,7 +547,7 @@ export default function NewOrderPage({
             <div style={{ textAlign: "center", fontSize: 26, fontWeight: 800, marginBottom: 28, color: "var(--text-primary)" }}>Order Information</div>
 
             <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 12 }}>Order Type</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
+            <div className={styles.typeGrid} style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
               {[
                 { value: "DINE_IN", label: "Dine In", icon: "🍽️" },
                 { value: "TAKEAWAY", label: "Take Away", icon: "🥡" },
@@ -749,7 +749,7 @@ export default function NewOrderPage({
       {step === 2 && (
         <div className={styles.twoCol} style={{ marginTop: 20 }}>
           <div className={styles.leftPanel}>
-            <div style={{
+            <div className={styles.categorySearchRow} style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
@@ -772,7 +772,7 @@ export default function NewOrderPage({
                   />
                   Quick Add
                 </label>
-                <div style={{
+                <div className={styles.panelSearch} style={{
                   position: "relative",
                   flex: 1,
                   minWidth: 280,

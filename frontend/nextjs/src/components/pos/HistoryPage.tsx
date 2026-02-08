@@ -290,9 +290,9 @@ export default function HistoryPage({ loginPath = "/client-admin/login" }: { log
   };
 
   return (
-    <div style={{ padding: "24px 32px", display: "flex", flexDirection: "column", gap: 24, height: "100%", minHeight: 0, background: "var(--bg-app)", color: "var(--text-primary)" }}>
+    <div className="page-content" style={{ padding: "24px 32px", display: "flex", flexDirection: "column", gap: 24, height: "100%", minHeight: 0, background: "var(--bg-app)", color: "var(--text-primary)" }}>
       <div style={{ marginBottom: 8 }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, marginBottom: 4 }}>
+        <div className="header-top" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, marginBottom: 4 }}>
           <div>
             <h1 style={{
               fontSize: 32,
@@ -308,7 +308,7 @@ export default function HistoryPage({ loginPath = "/client-admin/login" }: { log
             </p>
           </div>
           <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-            <div style={{ position: "relative", flex: 1, minWidth: 280, maxWidth: 500 }}>
+            <div className="search-bar-wrap" style={{ position: "relative", flex: 1, minWidth: 280, maxWidth: 500 }}>
               <Search size={18} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
               <input
                 value={query}
@@ -368,7 +368,7 @@ export default function HistoryPage({ loginPath = "/client-admin/login" }: { log
       )}
 
       {!loading && !error && (
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 2fr) minmax(400px, 1fr)", gap: 24, flex: 1, minHeight: 0 }}>
+        <div className="history-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0, 2fr) minmax(400px, 1fr)", gap: 24, flex: 1, minHeight: 0 }}>
           <div style={{
             borderRadius: 20,
             border: "1px solid rgba(0,0,0,0.08)",
@@ -380,7 +380,7 @@ export default function HistoryPage({ loginPath = "/client-admin/login" }: { log
             overflow: "hidden",
           }}>
             <div style={{ padding: 20, borderBottom: "1px solid var(--bg-tertiary)" }}>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <div className="filter-tabs" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 {(["All", "DINE_IN", "TAKEAWAY", "DELIVERY", "CANCELLED"] as HistoryFilter[]).map((f) => {
                   const isActive = filter === f;
                   const getLabel = (val: HistoryFilter) => {
@@ -779,6 +779,31 @@ export default function HistoryPage({ loginPath = "/client-admin/login" }: { log
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+        @media (max-width: 1024px) {
+          .history-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 768px) {
+          .page-content {
+            padding: 16px !important;
+          }
+          .header-top {
+            flex-direction: column !important;
+            align-items: stretch !important;
+          }
+          .search-bar-wrap {
+            max-width: none !important;
+          }
+          .filter-tabs {
+            overflow-x: auto !important;
+            white-space: nowrap !important;
+            display: flex !important;
+            padding-bottom: 8px !important;
+            scrollbar-width: none !important;
+          }
+          .filter-tabs::-webkit-scrollbar { display: none; }
         }
       `}</style>
     </div>

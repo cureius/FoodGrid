@@ -28,33 +28,46 @@ import {
 } from '@/lib/api/clientAdmin';
 
 const PageContainer = styled.div`
-  background: #f1f3f6; /* Classic POS background */
-  min-height: calc(100vh - 64px);
-  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: #f1f3f6;
+  min-height: calc(100dvh - 64px);
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 1024px) {
+    min-height: calc(100dvh - 60px);
+  }
 `;
 
-/* Summary Stats Bar */
 const StatsHeader = styled.div`
-  background: #2c3e50; /* Deep blue-gray header */
+  background: #2c3e50;
   padding: 12px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: white;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  flex-wrap: wrap;
+  gap: 16px;
+
+  @media (max-width: 1024px) {
+    padding: 12px 16px;
+  }
 `;
 
 const StatItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: clamp(8px, 1.5vw, 16px);
   padding: 4px 16px;
   border-right: 1px solid rgba(255,255,255,0.1);
   
   &:last-child {
     border-right: none;
+  }
+
+  @media (max-width: 1024px) {
+    border-right: none;
+    padding: 4px 8px;
   }
 `;
 
@@ -97,6 +110,13 @@ const ActionToolbar = styled.div`
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #e0e6ed;
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    align-items: stretch;
+  }
 `;
 
 const FloorTabs = styled.div`
@@ -105,6 +125,10 @@ const FloorTabs = styled.div`
   background: #f1f3f6;
   padding: 4px;
   border-radius: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
 `;
 
 const FloorTab = styled.button<{ active: boolean }>`
@@ -118,6 +142,7 @@ const FloorTab = styled.button<{ active: boolean }>`
   cursor: pointer;
   box-shadow: ${p => p.active ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'};
   transition: all 0.2s;
+  white-space: nowrap;
 
   &:hover {
     color: #333;
@@ -128,6 +153,11 @@ const ToolbarRight = styled.div`
   display: flex;
   align-items: center;
   gap: 16px;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 const SearchBox = styled.div`
@@ -142,6 +172,10 @@ const SearchBox = styled.div`
     width: 240px;
     outline: none;
     
+    @media (max-width: 1024px) {
+      width: 100%;
+    }
+
     &:focus {
       border-color: #3498db;
       background: white;
@@ -180,12 +214,21 @@ const MainContent = styled.div`
   padding: 24px;
   flex: 1;
   overflow-y: auto;
+
+  @media (max-width: 640px) {
+    padding: 16px;
+  }
 `;
 
 const TableGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 16px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+  }
 `;
 
 const STATUS_THEMES = {
@@ -479,8 +522,8 @@ export default function POSPage() {
 
   return (
     <PageContainer>
-      <StatsHeader>
-        <div style={{ display: 'flex', gap: 0 }}>
+      <StatsHeader className="stats-header">
+        <div className="stats-wrap" style={{ display: 'flex', gap: 0 }}>
           <StatItem>
             <StatCircle bg="#2c3e50" style={{ border: '2px solid rgba(255,255,255,0.2)' }}>{stats.total}</StatCircle>
             <StatLabel>
@@ -511,7 +554,7 @@ export default function POSPage() {
           </StatItem>
         </div>
         
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div className="icon-buttons" style={{ display: 'flex', gap: 12 }}>
           <IconButton title="Refresh Data" onClick={() => window.location.reload()}>
             <RefreshCw size={18} />
           </IconButton>
@@ -534,8 +577,8 @@ export default function POSPage() {
           ))}
         </FloorTabs>
 
-        <ToolbarRight>
-          <SearchBox>
+        <ToolbarRight className="toolbar-right">
+          <SearchBox className="search-box">
             <Search size={16} />
             <input 
               placeholder="Search table number..." 
@@ -553,7 +596,7 @@ export default function POSPage() {
       </ActionToolbar>
 
       <MainContent>
-        <TableGrid>
+        <TableGrid className="table-grid">
           {filteredTables.map(table => {
             const theme = STATUS_THEMES[table.status as keyof typeof STATUS_THEMES];
             return (
@@ -601,7 +644,7 @@ export default function POSPage() {
         )}
       </MainContent>
 
-      <BottomLegend>
+      <BottomLegend className="bottom-legend">
         <LegendItem><LegendColor bg="#27ae60" /> Available</LegendItem>
         <LegendItem><LegendColor bg="#e67e22" /> Occupied</LegendItem>
         <LegendItem><LegendColor bg="#3498db" /> Billed</LegendItem>
@@ -612,6 +655,43 @@ export default function POSPage() {
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+        @media (max-width: 768px) {
+          .stats-header {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 16px !important;
+          }
+          .stats-wrap {
+            justify-content: space-between !important;
+          }
+          .icon-buttons {
+            justify-content: flex-end !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .toolbar-right {
+             flex-direction: column !important;
+             align-items: stretch !important;
+          }
+          .search-box {
+            max-width: none !important;
+            width: 100% !important;
+          }
+          .table-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
+          }
+          .bottom-legend {
+             flex-wrap: wrap !important;
+             justify-content: center !important;
+             gap: 12px !important;
+          }
+        }
+        @media (max-width: 380px) {
+          .table-grid {
+            grid-template-columns: 1fr !important;
+          }
         }
       `}</style>
     </PageContainer>

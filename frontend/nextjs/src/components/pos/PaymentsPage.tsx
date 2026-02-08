@@ -40,6 +40,11 @@ const Header = styled.div`
   margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 16px;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 const TitleRow = styled.div`
@@ -107,9 +112,13 @@ const StatGrid = styled.div`
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr 1fr;
     gap: 12px;
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
   }
 `;
 
