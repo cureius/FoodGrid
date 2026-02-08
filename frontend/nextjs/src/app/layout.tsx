@@ -29,15 +29,16 @@ export const metadata = {
     title: "FoodGrid | Restaurant Management System",
     description: "Advanced Restaurant POS System",
   },
+};
+
+export const viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#4B70F5" },
     { media: "(prefers-color-scheme: dark)", color: "#1e293b" },
   ],
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-  },
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

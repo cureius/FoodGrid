@@ -5,15 +5,14 @@ import { useDemo } from '@/contexts/DemoContext';
 import { DemoRole } from '@/constants/demo';
 import { Users, Utensils, User, Shield, Monitor } from 'lucide-react';
 
-const roles: { id: DemoRole, label: string, icon: any }[] = [
+const roles: { id: 'customer' | 'staff' | 'admin', label: string, icon: any }[] = [
   { id: 'customer', label: 'Customer', icon: User },
-  { id: 'staff', label: 'Wait Staff', icon: Users },
-  { id: 'kitchen', label: 'Kitchen', icon: Utensils },
+  { id: 'staff', label: 'Staff', icon: Users },
   { id: 'admin', label: 'Admin', icon: Monitor },
 ];
 
 export default function DemoRoleBar() {
-  const { currentRole, switchRole, isSwitchingRole, exitDemo } = useDemo();
+  const { activeRole, switchRole, resetDemo } = useDemo();
 
   return (
     <div style={{
@@ -37,13 +36,12 @@ export default function DemoRoleBar() {
 
       {roles.map(role => {
         const Icon = role.icon;
-        const isActive = currentRole === role.id;
+        const isActive = activeRole === role.id;
         
         return (
           <button
             key={role.id}
             onClick={() => switchRole(role.id)}
-            disabled={isSwitchingRole}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -68,7 +66,7 @@ export default function DemoRoleBar() {
       <div style={{ width: 1, height: 24, backgroundColor: '#334155', margin: '0 8px' }} />
 
       <button
-        onClick={exitDemo}
+        onClick={() => resetDemo()}
         style={{
           padding: '8px 12px',
           backgroundColor: 'transparent',

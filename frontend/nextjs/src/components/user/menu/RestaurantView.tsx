@@ -6,7 +6,15 @@ import { Star, Clock, Info } from 'lucide-react';
 import DishCard from '@/components/user/menu/DishCard';
 import { useState, useMemo, useEffect, useRef } from 'react';
 
-export default function RestaurantView({ outletId, onBack }: { outletId: string; onBack: () => void }) {
+export default function RestaurantView({ 
+  outletId, 
+  onBack,
+  isDemoMode = false 
+}: { 
+  outletId: string; 
+  onBack: () => void;
+  isDemoMode?: boolean;
+}) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [vegOnly, setVegOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
