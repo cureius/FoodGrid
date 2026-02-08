@@ -1,6 +1,6 @@
 "use client";
 import styled from "styled-components";
-import { LayoutDashboard, ShoppingCart, Tablet, Calendar, History, Box, Bell, ChevronDown, Store } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Tablet, Calendar, History, Box, Bell, ChevronDown, Store, LayoutGrid } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { COLORS } from "@/lib/constants";
@@ -225,6 +225,11 @@ export const Navbar = () => {
           <Link href="/tables" passHref>
             <TabItem active={pathname === "/tables"}>
               <Tablet size={18} /> <span data-label>Table</span>
+            </TabItem>
+          </Link>
+          <Link href="/pos" passHref>
+            <TabItem active={pathname === "/pos"}>
+              <LayoutGrid size={18} /> <span data-label>POS</span>
             </TabItem>
           </Link>
           <Link href="/history" passHref>
