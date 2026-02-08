@@ -44,7 +44,7 @@ export default function LandingPage() {
             </Link>
             <Link href="/user/register">
               <button className={`${styles.btnPrimary} ${styles.btnSmall}`}>
-                Get Started
+                Login
               </button>
             </Link>
           </div>

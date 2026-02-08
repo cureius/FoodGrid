@@ -18,7 +18,7 @@ import java.util.Set;
 @ApplicationScoped
 public class EmployeeRoleAdminService {
 
-  private static final Set<String> ALLOWED_ROLES = Set.of("CASHIER", "MANAGER", "ADMIN");
+  private static final Set<String> ALLOWED_ROLES = Set.of("CASHIER", "MANAGER", "ADMIN", "WAITER", "KITCHEN");
 
   @Inject EmployeeRepository employeeRepository;
   @Inject EmployeeRoleRepository roleRepository;
