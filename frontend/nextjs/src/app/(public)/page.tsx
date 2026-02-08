@@ -278,12 +278,12 @@ export default function LandingPage() {
         </p>
         <div className={styles.heroCta}>
           <Link href="/user/register">
-            <button className={styles.btnPrimary} style={{ background: 'white', color: 'var(--primary)', boxShadow: 'none' }}>
+            <button className={styles.btnPrimary} style={{ background: 'var(--text-primary)', color: 'var(--primary)', boxShadow: 'none' }}>
               Create Free Account <ArrowRight size={20} />
             </button>
           </Link>
           <Link href="/user/login">
-            <button className={styles.btnSecondary} style={{ color: 'white', borderColor: 'rgba(255,255,255,0.3)' }}>
+            <button className={styles.btnSecondary} style={{ color: 'var(--primary)', borderColor: 'var(--primary)' }}>
               Contact Sales
             </button>
           </Link>
