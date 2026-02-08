@@ -2,10 +2,14 @@ package com.foodgrid.common.multitenancy;
 
 import com.foodgrid.auth.model.Outlet;
 import com.foodgrid.auth.repo.OutletRepository;
+import com.foodgrid.common.exception.ErrorCode;
+import com.foodgrid.common.exception.ErrorResponse;
+import com.foodgrid.common.logging.CorrelationContext;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 import org.eclipse.microprofile.jwt.JsonWebToken;
@@ -27,6 +31,9 @@ public class TenantFilter implements ContainerRequestFilter {
   @Inject
   OutletRepository outletRepository;
 
+  @Inject
+  CorrelationContext correlationContext;
+
   @Override
   public void filter(final ContainerRequestContext requestContext) {
     final String path = requestContext.getUriInfo().getPath();
@@ -38,7 +45,7 @@ public class TenantFilter implements ContainerRequestFilter {
 
     // For all other endpoints, tenant must be resolvable.
     if (jwt == null || jwt.getRawToken() == null) {
-      abort(requestContext, Response.Status.UNAUTHORIZED, "Missing token");
+      abort(requestContext, Response.Status.UNAUTHORIZED, ErrorCode.AUTH_MISSING_TOKEN);
       return;
     }
 
@@ -76,7 +83,7 @@ public class TenantFilter implements ContainerRequestFilter {
     }
 
     LOG.debugf("Tenant context not resolved for request %s", path);
-    abort(requestContext, Response.Status.FORBIDDEN, "Tenant not resolved");
+    abort(requestContext, Response.Status.FORBIDDEN, ErrorCode.AUTHZ_TENANT_MISMATCH);
   }
 
   private static boolean isPublicPath(final String path) {
@@ -88,18 +95,35 @@ public class TenantFilter implements ContainerRequestFilter {
       || p.startsWith("api/v1/customer")
       || p.startsWith("api/v1/public")
       || p.startsWith("api/v1/bootstrap")
+      || p.startsWith("api/v1/demo")
       || p.startsWith("api/v1/pos/whoami")
       || p.startsWith("api/v1/webhooks/payment")  // Allow public access to payment webhooks
       || p.startsWith("uploads")  // Allow public access to uploaded files (images, etc.)
       || p.startsWith("q/")
       || p.startsWith("openapi")
       || p.startsWith("health")
+      || p.startsWith("api/v1/demo")
       || p.startsWith("user");
   }
 
-  private static void abort(final ContainerRequestContext ctx, final Response.Status status, final String message) {
+  private void abort(final ContainerRequestContext ctx, final Response.Status status, final ErrorCode errorCode) {
+    final String path = ctx.getUriInfo().getPath();
+    final String method = ctx.getMethod();
+    String correlationId;
+    try {
+      correlationId = correlationContext.getCorrelationId();
+    } catch (final Exception e) {
+      correlationId = "unknown";
+    }
+
+    final ErrorResponse errorResponse = ErrorResponse.of(errorCode, errorCode.getDefaultMessage(), path, method, correlationId);
+
+    LOG.warnf("[corrId=%s] TenantFilter abort: %s %s -> %s", correlationId, method, path, errorCode.getCode());
+
     ctx.abortWith(Response.status(status)
-      .entity(message)
+      .entity(errorResponse)
+      .type(MediaType.APPLICATION_JSON)
+      .header("X-Correlation-ID", correlationId)
       .build());
   }
 }

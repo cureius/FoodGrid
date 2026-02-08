@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Logo from '@/components/Logo';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { CheckCircle2, Phone, Globe, ArrowLeft, ArrowRight, Printer } from 'lucide-react';
 import styles from './brochure.module.css';
 
@@ -19,9 +20,12 @@ export default function BrochurePage() {
         <Link href="/" className={styles.backLink}>
            <ArrowLeft size={16} /> Back to Home
         </Link>
-        <button onClick={handlePrint} className={styles.printBtn}>
-           <Printer size={16} /> Print Brochure
-        </button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <ThemeSwitcher />
+          <button onClick={handlePrint} className={styles.printBtn}>
+             <Printer size={16} /> Print Brochure
+          </button>
+        </div>
       </div>
 
       <div className={styles.brochureWrapper}>
@@ -96,8 +100,8 @@ export default function BrochurePage() {
         <section className={`${styles.panel} ${styles.insidePanel}`}>
            
            <div className={styles.insideSection}>
-             <h2 className={styles.panelTitle}>Key Benefits</h2>
-             <ul className={styles.benefitList}>
+           <h2 className={styles.panelTitle}>Key Benefits</h2>
+           <ul className={styles.benefitList}>
                {[
                  'QR based ordering for dine-in customers',
                  'Fast and simple POS billing',
@@ -106,12 +110,12 @@ export default function BrochurePage() {
                  'Customer ordering website',
                  'Multiple outlet support'
                ].map((item, i) => (
-                 <li key={i} className={styles.benefitItem}>
+               <li key={i} className={styles.benefitItem}>
                    <CheckCircle2 className={styles.checkIcon} size={20} />
                    <span>{item}</span>
-                 </li>
-               ))}
-             </ul>
+               </li>
+             ))}
+           </ul>
            </div>
 
            <div className={styles.insideSection} style={{ marginTop: 'auto' }}>
@@ -193,19 +197,96 @@ export default function BrochurePage() {
         </section>
 
       </div>
-      <style jsx global>{`
-        @media print {
-          @page {
-            size: A4 landscape;
-            margin: 0;
-          }
-          body {
-            background: white;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-        }
-      `}</style>
+
+      {/* REVERSE SIDE / BACK PAGE of Brochure */}
+      <div className={styles.reverseWrapper}>
+        
+        {/* Panel 4: Ordering Journey */}
+        <section className={styles.journeyPanel} style={{ gridArea: 'p4' }}>
+          <h2 className={styles.journeyTitle}>1. Seamless Ordering</h2>
+          <p className={styles.journeySubtitle}>Enhance the guest experience from the second they arrive.</p>
+          
+          <div className={styles.journeyStepContainer}>
+             <div className={styles.journeyStep}>
+                <div className={styles.stepIconCircle}>1</div>
+                <div className={styles.journeyImageWrapper} style={{ width: '200px', height: '100px' }}>
+                  <Image src="/qr.png" alt="QR Scan" fill style={{ objectFit: 'cover' }} />
+                </div>
+                <div className={styles.journeyStepContent}>
+                   <h4>Scan & Discover</h4>
+                   <p>Instant digital menu access via QR.</p>
+                </div>
+             </div>
+             <div className={styles.journeyStep}>
+                <div className={styles.stepIconCircle}>2</div>
+                <div className={styles.journeyImageWrapper}>
+                  <Image src="/mockup1.png" alt="Menu" fill style={{ objectFit: 'cover' }} />
+                </div>
+                <div className={styles.journeyStepContent}>
+                   <h4>Select & Order</h4>
+                   <p>Visual ordering for faster service.</p>
+                </div>
+             </div>
+          </div>
+        </section>
+
+        {/* Panel 5: Kitchen Flow */}
+        <section className={styles.journeyPanel} style={{ gridArea: 'p5' }}>
+          <h2 className={styles.journeyTitle}>2. Kitchen Workflow</h2>
+          <p className={styles.journeySubtitle}>Direct integration between the customer and the chef.</p>
+          
+          <div className={styles.journeyStepContainer}>
+             <div className={styles.journeyStep}>
+                <div className={styles.stepIconCircle}>3</div>
+                <div className={styles.journeyImageWrapper}>
+                  <Image src="/mockup3.png" alt="Cart" fill style={{ objectFit: 'cover' }} />
+                </div>
+                <div className={styles.journeyStepContent}>
+                   <h4>Review Cart</h4>
+                   <p>Easy cart management and checkout.</p>
+                </div>
+             </div>
+             <div className={styles.journeyStep}>
+                <div className={styles.stepIconCircle}>4</div>
+                <div className={styles.journeyStepContent}>
+                   <div style={{ background: '#f8fafc', padding: 20, borderRadius: 12, border: '1px dashed #cbd5e1' }}>
+                      <CheckCircle2 className={styles.checkIcon} size={24} style={{ color: 'var(--primary)', marginBottom: 8 }} />
+                      <h4 style={{ margin: 0 }}>Zero Confusion</h4>
+                      <p style={{ margin: 0 }}>No manual entry errors, no lost tickets, and faster preparation times.</p>
+                   </div>
+                </div>
+             </div>
+          </div>
+        </section>
+
+        {/* Panel 6 */}
+        <section className={`${styles.journeyPanel} ${styles.p6}`}>
+          <h2 className={styles.journeyTitle}>Growth & Billing</h2>
+          <div className={styles.journeyStepContainer}>
+             <div className={styles.journeyStep}>
+                <div className={styles.stepIconCircle}>5</div>
+                <div className={styles.journeyImageWrapper}>
+                  <Image src="/mockup4.png" alt="Billing" fill style={{ objectFit: 'cover' }} />
+                </div>
+                <div className={styles.journeyStepContent}>
+                   <h4>Quick Checkout</h4>
+                   <p>One-tap billing and GST invoices.</p>
+                </div>
+             </div>
+             <div className={styles.journeyStep}>
+                <div className={styles.stepIconCircle}>6</div>
+                <div className={styles.journeyImageWrapper}>
+                  <Image src="/mockup5.png" alt="Order Confirmation" fill style={{ objectFit: 'cover' }} />
+                </div>
+                <div className={styles.journeyStepContent}>
+                   <h4>Order Placed</h4>
+                   <p>Instant confirmation and tracking.</p>
+                </div>
+             </div>
+          </div>
+        </section>
+
+      </div>
     </div>
   );
 }

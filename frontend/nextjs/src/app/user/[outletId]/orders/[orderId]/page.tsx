@@ -34,7 +34,7 @@ export default function OrderDetailsPage() {
           <div className="skeleton-card medium" />
         </div>
         <style jsx>{`
-            .loading-page { min-height: 100vh; background: white; }
+            .loading-page { min-height: 100vh; background: var(--bg-surface); }
             .skeleton-hero { height: 180px; background: var(--bg-muted); border-radius: 0 0 40px 40px; animation: pulse 1.5s infinite; }
             .skeleton-content { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
             .skeleton-card { background: var(--bg-muted); border-radius: 32px; animation: pulse 1.5s infinite; }
@@ -204,34 +204,34 @@ export default function OrderDetailsPage() {
 
       <style jsx>{`
         .order-details-page { min-height: 100vh; background: var(--bg-app); pb-12; }
-        .track-header { position: sticky; top: 0; z-index: 40; background: white; border-bottom: 1px solid var(--border-light); height: 64px; display: flex; align-items: center; px-16; gap: 16px; padding: 0 16px; }
-        .back-btn { padding: 8px; margin-left: -8px; color: var(--navy); border-radius: 50%; transition: var(--transition-fast); }
+        .track-header { position: sticky; top: 0; z-index: 40; background: var(--bg-surface); border-bottom: 1px solid var(--border-light); height: 64px; display: flex; align-items: center; px-16; gap: 16px; padding: 0 16px; }
+        .back-btn { padding: 8px; margin-left: -8px; color: var(--text-primary); border-radius: 50%; transition: var(--transition-fast); }
         .back-btn:hover { background: var(--bg-muted); }
         .header-info { flex: 1; }
-        .header-title { font-size: 18px; font-weight: 800; color: var(--navy); line-height: 1; }
+        .header-title { font-size: 18px; font-weight: 800; color: var(--text-primary); line-height: 1; }
         .order-id-label { font-size: 10px; color: var(--text-light); font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; }
 
         .track-main { padding: 12px; display: flex; flex-direction: column; gap: 12px;, margin-bottom: 72px; margin-bottom: 72px; }
-        .card { background: white; border-radius: 32px; padding: 24px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
+        .card { background: var(--bg-surface); border-radius: 32px; padding: 24px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
         
         .status-badge { display: inline-flex; padding: 4px 12px; border-radius: 999px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 24px; }
-        .eta-title { font-size: 24px; font-weight: 800; color: var(--navy); margin-bottom: 4px; letter-spacing: -0.5px; }
+        .eta-title { font-size: 24px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; letter-spacing: -0.5px; }
         .eta-timer { display: flex; align-items: baseline; gap: 8px; margin-bottom: 40px; }
-        .eta-val { font-size: 48px; font-weight: 900; color: var(--navy); letter-spacing: -2px; }
+        .eta-val { font-size: 48px; font-weight: 900; color: var(--text-primary); letter-spacing: -2px; }
         .eta-unit { font-size: 18px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; }
 
         .timeline { position: relative; padding-left: 40px; display: flex; flex-direction: column; gap: 40px; }
         .timeline-line { position: absolute; left: 13px; top: 8px; bottom: 8px; width: 2px; background: var(--bg-muted); }
         
         .timeline-item { position: relative; display: flex; align-items: center; justify-content: space-between; }
-        .dot-wrap { position: absolute; left: -40px; width: 28px; height: 28px; background: white; border: 2px solid var(--bg-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; color: var(--text-light); }
+        .dot-wrap { position: absolute; left: -40px; width: 28px; height: 28px; background: var(--bg-surface); border: 2px solid var(--bg-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; color: var(--text-light); }
         .timeline-item.completed .dot-wrap { background: var(--success); border-color: var(--success); color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
         .timeline-item.current .dot-wrap { border-color: var(--success); }
         .dot-inner { width: 8px; height: 8px; background: currentColor; border-radius: 50%; }
         .pulse-ring { position: absolute; inset: 0; background: var(--success); border-radius: 50%; opacity: 0.3; }
 
         .item-label { font-size: 14px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; transition: var(--transition-fast); }
-        .timeline-item.completed .item-label { color: var(--navy); }
+        .timeline-item.completed .item-label { color: var(--text-primary); }
         .item-label-wrap { flex: 1; display: flex; justify-content: space-between; align-items: center; }
         .time-tag { font-size: 9px; font-weight: 900; color: var(--success); text-transform: uppercase; letter-spacing: 1px; animation: blink 2s infinite; }
         
@@ -240,7 +240,7 @@ export default function OrderDetailsPage() {
         .icon-box { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .icon-box.pin { background: var(--primary-light); color: var(--primary); }
         .icon-box.wallet { background: var(--secondary-light); color: var(--secondary); }
-        .row-title { font-size: 14px; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+        .row-title { font-size: 14px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; }
         .row-text { font-size: 12px; color: var(--text-muted); font-weight: 600; line-height: 1.4; }
         .unpaid-alert { position: absolute; right: 0; top: 0; font-size: 9px; font-weight: 900; background: var(--danger-light); color: var(--danger); padding: 4px 8px; border-radius: 6px; letter-spacing: 0.5px; }
 
@@ -249,18 +249,18 @@ export default function OrderDetailsPage() {
         .items-list { display: flex; flex-direction: column; gap: 16px; }
         .summary-item { display: flex; justify-content: space-between; align-items: center; }
         .item-left { display: flex; align-items: center; gap: 12px; }
-        .qty-tag { font-size: 13px; font-weight: 900; color: var(--navy); min-width: 24px; }
+        .qty-tag { font-size: 13px; font-weight: 900; color: var(--text-primary); min-width: 24px; }
         .name-tag { font-size: 13px; font-weight: 700; color: var(--text-muted); }
-        .price-tag { font-size: 14px; font-weight: 800; color: var(--navy); }
+        .price-tag { font-size: 14px; font-weight: 800; color: var(--text-primary); }
         .bill-divider { height: 1px; border-top: 1px dashed var(--border-light); margin: 24px 0; }
         .total-row { display: flex; justify-content: space-between; align-items: center; }
-        .total-label { font-size: 14px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: 1px; }
+        .total-label { font-size: 14px; font-weight: 800; color: var(--text-primary); text-transform: uppercase; letter-spacing: 1px; }
         .total-val { font-size: 20px; font-weight: 900; color: var(--primary); }
 
         .actions-grid { display: grid; grid-template-columns: 1fr 0fr; gap: 12px; margin-top: 12px; }
         .action-btn { height: 64px; border-radius: 20px; border: none; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; transition: var(--transition-fast); box-shadow: var(--shadow-sm); cursor: pointer; }
-        .action-btn.secondary { background: white; color: var(--navy); border: 1px solid var(--border-light); }
-        .action-btn.primary { background: var(--navy); color: white; }
+        .action-btn.secondary { background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-light); }
+        .action-btn.primary { background: var(--text-primary); color: white; }
         .action-btn:active { transform: scale(0.98); }
         .icon-wrap { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
         .color-primary { background: var(--primary-light); color: var(--primary); }

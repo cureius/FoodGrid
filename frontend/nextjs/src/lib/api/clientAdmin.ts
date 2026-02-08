@@ -995,6 +995,8 @@ export type OrderResponse = {
   grandTotal: number;
   notes: string | null;
   createdAt: string; // ISO date string
+  sourceChannel?: string; // "FOODGRID" | "SWIGGY" | "ZOMATO"
+  externalOrderId?: string;
   items: OrderItemResponse[];
 };
 
@@ -1098,6 +1100,31 @@ export function deleteOrder(orderId: string) {
   });
 }
 
+export type DashboardAnalytics = {
+  summary: {
+    totalOrders: number;
+    totalRevenue: number;
+    averageOrderValue: number;
+    growthRate: number;
+  };
+  channelSplit: { label: string; count: number; revenue: number }[];
+  topItemsByQuantity: { label: string; count: number; revenue: number }[];
+  topItemsByRevenue: { label: string; count: number; revenue: number }[];
+  categorySplit: { label: string; count: number; revenue: number }[];
+  hourlyTrend: { hour: number; count: number; revenue: number }[];
+  insights: string[];
+};
+
+export function getDashboardAnalytics(outletId: string, start?: string, end?: string) {
+  const params = new URLSearchParams({ outletId });
+  if (start) params.append("start", start);
+  if (end) params.append("end", end);
+  return http<DashboardAnalytics>(`/api/v1/admin/analytics?${params.toString()}`, {
+    method: "GET",
+    headers: { ...clientAdminAuthHeader() }
+  });
+}
+
 export type PaymentCreateInput = {
   method: string; // "CASH" | "CARD" | "UPI" | "GATEWAY"
   amount: number;
@@ -1159,6 +1186,49 @@ export type PaymentStatusResponse = {
 export function getPaymentStatus(orderId: string) {
   return http<PaymentStatusResponse>(`/api/v1/payments/order/${encodeURIComponent(orderId)}/status`, {
     method: "GET",
+    headers: { ...clientAdminAuthHeader() }
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// Channel Integrations
+// ─────────────────────────────────────────────────────────────
+
+export type ChannelIntegration = {
+  id: string;
+  outletId: string;
+  channel: "SWIGGY" | "ZOMATO";
+  externalStoreId: string;
+  authPayload: string;
+  isActive: boolean;
+  lastSyncAt: string | null;
+};
+
+export function listIntegrations(outletId: string) {
+  return http<ChannelIntegration[]>(`/api/v1/outlets/${encodeURIComponent(outletId)}/integrations`, {
+    method: "GET",
+    headers: { ...clientAdminAuthHeader() }
+  });
+}
+
+export function saveIntegration(outletId: string, channel: string, data: Partial<ChannelIntegration>) {
+  return http<ChannelIntegration>(`/api/v1/outlets/${encodeURIComponent(outletId)}/integrations/${channel}`, {
+    method: "POST",
+    headers: { ...clientAdminAuthHeader() },
+    body: JSON.stringify(data)
+  });
+}
+
+export function testIntegration(outletId: string, channel: string) {
+  return http<void>(`/api/v1/outlets/${encodeURIComponent(outletId)}/integrations/${channel}/test`, {
+    method: "POST",
+    headers: { ...clientAdminAuthHeader() }
+  });
+}
+
+export function syncMenu(outletId: string, channel: string, direction: "PUSH" | "PULL") {
+  return http<void>(`/api/v1/outlets/${encodeURIComponent(outletId)}/integrations/${channel}/sync-menu?direction=${direction}`, {
+    method: "POST",
     headers: { ...clientAdminAuthHeader() }
   });
 }

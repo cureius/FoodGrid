@@ -444,3 +444,93 @@ export function getSupportedGateways() {
     }
   });
 }
+
+// Admin User Management
+export type AdminUserResponse = {
+  id: string;
+  email: string;
+  displayName: string;
+  status: string;
+  roles: string[];
+  clientId?: string;
+  outletId?: string;
+};
+
+export type AdminUserCreateInput = {
+  email: string;
+  password?: string;
+  displayName: string;
+  status?: string;
+  clientId?: string;
+  roles?: string[];
+};
+
+export function listAdminUsers(clientId?: string) {
+  const query = clientId ? `?clientId=${encodeURIComponent(clientId)}` : "";
+  return http<AdminUserResponse[]>(`/api/v1/admin/admin-users${query}`, {
+    method: "GET",
+    headers: {
+      ...adminOnlyAuthHeader()
+    }
+  });
+}
+
+export function createAdminUser(input: AdminUserCreateInput) {
+  return http<AdminUserResponse>(`/api/v1/admin/admin-users`, {
+    method: "POST",
+    headers: {
+      ...adminOnlyAuthHeader()
+    },
+    body: JSON.stringify(input)
+  });
+}
+
+export function updateAdminUser(userId: string, input: AdminUserCreateInput) {
+  return http<AdminUserResponse>(`/api/v1/admin/admin-users/${encodeURIComponent(userId)}`, {
+    method: "PUT",
+    headers: {
+      ...adminOnlyAuthHeader()
+    },
+    body: JSON.stringify(input)
+  });
+}
+
+export function deleteAdminUser(userId: string) {
+  return http<void>(`/api/v1/admin/admin-users/${encodeURIComponent(userId)}`, {
+    method: "DELETE",
+    headers: {
+      ...adminOnlyAuthHeader()
+    }
+  });
+}
+
+export function updateAdminUserRoles(userId: string, roles: string[]) {
+  return http<AdminUserResponse>(`/api/v1/admin/admin-users/${encodeURIComponent(userId)}/roles`, {
+    method: "PUT",
+    headers: {
+      ...adminOnlyAuthHeader()
+    },
+    body: JSON.stringify({ roles })
+  });
+}
+
+// Global Analytics
+export type GlobalAnalyticsResponse = {
+  totalTenants: number;
+  activeTenants: number;
+  totalUsers: number;
+  totalOutlets: number;
+  totalRevenue: number;
+  activeSubscriptions: number;
+  recentTenants: TenantResponse[];
+  revenueByMonth: { month: string; amount: number }[];
+};
+
+export function getGlobalAnalytics() {
+  return http<GlobalAnalyticsResponse>(`/api/v1/admin/global-analytics`, {
+    method: "GET",
+    headers: {
+      ...adminOnlyAuthHeader()
+    }
+  });
+}

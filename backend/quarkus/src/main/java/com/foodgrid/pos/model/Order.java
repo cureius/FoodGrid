@@ -63,6 +63,13 @@ public class Order extends PanacheEntityBase {
   @Column(name = "updated_at")
   public Instant updatedAt;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "source_channel", nullable = false)
+  public com.foodgrid.integration.model.SourceChannel sourceChannel = com.foodgrid.integration.model.SourceChannel.FOODGRID;
+
+  @Column(name = "external_order_id", length = 100)
+  public String externalOrderId;
+
   public enum OrderType {
     DINE_IN,
     TAKEAWAY,

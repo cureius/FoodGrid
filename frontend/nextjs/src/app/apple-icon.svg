@@ -1,0 +1,9 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="180" height="180" rx="40" fill="#4B70F5"/>
+  <g transform="translate(18, 18)">
+    <rect width="63" height="63" rx="14.4" fill="white" opacity="0.9"/>
+    <rect x="81" width="63" height="63" rx="14.4" fill="white" opacity="0.5"/>
+    <rect y="81" width="63" height="63" rx="14.4" fill="white" opacity="0.5"/>
+    <rect x="81" y="81" width="63" height="63" rx="14.4" fill="white" opacity="0.9"/>
+  </g>
+</svg>

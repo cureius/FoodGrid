@@ -240,12 +240,16 @@ public class RazorpayGateway implements PaymentGateway {
                 paymentLinkRequest.put("customer", customer);
             }
             
-            // Add callback URL if provided
+            // Set callback_url to our dedicated endpoint that handles tab closing
+            // This is required for the "auto-close" feature to work.
+            final String effectiveCallbackUrl = (callbackUrl != null && !callbackUrl.isBlank()) ? 
+                callbackUrl : webhookUrl + "/callback";
+            paymentLinkRequest.put("callback_url", effectiveCallbackUrl);
+            paymentLinkRequest.put("callback_method", "get");
+            
+            // Webhooks should still be configured in Razorpay Dashboard separately 
+            // to: https://foodgrid-production-f778.up.railway.app/api/v1/webhooks/payment/razorpay
 
-            if (webhookUrl != null && !webhookUrl.isBlank()) {
-                paymentLinkRequest.put("callback_url", webhookUrl);
-                paymentLinkRequest.put("callback_method", "get");
-            }
 
             final String requestBody = MAPPER.writeValueAsString(paymentLinkRequest);
 
@@ -325,20 +329,51 @@ public class RazorpayGateway implements PaymentGateway {
     public WebhookEvent parseWebhook(final String payload, final String signature) {
         try {
             final JsonNode json = MAPPER.readTree(payload);
-            final String eventType = json.get("razorpay_payment_link_status").asText().equals("paid") ? "payment.success" : "payment.failed" ;
+            
+            // Razorpay webhooks have a nested structure: payload -> entity_name -> entity
+            // Root level 'event' field tells us what happened (e.g., payment_link.paid)
+            final String rawEvent = json.has("event") ? json.get("event").asText() : "";
+            
+            String gatewayOrderId = null;
+            String gatewayPaymentId = null;
+            String status = null;
+            String method = "online";
+            String eventType = "payment.failed";
 
-            final String gatewayOrderId = json.has("razorpay_payment_link_id") ?
-                json.get("razorpay_payment_link_id").asText() : null;
-            final String gatewayPaymentId = json.has("razorpay_payment_id") ?
-                json.get("razorpay_payment_id").asText() : null;
-            final String status = json.has("razorpay_payment_link_status") ?
-                json.get("razorpay_payment_link_status").asText() : null;
-            final String method = json.has("method") ?
-                json.get("method").asText() : "online";
+            if (json.has("payload")) {
+                final JsonNode plNode = json.get("payload");
+                
+                // Handle Payment Link events
+                if (plNode.has("payment_link")) {
+                    final JsonNode entity = plNode.get("payment_link").get("entity");
+                    gatewayOrderId = entity.get("id").asText();
+                    status = entity.get("status").asText();
+                    if ("paid".equals(status)) {
+                        eventType = "payment.success";
+                    }
+                }
+                
+                // Handle Payment events (often sent with payment_link)
+                if (plNode.has("payment")) {
+                    final JsonNode entity = plNode.get("payment").get("entity");
+                    gatewayPaymentId = entity.get("id").asText();
+                    if (entity.has("method")) {
+                        method = entity.get("method").asText();
+                    }
+                }
+            } else {
+                // Fallback for old-style callback/redirection payload if it's still being used
+                eventType = json.get("razorpay_payment_link_status").asText("").equals("paid") ? "payment.success" : "payment.failed";
+                gatewayOrderId = json.has("razorpay_payment_link_id") ? json.get("razorpay_payment_link_id").asText() : null;
+                gatewayPaymentId = json.has("razorpay_payment_id") ? json.get("razorpay_payment_id").asText() : null;
+                status = json.has("razorpay_payment_link_status") ? json.get("razorpay_payment_link_status").asText() : null;
+                method = json.has("method") ? json.get("method").asText() : "online";
+            }
+
             @SuppressWarnings("unchecked") final Map<String, Object> rawData = MAPPER.convertValue(json, Map.class);
-
             return new WebhookEvent(eventType, gatewayOrderId, gatewayPaymentId, status, method, rawData);
         } catch (final Exception e) {
+            LOG.errorf(e, "Failed to parse Razorpay webhook payload: %s", payload);
             throw new RuntimeException("Failed to parse webhook: " + e.getMessage(), e);
         }
     }

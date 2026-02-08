@@ -26,4 +26,5 @@
   <include file="db/changelog/13-add-customer-auth-provider-fields.xml"/>
   <include file="db/changelog/14-fix-customer-nullability.xml"/>
   <include file="db/changelog/15-fix-order-item-status-column.xml"/>
+  <include file="db/changelog/16-add-external-channel-integrations.xml"/>
 </databaseChangeLog>

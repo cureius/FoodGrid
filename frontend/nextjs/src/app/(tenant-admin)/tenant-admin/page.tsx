@@ -11,12 +11,28 @@ function formatDate(d: Date) {
   return d.toLocaleDateString([], { weekday: "long", year: "numeric", month: "short", day: "numeric" });
 }
 
+import { getGlobalAnalytics, type GlobalAnalyticsResponse } from "@/lib/api/admin";
+
 export default function Page() {
   const [now, setNow] = useState(() => new Date());
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<GlobalAnalyticsResponse | null>(null);
 
   useEffect(() => {
     const t = localStorage.getItem("fg_tenant_admin_access_token") || localStorage.getItem("fg_admin_access_token");
     if (!t) window.location.href = "/tenant-admin-login";
+
+    async function load() {
+      try {
+        const res = await getGlobalAnalytics();
+        setData(res);
+      } catch (e) {
+        console.error("Failed to load analytics", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
   }, []);
 
   useEffect(() => {
@@ -24,19 +40,18 @@ export default function Page() {
     return () => clearInterval(id);
   }, []);
 
-  const stats = [
-    { title: "Total Tenants", value: "24", change: "+3 this month", icon: Building2, color: "var(--info)", bgColor: "rgba(59, 130, 246, 0.1)" },
-    { title: "Active Users", value: "156", change: "+12 this week", icon: Users, color: "var(--success)", bgColor: "rgba(16, 185, 129, 0.1)" },
-    { title: "Subscriptions", value: "18", change: "6 pending", icon: CreditCard, color: "var(--primary)", bgColor: "rgba(139, 92, 246, 0.1)" },
-    { title: "Revenue", value: "$12.4k", change: "+8.2% vs last month", icon: TrendingUp, color: "var(--warning)", bgColor: "rgba(245, 158, 11, 0.1)" },
-  ];
+  const stats = data ? [
+    { title: "Total Tenants", value: data.totalTenants.toString(), change: `+${data.recentTenants.length} new`, icon: Building2, color: "var(--info)", bgColor: "rgba(59, 130, 246, 0.1)" },
+    { title: "Active Users", value: data.totalUsers.toString(), change: "Across all tenants", icon: Users, color: "var(--success)", bgColor: "rgba(16, 185, 129, 0.1)" },
+    { title: "Subscriptions", value: data.activeSubscriptions.toString(), change: "Active plans", icon: CreditCard, color: "var(--primary)", bgColor: "rgba(139, 92, 246, 0.1)" },
+    { title: "Revenue", value: `₹${(data.totalRevenue / 1000).toFixed(1)}k`, change: "Total Platform Revenue", icon: TrendingUp, color: "var(--warning)", bgColor: "rgba(245, 158, 11, 0.1)" },
+  ] : [];
 
-  const recentActivity = [
-    { type: "success", message: "New tenant 'Café Delight' registered", time: "2 minutes ago" },
-    { type: "info", message: "Subscription renewed for 'Urban Eats'", time: "15 minutes ago" },
-    { type: "warning", message: "Subscription expiring for 'Pizza Palace'", time: "1 hour ago" },
-    { type: "success", message: "New user added to 'Spice Garden'", time: "3 hours ago" },
-  ];
+  const recentActivity = data ? data.recentTenants.map(t => ({
+    type: "success",
+    message: `New tenant '${t.name}' registered`,
+    time: new Date(t.createdAt).toLocaleDateString()
+  })) : [];
 
   return (
     <div style={{ padding: 32 }}>

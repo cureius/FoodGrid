@@ -22,6 +22,8 @@ type Order = {
   progress: number;
   itemsCount: number;
   total: number;
+  sourceChannel: string;
+  externalOrderId: string | null;
   items: { name: string; qty: number; price: number; checked: boolean }[];
 };
 
@@ -129,6 +131,8 @@ function mapOrderResponse(order: OrderResponse): Order {
     progress,
     itemsCount: servedItems.length,
     total: Number(order.grandTotal),
+    sourceChannel: order.sourceChannel || "FOODGRID",
+    externalOrderId: order.externalOrderId || null,
     items: servedItems.map((item) => ({
       name: item.itemName,
       qty: Number(item.qty),
@@ -167,6 +171,7 @@ export default function OrderPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+  const [activeChannel, setActiveChannel] = useState<string>("All");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const { selectedOutletId } = useOutlet();
@@ -259,6 +264,11 @@ export default function OrderPage() {
     const q = query.trim().toLowerCase();
     if (q) {
       filtered = filtered.filter((o) => o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q));
+    }
+
+    // Filter by channel
+    if (activeChannel !== "All") {
+      filtered = filtered.filter((o) => o.sourceChannel === activeChannel);
     }
 
     // Sort
@@ -544,6 +554,7 @@ export default function OrderPage() {
               </button>
               <Link
                 href="/orders/new"
+                data-demo-action="create-order"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -707,6 +718,37 @@ export default function OrderPage() {
                 }}>
                   {f.count}
                 </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
+          {["All", "FOODGRID", "SWIGGY", "ZOMATO"].map((ch) => {
+            const isActive = ch === activeChannel;
+            const colors = {
+              All: { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b" },
+              FOODGRID: { bg: "rgba(139, 92, 246, 0.1)", color: "#8b5cf6" },
+              SWIGGY: { bg: "rgba(241, 79, 14, 0.1)", color: "#f14f0e" },
+              ZOMATO: { bg: "rgba(235, 34, 49, 0.1)", color: "#eb2231" },
+            }[ch] || { bg: "rgba(100, 116, 139, 0.1)", color: "#64748b" };
+
+            return (
+              <button
+                key={ch}
+                onClick={() => setActiveChannel(ch)}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 10,
+                  border: `1px solid ${isActive ? colors.color : "transparent"}`,
+                  background: isActive ? colors.bg : "#f8fafc",
+                  color: colors.color,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                {ch}
               </button>
             );
           })}
@@ -884,8 +926,23 @@ export default function OrderPage() {
                             {order.type}
                           </span>
                         </div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
-                          Order #{order.id.slice(-4).toUpperCase()}
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: "#1e293b" }}>
+                            Order #{order.id.slice(-4).toUpperCase()}
+                          </div>
+                          {order.sourceChannel !== "FOODGRID" && (
+                            <div style={{
+                              padding: "2px 6px",
+                              borderRadius: 4,
+                              background: order.sourceChannel === "SWIGGY" ? "#f14f0e" : "#eb2231",
+                              color: "white",
+                              fontSize: 10,
+                              fontWeight: 900,
+                              letterSpacing: "0.5px",
+                            }}>
+                              {order.sourceChannel}
+                            </div>
+                          )}
                         </div>
                         <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{order.time}</div>
                       </div>
@@ -1008,6 +1065,7 @@ export default function OrderPage() {
                       </button>
                       {order.status === "Ready to Served" && (
                         <button
+                          data-demo-action="mark-served"
                           onClick={() => handleMarkServed(order.id)}
                           disabled={actionLoading === `serve-${order.id}`}
                           style={{
@@ -1048,6 +1106,7 @@ export default function OrderPage() {
                       )}
                       {order.status === "Waiting for Payment" && (
                         <button
+                          data-demo-action="generate-bill"
                           onClick={() => handleBillOrder(order.id)}
                           disabled={actionLoading === `bill-${order.id}`}
                           style={{
@@ -1539,6 +1598,7 @@ export default function OrderPage() {
                       )}
                       {selectedOrderResponse?.status === "KOT_SENT" && (
                         <button
+                          data-demo-action="mark-served"
                           onClick={() => handleMarkServed(selectedOrder.id)}
                           disabled={!!actionLoading}
                           className={styles.primaryBtn}
@@ -1548,6 +1608,7 @@ export default function OrderPage() {
                       )}
                       {selectedOrderResponse?.status === "SERVED" && (
                         <button
+                          data-demo-action="generate-bill"
                           onClick={() => handleBillOrder(selectedOrder.id)}
                           disabled={!!actionLoading}
                           className={styles.primaryBtn}
@@ -1558,6 +1619,7 @@ export default function OrderPage() {
                       )}
                       {selectedOrderResponse?.status === "BILLED" && (
                         <Link
+                          data-demo-action="record-payment"
                           href={`/orders/new?orderId=${selectedOrder.id}&step=4`}
                           className={styles.primaryBtn}
                           style={{ background: "var(--success)", color: "white", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
@@ -1581,6 +1643,7 @@ export default function OrderPage() {
                       )}
                       {selectedOrderResponse?.status === "BILLED" && (
                         <Link
+                          data-demo-action="record-payment"
                           href={`/orders/new?orderId=${selectedOrder.id}&step=4`}
                           className={styles.primaryBtn}
                           style={{ background: "var(--success)", color: "white", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}

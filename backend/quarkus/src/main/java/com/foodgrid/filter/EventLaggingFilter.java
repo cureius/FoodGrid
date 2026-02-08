@@ -1,8 +1,10 @@
 package com.foodgrid.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.foodgrid.common.logging.CorrelationContext;
 import io.smallrye.common.annotation.Blocking;
 import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.ContainerResponseContext;
@@ -27,6 +29,9 @@ public class EventLaggingFilter implements ContainerRequestFilter, ContainerResp
     private static final String START_TIME = EventLaggingFilter.class.getName() + ".startTime";
     private static final String REQUEST_BODY = EventLaggingFilter.class.getName() + ".requestBody";
     private static final String REQUEST_HEADERS = EventLaggingFilter.class.getName() + ".requestHeaders";
+
+    @Inject
+    CorrelationContext correlationContext;
 
     @Override
     public void filter(final ContainerRequestContext requestContext) {
@@ -70,23 +75,53 @@ public class EventLaggingFilter implements ContainerRequestFilter, ContainerResp
         // Log response details
         logResponseDetails(requestContext, responseContext);
         
+        final String correlationId = getCorrelationId();
+        final int status = responseContext.getStatus();
+
         if (startObj instanceof final Long startTime) {
             final long durationNanos = System.nanoTime() - startTime;
             final double durationMs = durationNanos / 1_000_000.0;
-            LOG.infof(
-                "EventLagging: %s %s -> %d (%.3f ms)",
-                requestContext.getMethod(),
-                requestContext.getUriInfo().getRequestUri().getPath(),
-                responseContext.getStatus(),
-                durationMs
-            );
+
+            if (status >= 500) {
+                LOG.errorf("[corrId=%s] %s %s -> %d (%.3f ms)",
+                    correlationId,
+                    requestContext.getMethod(),
+                    requestContext.getUriInfo().getRequestUri().getPath(),
+                    status,
+                    durationMs
+                );
+            } else if (status >= 400) {
+                LOG.warnf("[corrId=%s] %s %s -> %d (%.3f ms)",
+                    correlationId,
+                    requestContext.getMethod(),
+                    requestContext.getUriInfo().getRequestUri().getPath(),
+                    status,
+                    durationMs
+                );
+            } else {
+                LOG.infof("[corrId=%s] %s %s -> %d (%.3f ms)",
+                    correlationId,
+                    requestContext.getMethod(),
+                    requestContext.getUriInfo().getRequestUri().getPath(),
+                    status,
+                    durationMs
+                );
+            }
         } else {
-            LOG.infof(
-                "EventLagging: %s %s -> %d (no start time)",
+            LOG.infof("[corrId=%s] %s %s -> %d (no start time)",
+                correlationId,
                 requestContext.getMethod(),
                 requestContext.getUriInfo().getRequestUri().getPath(),
-                responseContext.getStatus()
+                status
             );
+        }
+    }
+
+    private String getCorrelationId() {
+        try {
+            return correlationContext.getCorrelationId();
+        } catch (final Exception e) {
+            return "unknown";
         }
     }
     

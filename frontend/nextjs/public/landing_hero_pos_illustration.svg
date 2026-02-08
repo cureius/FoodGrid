@@ -1,0 +1,136 @@
+<svg width="600" height="500" viewBox="0 0 600 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#EEF2FE;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E0E7FD;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="screenGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F8FAFC;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4B70F5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B5FE5;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="successGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10"/>
+      <feOffset dx="0" dy="10" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle decorations -->
+  <circle cx="500" cy="80" r="60" fill="#4B70F5" opacity="0.05"/>
+  <circle cx="100" cy="400" r="80" fill="#10B981" opacity="0.05"/>
+  <circle cx="520" cy="420" r="50" fill="#F69B42" opacity="0.05"/>
+
+  <!-- Main POS Device -->
+  <g filter="url(#shadow)">
+    <!-- Tablet/POS Stand -->
+    <rect x="180" y="320" width="240" height="140" rx="12" fill="#1e293b24"/>
+    <rect x="180" y="320" width="240" height="12" rx="6" fill="#33415580"/>
+    
+    <!-- POS Screen -->
+    <rect x="150" y="80" width="300" height="240" rx="20" fill="#1E293B"/>
+    <rect x="160" y="90" width="280" height="220" rx="12" fill="url(#screenGradient)"/>
+    
+    <!-- Screen Content - Header -->
+    <rect x="170" y="100" width="260" height="40" rx="8" fill="url(#primaryGradient)"/>
+    <text x="190" y="125" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">FoodGrid POS</text>
+    
+    <!-- Menu Items Grid -->
+    <rect x="170" y="150" width="120" height="70" rx="8" fill="#F8FAFC" stroke="#E5E7EB" stroke-width="1"/>
+    <circle cx="200" cy="175" r="12" fill="#10B981"/>
+    <rect x="185" y="195" width="60" height="6" rx="3" fill="#CBD5E1"/>
+    <rect x="185" y="205" width="40" height="4" rx="2" fill="#E5E7EB"/>
+    
+    <rect x="300" y="150" width="120" height="70" rx="8" fill="#F8FAFC" stroke="#E5E7EB" stroke-width="1"/>
+    <circle cx="330" cy="175" r="12" fill="#EF4444"/>
+    <rect x="315" y="195" width="60" height="6" rx="3" fill="#CBD5E1"/>
+    <rect x="315" y="205" width="40" height="4" rx="2" fill="#E5E7EB"/>
+    
+    <rect x="170" y="230" width="120" height="70" rx="8" fill="#F8FAFC" stroke="#E5E7EB" stroke-width="1"/>
+    <circle cx="200" cy="255" r="12" fill="#10B981"/>
+    <rect x="185" y="275" width="60" height="6" rx="3" fill="#CBD5E1"/>
+    <rect x="185" y="285" width="40" height="4" rx="2" fill="#E5E7EB"/>
+    
+    <!-- Cart/Order Summary -->
+    <rect x="300" y="230" width="120" height="70" rx="8" fill="url(#primaryGradient)"/>
+    <text x="320" y="255" fill="white" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Total</text>
+    <text x="320" y="275" fill="white" font-family="Arial, sans-serif" font-size="18" font-weight="bold">₹1,250</text>
+    <rect x="310" y="285" width="90" height="12" rx="6" fill="white" opacity="0.9"/>
+  </g>
+
+  <!-- Floating Card 1 - Sales Analytics -->
+  <g transform="translate(40, 120)" filter="url(#shadow)">
+    <rect width="140" height="90" rx="16" fill="white"/>
+    <circle cx="25" cy="25" r="16" fill="#10B981" opacity="0.2"/>
+    <path d="M 20 25 L 23 28 L 30 20" stroke="#10B981" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="50" y="22" fill="#64748B" font-family="Arial, sans-serif" font-size="10">Today's Sales</text>
+    <text x="50" y="38" fill="#1E293B" font-family="Arial, sans-serif" font-size="16" font-weight="bold">₹42,500</text>
+    <rect x="15" y="55" width="110" height="20" rx="4" fill="#F1F5F9"/>
+    <rect x="15" y="55" width="75" height="20" rx="4" fill="url(#successGradient)"/>
+    <text x="25" y="68" fill="white" font-family="Arial, sans-serif" font-size="9" font-weight="bold">+23% vs yesterday</text>
+  </g>
+
+  <!-- Floating Card 2 - Orders -->
+  <g transform="translate(420, 200)" filter="url(#shadow)">
+    <rect width="140" height="80" rx="16" fill="white"/>
+    <circle cx="25" cy="25" r="16" fill="#4B70F5" opacity="0.2"/>
+    <rect x="18" y="18" width="14" height="14" rx="2" stroke="#4B70F5" stroke-width="2" fill="none"/>
+    <path d="M 21 25 L 24 28 L 29 22" stroke="#4B70F5" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <text x="50" y="22" fill="#64748B" font-family="Arial, sans-serif" font-size="10">Active Orders</text>
+    <text x="50" y="38" fill="#1E293B" font-family="Arial, sans-serif" font-size="16" font-weight="bold">24</text>
+    <circle cx="25" cy="60" r="5" fill="#10B981"/>
+    <text x="35" y="64" fill="#64748B" font-family="Arial, sans-serif" font-size="9">12 completed</text>
+  </g>
+
+  <!-- Floating Card 3 - Kitchen Display -->
+  <g transform="translate(60, 320)" filter="url(#shadow)">
+    <rect width="100" height="100" rx="12" fill="white"/>
+    <rect x="10" y="10" width="80" height="30" rx="6" fill="#FEF3C7"/>
+    <text x="20" y="28" fill="#F59E0B" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Table 5</text>
+    <rect x="10" y="45" width="80" height="4" rx="2" fill="#E5E7EB"/>
+    <rect x="10" y="52" width="60" height="4" rx="2" fill="#E5E7EB"/>
+    <rect x="10" y="59" width="70" height="4" rx="2" fill="#E5E7EB"/>
+    <rect x="10" y="70" width="80" height="20" rx="6" fill="url(#successGradient)"/>
+    <text x="30" y="84" fill="white" font-family="Arial, sans-serif" font-size="9" font-weight="bold">Ready</text>
+  </g>
+
+  <!-- Floating Card 4 - QR Code -->
+  <g transform="translate(440, 60)" filter="url(#shadow)">
+    <rect width="90" height="90" rx="12" fill="white"/>
+    <rect x="15" y="15" width="60" height="60" rx="4" fill="#1E293B"/>
+    <!-- QR Code pattern -->
+    <rect x="20" y="20" width="10" height="10" fill="white"/>
+    <rect x="35" y="20" width="10" height="10" fill="white"/>
+    <rect x="50" y="20" width="10" height="10" fill="white"/>
+    <rect x="20" y="35" width="10" height="10" fill="white"/>
+    <rect x="50" y="35" width="10" height="10" fill="white"/>
+    <rect x="20" y="50" width="10" height="10" fill="white"/>
+    <rect x="35" y="50" width="10" height="10" fill="white"/>
+    <rect x="50" y="50" width="10" height="10" fill="white"/>
+    <rect x="35" y="65" width="10" height="10" fill="white"/>
+    <text x="20" y="88" fill="#64748B" font-family="Arial, sans-serif" font-size="8" font-weight="bold">Scan to Order</text>
+  </g>
+
+  <!-- Decorative elements -->
+  <circle cx="480" cy="360" r="4" fill="#4B70F5" opacity="0.3"/>
+  <circle cx="120" cy="100" r="3" fill="#10B981" opacity="0.3"/>
+  <circle cx="500" cy="150" r="5" fill="#F69B42" opacity="0.3"/>
+  
+  <!-- Connection lines (subtle) -->
+  <path d="M 300 250 Q 350 280 420 250" stroke="#CBD5E1" stroke-width="2" fill="none" stroke-dasharray="5,5" opacity="0.3"/>
+  <path d="M 250 200 Q 200 240 140 260" stroke="#CBD5E1" stroke-width="2" fill="none" stroke-dasharray="5,5" opacity="0.3"/>
+</svg>

@@ -24,34 +24,43 @@ public class PaymentWebhookResource {
     @Inject
     PaymentService paymentService;
 
-    @GET
+    @POST
     @Path("/razorpay")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
     @Operation(summary = "Razorpay webhook", description = "Receive webhooks from Razorpay")
     public Response razorpayWebhook(
-            @QueryParam("razorpay_payment_id") final String razorpayPaymentId,
-            @QueryParam("razorpay_payment_link_id") final String razorpayPaymentLinkId,
-            @QueryParam("razorpay_payment_link_reference_id") final String razorpayPaymentLinkReferenceId,
-            @QueryParam("razorpay_payment_link_status") final String razorpayPaymentLinkStatus,
-            @QueryParam("razorpay_signature") final String signature) {
+            @HeaderParam("X-Razorpay-Signature") final String signature,
+            final String payload) {
         LOG.infof("Received Razorpay webhook, signature present: %s", signature != null);
-        LOG.infof("Payment ID: %s, Link ID: %s, Reference ID: %s, Status: %s",
-                razorpayPaymentId, razorpayPaymentLinkId, razorpayPaymentLinkReferenceId, razorpayPaymentLinkStatus);
+        LOG.debugf("Payload: %s", payload);
 
         try {
-            final String payload = "{ \"razorpay_payment_id\": \"" + razorpayPaymentId + "\", \"razorpay_payment_link_id\": \"" + razorpayPaymentLinkId + "\", \"razorpay_payment_link_reference_id\": \"" + razorpayPaymentLinkReferenceId + "\", \"razorpay_payment_link_status\": \"" + razorpayPaymentLinkStatus + "\"}";
-
             paymentService.processWebhook(PaymentGatewayType.RAZORPAY, payload, signature);
-
-            LOG.infof("Webhook processed successfully");
+            LOG.infof("Razorpay webhook processed successfully");
             return Response.ok().build();
         } catch (final Exception e) {
             LOG.errorf(e, "Error processing Razorpay webhook");
-            // Return 200 to prevent retries - we've logged and stored the event
+            // Return 200 to prevent retries from Razorpay - we've logged the error
             return Response.ok().build();
         }
+    }
+
+    @GET
+    @Path("/razorpay/callback")
+    @Produces(MediaType.TEXT_HTML)
+    @PermitAll
+    @Operation(summary = "Razorpay callback redirect", description = "Redirect target that closes the payment tab")
+    public String razorpayCallback() {
+        return "<html><body onload=\"window.close();\">" +
+               "<div style=\"text-align:center;margin-top:20%;font-family:sans-serif;\">" +
+               "<h2>Payment Processing Complete</h2>" +
+               "<p>This window will close automatically. If it doesn't, you can close it manually.</p>" +
+               "<button onclick=\"window.close()\" style=\"padding:10px 20px;cursor:pointer;\">Close Window</button>" +
+               "</div>" +
+               "<script>setTimeout(function(){ window.close(); }, 2000);</script>" +
+               "</body></html>";
     }
 
     @POST

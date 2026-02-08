@@ -2,13 +2,16 @@ package com.foodgrid.pos.service;
 
 import com.foodgrid.auth.model.Outlet;
 import com.foodgrid.auth.model.ShiftSession;
-import com.foodgrid.auth.repo.ShiftSessionRepository;
 import com.foodgrid.auth.repo.OutletRepository;
+import com.foodgrid.auth.repo.ShiftSessionRepository;
 import com.foodgrid.common.audit.AuditLogService;
+import com.foodgrid.common.exception.*;
 import com.foodgrid.common.idempotency.IdempotencyService;
 import com.foodgrid.common.idempotency.RequestHash;
+import com.foodgrid.common.logging.AppLogger;
 import com.foodgrid.common.security.TenantGuards;
 import com.foodgrid.common.util.Ids;
+import com.foodgrid.integration.service.IntegrationService;
 import com.foodgrid.pos.dto.*;
 import com.foodgrid.pos.model.*;
 import com.foodgrid.pos.repo.*;
@@ -16,10 +19,8 @@ import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.ForbiddenException;
-import jakarta.ws.rs.NotFoundException;
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.jboss.logging.Logger;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -29,6 +30,7 @@ import java.util.List;
 @ApplicationScoped
 public class OrderPosService {
 
+  private static final Logger LOG = Logger.getLogger(OrderPosService.class);
   private static final String OP_PAY = "POS_ORDER_PAY";
 
   @Inject ShiftSessionRepository sessionRepository;
@@ -44,6 +46,8 @@ public class OrderPosService {
   @Inject AuditLogService audit;
   @Inject JsonWebToken jwt;
   @Inject OutletRepository outletRepository;
+  @Inject IntegrationService integrationService;
+  @Inject AppLogger appLogger;
 
   @Transactional
   public OrderResponse create(final OrderCreateRequest req, final String outletIdParam) {
@@ -80,18 +84,19 @@ public class OrderPosService {
 
   @Transactional
   public OrderResponse addItem(final String orderId, final OrderAddItemRequest req) {
+    appLogger.info(LOG, "Adding item %s to order %s, qty=%s", req.itemId(), orderId, req.qty());
     final Order o = getOrderForOutlet(orderId);
     ensureCanEdit(o);
 
     if (req.qty().compareTo(BigDecimal.ZERO) <= 0) {
-      throw new BadRequestException("qty must be positive");
+      throw ValidationException.invalidQuantity();
     }
 
     final MenuItem mi = menuItemRepository.findByIdAndOutlet(req.itemId(), o.outletId)
-      .orElseThrow(() -> new BadRequestException("Invalid itemId"));
+      .orElseThrow(() -> ResourceNotFoundException.menuItem(req.itemId()));
 
     if (mi.status != MenuItem.Status.ACTIVE) {
-      throw new BadRequestException("Item inactive");
+      throw BusinessException.menuItemInactive(req.itemId());
     }
 
     final OrderItem oi = new OrderItem();
@@ -114,14 +119,15 @@ public class OrderPosService {
 
   @Transactional
   public OrderResponse cancelItem(final String orderId, final String orderItemId) {
+    appLogger.info(LOG, "Cancelling item %s from order %s", orderItemId, orderId);
     final Order o = getOrderForOutlet(orderId);
     ensureCanEdit(o);
 
     final OrderItem oi = orderItemRepository.findByIdAndOrder(orderItemId, o.id)
-      .orElseThrow(() -> new NotFoundException("Order item not found"));
+      .orElseThrow(() -> ResourceNotFoundException.generic("OrderItem", orderItemId));
 
     if (oi.status != OrderItem.Status.OPEN) {
-      throw new BadRequestException("Item cannot be cancelled");
+      throw BusinessException.orderNotEditable(orderId, "Item is in " + oi.status + " state");
     }
 
     oi.status = OrderItem.Status.CANCELLED;
@@ -134,13 +140,14 @@ public class OrderPosService {
 
   @Transactional
   public OrderResponse markServed(final String orderId) {
+    appLogger.info(LOG, "Marking order %s as served", orderId);
     final Order o = getOrderForOutlet(orderId);
 
     // Business Logic:
     // TAKEAWAY: PAID -> KOT_SENT -> SERVED
     // DINE_IN: KOT_SENT -> SERVED
     if (o.status != Order.Status.KOT_SENT) {
-      throw new BadRequestException("Order cannot be served. It must be in KOT_SENT state first.");
+      throw BusinessException.invalidOrderTransition(o.status.name(), "SERVED", "Order must be in KOT_SENT state first");
     }
 
     // Deduct ingredients from stock for all order items
@@ -150,6 +157,8 @@ public class OrderPosService {
     o.updatedAt = Instant.now();
     orderRepository.persist(o);
 
+    integrationService.updateExternalStatus(o, Order.Status.SERVED);
+
     audit.record("ORDER_SERVED", o.outletId, "Order", o.id, "Order marked as served");
 
     return get(orderId);
@@ -157,26 +166,27 @@ public class OrderPosService {
 
   @Transactional
   public OrderResponse updateItemStatus(final String orderId, final String itemId, final String statusVal) {
+    appLogger.info(LOG, "Updating item %s status to %s for order %s", itemId, statusVal, orderId);
     final Order o = getOrderForOutlet(orderId);
     final OrderItem oi = orderItemRepository.findByIdAndOrder(itemId, o.id)
-      .orElseThrow(() -> new NotFoundException("Order item not found"));
+      .orElseThrow(() -> ResourceNotFoundException.generic("OrderItem", itemId));
 
     try {
       final OrderItem.Status newStatus = OrderItem.Status.valueOf(statusVal.toUpperCase());
-      
+
       if (newStatus == OrderItem.Status.SERVED && oi.status != OrderItem.Status.SERVED) {
         deductItemIngredients(o.outletId, o.id, oi);
       }
-      
+
       oi.status = newStatus;
       orderItemRepository.persist(oi);
-      
+
       // Auto-update order status if all items are served
       updateOrderStatusFromItems(o);
-      
+
       return get(orderId);
     } catch (final IllegalArgumentException e) {
-      throw new BadRequestException("Invalid item status: " + statusVal);
+      throw ValidationException.invalidStatus(statusVal, "OPEN, PREPARING, SERVED, CANCELLED");
     }
   }
 
@@ -190,6 +200,7 @@ public class OrderPosService {
            o.status = Order.Status.SERVED;
            o.updatedAt = Instant.now();
            orderRepository.persist(o);
+           integrationService.updateExternalStatus(o, Order.Status.SERVED);
        }
     }
   }
@@ -247,20 +258,21 @@ public class OrderPosService {
   }
   @Transactional
   public OrderResponse bill(final String orderId) {
+    appLogger.info(LOG, "Billing order %s", orderId);
     final Order o = getOrderForOutlet(orderId);
 
     // TAKEAWAY: OPEN -> BILLED
     // DINE_IN: SERVED -> BILLED
     if (o.orderType == Order.OrderType.TAKEAWAY || o.orderType == Order.OrderType.DELIVERY) {
       if (o.status != Order.Status.OPEN) {
-        throw new BadRequestException("Takeaway order can only be billed from OPEN state.");
+        throw BusinessException.invalidOrderTransition(o.status.name(), "BILLED", "Takeaway order can only be billed from OPEN state");
       }
     } else if (o.orderType == Order.OrderType.DINE_IN) {
       if (o.status != Order.Status.SERVED && o.status != Order.Status.OPEN && o.status != Order.Status.KOT_SENT) {
         // We allow from OPEN/KOT_SENT too for flexibility but preferred is SERVED
         // Actually user said specifically SERVED -> BILLED
         if (o.status != Order.Status.SERVED) {
-          throw new BadRequestException("Dine-in order must be SERVED before billing.");
+          throw BusinessException.invalidOrderTransition(o.status.name(), "BILLED", "Dine-in order must be SERVED before billing");
         }
       }
     }
@@ -270,21 +282,23 @@ public class OrderPosService {
     o.updatedAt = Instant.now();
     orderRepository.persist(o);
 
+    integrationService.updateExternalStatus(o, Order.Status.BILLED);
+
     return get(orderId);
   }
 
   @Transactional
   public OrderResponse updateStatus(final String orderId, String statusVal) {
     if (statusVal == null || statusVal.isBlank()) {
-      throw new BadRequestException("Status is required");
+      throw ValidationException.missingField("status");
     }
-    
+
     final Order o = getOrderForOutlet(orderId);
     statusVal = statusVal.trim().toUpperCase();
-    
+
     try {
       final Order.Status newStatus = Order.Status.valueOf(statusVal);
-      
+
       // Enforce Lifecycle transitions via updateStatus too
       if (newStatus == Order.Status.CANCELLED) {
         validateCancellation(o);
@@ -294,9 +308,13 @@ public class OrderPosService {
         // TAKEAWAY: PAID -> KOT_SENT
         // DINE_IN: OPEN -> KOT_SENT
         if (o.orderType == Order.OrderType.DINE_IN) {
-          if (o.status != Order.Status.OPEN) throw new BadRequestException("Dine-in KOT can only be sent from OPEN state.");
+          if (o.status != Order.Status.OPEN) {
+            throw BusinessException.invalidOrderTransition(o.status.name(), "KOT_SENT", "Dine-in KOT can only be sent from OPEN state");
+          }
         } else {
-          if (o.status != Order.Status.PAID) throw new BadRequestException("Takeaway KOT can only be sent after payment (PAID).");
+          if (o.status != Order.Status.PAID) {
+            throw BusinessException.invalidOrderTransition(o.status.name(), "KOT_SENT", "Takeaway KOT can only be sent after payment (PAID)");
+          }
         }
       }
 
@@ -304,36 +322,38 @@ public class OrderPosService {
       if (newStatus == Order.Status.SERVED && o.status != Order.Status.SERVED) {
         deductIngredientsFromStock(o);
       }
-      
+
       o.status = newStatus;
       o.updatedAt = Instant.now();
       orderRepository.persist(o);
-      
+
+      integrationService.updateExternalStatus(o, newStatus);
+
       audit.record("ORDER_STATUS_UPDATED", o.outletId, "Order", o.id, "Status changed to " + statusVal);
-      
+
       return get(orderId);
     } catch (final IllegalArgumentException e) {
-      throw new BadRequestException("Invalid status: '" + statusVal + "'. Expected one of: OPEN, KOT_SENT, SERVED, BILLED, PAID, CANCELLED");
+      throw ValidationException.invalidStatus(statusVal, "OPEN, KOT_SENT, SERVED, BILLED, PAID, CANCELLED");
     }
   }
 
-  private void validateCancellation(Order o) {
+  private void validateCancellation(final Order o) {
     // TAKEAWAY: can be cancelled before billed
     // DINE_IN: can be cancelled before kot sent
     if (o.orderType == Order.OrderType.DINE_IN) {
       if (o.status != Order.Status.OPEN) {
-        throw new BadRequestException("Dine-in order cannot be cancelled after KOT is sent.");
+        throw BusinessException.invalidOrderTransition(o.status.name(), "CANCELLED", "Dine-in order cannot be cancelled after KOT is sent");
       }
     } else {
       if (o.status != Order.Status.OPEN && o.status != Order.Status.BILLED) {
          // Since PAID comes after BILLED, if it's not OPEN or BILLED, it might be PAID or further
          if (o.status != Order.Status.OPEN) {
-           throw new BadRequestException("Takeaway order cannot be cancelled after billing/payment.");
+           throw BusinessException.invalidOrderTransition(o.status.name(), "CANCELLED", "Takeaway order cannot be cancelled after billing/payment");
          }
       }
       // Explicit check for Takeaway flow: open -> billed -> paid
       if (o.status != Order.Status.OPEN) {
-         throw new BadRequestException("Takeaway order can only be cancelled while in OPEN state.");
+         throw BusinessException.invalidOrderTransition(o.status.name(), "CANCELLED", "Takeaway order can only be cancelled while in OPEN state");
       }
     }
   }
@@ -344,10 +364,11 @@ public class OrderPosService {
 
   @Transactional
   public PaymentResponse payWithIdempotency(final String orderId, final PaymentCreateRequest req, final String idempotencyKey) {
+    appLogger.info(LOG, "Processing payment for order %s, method=%s, amount=%s", orderId, req.method(), req.amount());
     final Order o = getOrderForOutlet(orderId);
 
     if (o.status != Order.Status.BILLED && o.status != Order.Status.PAID) {
-      throw new BadRequestException("Order must be billed before payment");
+      throw BusinessException.orderMustBeBilled();
     }
 
     final String tenantId = guards.requireTenant();
@@ -358,7 +379,7 @@ public class OrderPosService {
     if (replay.isPresent()) {
       final String paymentId = replay.get().resultRef();
       final Payment existing = paymentRepository.findByIdAndOrder(paymentId, o.id)
-        .orElseThrow(() -> new NotFoundException("Idempotent payment not found"));
+        .orElseThrow(() -> ResourceNotFoundException.payment(paymentId));
       audit.record("PAYMENT_REPLAY", o.outletId, "Payment", existing.id, "orderId=" + o.id);
       return new PaymentResponse(existing.id, existing.orderId, existing.method.name(), existing.amount, existing.status.name());
     }
@@ -388,6 +409,7 @@ public class OrderPosService {
       o.status = Order.Status.PAID;
       o.updatedAt = Instant.now();
       orderRepository.persist(o);
+      integrationService.updateExternalStatus(o, Order.Status.PAID);
     }
 
     return new PaymentResponse(p.id, p.orderId, p.method.name(), p.amount, p.status.name());
@@ -485,20 +507,20 @@ public class OrderPosService {
 
   private void ensureCanEdit(final Order o) {
     if (o.status == Order.Status.PAID || o.status == Order.Status.CANCELLED) {
-      throw new BadRequestException("Order is not editable");
+      throw BusinessException.orderNotEditable(o.id, o.status.name());
     }
   }
 
   private Order getOrderForOutlet(final String orderId) {
     // First, fetch the order by ID (works for both POS and Admin users)
     final Order o = orderRepository.findByIdOptional(orderId)
-      .orElseThrow(() -> new NotFoundException("Order not found"));
+      .orElseThrow(() -> ResourceNotFoundException.order(orderId));
 
     // Get outletId from the order itself (not from JWT claims)
     // This allows Client Admin users to work with orders even if they don't have outletId in their JWT
     final String outletId = o.outletId;
     if (outletId == null || outletId.isBlank()) {
-      throw new BadRequestException("Order has no outletId");
+      throw ValidationException.invalidInput("Order has no outletId");
     }
 
     // Validate that the outlet belongs to the tenant
@@ -507,7 +529,7 @@ public class OrderPosService {
     // Defensive tenant check
     final String tenantId = guards.requireTenant();
     if (o.tenantId != null && !o.tenantId.isBlank() && !tenantId.equals(o.tenantId)) {
-      throw new ForbiddenException("Order not in tenant");
+      throw AuthorizationException.tenantMismatch();
     }
 
     return o;
@@ -516,7 +538,7 @@ public class OrderPosService {
   private ShiftSession activeSession() {
     final String sessionId = claimRequired("sessionId");
     return sessionRepository.findActiveById(sessionId)
-      .orElseThrow(() -> new ForbiddenException("Session revoked"));
+      .orElseThrow(AuthorizationException::sessionRevoked);
   }
 
   private String employeeId() {
@@ -529,7 +551,7 @@ public class OrderPosService {
   private String claimRequired(final String name) {
     final String v = claim(name);
     if (v == null || v.isBlank()) {
-      throw new BadRequestException("Missing " + name);
+      throw ValidationException.missingField(name);
     }
     return v;
   }
@@ -557,7 +579,7 @@ public class OrderPosService {
     try {
       return Order.OrderType.valueOf(value);
     } catch (final Exception ex) {
-      throw new BadRequestException("Invalid orderType");
+      throw ValidationException.invalidStatus(value, "DINE_IN, TAKEAWAY, DELIVERY");
     }
   }
 
@@ -565,7 +587,7 @@ public class OrderPosService {
     try {
       return Payment.Method.valueOf(value);
     } catch (final Exception ex) {
-      throw new BadRequestException("Invalid payment method");
+      throw ValidationException.invalidStatus(value, "CASH, CARD, UPI, GATEWAY");
     }
   }
 
