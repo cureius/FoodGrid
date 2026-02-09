@@ -1,0 +1,577 @@
+.container {
+  padding: 32px;
+  background: var(--bg-primary);
+  min-height: 100vh;
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.titleSection h1 {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 0;
+  background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+
+.titleSection p {
+  color: var(--text-secondary);
+  margin-top: 8px;
+  font-size: 15px;
+}
+
+.discoveryBar {
+  display: flex;
+  gap: 12px;
+  background: var(--bg-surface);
+  padding: 8px;
+  border-radius: 16px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md);
+  align-items: center;
+}
+
+.discoveryGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-tertiary);
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  width: 160px;
+}
+
+.discoveryGroup:focus-within {
+  background: var(--bg-secondary);
+  border-color: var(--primary);
+}
+
+.discoveryInput {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+  padding: 8px 0;
+  color: var(--text-primary);
+}
+
+.discoverBtn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.discoverBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.enrichBtn, .normalizeBtn {
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.enrichBtn {
+  background: var(--success);
+}
+
+.normalizeBtn {
+  background: var(--info);
+}
+
+.enrichBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.normalizeBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.statCard {
+  background: var(--bg-surface);
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.statCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.statValue {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 8px 0 0;
+}
+
+.statLabel {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 24px;
+  align-items: start;
+}
+
+.boardCard {
+  background: var(--bg-surface);
+  border-radius: 24px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.boardHeader {
+  padding: 24px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--bg-surface);
+}
+
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-tertiary);
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  transition: all 0.2s;
+  flex: 1;
+  min-width: 150px;
+}
+
+.filterGroup:focus-within {
+  background: var(--bg-secondary);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary-light);
+}
+
+.filterGroup input, .filterGroup select {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  color: var(--text-primary);
+  padding: 6px 0;
+  width: 100%;
+}
+
+.boardTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.filterSelect {
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  font-size: 14px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filterSelect:focus {
+  background: var(--bg-secondary);
+  border-color: var(--primary);
+}
+
+.leadsTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leadsTable thead {
+  background: var(--bg-tertiary);
+}
+
+.leadsTable th {
+  text-align: left;
+  padding: 16px 24px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.leadRow {
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.leadRow:hover {
+  background: var(--bg-tertiary);
+}
+
+.leadRow td {
+  padding: 20px 24px;
+}
+
+.businessName {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.locationInfo {
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.statusBadge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
+  display: inline-flex;
+}
+
+.scoreContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.scoreTrack {
+  width: 60px;
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.scoreFill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.detailPanel {
+  background: var(--bg-surface);
+  border-radius: 24px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-lg);
+  padding: 32px;
+  position: sticky;
+  top: 32px;
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+}
+
+.detailHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.detailHeader h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.closeBtn {
+  background: var(--bg-tertiary);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.closeBtn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.contactLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.contactLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  padding: 8px 16px;
+  background: rgba(var(--primary-rgb), 0.1);
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.contactLink:hover {
+  background: rgba(var(--primary-rgb), 0.2);
+}
+
+.infoSection {
+  padding: 20px;
+  background: var(--bg-tertiary);
+  border-radius: 16px;
+  margin-bottom: 24px;
+}
+
+.sectionLabel {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.contactsList {
+  margin-bottom: 24px;
+}
+
+.contactItem {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.contactMain {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.contactSub {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.actionGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.actionBtn {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.actionBtn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--primary);
+}
+
+.pitchBtn {
+  width: 100%;
+  padding: 16px;
+  background: var(--warning);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  transition: all 0.2s;
+}
+
+.pitchBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+}
+
+.emptyState {
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  text-align: center;
+  padding: 40px;
+}
+
+.loadingOverlay {
+  padding: 60px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.activityItem {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.activityIcon {
+  padding: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  color: var(--text-secondary);
+}
+
+.activityContent {
+  flex: 1;
+}
+
+.activityHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.activityOutcome {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.activityTime {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.activityMeta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 12px;
+}
+
+.activityForm {
+  padding: 24px;
+  background: var(--bg-tertiary);
+  border-radius: 20px;
+  margin-bottom: 24px;
+  border: 1px dashed var(--border-light);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.pitchDisplay {
+  padding: 16px;
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 12px;
+  margin-top: 12px;
+}
+
+.pitchInput {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: white;
+  margin-top: 8px;
+}
+
+.stageSelect {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-surface);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}

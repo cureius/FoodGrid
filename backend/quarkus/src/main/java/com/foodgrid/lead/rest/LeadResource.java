@@ -21,8 +21,11 @@ public class LeadResource {
     @GET
     public List<Lead> list(
             @QueryParam("status") LeadStatus status,
-            @QueryParam("city") String city) {
-        return leadService.list(status, city);
+            @QueryParam("city") String city,
+            @QueryParam("area") String area,
+            @QueryParam("address") String address,
+            @QueryParam("name") String name) {
+        return leadService.list(status, city, area, address, name);
     }
 
     @GET
@@ -49,11 +52,11 @@ public class LeadResource {
 
     @POST
     @Path("/discover")
-    public void discover(
+    public boolean discover(
             @QueryParam("city") String city,
             @QueryParam("area") String area,
             @QueryParam("category") String category) {
-        leadService.triggerDiscovery(city, area, category);
+        return leadService.triggerDiscovery(city, area, category);
     }
 
     @Inject

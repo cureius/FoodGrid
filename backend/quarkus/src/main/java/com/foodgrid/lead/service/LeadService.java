@@ -23,15 +23,33 @@ public class LeadService {
     @Inject
     LeadDiscoveryService discoveryService;
 
-    public List<Lead> list(LeadStatus status, String city) {
-        if (status != null && city != null) {
-            return leadRepository.find("status = ?1 and city = ?2 order by score desc", status, city).list();
-        } else if (status != null) {
-            return leadRepository.find("status = ?1 order by score desc", status).list();
-        } else if (city != null) {
-            return leadRepository.find("city = ?1 order by score desc", city).list();
+    public List<Lead> list(LeadStatus status, String city, String area, String address, String name) {
+        StringBuilder query = new StringBuilder("1=1");
+        java.util.Map<String, Object> params = new java.util.HashMap<>();
+
+        if (status != null) {
+            query.append(" and status = :status");
+            params.put("status", status);
         }
-        return leadRepository.find("order by score desc").list();
+        if (city != null && !city.isBlank()) {
+            query.append(" and city = :city");
+            params.put("city", city);
+        }
+        if (area != null && !area.isBlank()) {
+            query.append(" and area = :area");
+            params.put("area", area);
+        }
+        if (address != null && !address.isBlank()) {
+            query.append(" and address like :address");
+            params.put("address", "%" + address + "%");
+        }
+        if (name != null && !name.isBlank()) {
+            query.append(" and name like :name");
+            params.put("name", "%" + name + "%");
+        }
+
+        query.append(" order by score desc");
+        return leadRepository.find(query.toString(), params).list();
     }
 
     public Lead get(Long id) {
@@ -65,9 +83,9 @@ public class LeadService {
         }
     }
 
-    public void triggerDiscovery(String city, String area, String category) {
+    public boolean triggerDiscovery(String city, String area, String category) {
         // Run in background would be better, but for now we'll just call it
         // In a real app, this should be an async task
-        discoveryService.discoverLeads(city, area, category);
+        return discoveryService.discoverLeads(city, area, category);
     }
 }

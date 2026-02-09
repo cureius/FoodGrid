@@ -31,8 +31,6 @@ export default function InternalAdminLayout({
 
   const menuItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: "/tenant-admin" },
-    { name: "Lead Discovery", icon: Target, href: "/leads" },
-    { name: "Outreach", icon: TrendingUp, href: "/leads/outreach" },
     { name: "Internal Logs", icon: Activity, href: "/logs" },
   ];
 

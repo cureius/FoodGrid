@@ -33,11 +33,22 @@ public class LeadDiscoveryService {
     @ConfigProperty(name = "google.places.api.key")
     String apiKey;
 
-    public void discoverLeads(final String city, final String area, final String category) {
+    @Inject
+    com.foodgrid.lead.repo.DiscoveryLogRepository discoveryLogRepository;
+
+    public boolean discoverLeads(final String city, final String area, final String category) {
+        final com.foodgrid.lead.model.DiscoveryLog existingLog = discoveryLogRepository.findByCriteria(city, area, category);
+        if (existingLog != null) {
+            LOG.infof("Skipping discovery for city: %s, area: %s, category: %s - Already discovered on %s", 
+                city, area, category, existingLog.lastDiscoveredAt);
+            return false;
+        }
+
         LOG.infof("Starting lead discovery for city: %s, area: %s, category: %s", city, area, category);
         
         final String query = category + " in " + (area != null ? area + ", " : "") + city;
         String pageToken = null;
+        int totalFound = 0;
         
         do {
             try {
@@ -49,6 +60,7 @@ public class LeadDiscoveryService {
                 
                 if (response != null && "OK".equals(response.status)) {
                     for (final GooglePlaceResult result : response.results) {
+                        totalFound++;
                         try {
                             // Fetch full details as RAW JSON
                             final String rawDetailsJson = googlePlacesClient.getDetails(result.placeId, 
@@ -84,6 +96,20 @@ public class LeadDiscoveryService {
                 break;
             }
         } while (pageToken != null);
+
+        saveDiscoveryLog(city, area, category, totalFound);
+        return true;
+    }
+
+    @Transactional
+    public void saveDiscoveryLog(String city, String area, String category, int count) {
+        com.foodgrid.lead.model.DiscoveryLog log = new com.foodgrid.lead.model.DiscoveryLog();
+        log.city = city;
+        log.area = area;
+        log.category = category;
+        log.resultCount = count;
+        log.lastDiscoveredAt = new Date();
+        discoveryLogRepository.persist(log);
     }
 
     @Transactional

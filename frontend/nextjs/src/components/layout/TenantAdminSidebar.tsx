@@ -14,7 +14,8 @@ import {
   BarChart3,
   FileText,
   Bell,
-  Wallet
+  Wallet,
+  Target
 } from 'lucide-react';
 import styles from './TenantAdminSidebar.module.css';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
@@ -22,6 +23,7 @@ import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/tenant-admin' },
   { icon: Building2, label: 'Tenants', href: '/tenant-admin/tenants' },
+  { icon: Target, label: 'Leads', href: '/tenant-admin/leads' },
   { icon: Users, label: 'Users', href: '/tenant-admin/users' },
   { icon: CreditCard, label: 'Subscriptions', href: '/tenant-admin/subscriptions' },
   { icon: Wallet, label: 'Payment Gateway', href: '/tenant-admin/payment-config' },
@@ -79,7 +81,7 @@ const TenantAdminSidebar = () => {
 
         <div className={styles.navSection}>
           <span className={styles.navSectionTitle}>Management</span>
-          {navItems.slice(2, 7).map((item) => (
+          {navItems.slice(2, 8).map((item) => (
             <Link 
               key={item.href} 
               href={item.href}
@@ -93,7 +95,7 @@ const TenantAdminSidebar = () => {
 
         <div className={styles.navSection}>
           <span className={styles.navSectionTitle}>System</span>
-          {navItems.slice(7).map((item) => (
+          {navItems.slice(8).map((item) => (
             <Link 
               key={item.href} 
               href={item.href}

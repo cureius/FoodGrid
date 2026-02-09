@@ -31,6 +31,7 @@ export function StaffProvider({ children }: { readonly children: ReactNode }) {
     async function loadStaffInfo() {
       try {
         const info = await getCurrentStaff();
+        console.log("🚀 ~ loadStaffInfo ~ info:", info)
         if (info?.outletId) {
           setSelectedOutletId(info.outletId);
           setStaffInfo({
@@ -42,12 +43,13 @@ export function StaffProvider({ children }: { readonly children: ReactNode }) {
         }
       } catch (err) {
         console.error("Failed to load staff info:", err);
-        // If failed, clear tokens and redirect to login
-        if (typeof globalThis.window !== "undefined") {
-          localStorage.removeItem("fg_staff_access_token");
-          localStorage.removeItem("fg_staff_refresh_token");
-          globalThis.window.location.href = "/staff-login";
-        }
+        // // If failed, clear tokens and redirect to login
+        // if (typeof globalThis.window !== "undefined") {
+        //   localStorage.removeItem("fg_staff_access_token");
+        //   localStorage.removeItem("fg_staff_refresh_token");
+        //   globalThis.window.location.href = "/staff-login";
+        // }
+        //TODO
       } finally {
         setLoading(false);
       }

@@ -49,6 +49,26 @@ function adminOnlyAuthHeader(): Record<string, string> {
 
 export type LeadStatus = "DISCOVERED" | "QUALIFIED" | "CONTACTED" | "PITCHED" | "DEMO_SCHEDULED" | "FOLLOW_UP" | "CONVERTED" | "LOST";
 
+export type LeadContact = {
+  id: number;
+  name?: string;
+  role?: string;
+  email?: string;
+  phone?: string;
+  source: string;
+  isSpoc: boolean;
+  createdAt: string;
+};
+
+export type LeadActivity = {
+  id: number;
+  channel: string;
+  outcome: string;
+  performedBy: string;
+  performedAt: string;
+  metadata?: string;
+};
+
 export type Lead = {
   id: number;
   externalPlaceId: string;
@@ -67,14 +87,17 @@ export type Lead = {
   score: number;
   createdAt: string;
   updatedAt: string;
-  contacts?: any[];
-  activities?: any[];
+  contacts?: LeadContact[];
+  activities?: LeadActivity[];
 };
 
-export function listLeads(filters: { status?: LeadStatus; city?: string } = {}) {
+export function listLeads(filters: { status?: LeadStatus; city?: string; area?: string; address?: string; name?: string } = {}) {
   const params = new URLSearchParams();
   if (filters.status) params.append("status", filters.status);
   if (filters.city) params.append("city", filters.city);
+  if (filters.area) params.append("area", filters.area);
+  if (filters.address) params.append("address", filters.address);
+  if (filters.name) params.append("name", filters.name);
   
   return http<Lead[]>(`/api/v1/internal/leads?${params.toString()}`, {
     method: "GET",
@@ -104,9 +127,24 @@ export function addLeadActivity(id: number, activity: { channel: string; outcome
     });
 }
 
+export function generateLeadPitch(id: number) {
+    return http<string>(`/api/v1/internal/leads/${id}/pitch`, {
+        method: "POST",
+        headers: adminOnlyAuthHeader(),
+        // The endpoint returns a raw string (URL)
+    });
+}
+
+export function triggerLeadNormalization() {
+    return http<void>(`/api/v1/internal/leads/normalize`, {
+        method: "POST",
+        headers: adminOnlyAuthHeader()
+    });
+}
+
 export function triggerLeadDiscovery(city: string, area: string, category: string) {
     const params = new URLSearchParams({ city, area, category });
-    return http<void>(`/api/v1/internal/leads/discover?${params.toString()}`, {
+    return http<boolean>(`/api/v1/internal/leads/discover?${params.toString()}`, {
         method: "POST",
         headers: adminOnlyAuthHeader()
     });
