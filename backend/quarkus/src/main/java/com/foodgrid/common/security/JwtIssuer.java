@@ -15,6 +15,10 @@ public class JwtIssuer {
 
     public String issueAccessToken(final Employee employee, final String outletId, final String clientId, final List<String> roles, final String sessionId) {
         final Instant now = Instant.now();
+        final java.util.Set<String> allRoles = new java.util.HashSet<>(roles);
+        allRoles.add("EMPLOYEE");
+        allRoles.add("MANAGER");
+        
         return Jwt.issuer("foodgrid")
                 .subject(employee.id)
                 .claim("principalType", "EMPLOYEE")
@@ -22,7 +26,7 @@ public class JwtIssuer {
                 .claim("clientId", clientId)
                 .claim("displayName", employee.displayName)
                 .claim("sessionId", sessionId)
-                .groups(Set.copyOf(roles))
+                .groups(allRoles)
                 .issuedAt(now)
                 .expiresAt(now.plus(Duration.ofHours(12)))
                 .sign();

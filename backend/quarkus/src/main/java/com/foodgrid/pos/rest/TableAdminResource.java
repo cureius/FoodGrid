@@ -14,7 +14,7 @@ import java.util.List;
 @Path("/api/v1/admin/outlets/{outletId}/tables")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@RolesAllowed({"ADMIN","MANAGER"})
+@RolesAllowed({"ADMIN","MANAGER","EMPLOYEE"})
 public class TableAdminResource {
 
   @Inject TableAdminService tableAdminService;

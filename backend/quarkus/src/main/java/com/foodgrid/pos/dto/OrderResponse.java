@@ -11,6 +11,7 @@ public record OrderResponse(
   String shiftId,
   String employeeId,
   String tableId,
+  String tableName,
   String orderType,
   String status,
   BigDecimal subtotal,
@@ -19,6 +20,8 @@ public record OrderResponse(
   BigDecimal grandTotal,
   String notes,
   Instant createdAt,
-  String outletName, // Added
+  String outletName,
+  String sourceChannel,
+  String externalOrderId,
   List<OrderItemResponse> items
 ) {}

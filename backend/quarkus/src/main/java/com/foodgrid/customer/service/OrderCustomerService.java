@@ -28,6 +28,7 @@ public class OrderCustomerService {
     @Inject IngredientService ingredientService;
     @Inject SecurityIdentity identity;
     @Inject OutletRepository outletRepository;
+    @Inject DiningTableRepository tableRepository;
     @Inject MenuItemImageRepository menuItemImageRepository;
 
     @Transactional
@@ -223,6 +224,13 @@ public class OrderCustomerService {
             .map(outlet -> outlet.name)
             .orElse("Unknown Store");
 
+        String tableName = null;
+        if (o.tableId != null && !o.tableId.isBlank()) {
+            tableName = tableRepository.findByIdOptional(o.tableId)
+                .map(t -> t.displayName != null ? t.displayName : t.tableCode)
+                .orElse(null);
+        }
+
         return new OrderResponse(
             o.id,
             o.outletId,
@@ -230,6 +238,7 @@ public class OrderCustomerService {
             o.shiftId,
             o.employeeId,
             o.tableId,
+            tableName,
             o.orderType.name(),
             o.status.name(),
             o.subtotal,
@@ -239,6 +248,8 @@ public class OrderCustomerService {
             o.notes,
             o.createdAt,
             outletName,
+            o.sourceChannel != null ? o.sourceChannel.name() : "FOODGRID",
+            o.externalOrderId,
             items
         );
     }

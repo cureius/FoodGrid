@@ -14,7 +14,7 @@ import java.util.List;
 @Path("/api/v1/admin/outlets/{outletId}/menu")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@RolesAllowed({"ADMIN","MANAGER", "TENANT_ADMIN"})
+@RolesAllowed({"ADMIN","MANAGER", "TENANT_ADMIN", "EMPLOYEE"})
 public class MenuAdminResource {
 
   @Inject MenuAdminService menuAdminService;

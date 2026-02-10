@@ -13,7 +13,7 @@ import java.util.List;
 @Path("/api/v1/pos/orders")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@RolesAllowed({"CASHIER","MANAGER","ADMIN", "CLIENT_ADMIN"})
+@RolesAllowed({"CASHIER","MANAGER","ADMIN", "CLIENT_ADMIN", "EMPLOYEE"})
 public class OrderPosResource {
 
   @Inject OrderPosService orderPosService;

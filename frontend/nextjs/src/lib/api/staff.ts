@@ -52,6 +52,8 @@ export type OrderResponse = {
   shiftId: string;
   employeeId: string;
   tableId: string | null;
+  tableName: string | null;
+  outletName?: string;
   orderType: string;
   status: string;
   subtotal: number;
@@ -60,6 +62,8 @@ export type OrderResponse = {
   grandTotal: number;
   notes: string | null;
   createdAt: string;
+  sourceChannel?: string;
+  externalOrderId?: string;
   items: OrderItemResponse[];
 };
 

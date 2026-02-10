@@ -1,6 +1,6 @@
 package com.foodgrid.auth.rest;
-
-import jakarta.annotation.security.RolesAllowed;
+ 
+import io.quarkus.security.Authenticated;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -8,17 +8,17 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import jakarta.inject.Inject;
-
+ 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
+ 
 @Path("/api/v1/pos/whoami")
 @Produces(MediaType.APPLICATION_JSON)
-@RolesAllowed({"CASHIER","MANAGER","ADMIN"})
+@Authenticated
 public class PosWhoAmIResource {
-
+ 
   @Inject JsonWebToken jwt;
-
+ 
   @GET
   public Map<String, Object> whoami() {
     final Map<String, Object> m = new LinkedHashMap<>();

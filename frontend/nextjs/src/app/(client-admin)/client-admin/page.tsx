@@ -610,10 +610,73 @@ export default function Page() {
 
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
+        gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
         gap: 24,
         marginBottom: 40
       }}>
+        {/* Best Performing Outlet */}
+        <div style={{
+          background: "var(--bg-surface)",
+          borderRadius: 20,
+          boxShadow: "var(--shadow-md)",
+          border: "1px solid var(--border-light)",
+          overflow: "hidden",
+        }}>
+          <div style={{
+            padding: "20px 24px",
+            borderBottom: "1px solid var(--border-light)",
+            display: "flex",
+            alignItems: "center",
+            gap: 12
+          }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(139, 92, 246, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--primary)" }}>
+              <Store size={20} />
+            </div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Best Performing Outlet</h3>
+              <p style={{ margin: 0, fontSize: 12, color: "var(--text-secondary)" }}>Across all of your stores</p>
+            </div>
+          </div>
+          <div style={{ padding: 16 }}>
+            {analyticsLoading ? (
+               <div style={{ padding: 40, textAlign: 'center' }}>
+                 <RefreshCw size={24} style={{ animation: "spin 2s linear infinite" }} color="var(--text-tertiary)" />
+               </div>
+            ) : analytics?.topOutletsByRevenue?.length ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {analytics.topOutletsByRevenue.map((item: any, i: number) => (
+                  <div key={i} style={{
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 16, 
+                    padding: '12px 16px',
+                    borderRadius: 12,
+                    background: 'var(--bg-tertiary)',
+                  }}>
+                    <div style={{ 
+                      width: 28, height: 28, borderRadius: 8, 
+                      background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                      fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', border: '1px solid var(--border-light)'
+                    }}>
+                      {i + 1}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{item.label}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{item.count} orders</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>₹{item.revenue.toLocaleString()}</div>
+                      <div style={{ fontSize: 11, color: 'var(--primary)', fontWeight: 600 }}>Region Top</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>No outlet performance data</div>
+            )}
+          </div>
+        </div>
+
         {/* Top Selling Items */}
         <div style={{
           background: "var(--bg-surface)",

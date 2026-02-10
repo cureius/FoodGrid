@@ -18,43 +18,45 @@ public class DashboardAnalyticsService {
     @Inject EntityManager em;
     @Inject OrderRepository orderRepository;
 
-    public DashboardAnalyticsResponse getAnalytics(String outletId, Instant start, Instant end) {
-        SummaryStats summary = getSummaryStats(outletId, start, end);
-        List<PerformanceMetric> channelSplit = getChannelSplit(outletId, start, end);
-        List<PerformanceMetric> topItemsByQuantity = getTopItemsByQuantity(outletId, start, end);
-        List<PerformanceMetric> topItemsByRevenue = getTopItemsByRevenue(outletId, start, end);
-        List<DashboardAnalyticsResponse.HourlyData> hourlyTrend = getHourlyTrend(outletId, start, end);
-        List<String> insights = generateInsights(summary, channelSplit);
+    public DashboardAnalyticsResponse getAnalytics(final String outletId, final Instant start, final Instant end) {
+        final SummaryStats summary = getSummaryStats(outletId, start, end);
+        final List<PerformanceMetric> channelSplit = getChannelSplit(outletId, start, end);
+        final List<PerformanceMetric> topItemsByQuantity = getTopItemsByQuantity(outletId, start, end);
+        final List<PerformanceMetric> topItemsByRevenue = getTopItemsByRevenue(outletId, start, end);
+        final List<PerformanceMetric> topOutletsByRevenue = getTopOutletsByRevenue(outletId, start, end);
+        final List<DashboardAnalyticsResponse.HourlyData> hourlyTrend = getHourlyTrend(outletId, start, end);
+        final List<String> insights = generateInsights(summary, channelSplit);
 
         return new DashboardAnalyticsResponse(
             summary,
             channelSplit,
             topItemsByQuantity,
             topItemsByRevenue,
+            topOutletsByRevenue,
             new ArrayList<>(), // Category split could be added if needed
             hourlyTrend,
             insights
         );
     }
 
-    private SummaryStats getSummaryStats(String outletId, Instant start, Instant end) {
-        Object[] result = (Object[]) em.createQuery(
+    private SummaryStats getSummaryStats(final String outletId, final Instant start, final Instant end) {
+        final Object[] result = (Object[]) em.createQuery(
             "SELECT COUNT(o), SUM(o.grandTotal) FROM Order o WHERE o.outletId = :outletId AND o.createdAt >= :start AND o.createdAt <= :end AND o.status != 'CANCELLED'")
             .setParameter("outletId", outletId)
             .setParameter("start", start)
             .setParameter("end", end)
             .getSingleResult();
 
-        long count = (Long) (result[0] != null ? result[0] : 0L);
-        BigDecimal revenue = (BigDecimal) (result[1] != null ? result[1] : BigDecimal.ZERO);
-        BigDecimal avg = count > 0 ? revenue.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+        final long count = (Long) (result[0] != null ? result[0] : 0L);
+        final BigDecimal revenue = (BigDecimal) (result[1] != null ? result[1] : BigDecimal.ZERO);
+        final BigDecimal avg = count > 0 ? revenue.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
 
         return new SummaryStats(count, revenue, avg, 0.0); // Growth rate needs previous period comparison
     }
 
     @SuppressWarnings("unchecked")
-    private List<PerformanceMetric> getChannelSplit(String outletId, Instant start, Instant end) {
-        List<Object[]> results = em.createQuery(
+    private List<PerformanceMetric> getChannelSplit(final String outletId, final Instant start, final Instant end) {
+        final List<Object[]> results = em.createQuery(
             "SELECT o.sourceChannel, COUNT(o), SUM(o.grandTotal) FROM Order o WHERE o.outletId = :outletId AND o.createdAt >= :start AND o.createdAt <= :end AND o.status != 'CANCELLED' GROUP BY o.sourceChannel")
             .setParameter("outletId", outletId)
             .setParameter("start", start)
@@ -62,13 +64,16 @@ public class DashboardAnalyticsService {
             .getResultList();
 
         return results.stream()
-            .map(r -> new PerformanceMetric(r[0].toString(), (Long) r[1], (BigDecimal) r[2]))
+            .map(r -> new PerformanceMetric(
+                r[0] != null ? r[0].toString() : "Unknown", 
+                asLong(r[1]), 
+                asBigDecimal(r[2])))
             .collect(Collectors.toList());
     }
 
     @SuppressWarnings("unchecked")
-    private List<PerformanceMetric> getTopItemsByQuantity(String outletId, Instant start, Instant end) {
-        List<Object[]> results = em.createQuery(
+    private List<PerformanceMetric> getTopItemsByQuantity(final String outletId, final Instant start, final Instant end) {
+        final List<Object[]> results = em.createQuery(
             "SELECT oi.itemName, SUM(oi.qty), SUM(oi.lineTotal) FROM OrderItem oi JOIN Order o ON oi.orderId = o.id WHERE o.outletId = :outletId AND o.createdAt >= :start AND o.createdAt <= :end AND o.status != 'CANCELLED' GROUP BY oi.itemName ORDER BY SUM(oi.qty) DESC")
             .setParameter("outletId", outletId)
             .setParameter("start", start)
@@ -77,13 +82,16 @@ public class DashboardAnalyticsService {
             .getResultList();
 
         return results.stream()
-            .map(r -> new PerformanceMetric((String) r[0], ((BigDecimal) r[1]).longValue(), (BigDecimal) r[2]))
+            .map(r -> new PerformanceMetric(
+                (String) r[0], 
+                asLong(r[1]), 
+                asBigDecimal(r[2])))
             .collect(Collectors.toList());
     }
 
     @SuppressWarnings("unchecked")
-    private List<PerformanceMetric> getTopItemsByRevenue(String outletId, Instant start, Instant end) {
-        List<Object[]> results = em.createQuery(
+    private List<PerformanceMetric> getTopItemsByRevenue(final String outletId, final Instant start, final Instant end) {
+        final List<Object[]> results = em.createQuery(
             "SELECT oi.itemName, SUM(oi.qty), SUM(oi.lineTotal) FROM OrderItem oi JOIN Order o ON oi.orderId = o.id WHERE o.outletId = :outletId AND o.createdAt >= :start AND o.createdAt <= :end AND o.status != 'CANCELLED' GROUP BY oi.itemName ORDER BY SUM(oi.lineTotal) DESC")
             .setParameter("outletId", outletId)
             .setParameter("start", start)
@@ -92,23 +100,64 @@ public class DashboardAnalyticsService {
             .getResultList();
 
         return results.stream()
-            .map(r -> new PerformanceMetric((String) r[0], ((BigDecimal) r[1]).longValue(), (BigDecimal) r[2]))
+            .map(r -> new PerformanceMetric(
+                (String) r[0], 
+                asLong(r[1]), 
+                asBigDecimal(r[2])))
+            .collect(Collectors.toList());
+    }
+
+    private List<PerformanceMetric> getTopOutletsByRevenue(final String outletId, final Instant start, final Instant end) {
+        // 1. Fetch the current outlet to determine its tenant identifier
+        final com.foodgrid.auth.model.Outlet outlet = em.find(com.foodgrid.auth.model.Outlet.class, outletId);
+        if (outlet == null) return new ArrayList<>();
+
+        final String clientId = outlet.clientId;
+        final String ownerId = outlet.ownerId;
+
+        // 2. Build query based on which identifier is available
+        final String hql;
+        final boolean useClientId = (clientId != null && !clientId.isBlank());
+        
+        if (useClientId) {
+            hql = "SELECT ou.name, COUNT(o), SUM(o.grandTotal) FROM Order o JOIN Outlet ou ON o.outletId = ou.id " +
+                  "WHERE ou.clientId = :clientId AND o.createdAt >= :start AND o.createdAt <= :end AND o.status != 'CANCELLED' " +
+                  "GROUP BY ou.name, ou.id ORDER BY SUM(o.grandTotal) DESC";
+        } else {
+            hql = "SELECT ou.name, COUNT(o), SUM(o.grandTotal) FROM Order o JOIN Outlet ou ON o.outletId = ou.id " +
+                  "WHERE ou.ownerId = :ownerId AND o.createdAt >= :start AND o.createdAt <= :end AND o.status != 'CANCELLED' " +
+                  "GROUP BY ou.name, ou.id ORDER BY SUM(o.grandTotal) DESC";
+        }
+
+        final var query = em.createQuery(hql, Object[].class)
+            .setParameter("start", start)
+            .setParameter("end", end)
+            .setMaxResults(5);
+        
+        if (useClientId) {
+            query.setParameter("clientId", clientId);
+        } else {
+            query.setParameter("ownerId", ownerId);
+        }
+
+        final List<Object[]> results = query.getResultList();
+
+        return results.stream()
+            .map(r -> new PerformanceMetric(
+                (String) r[0], 
+                asLong(r[1]), 
+                asBigDecimal(r[2])))
             .collect(Collectors.toList());
     }
 
     @SuppressWarnings("unchecked")
-    private List<DashboardAnalyticsResponse.HourlyData> getHourlyTrend(String outletId, Instant start, Instant end) {
-        // This is a bit tricky with JPQL across different DBs. 
-        // For simplicity, we can do it in memory or use a native query if H2/Postgres specific.
-        // Let's use a native query for SQLite/H2/Postgres compat if possible or just group in memory for now if results are not too many.
-        // Better: Native query for Postgres/H2 extract hour.
-        
-        String nativeQuery = "SELECT EXTRACT(HOUR FROM created_at) as hr, COUNT(*), SUM(grand_total) " +
+    private List<DashboardAnalyticsResponse.HourlyData> getHourlyTrend(final String outletId, final Instant start, final Instant end) {
+        final String nativeQuery = "SELECT HOUR(created_at) as hr, COUNT(*), SUM(grand_total) " +
                            "FROM orders " +
                            "WHERE outlet_id = :outletId AND created_at >= :start AND created_at <= :end AND status != 'CANCELLED' " +
                            "GROUP BY hr ORDER BY hr";
         
-        List<Object[]> results = em.createNativeQuery(nativeQuery)
+        final List<Object[]> results = em.createNativeQuery(nativeQuery)
             .setParameter("outletId", outletId)
             .setParameter("start", start)
             .setParameter("end", end)
@@ -116,14 +165,25 @@ public class DashboardAnalyticsService {
 
         return results.stream()
             .map(r -> new DashboardAnalyticsResponse.HourlyData(
-                ((Number) r[0]).intValue(), 
-                ((Number) r[1]).longValue(), 
-                (BigDecimal) r[2]))
+                r[0] != null ? ((Number) r[0]).intValue() : 0, 
+                asLong(r[1]), 
+                asBigDecimal(r[2])))
             .collect(Collectors.toList());
     }
 
-    private List<String> generateInsights(SummaryStats summary, List<PerformanceMetric> channelSplit) {
-        List<String> insights = new ArrayList<>();
+    private BigDecimal asBigDecimal(final Object val) {
+        if (val == null) return BigDecimal.ZERO;
+        if (val instanceof BigDecimal) return (BigDecimal) val;
+        return BigDecimal.valueOf(((Number) val).doubleValue());
+    }
+
+    private long asLong(final Object val) {
+        if (val == null) return 0L;
+        return ((Number) val).longValue();
+    }
+
+    private List<String> generateInsights(final SummaryStats summary, final List<PerformanceMetric> channelSplit) {
+        final List<String> insights = new ArrayList<>();
         if (summary.totalOrders() > 0) {
             insights.add("Your Average Order Value (AOV) is " + summary.averageOrderValue() + ".");
         }

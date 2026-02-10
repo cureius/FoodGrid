@@ -7,6 +7,7 @@ public record DashboardAnalyticsResponse(
     List<PerformanceMetric> channelSplit,
     List<PerformanceMetric> topItemsByQuantity,
     List<PerformanceMetric> topItemsByRevenue,
+    List<PerformanceMetric> topOutletsByRevenue,
     List<PerformanceMetric> categorySplit,
     List<HourlyData> hourlyTrend,
     List<String> insights

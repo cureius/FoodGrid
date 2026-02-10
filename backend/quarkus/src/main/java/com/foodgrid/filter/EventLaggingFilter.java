@@ -33,6 +33,9 @@ public class EventLaggingFilter implements ContainerRequestFilter, ContainerResp
     @Inject
     CorrelationContext correlationContext;
 
+    @Inject
+    io.quarkus.security.identity.SecurityIdentity securityIdentity;
+
     @Override
     public void filter(final ContainerRequestContext requestContext) {
         requestContext.setProperty(START_TIME, System.nanoTime());
@@ -130,6 +133,12 @@ public class EventLaggingFilter implements ContainerRequestFilter, ContainerResp
 
         final StringBuilder sb = new StringBuilder("=== REQUEST DETAILS ===\nMethod: ").append(requestContext.getMethod()).append("\nFull URI: ")
             .append(uriInfo.getRequestUri().toString()).append("\nPath: ").append(uriInfo.getPath()).append("\n");
+
+        if (securityIdentity != null) {
+            sb.append("Principal: ").append(securityIdentity.getPrincipal().getName()).append("\n");
+            sb.append("Roles: ").append(securityIdentity.getRoles()).append("\n");
+            sb.append("Authenticated: ").append(!securityIdentity.isAnonymous()).append("\n");
+        }
 
         // Log path parameters
         final MultivaluedMap<String, String> pathParams = uriInfo.getPathParameters();

@@ -149,7 +149,7 @@ function mapOrderResponse(order: OrderResponse): Order {
     id: order.id,
     type: mapOrderType(order.orderType),
     time: formatOrderTime(order.createdAt || null),
-    table: order.tableId || "N/A",
+    table: order.tableName || order.tableId || "N/A",
     customer: "Customer",
     status: mapOrderStatus(order.status),
     progress,

@@ -1000,6 +1000,8 @@ export type OrderResponse = {
   shiftId: string;
   employeeId: string;
   tableId: string | null;
+  tableName: string | null;
+  outletName?: string;
   orderType: string; // "DINE_IN" | "TAKEAWAY" | "DELIVERY"
   status: string; // "OPEN" | "KOT_SENT" | "SERVED" | "BILLED" | "PAID" | "CANCELLED"
   subtotal: number;
@@ -1124,6 +1126,7 @@ export type DashboardAnalytics = {
   channelSplit: { label: string; count: number; revenue: number }[];
   topItemsByQuantity: { label: string; count: number; revenue: number }[];
   topItemsByRevenue: { label: string; count: number; revenue: number }[];
+  topOutletsByRevenue: { label: string; count: number; revenue: number }[];
   categorySplit: { label: string; count: number; revenue: number }[];
   hourlyTrend: { hour: number; count: number; revenue: number }[];
   insights: string[];
