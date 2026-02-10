@@ -37,6 +37,7 @@ public class OrderPosService {
   @Inject OrderRepository orderRepository;
   @Inject OrderItemRepository orderItemRepository;
   @Inject MenuItemRepository menuItemRepository;
+  @Inject MenuItemImageRepository menuItemImageRepository;
   @Inject MenuItemRecipeRepository recipeRepository;
   @Inject PaymentRepository paymentRepository;
   @Inject IngredientService ingredientService;
@@ -418,7 +419,7 @@ public class OrderPosService {
   public OrderResponse get(final String orderId) {
     final Order o = getOrderForOutlet(orderId);
     final List<OrderItemResponse> items = orderItemRepository.listByOrder(o.id).stream()
-      .map(OrderPosService::toResponse)
+      .map(this::toResponse)
       .toList();
     return toResponse(o, items);
   }
@@ -442,7 +443,7 @@ public class OrderPosService {
     final int lim = (limit == null || limit <= 0 || limit > 200) ? 50 : limit;
 
     return orderRepository.listRecentByOutlet(outletId, lim).stream()
-      .map(o -> toResponse(o, orderItemRepository.listByOrder(o.id).stream().map(OrderPosService::toResponse).toList()))
+      .map(o -> toResponse(o, orderItemRepository.listByOrder(o.id).stream().map(this::toResponse).toList()))
       .toList();
   }
 
@@ -462,7 +463,7 @@ public class OrderPosService {
     }
 
     return orderRepository.listByOutletAndDateRange(outletId, start, end).stream()
-      .map(o -> toResponse(o, orderItemRepository.listByOrder(o.id).stream().map(OrderPosService::toResponse).toList()))
+      .map(o -> toResponse(o, orderItemRepository.listByOrder(o.id).stream().map(this::toResponse).toList()))
       .toList();
   }
 
@@ -610,8 +611,15 @@ public class OrderPosService {
     return v.setScale(2, RoundingMode.HALF_UP);
   }
 
-  private static OrderItemResponse toResponse(final OrderItem i) {
-    return new OrderItemResponse(i.id, i.itemId, i.itemName, i.qty, i.unitPrice, i.lineTotal, i.status.name());
+  private OrderItemResponse toResponse(final OrderItem i) {
+    final String imageUrl = menuItemImageRepository.listByMenuItem(i.itemId).stream()
+      .filter(img -> img.isPrimary)
+      .findFirst()
+      .or(() -> menuItemImageRepository.listByMenuItem(i.itemId).stream().findFirst())
+      .map(img -> img.imageUrl)
+      .orElse(null);
+
+    return new OrderItemResponse(i.id, i.itemId, i.itemName, i.qty, i.unitPrice, i.lineTotal, i.status.name(), imageUrl);
   }
 
   private OrderResponse toResponse(final Order o, final List<OrderItemResponse> items) {

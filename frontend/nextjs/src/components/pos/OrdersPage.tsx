@@ -168,7 +168,8 @@ function mapOrderResponse(order: OrderResponse): Order {
 
 // Convert OrderItemResponse to DetailItem
 function mapOrderItemToDetailItem(item: OrderItemResponse, menuItemImages?: any[]): DetailItem {
-  const imageUrl = menuItemImages?.find((img) => img.menuItemId === item.itemId)?.imageUrl || null;
+  // Use imageUrl from backend if available, otherwise fallback to menuItemImages lookup (legacy)
+  const imageUrl = item.imageUrl || menuItemImages?.find((img) => img.menuItemId === item.itemId)?.imageUrl || null;
 
   return {
     id: item.id,
@@ -639,6 +640,7 @@ export default function OrdersPage({
       .filter((item) => item.status !== "CANCELLED")
       .map((item) => mapOrderItemToDetailItem(item));
   }, [selectedOrderResponse]);
+  console.log("🚀 ~ OrdersPage ~ detailItems:", detailItems)
 
   // Keyboard shortcuts
   useEffect(() => {

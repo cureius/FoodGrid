@@ -1,0 +1,470 @@
+{
+  "HOT BEVERAGES": [
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71153_1683268475.5623708.png",
+      "name": "Americano",
+      "price": 170.0,
+      "veg": true,
+      "desc": "Freshly prepared Americano."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71151_1683268516.003908.png",
+      "name": "Cappuccino",
+      "price": 190.0,
+      "veg": true,
+      "desc": "Freshly prepared Cappuccino."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71152_1678373935.5459645.png",
+      "name": "Cinnamon Cappuccino",
+      "price": 200.0,
+      "veg": true,
+      "desc": "Freshly prepared Cinnamon Cappuccino."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71154_1683268546.9644866.png",
+      "name": "Caffe Latte",
+      "price": 200.0,
+      "veg": true,
+      "desc": "Freshly prepared Caffe Latte."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71155_1683268666.9045048.png",
+      "name": "Cinnamon Latte",
+      "price": 210.0,
+      "veg": true,
+      "desc": "Freshly prepared Cinnamon Latte."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71156_1683268624.9174087.png",
+      "name": "Flat White",
+      "price": 200.0,
+      "veg": true,
+      "desc": "Freshly prepared Flat White."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71157_1683272621.969149.png",
+      "name": "Caffe Mocha",
+      "price": 220.0,
+      "veg": true,
+      "desc": "Freshly prepared Caffe Mocha."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71158_1683268745.7630038.png",
+      "name": "Affogato",
+      "price": 220.0,
+      "veg": true,
+      "desc": "Freshly prepared Affogato."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71159_1683268770.5436597.png",
+      "name": "Mocha Affagato",
+      "price": 230.0,
+      "veg": true,
+      "desc": "Freshly prepared Mocha Affagato."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71160_1683268800.7053726.png",
+      "name": "Espresso Con Panna",
+      "price": 170.0,
+      "veg": true,
+      "desc": "Freshly prepared Espresso Con Panna."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71161_1683268847.3858118.png",
+      "name": "Espresso",
+      "price": 140.0,
+      "veg": true,
+      "desc": "Freshly prepared Espresso."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71162_1683268876.2859821.png",
+      "name": "Cortado",
+      "price": 140.0,
+      "veg": true,
+      "desc": "Freshly prepared Cortado."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71163_1683268926.9483817.png",
+      "name": "Macchiato",
+      "price": 140.0,
+      "veg": true,
+      "desc": "Freshly prepared Macchiato."
+    }
+  ],
+  "SPECIALITY COFFEE": [
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71165_1683275820.0366497.png",
+      "name": "Mazagran",
+      "price": 270.0,
+      "veg": true,
+      "desc": "Freshly prepared Mazagran."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71166_1683272658.270558.png",
+      "name": "Caf\u00e9 Bombon",
+      "price": 180.0,
+      "veg": true,
+      "desc": "Freshly prepared Caf\u00e9 Bombon."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71167_1683274645.5110912.png",
+      "name": "Eiskaffee",
+      "price": 300.0,
+      "veg": true,
+      "desc": "Freshly prepared Eiskaffee."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_821824_1707547167.7513583.png",
+      "name": "Sea Salt Caramel Mocha",
+      "price": 300.0,
+      "veg": true,
+      "desc": "Freshly prepared Sea Salt Caramel Mocha."
+    }
+  ],
+  "COLD BREW": [
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71170_1683276063.7573917.png",
+      "name": "Cold Brew",
+      "price": 280.0,
+      "veg": true,
+      "desc": "Freshly prepared Cold Brew."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_702545_1695013414.7634826.png",
+      "name": "Cold Brew Iced Coffee",
+      "price": 300.0,
+      "veg": true,
+      "desc": "Freshly prepared Cold Brew Iced Coffee."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_818080_1707547378.40741.png",
+      "name": "Cold Brew Lemonade",
+      "price": 300.0,
+      "veg": true,
+      "desc": "Freshly prepared Cold Brew Lemonade."
+    }
+  ],
+  "INDIAN TEAS": [
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_254915_1683268972.3196812.png",
+      "name": "Traditional Indian Tea",
+      "price": 100.0,
+      "veg": true,
+      "desc": "Freshly prepared Traditional Indian Tea."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_254916_1683268992.8665428.png",
+      "name": "Ginger Tea",
+      "price": 100.0,
+      "veg": true,
+      "desc": "Freshly prepared Ginger Tea."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_254917_1683269020.0674527.png",
+      "name": "Masala Tea",
+      "price": 100.0,
+      "veg": true,
+      "desc": "Freshly prepared Masala Tea."
+    }
+  ],
+  "GREEN TEAS": [
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71176_1683272778.5728726.png",
+      "name": "Darjeeling Green Tea",
+      "price": 140.0,
+      "veg": true,
+      "desc": "Freshly prepared Darjeeling Green Tea."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_821828_1707547538.0254314.png",
+      "name": "Lemongrass Green Tea",
+      "price": 140.0,
+      "veg": true,
+      "desc": "Freshly prepared Lemongrass Green Tea."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71178_1683272803.7933986.png",
+      "name": "Zesty Orange Green Tea",
+      "price": 140.0,
+      "veg": true,
+      "desc": "Freshly prepared Zesty Orange Green Tea."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71179_1683272831.99261.png",
+      "name": "Chamomile Green Tea",
+      "price": 140.0,
+      "veg": true,
+      "desc": "Freshly prepared Chamomile Green Tea."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71180_1683273063.1124136.png",
+      "name": "Earl Grey Black Tea",
+      "price": 140.0,
+      "veg": true,
+      "desc": "Freshly prepared Earl Grey Black Tea."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71181_1683273046.4135568.png",
+      "name": "Moroccan Mint Tea",
+      "price": 140.0,
+      "veg": true,
+      "desc": "Freshly prepared Moroccan Mint Tea."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71182_1683273088.5139875.png",
+      "name": "English Breakfast Tea",
+      "price": 140.0,
+      "veg": true,
+      "desc": "Freshly prepared English Breakfast Tea."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71183_1683273111.9953358.png",
+      "name": "Butterfly Pea Lavender Blue Tea",
+      "price": 140.0,
+      "veg": true,
+      "desc": "Freshly prepared Butterfly Pea Lavender Blue Tea."
+    }
+  ],
+  "CLASSIC COLD COFFEES": [
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_702546_1695015545.5752394.png",
+      "name": "Iced Espresso",
+      "price": 180.0,
+      "veg": true,
+      "desc": "Freshly prepared Iced Espresso."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71194_1686907081.3630407.png",
+      "name": "Signature Cold Coffee",
+      "price": 250.0,
+      "veg": true,
+      "desc": "Freshly prepared Signature Cold Coffee."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71195_1683275246.2149508.png",
+      "name": "Iced Mocha",
+      "price": 260.0,
+      "veg": true,
+      "desc": "Freshly prepared Iced Mocha."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71196_1683275325.396241.png",
+      "name": "Iced Americano",
+      "price": 220.0,
+      "veg": true,
+      "desc": "Freshly prepared Iced Americano."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71197_1683276128.7170558.png",
+      "name": "Iced Latte",
+      "price": 240.0,
+      "veg": true,
+      "desc": "Freshly prepared Iced Latte."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71198_1683276257.183699.png",
+      "name": "Soy Milk Latte",
+      "price": 250.0,
+      "veg": true,
+      "desc": "Freshly prepared Soy Milk Latte."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71199_1686907060.0825148.png",
+      "name": "Spanish Latte",
+      "price": 250.0,
+      "veg": true,
+      "desc": "Freshly prepared Spanish Latte."
+    }
+  ],
+  "HOT CHOCOLATES": [
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71185_1683273139.620621.png",
+      "name": "Traditional Hot Chocolate",
+      "price": 220.0,
+      "veg": true,
+      "desc": "Freshly prepared Traditional Hot Chocolate."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71186_1683273224.462416.png",
+      "name": "Nutella Hot Chocolate",
+      "price": 270.0,
+      "veg": true,
+      "desc": "Freshly prepared Nutella Hot Chocolate."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71187_1683273244.0288336.png",
+      "name": "Vanilla Hot Chocolate",
+      "price": 250.0,
+      "veg": true,
+      "desc": "Freshly prepared Vanilla Hot Chocolate."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71188_1683273324.0970616.png",
+      "name": "Caramel Hot Chocolate",
+      "price": 250.0,
+      "veg": true,
+      "desc": "Freshly prepared Caramel Hot Chocolate."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71189_1683273352.7232225.png",
+      "name": "Irish Hot Chocolate",
+      "price": 250.0,
+      "veg": true,
+      "desc": "Freshly prepared Irish Hot Chocolate."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71190_1683273388.7359617.png",
+      "name": "Hazelnut Hot Chocolate",
+      "price": 250.0,
+      "veg": true,
+      "desc": "Freshly prepared Hazelnut Hot Chocolate."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71191_1683273413.5271342.png",
+      "name": "Mint Hot Chocolate",
+      "price": 250.0,
+      "veg": true,
+      "desc": "Freshly prepared Mint Hot Chocolate."
+    }
+  ],
+  "ICED TEA": [
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71213_1695013973.749755.png",
+      "name": "Lemon Ice Tea",
+      "price": 230.0,
+      "veg": true,
+      "desc": "Freshly prepared Lemon Ice Tea."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71214_1683273570.9995468.png",
+      "name": "Peach Ice Tea",
+      "price": 230.0,
+      "veg": true,
+      "desc": "Freshly prepared Peach Ice Tea."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_818124_1707547683.9870803.png",
+      "name": "Passion Fruit Ice Tea",
+      "price": 230.0,
+      "veg": true,
+      "desc": "Freshly prepared Passion Fruit Ice Tea."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71216_1683273608.6597703.png",
+      "name": "Strawberry Ice Tea",
+      "price": 230.0,
+      "veg": true,
+      "desc": "Freshly prepared Strawberry Ice Tea."
+    }
+  ],
+  "PREMIUM MILK SHAKES": [
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_818110_1707548885.7633684.png",
+      "name": "Vanilla Shake",
+      "price": 300.0,
+      "veg": true,
+      "desc": "Freshly prepared Vanilla Shake."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_818111_1707548908.3828514.png",
+      "name": "Chocolate Shake",
+      "price": 300.0,
+      "veg": true,
+      "desc": "Freshly prepared Chocolate Shake."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_818112_1707548954.5630324.png",
+      "name": "Strawberry Shake",
+      "price": 300.0,
+      "veg": true,
+      "desc": "Freshly prepared Strawberry Shake."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_818113_1707548929.1632094.png",
+      "name": "Peanut Butter Shake",
+      "price": 300.0,
+      "veg": true,
+      "desc": "Freshly prepared Peanut Butter Shake."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_818114_1707548975.0644207.png",
+      "name": "Mint Dark Chocolate Shake",
+      "price": 350.0,
+      "veg": true,
+      "desc": "Freshly prepared Mint Dark Chocolate Shake."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_818115_1707549249.2842512.png",
+      "name": "Oreo Nutella Shake",
+      "price": 350.0,
+      "veg": true,
+      "desc": "Freshly prepared Oreo Nutella Shake."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_818116_1707549307.7431223.png",
+      "name": "Kit-Kat Shake",
+      "price": 350.0,
+      "veg": true,
+      "desc": "Freshly prepared Kit-Kat Shake."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_818117_1707549334.883285.png",
+      "name": "Banana Caramel Shake",
+      "price": 350.0,
+      "veg": true,
+      "desc": "Freshly prepared Banana Caramel Shake."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_818118_1707549372.9851983.png",
+      "name": "Twix Shake",
+      "price": 400.0,
+      "veg": true,
+      "desc": "Freshly prepared Twix Shake."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_818119_1707549445.204979.png",
+      "name": "Toblerone Shake",
+      "price": 400.0,
+      "veg": true,
+      "desc": "Freshly prepared Toblerone Shake."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_818120_1707549509.3862102.png",
+      "name": "Ferrero Rocher Shake",
+      "price": 400.0,
+      "veg": true,
+      "desc": "Freshly prepared Ferrero Rocher Shake."
+    }
+  ],
+  "FREAK SHAKES": [
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71218_1685599085.3976889.png",
+      "name": "Rainbow Freak Shake",
+      "price": 450.0,
+      "veg": true,
+      "desc": "Freshly prepared Rainbow Freak Shake."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71219_1685599142.7615955.png",
+      "name": "Espresso Superstar",
+      "price": 450.0,
+      "veg": true,
+      "desc": "Freshly prepared Espresso Superstar."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_71220_1685599163.4120364.png",
+      "name": "Salted Pretzel & Caramel Freak Shake",
+      "price": 450.0,
+      "veg": true,
+      "desc": "Freshly prepared Salted Pretzel & Caramel Freak Shake."
+    },
+    {
+      "img": "https://airmenusimages.blr1.cdn.digitaloceanspaces.com/item/item_818130_1707549771.0042045.png",
+      "name": "Coffee Nation Freak Shake",
+      "price": 550.0,
+      "veg": true,
+      "desc": "Freshly prepared Coffee Nation Freak Shake."
+    }
+  ]
+}

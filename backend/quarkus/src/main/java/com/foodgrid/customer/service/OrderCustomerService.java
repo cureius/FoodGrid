@@ -28,6 +28,7 @@ public class OrderCustomerService {
     @Inject IngredientService ingredientService;
     @Inject SecurityIdentity identity;
     @Inject OutletRepository outletRepository;
+    @Inject MenuItemImageRepository menuItemImageRepository;
 
     @Transactional
     public OrderResponse create(final OrderCreateRequest req, final String outletId, final String customerId) {
@@ -118,7 +119,7 @@ public class OrderCustomerService {
     public OrderResponse get(final String orderId, final String customerId) {
         final Order o = getOrderForCustomer(orderId, customerId);
         final List<OrderItemResponse> items = orderItemRepository.listByOrder(o.id).stream()
-          .map(OrderCustomerService::toResponse)
+          .map(this::toResponse)
           .toList();
         return toResponse(o, items);
     }
@@ -126,7 +127,7 @@ public class OrderCustomerService {
     public List<OrderItemResponse> getOrderItems(final String orderId, final String customerId) {
         final Order o = getOrderForCustomer(orderId, customerId);
         return orderItemRepository.listByOrder(o.id).stream()
-          .map(OrderCustomerService::toResponse)
+          .map(this::toResponse)
           .toList();
     }
 
@@ -136,12 +137,12 @@ public class OrderCustomerService {
         if (outletId != null && !outletId.isBlank()) {
             return orderRepository.listByCustomerAndOutlet(customerId, outletId, lim)
                 .stream()
-                .map(o -> toResponse(o, orderItemRepository.listByOrder(o.id).stream().map(OrderCustomerService::toResponse).toList()))
+                .map(o -> toResponse(o, orderItemRepository.listByOrder(o.id).stream().map(this::toResponse).toList()))
                 .toList();
         } else {
             return orderRepository.listByCustomer(customerId, lim)
                 .stream()
-                .map(o -> toResponse(o, orderItemRepository.listByOrder(o.id).stream().map(OrderCustomerService::toResponse).toList()))
+                .map(o -> toResponse(o, orderItemRepository.listByOrder(o.id).stream().map(this::toResponse).toList()))
                 .toList();
         }
     }
@@ -206,8 +207,15 @@ public class OrderCustomerService {
         return v.setScale(2, RoundingMode.HALF_UP);
     }
 
-    private static OrderItemResponse toResponse(final OrderItem i) {
-        return new OrderItemResponse(i.id, i.itemId, i.itemName, i.qty, i.unitPrice, i.lineTotal, i.status.name());
+    private OrderItemResponse toResponse(final OrderItem i) {
+        final String imageUrl = menuItemImageRepository.listByMenuItem(i.itemId).stream()
+          .filter(img -> img.isPrimary)
+          .findFirst()
+          .or(() -> menuItemImageRepository.listByMenuItem(i.itemId).stream().findFirst())
+          .map(img -> img.imageUrl)
+          .orElse(null);
+
+        return new OrderItemResponse(i.id, i.itemId, i.itemName, i.qty, i.unitPrice, i.lineTotal, i.status.name(), imageUrl);
     }
 
     private OrderResponse toResponse(final Order o, final List<OrderItemResponse> items) {

@@ -9,5 +9,6 @@ public record OrderItemResponse(
   BigDecimal qty,
   BigDecimal unitPrice,
   BigDecimal lineTotal,
-  String status
+  String status,
+  String imageUrl
 ) {}

@@ -32,19 +32,19 @@ public class LeadService {
             params.put("status", status);
         }
         if (city != null && !city.isBlank()) {
-            query.append(" and city = :city");
-            params.put("city", city);
+            query.append(" and lower(city) like lower(:city)");
+            params.put("city", "%" + city + "%");
         }
         if (area != null && !area.isBlank()) {
-            query.append(" and area = :area");
-            params.put("area", area);
+            query.append(" and lower(area) like lower(:area)");
+            params.put("area", "%" + area + "%");
         }
         if (address != null && !address.isBlank()) {
-            query.append(" and address like :address");
+            query.append(" and lower(address) like lower(:address)");
             params.put("address", "%" + address + "%");
         }
         if (name != null && !name.isBlank()) {
-            query.append(" and name like :name");
+            query.append(" and lower(name) like lower(:name)");
             params.put("name", "%" + name + "%");
         }
 
@@ -87,5 +87,31 @@ public class LeadService {
         // Run in background would be better, but for now we'll just call it
         // In a real app, this should be an async task
         return discoveryService.discoverLeads(city, area, category);
+    }
+
+    /**
+     * Converts a Lead into a full Tenant Client.
+     * Triggers the onboarding workflow which scrapes menu data and sets up infrastructure.
+     * 
+     * @param leadId The ID of the lead to convert
+     * @return The new Client ID
+     */
+    @Transactional
+    public String onboardClient(Long leadId) {
+        Lead lead = leadRepository.findById(leadId);
+        if (lead == null) {
+            throw new IllegalArgumentException("Lead not found");
+        }
+        
+        // TODO: This integration point connects to the Python onboarding service
+        // logic located in scripts/onboard_coffee_nation.py
+        // Future enhancement: Use ProcessBuilder or a dedicated Microservice 
+        // to execute the scraping and provisioning asynchronously.
+        
+        lead.status = LeadStatus.CONVERTED;
+        lead.updatedAt = new Date();
+        leadRepository.persist(lead);
+        
+        return "PENDING_PROVISIONING"; 
     }
 }

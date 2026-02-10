@@ -1021,6 +1021,7 @@ export type OrderItemResponse = {
   unitPrice: number;
   lineTotal: number;
   status: string; // "OPEN" | "CANCELLED"
+  imageUrl?: string | null;
 };
 
 export type OrderCreateInput = {

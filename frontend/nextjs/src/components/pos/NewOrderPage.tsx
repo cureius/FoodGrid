@@ -922,13 +922,13 @@ export default function NewOrderPage({
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   >
-                    <div style={{ position: "relative", height: 140 }}>
+                    <div style={{ position: "relative", height: 180 }}>
                       {item.images && item.images.length > 0 ? (
                         <Image
                           src={getImageUrl(item.images[0].imageUrl) || ""}
                           alt={item.name}
                           width={240}
-                          height={140}
+                          height={180}
                           style={{ objectFit: "cover", width: "100%", height: "100%" }}
                         />
                       ) : (
@@ -1196,11 +1196,23 @@ export default function NewOrderPage({
                       <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-tertiary)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Existing Items</div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                         {currentOrder.items.map((item) => (
-                          <div key={item.id} style={{ padding: "10px 12px", background: "var(--bg-surface)", borderRadius: 12, border: "1px solid var(--component-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-                              {item.itemName} <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>x {Number(item.qty)}</span>
+                          <div key={item.id} style={{ padding: "12px", background: "var(--bg-surface)", borderRadius: 14, border: "1px solid var(--component-border)", display: "grid", gridTemplateColumns: "48px 1fr auto", gap: 12, alignItems: "center" }}>
+                            {item.imageUrl ? (
+                              <Image
+                                src={getImageUrl(item.imageUrl) || ""}
+                                alt={item.itemName}
+                                width={48}
+                                height={48}
+                                style={{ objectFit: "cover", borderRadius: 10, border: "1px solid var(--component-border)" }}
+                              />
+                            ) : (
+                              <div style={{ width: 48, height: 48, borderRadius: 10, background: "var(--bg-tertiary)", border: "1px solid var(--component-border)" }} />
+                            )}
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 2 }}>{item.itemName}</div>
+                              <div style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 600 }}>Qty: {Number(item.qty)}</div>
                             </div>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-secondary)" }}>₹{Number(item.lineTotal).toFixed(2)}</div>
+                            <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>₹{Number(item.lineTotal).toFixed(2)}</div>
                           </div>
                         ))}
                       </div>
@@ -1352,11 +1364,11 @@ export default function NewOrderPage({
             </div>
 
             <div style={{
-              marginTop: 16,
+              marginTop: 4,
               borderRadius: 16,
               border: "1px solid var(--component-border)",
               background: "var(--bg-surface)",
-              padding: 20,
+              padding: 10,
             }}>
               <div style={{
                 display: "flex",
@@ -1453,7 +1465,7 @@ export default function NewOrderPage({
 
       {/* Step 3: Order Summary */}
       {step === 3 && currentOrder && (
-        <div style={{ display: "flex", justifyContent: "center", padding: "40px 20px" }}>
+        <div style={{ display: "flex", justifyContent: "center"}}>
           <div style={{
             width: "min(600px, 95vw)",
             background: "var(--bg-surface)",
@@ -1464,9 +1476,9 @@ export default function NewOrderPage({
           }}>
             <div style={{ textAlign: "center", fontSize: 26, fontWeight: 800, marginBottom: 28, color: "var(--text-primary)" }}>Order Summary</div>
 
-            <div style={{ marginBottom: 24, padding: 20, background: "var(--component-bg)", borderRadius: 16, border: "1px solid var(--component-border)" }}>
+            <div style={{ marginBottom: 24, padding: 20, background: "var(--component-bg)", borderRadius: 16, border: "1px solid var(--component-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 6, fontWeight: 600 }}>Order ID</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>{currentOrder.id}</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>{currentOrder.id.slice(-4).toUpperCase()}</div>
             </div>
 
             <div style={{ marginBottom: 24 }}>
@@ -1606,7 +1618,6 @@ export default function NewOrderPage({
               overflow: "hidden",
             }}>
               <div style={{
-                padding: "20px 24px",
                 borderBottom: "1px solid var(--bg-tertiary)",
                 display: "flex",
                 justifyContent: "space-between",

@@ -292,7 +292,7 @@
 
 .menuImageWrap {
   position: relative;
-  height: 120px;
+  height: 180px;
 }
 
 .menuImage {
@@ -386,7 +386,7 @@
 }
 
 .rightPanel {
-  padding: 14px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   min-height: 0;

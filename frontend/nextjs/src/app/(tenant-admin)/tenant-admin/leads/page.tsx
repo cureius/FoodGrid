@@ -38,7 +38,10 @@ export default function LeadsPage() {
   const [pitchLoading, setPitchLoading] = useState(false);
 
   useEffect(() => {
-    loadLeads();
+    const timer = setTimeout(() => {
+      loadLeads();
+    }, 300);
+    return () => clearTimeout(timer);
   }, [filter]);
 
   async function loadLeads() {
@@ -263,7 +266,7 @@ export default function LeadsPage() {
                    <input 
                       placeholder="Business Name..."
                       value={filter.name || ""}
-                      onChange={e => setFilter({ ...filter, name: e.target.value || undefined })}
+                      onChange={e => setFilter(prev => ({ ...prev, name: e.target.value || undefined }))}
                    />
                  </div>
                  <div className={styles.filterGroup}>
@@ -271,7 +274,7 @@ export default function LeadsPage() {
                    <input 
                       placeholder="City..."
                       value={filter.city || ""}
-                      onChange={e => setFilter({ ...filter, city: e.target.value || undefined })}
+                      onChange={e => setFilter(prev => ({ ...prev, city: e.target.value || undefined }))}
                    />
                  </div>
                  <div className={styles.filterGroup}>
@@ -279,7 +282,7 @@ export default function LeadsPage() {
                    <input 
                       placeholder="Area..."
                       value={filter.area || ""}
-                      onChange={e => setFilter({ ...filter, area: e.target.value || undefined })}
+                      onChange={e => setFilter(prev => ({ ...prev, area: e.target.value || undefined }))}
                    />
                  </div>
                  <div className={styles.filterGroup}>
@@ -287,12 +290,12 @@ export default function LeadsPage() {
                    <input 
                       placeholder="Address..."
                       value={filter.address || ""}
-                      onChange={e => setFilter({ ...filter, address: e.target.value || undefined })}
+                      onChange={e => setFilter(prev => ({ ...prev, address: e.target.value || undefined }))}
                    />
                  </div>
                  <select 
                     className={styles.filterSelect}
-                    onChange={e => setFilter({ ...filter, status: e.target.value as LeadStatus || undefined })}
+                    onChange={e => setFilter(prev => ({ ...prev, status: e.target.value as LeadStatus || undefined }))}
                  >
                     <option value="">All Stages</option>
                     <option value="DISCOVERED">Discovered</option>
