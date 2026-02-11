@@ -1,7 +1,7 @@
 # Razorpay Payment Flow Fix
 
 ## Issue
-When users completed payment on Razorpay, a new tab would open with the callback URL (`https://foodgrid-production-f778.up.railway.app/api/v1/webhooks/payment/razorpay`), which is the webhook endpoint. This created a poor user experience.
+When users completed payment on Razorpay, a new tab would open with the callback URL (`https://foodgrid-be.theblueman.in/api/v1/webhooks/payment/razorpay`), which is the webhook endpoint. This created a poor user experience.
 
 ## Root Cause
 The `callback_url` parameter in the Razorpay Payment Link API was being set to the webhook URL. In Razorpay:
@@ -33,7 +33,7 @@ if (webhookUrl != null && !webhookUrl.isBlank()) {
 // When callback_url is not provided, Razorpay will show a success message
 // and the payment window can be closed by the user or programmatically.
 // Webhooks should be configured in Razorpay Dashboard to notify payment status
-// to: https://foodgrid-production-f778.up.railway.app/api/v1/webhooks/payment/razorpay
+// to: https://foodgrid-be.theblueman.in/api/v1/webhooks/payment/razorpay
 ```
 
 ### How It Works Now
@@ -65,7 +65,7 @@ if (webhookUrl != null && !webhookUrl.isBlank()) {
 
 **Webhook URL**:
 ```
-https://foodgrid-production-f778.up.railway.app/api/v1/webhooks/payment/razorpay
+https://foodgrid-be.theblueman.in/api/v1/webhooks/payment/razorpay
 ```
 
 **Events to Subscribe**:

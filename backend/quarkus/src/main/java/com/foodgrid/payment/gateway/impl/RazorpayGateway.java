@@ -32,8 +32,8 @@ public class RazorpayGateway implements PaymentGateway {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
 
-    @ConfigProperty(name = "foodgrid.razorpay.webhook.url", defaultValue = "https://foodgrid-production-f778.up.railway.app/api/v1/webhooks/payment/razorpay")
-    String webhookUrl = "https://foodgrid-production-f778.up.railway.app/api/v1/webhooks/payment/razorpay";
+    @ConfigProperty(name = "foodgrid.razorpay.webhook.url", defaultValue = "https://foodgrid-be.theblueman.in/api/v1/webhooks/payment/razorpay")
+    String webhookUrl = "https://foodgrid-be.theblueman.in/api/v1/webhooks/payment/razorpay";
 
     private GatewayCredentials credentials;
     private HttpClient httpClient;
@@ -248,7 +248,7 @@ public class RazorpayGateway implements PaymentGateway {
             paymentLinkRequest.put("callback_method", "get");
             
             // Webhooks should still be configured in Razorpay Dashboard separately 
-            // to: https://foodgrid-production-f778.up.railway.app/api/v1/webhooks/payment/razorpay
+            // to: https://foodgrid-be.theblueman.in/api/v1/webhooks/payment/razorpay
 
 
             final String requestBody = MAPPER.writeValueAsString(paymentLinkRequest);

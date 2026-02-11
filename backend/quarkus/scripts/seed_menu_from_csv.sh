@@ -11,7 +11,7 @@ SUPER_ADMIN_EMAIL="superadmin@foodgrid.com"
 SUPER_ADMIN_PASSWORD="SuperAdmin@123"
 
 # Dietico Credentials
-CLIENT_NAME="Dietico"
+CLIENT_NAME="Dietico"clie
 CLIENT_EMAIL="dietico@foodgrid.local"
 CLIENT_PASSWORD="123456"
 OUTLET_NAME="Dietico - Main Outlet"
