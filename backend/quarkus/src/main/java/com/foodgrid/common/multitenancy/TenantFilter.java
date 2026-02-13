@@ -87,10 +87,11 @@ public class TenantFilter implements ContainerRequestFilter {
   }
 
   private static boolean isPublicPath(final String path) {
-    if (path == null) return true;
+    if (path == null || path.isEmpty() || path.equals("/")) return true;
     final String p = path.startsWith("/") ? path.substring(1) : path;
 
-    return p.startsWith("api/v1/auth")
+    return p.isEmpty()
+      || p.startsWith("api/v1/auth")
       || p.startsWith("api/v1/admin/auth")
       || p.startsWith("api/v1/customer")
       || p.startsWith("api/v1/public")
