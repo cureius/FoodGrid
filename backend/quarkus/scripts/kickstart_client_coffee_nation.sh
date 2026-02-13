@@ -128,16 +128,20 @@ for i in $(seq 1 $OUTLET_COUNT); do
   done
 
   # Seed Categories and Items
-  declare -A CAT_CACHE
+  CAT_MAP_FILE=$(mktemp)
   for cat_str in "${CAFE_CATEGORIES[@]}"; do
     IFS='|' read -r C_NAME C_ORDER <<< "$cat_str"
     C_RESP=$(api_post "/api/v1/admin/outlets/$OUTLET_ID/menu/categories" "$ACCESS_TOKEN" "{\"name\":\"$C_NAME\",\"sortOrder\":$C_ORDER}")
-    CAT_CACHE["$C_NAME"]=$(echo "$C_RESP" | jq -r '.id')
+    CID=$(echo "$C_RESP" | jq -r '.id // empty')
+    if [[ -z "$CID" || "$CID" == "null" ]]; then
+       CID=$(api_get "/api/v1/admin/outlets/$OUTLET_ID/menu/categories" "$ACCESS_TOKEN" | jq -r ".[] | select(.name == \"$C_NAME\") | .id")
+    fi
+    echo "$C_NAME|$CID" >> "$CAT_MAP_FILE"
   done
 
   for item_str in "${CAFE_MENU[@]}"; do
     IFS='|' read -r C_NAME I_NAME I_DESC I_VEG I_PRICE I_IMG <<< "$item_str"
-    CID=${CAT_CACHE[$C_NAME]}
+    CID=$(grep "^$C_NAME|" "$CAT_MAP_FILE" | cut -d'|' -f2)
     
     log "   Adding Item: $I_NAME"
     api_post "/api/v1/admin/outlets/$OUTLET_ID/menu/items" "$ACCESS_TOKEN" \
