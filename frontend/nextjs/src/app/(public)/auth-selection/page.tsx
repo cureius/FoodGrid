@@ -11,7 +11,7 @@ const Container = styled.div`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f8fafc;
+  background: var(--bg-app);
 `;
 
 const Content = styled.main`
@@ -26,24 +26,24 @@ const Content = styled.main`
 const Card = styled.div`
   width: 100%;
   max-width: 500px;
-  background: white;
+  background: var(--bg-surface);
   border-radius: 24px;
   padding: 40px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
-  border: 1px solid #eef2f6;
+  border: 1px solid var(--component-border);
 `;
 
 const Title = styled.h1`
   font-size: 28px;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--text-primary);
   margin: 0 0 12px;
   text-align: center;
 `;
 
 const Subtitle = styled.p`
   font-size: 15px;
-  color: #64748b;
+  color: var(--text-secondary);
   text-align: center;
   margin-bottom: 40px;
   line-height: 1.5;
@@ -61,9 +61,9 @@ const Option = styled(Link)`
   padding: 16px;
   border-radius: 16px;
   text-decoration: none;
-  border: 2px solid #f1f5f9;
+  border: 2px solid var(--component-border);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  background: white;
+  background: var(--bg-surface);
 
   &:hover {
     border-color: var(--primary);
@@ -90,13 +90,13 @@ const TextContent = styled.div`
     display: block;
     font-size: 16px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--text-primary);
   }
 
   span:last-child {
     display: block;
     font-size: 13px;
-    color: #64748b;
+    color: var(--text-secondary);
     margin-top: 2px;
   }
 `;
@@ -121,29 +121,29 @@ export default function LoginSelectionPage() {
 
             <Grid>
               <Option href="/tenant-admin-login">
-                <IconBox bg="#e0e7ff" color="#4f46e5">
+                <IconBox bg="var(--primary-light)" color="var(--primary)">
                   <Building2 size={24} />
                 </IconBox>
                 <TextContent>
                   <span>Tenant Admin</span>
                   <span>Manage your brand & chain settings</span>
                 </TextContent>
-                <ArrowRight size={18} color="#94a3b8" />
+                <ArrowRight size={18} color="var(--text-tertiary)" />
               </Option>
 
               <Option href="/client-admin/login">
-                <IconBox bg="#dcfce7" color="#16a34a">
+                <IconBox bg="var(--success-light)" color="var(--success)">
                   <Store size={24} />
                 </IconBox>
                 <TextContent>
                   <span>Client Admin</span>
                   <span>Outlet owners & store managers</span>
                 </TextContent>
-                <ArrowRight size={18} color="#94a3b8" />
+                <ArrowRight size={18} color="var(--text-tertiary)" />
               </Option>
 
               <Option href="/staff-login">
-                <IconBox bg="#ffedd5" color="#ea580c">
+                <IconBox bg="var(--warning-light)" color="var(--warning)">
                   <Users size={24} />
                 </IconBox>
                 <TextContent>
@@ -165,7 +165,7 @@ export default function LoginSelectionPage() {
               </Option> */}
             </Grid>
 
-            <div style={{ marginTop: 40, paddingTop: 24, borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#94a3b8', fontSize: 13 }}>
+            <div style={{ marginTop: 40, paddingTop: 24, borderTop: '1px solid var(--component-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--text-secondary)', fontSize: 13 }}>
               <ShieldCheck size={16} />
               Secure multi-role authentication system
             </div>
@@ -173,7 +173,7 @@ export default function LoginSelectionPage() {
         </motion.div>
       </Content>
 
-      <footer style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
+      <footer style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: 13 }}>
         © {new Date().getFullYear()} FoodGrid POS. All rights reserved.
       </footer>
     </Container>
