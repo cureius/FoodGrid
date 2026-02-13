@@ -2,11 +2,15 @@
 
 import React from 'react';
 import { useOutlet } from '@/contexts/OutletContext';
-import { ChevronDown, Store } from 'lucide-react';
+import { ChevronDown, Store, Menu } from 'lucide-react';
 import styles from './ClientAdminHeader.module.css';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
-const ClientAdminHeader: React.FC = () => {
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
+
+const ClientAdminHeader: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const { selectedOutlet, outlets, setSelectedOutletId, loading } = useOutlet();
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
 
@@ -33,6 +37,11 @@ const ClientAdminHeader: React.FC = () => {
   return (
     <header className={styles.header}>
       <div className={styles.headerContent}>
+        {onMenuClick && (
+          <button className={styles.hamburger} onClick={onMenuClick} aria-label="Open menu">
+            <Menu size={22} />
+          </button>
+        )}
         <div className={styles.outletSelector}>
           <button
             className={styles.outletButton}

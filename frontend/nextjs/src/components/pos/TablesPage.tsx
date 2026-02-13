@@ -28,6 +28,7 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import Card from "@/components/ui/Card";
+import rStyles from "./Tables.module.css";
 
 interface DiningTable {
   id: string;
@@ -265,7 +266,7 @@ export default function TablesPage({ loginPath = "/client-admin/login" }: { logi
   };
 
   return (
-    <div className="page-container" style={{ minHeight: "100vh" }}>
+    <div className={`page-container ${rStyles.pageContainer}`}>
       {/* Toast Notification */}
       {toast && (
         <div
@@ -296,10 +297,10 @@ export default function TablesPage({ loginPath = "/client-admin/login" }: { logi
         </div>
       )}
 
-      <div style={{ padding: "32px" }}>
+      <div className={rStyles.pageInner}>
         {/* Header */}
         <div style={{ marginBottom: 32 }}>
-            <div className="header-row"
+            <div className={rStyles.headerRow}
             style={{
               display: "flex",
               flexWrap: "wrap",
@@ -400,13 +401,7 @@ export default function TablesPage({ loginPath = "/client-admin/login" }: { logi
 
           {/* Stats */}
           {selectedOutletId && (
-            <div className="stats-grid"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-                gap: 20,
-                marginBottom: 24,
-              }}
+            <div className={rStyles.statsGrid}
             >
               {stats.map((stat, index) => (
                 <div
@@ -457,9 +452,9 @@ export default function TablesPage({ loginPath = "/client-admin/login" }: { logi
               marginBottom: 24,
             }}
           >
-            <div className="filter-bar" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+            <div className={rStyles.filterBar}>
               <div style={{ display: "flex", gap: 12, flex: 1, flexWrap: "wrap" }}>
-                <div className="search-input-wrap" style={{ position: "relative", flex: 1, minWidth: 240, maxWidth: 480 }}>
+                <div className={rStyles.searchInputWrap}>
                   <Search size={18} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
                   <input
                     type="text"
@@ -649,7 +644,7 @@ export default function TablesPage({ loginPath = "/client-admin/login" }: { logi
             </div>
           </Card>
         ) : viewMode === "grid" ? (
-          <div className="grid-view" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 24 }}>
+          <div className={rStyles.gridView}>
             {filteredTables.map((table) => {
               const statusColors = getStatusColor(table.status);
               return (
@@ -938,16 +933,7 @@ export default function TablesPage({ loginPath = "/client-admin/login" }: { logi
             }}
             onClick={() => setCreateDialogOpen(false)}
           >
-                <div className="dialog-content"
-                  style={{
-                    background: "white",
-                    borderRadius: 24,
-                    width: 480,
-                    maxWidth: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)",
-                  }}
+                <div className={rStyles.dialogContent}
                   onClick={(e) => e.stopPropagation()}
                 >
               <div style={{ padding: 28, textAlign: "center", borderBottom: "1px solid var(--bg-tertiary)", background: "linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)" }}>
@@ -1165,16 +1151,7 @@ export default function TablesPage({ loginPath = "/client-admin/login" }: { logi
             }}
             onClick={() => { setEditDialogOpen(false); setSelectedTable(null); resetForm(); }}
           >
-                <div className="dialog-content"
-                  style={{
-                    background: "white",
-                    borderRadius: 24,
-                    width: 480,
-                    maxWidth: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)",
-                  }}
+                <div className={rStyles.dialogContent}
                   onClick={(e) => e.stopPropagation()}
                 >
               <div style={{ padding: 28, textAlign: "center", borderBottom: "1px solid var(--bg-tertiary)", background: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)" }}>
@@ -1499,37 +1476,6 @@ export default function TablesPage({ loginPath = "/client-admin/login" }: { logi
         @keyframes slideUp {
           from { transform: translateY(100%); opacity: 0; }
           to { transform: translateY(0); opacity: 1; }
-        }
-        @media (max-width: 1024px) {
-          .stats-grid {
-            grid-template-columns: 1fr 1fr !important;
-          }
-        }
-        @media (max-width: 768px) {
-          .page-container {
-            padding: 16px !important;
-          }
-          .stats-grid {
-            grid-template-columns: 1fr !important;
-          }
-          .filter-bar {
-            flex-direction: column !important;
-            align-items: stretch !important;
-          }
-          .grid-view {
-             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
-             gap: 16px !important;
-          }
-          .dialog-content {
-            width: 100% !important;
-            max-height: 94vh !important;
-            border-radius: 12px 12px 0 0 !important;
-            position: fixed !important;
-            bottom: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            animation: slideUp 0.3s ease-out !important;
-          }
         }
         input:focus-visible, select:focus-visible, button:focus-visible {
           outline: 3px solid rgba(139,92,246,0.35) !important;

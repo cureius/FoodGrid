@@ -866,3 +866,21 @@
 .placeOrderBtn {
   all: unset;
 }
+
+@media (max-width: 768px) {
+  .pageWrap {
+    padding: 16px;
+  }
+
+  .menuImageWrap {
+    height: 100px;
+  }
+
+  .centerStage {
+    padding: 40px 12px;
+  }
+
+  .panelSearch {
+    min-width: 0;
+  }
+}

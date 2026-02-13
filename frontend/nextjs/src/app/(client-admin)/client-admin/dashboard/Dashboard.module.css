@@ -349,3 +349,132 @@
     justify-content: center;
   }
 }
+
+/* ===== Dashboard page responsive overrides ===== */
+.dashboardPage {
+  padding: 32px;
+  background: var(--bg-app);
+  min-height: 100%;
+  color: var(--text-primary);
+}
+
+.dashboardHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.dashboardTitle {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.timeRangeSelector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: var(--bg-surface);
+  padding: 6px;
+  border-radius: 14px;
+  width: fit-content;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.vizGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.chartContainer {
+  height: 300px;
+  width: 100%;
+}
+
+.bottomInfoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.quickActionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.refreshBtnText {
+  display: inline;
+}
+
+@media (max-width: 768px) {
+  .dashboardPage {
+    padding: 16px;
+  }
+
+  .dashboardTitle {
+    font-size: 24px;
+  }
+
+  .dashboardHeader {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .timeRangeSelector {
+    overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .vizGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .chartContainer {
+    height: 220px;
+  }
+
+  .bottomInfoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .quickActionsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .refreshBtnText {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .quickActionsGrid {
+    grid-template-columns: 1fr;
+  }
+}

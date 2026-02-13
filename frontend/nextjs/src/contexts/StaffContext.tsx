@@ -31,7 +31,6 @@ export function StaffProvider({ children }: { readonly children: ReactNode }) {
     async function loadStaffInfo() {
       try {
         const info = await getCurrentStaff();
-        console.log("🚀 ~ loadStaffInfo ~ info:", info)
         if (info?.outletId) {
           setSelectedOutletId(info.outletId);
           setStaffInfo({

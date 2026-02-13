@@ -36,6 +36,7 @@ import {
   LineChart, Line, PieChart, Pie, Cell, Legend, AreaChart, Area 
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
+import dashStyles from './dashboard/Dashboard.module.css';
 
 function formatTime(d: Date) {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -266,18 +267,11 @@ export default function Page() {
   const recentEmployees = employees.slice(0, 5);
 
   return (
-    <div style={{ padding: "32px", background: "var(--bg-app)", minHeight: "100%", color: "var(--text-primary)" }}>
+    <div className={dashStyles.dashboardPage} style={{ background: "var(--bg-app)", minHeight: "100%", color: "var(--text-primary)" }}>
       {/* Header */}
-      <div style={{
-        display: "flex",
-        flexWrap: "wrap",
-        alignItems: "flex-start",
-        justifyContent: "space-between",
-        gap: 20,
-        marginBottom: 32,
-      }}>
+      <div className={dashStyles.dashboardHeader}>
         <div>
-          <h1 style={{
+          <h1 className={dashStyles.dashboardTitle} style={{
             fontSize: 32,
             fontWeight: 800,
             margin: 0,
@@ -336,13 +330,13 @@ export default function Page() {
             }}
           >
             <RefreshCw size={20} style={{ animation: refreshing ? "spin 2s linear infinite" : "none" }} />
-            {refreshing ? "Refreshing..." : "Refresh Data"}
+            <span className={dashStyles.refreshBtnText}>{refreshing ? "Refreshing..." : "Refresh Data"}</span>
           </button>
         </div>
       </div>
 
       {/* Time Range Selector */}
-      <div style={{
+      <div className={dashStyles.timeRangeSelector} style={{
         display: "flex",
         gap: 8,
         marginBottom: 24,
@@ -376,9 +370,8 @@ export default function Page() {
       </div>
 
       {/* Stats Grid */}
-      <div style={{
+      <div className={dashStyles.statsGrid} style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
         gap: 20,
         marginBottom: 32,
       }}>
@@ -474,9 +467,8 @@ export default function Page() {
       </AnimatePresence>
 
       {/* Visualizations Grid */}
-      <div style={{
+      <div className={dashStyles.vizGrid} style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))",
         gap: 24,
         marginBottom: 32
       }}>
@@ -499,7 +491,7 @@ export default function Page() {
               </div>
             </div>
           </div>
-          <div style={{ height: 300, width: '100%' }}>
+          <div className={dashStyles.chartContainer} style={{ width: '100%' }}>
             {analyticsLoading ? (
               <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <RefreshCw size={24} style={{ animation: "spin 2s linear infinite" }} color="var(--text-tertiary)" />
@@ -551,7 +543,7 @@ export default function Page() {
               </div>
             </div>
           </div>
-          <div style={{ height: 300, width: '100%', display: 'flex' }}>
+          <div className={dashStyles.chartContainer} style={{ width: '100%', display: 'flex' }}>
             {analyticsLoading ? (
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <RefreshCw size={24} style={{ animation: "spin 2s linear infinite" }} color="var(--text-tertiary)" />
@@ -608,9 +600,8 @@ export default function Page() {
         </div>
       </div>
 
-      <div style={{
+      <div className={dashStyles.bottomInfoGrid} style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
         gap: 24,
         marginBottom: 40
       }}>
@@ -852,9 +843,8 @@ export default function Page() {
       {/* Quick Actions */}
       <div style={{ marginBottom: 32 }}>
         <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: "var(--text-primary)" }}>Quick Actions</h3>
-        <div style={{
+        <div className={dashStyles.quickActionsGrid} style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
           gap: 16,
         }}>
           {[

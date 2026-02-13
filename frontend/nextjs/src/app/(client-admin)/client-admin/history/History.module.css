@@ -409,3 +409,39 @@
   }
 }
 
+@media (max-width: 768px) {
+  .topRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchWrap {
+    max-width: none;
+  }
+
+  .filters {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .filterBtn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .right {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .orderCardBody {
+    grid-template-columns: 1fr;
+  }
+
+  .kv {
+    border-right: none;
+  }
+}
+

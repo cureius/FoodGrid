@@ -34,6 +34,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Card from "@/components/ui/Card";
+import rStyles from "./Employees.module.css";
 
 interface Employee {
   id: string;
@@ -301,7 +302,7 @@ export default function EmployeesPage({ loginPath = "/client-admin/login" }: { l
   const canSubmit = form.displayName.trim() && form.email.trim();
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg-app)", color: "var(--text-primary)" }}>
+    <div className={rStyles.pageContainer}>
       {/* Toast Notification */}
       {toast && (
         <div
@@ -334,7 +335,7 @@ export default function EmployeesPage({ loginPath = "/client-admin/login" }: { l
         </div>
       )}
 
-      <div style={{ padding: "32px" }}>
+      <div className={rStyles.pageInner}>
         {/* Header */}
         <div style={{ marginBottom: 32 }}>
           <div
@@ -437,13 +438,7 @@ export default function EmployeesPage({ loginPath = "/client-admin/login" }: { l
 
           {/* Stats */}
           {selectedOutletId && (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-                gap: 20,
-                marginBottom: 24,
-              }}
+            <div className={rStyles.statsGrid}
             >
               {stats.map((stat, index) => (
                 <div
@@ -494,9 +489,9 @@ export default function EmployeesPage({ loginPath = "/client-admin/login" }: { l
               marginBottom: 24,
             }}
           >
-            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+            <div className={rStyles.filterBar}>
               <div style={{ display: "flex", gap: 12, flex: 1, flexWrap: "wrap" }}>
-                <div style={{ position: "relative", flex: 1, minWidth: 240, maxWidth: 480 }}>
+                <div className={rStyles.searchInputWrap}>
                   <Search size={18} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
                   <input
                     type="text"
@@ -688,7 +683,7 @@ export default function EmployeesPage({ loginPath = "/client-admin/login" }: { l
             </div>
           </Card>
         ) : viewMode === "grid" ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 24 }}>
+          <div className={rStyles.employeeGrid}>
             {filteredEmployees.map((employee) => (
               <div
                 key={employee.id}
@@ -1079,14 +1074,7 @@ export default function EmployeesPage({ loginPath = "/client-admin/login" }: { l
           zIndex: 1000,
           padding: 20
         }}>
-          <div style={{
-            background: "var(--bg-surface)",
-            borderRadius: 24,
-            width: "100%",
-            maxWidth: 540,
-            maxHeight: "90vh",
-            overflow: "auto",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+          <div className={rStyles.dialogContent} style={{
             animation: "modalZoom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)"
           }}>
             <div style={{ padding: "32px 32px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -1207,14 +1195,7 @@ export default function EmployeesPage({ loginPath = "/client-admin/login" }: { l
           zIndex: 1000,
           padding: 20
         }}>
-          <div style={{
-            background: "var(--bg-surface)",
-            borderRadius: 24,
-            width: "100%",
-            maxWidth: 540,
-            maxHeight: "90vh",
-            overflow: "auto",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+          <div className={rStyles.dialogContent} style={{
             animation: "modalZoom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)"
           }}>
             <div style={{ padding: "32px 32px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -1346,7 +1327,7 @@ export default function EmployeesPage({ loginPath = "/client-admin/login" }: { l
           zIndex: 1000,
           padding: 20
         }}>
-          <div style={{
+          <div className={rStyles.dialogContent} style={{
             background: "var(--bg-surface)",
             borderRadius: 24,
             width: "100%",

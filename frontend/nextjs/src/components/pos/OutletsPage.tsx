@@ -23,6 +23,7 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import rStyles from "./Outlets.module.css";
 
 // Helper to decode JWT and get the subject (user ID)
 function getUserIdFromToken(tokenKey: string): string | null {
@@ -219,7 +220,7 @@ export default function OutletsPage({ loginPath = "/client-admin/login" }: { log
   ];
 
   return (
-    <div style={{ padding: 32, background: "var(--bg-app)", minHeight: "100%", color: "var(--text-primary)" }}>
+    <div className={rStyles.pageContainer} style={{ background: "var(--bg-app)", minHeight: "100%", color: "var(--text-primary)" }}>
       {/* Toast */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
@@ -298,9 +299,7 @@ export default function OutletsPage({ loginPath = "/client-admin/login" }: { log
         gap: 16,
         marginBottom: 24,
       }}>
-        <div style={{
-          flex: 1,
-          minWidth: 280,
+        <div className={rStyles.searchWrap} style={{
           position: "relative",
         }}>
             <Search size={18} style={{
@@ -372,9 +371,8 @@ export default function OutletsPage({ loginPath = "/client-admin/login" }: { log
       {loading ? (
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
           gap: 20,
-        }}>
+        }} className={rStyles.outletsGrid}>
           {[1, 2, 3].map((i) => (
             <div key={i} style={{
               background: "var(--bg-surface)",
@@ -454,9 +452,8 @@ export default function OutletsPage({ loginPath = "/client-admin/login" }: { log
           )}
         </div>
       ) : (
-        <div style={{
+        <div className={rStyles.outletsGrid} style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
           gap: 20,
         }}>
           {filteredOutlets.map((outlet) => (
@@ -645,14 +642,8 @@ export default function OutletsPage({ loginPath = "/client-admin/login" }: { log
           padding: 20,
           zIndex: 100,
         }}>
-          <div style={{
+          <div className={rStyles.modalContent} style={{
             background: "var(--bg-surface)",
-            borderRadius: 20,
-            width: "100%",
-            maxWidth: 480,
-            maxHeight: "90vh",
-            overflow: "auto",
-            boxShadow: "var(--shadow-xl)",
             color: "var(--text-primary)",
           }}>
             {/* Modal Header */}

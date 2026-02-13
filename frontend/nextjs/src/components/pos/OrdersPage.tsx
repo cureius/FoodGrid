@@ -640,7 +640,6 @@ export default function OrdersPage({
       .filter((item) => item.status !== "CANCELLED")
       .map((item) => mapOrderItemToDetailItem(item));
   }, [selectedOrderResponse]);
-  console.log("🚀 ~ OrdersPage ~ detailItems:", detailItems)
 
   // Keyboard shortcuts
   useEffect(() => {

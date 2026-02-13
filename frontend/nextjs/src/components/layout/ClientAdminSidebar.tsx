@@ -30,7 +30,12 @@ const navItems = [
   { icon: CreditCard, label: 'Payments', href: '/client-admin/payments' },
 ];
 
-const ClientAdminSidebar = () => {
+interface SidebarProps {
+  isDrawerOpen?: boolean;
+  onClose?: () => void;
+}
+
+const ClientAdminSidebar: React.FC<SidebarProps> = ({ isDrawerOpen = false, onClose }) => {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -48,7 +53,7 @@ const ClientAdminSidebar = () => {
   };
 
   return (
-    <aside className={styles.sidebar}>
+    <aside className={`${styles.sidebar} ${isDrawerOpen ? styles.drawerOpen : ''}`}>
       <div className={styles.logoContainer}>
         <div className={styles.logoIcon}>
           <UtensilsCrossed size={24} />
@@ -63,10 +68,11 @@ const ClientAdminSidebar = () => {
         <div className={styles.navSection}>
           <span className={styles.navSectionTitle}>Main Menu</span>
           {navItems.slice(0, 4).map((item) => (
-            <Link 
-              key={item.href} 
+            <Link
+              key={item.href}
               href={item.href}
               className={`${styles.navItem} ${isActive(item.href) ? styles.activeNavItem : ''}`}
+              onClick={onClose}
             >
               <item.icon className={styles.navIcon} size={20} strokeWidth={isActive(item.href) ? 2.5 : 2} />
               <span>{item.label}</span>
@@ -77,10 +83,11 @@ const ClientAdminSidebar = () => {
         <div className={styles.navSection}>
           <span className={styles.navSectionTitle}>Management</span>
           {navItems.slice(4).map((item) => (
-            <Link 
-              key={item.href} 
+            <Link
+              key={item.href}
               href={item.href}
               className={`${styles.navItem} ${isActive(item.href) ? styles.activeNavItem : ''}`}
+              onClick={onClose}
             >
               <item.icon className={styles.navIcon} size={20} strokeWidth={isActive(item.href) ? 2.5 : 2} />
               <span>{item.label}</span>

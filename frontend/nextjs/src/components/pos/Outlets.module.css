@@ -1,0 +1,61 @@
+/* Outlets page responsive styles */
+.pageContainer {
+  padding: 32px;
+  background: var(--bg-app);
+  min-height: 100%;
+  color: var(--text-primary);
+}
+
+.outletsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+.searchWrap {
+  flex: 1;
+  min-width: 280px;
+  position: relative;
+}
+
+.modalContent {
+  background: var(--bg-surface);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: var(--shadow-xl);
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 16px;
+  }
+
+  .outletsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .searchWrap {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .modalContent {
+    max-width: 100%;
+    max-height: 94vh;
+    border-radius: 16px 16px 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    animation: slideUp 0.3s ease-out;
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
