@@ -735,7 +735,7 @@ export default function OrdersPage({
                   padding: "10px 16px",
                   borderRadius: 12,
                   border: "1px solid rgba(0,0,0,0.08)",
-                  background: autoRefresh ? "rgba(139, 92, 246, 0.1)" : "white",
+                  background: autoRefresh ? "var(--component-border-hover)" : "var(--bg-surface)",
                   color: autoRefresh ? "var(--primary)" : "var(--text-secondary)",
                   fontSize: 13,
                   fontWeight: 600,
@@ -850,6 +850,7 @@ export default function OrdersPage({
                     boxSizing: "border-box",
                     transition: "all 0.2s ease",
                     background: "var(--bg-card)",
+                    color: "var(--text-secondary)",
                   }}
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = "var(--primary)";
@@ -927,6 +928,7 @@ export default function OrdersPage({
                     boxSizing: "border-box",
                     transition: "all 0.2s ease",
                     background: "var(--bg-card)",
+                    color: "var(--text-secondary)",
                   }}
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = "var(--primary)";
@@ -1071,7 +1073,8 @@ export default function OrdersPage({
                 <span style={{ 
                   opacity: 0.6, 
                   fontSize: 11, 
-                  background: isActive ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.05)",
+                  background: isActive ? "var(--primary)" : "var(--bg-surface)",
+                  color: isActive ? "var(--bg-surface)" : "var(--text-secondary)",
                   padding: "1px 6px",
                   borderRadius: 6,
                 }}>{f.count}</span>
@@ -1185,7 +1188,7 @@ export default function OrdersPage({
                         <div
                           key={order.id}
                           style={{
-                            background: isSelected ? "#fef2f2" : "var(--bg-surface)",
+                            background: isSelected ? "var(--component-border-hover)" : "var(--bg-surface)",
                             borderRadius: 20,
                             padding: 24,
                             boxShadow: isSelected ? "0 4px 12px rgba(239, 68, 68, 0.15), 0 8px 20px rgba(0,0,0,0.08)" : "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
@@ -1262,7 +1265,7 @@ export default function OrdersPage({
                                   padding: "2px 6px",
                                   borderRadius: 4,
                                   background: order.sourceChannel === "SWIGGY" ? "#f14f0e" : "#eb2231",
-                                  color: "white",
+                                  color: "var(--text-secondary)",
                                   fontSize: 10,
                                   fontWeight: 900,
                                   letterSpacing: "0.5px",
