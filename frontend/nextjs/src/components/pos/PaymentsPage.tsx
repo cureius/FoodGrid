@@ -40,6 +40,7 @@ const Header = styled.div`
   margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 16px;
+  margin-top: 16px;
 
   @media (max-width: 640px) {
     flex-direction: column;
@@ -90,6 +91,7 @@ const Select = styled.select`
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  color: var(--text-secondary);
 
   &:hover {
     border-color: ${COLORS.primary};
@@ -155,7 +157,7 @@ const StatValue = styled.h2`
   font-size: clamp(24px, 2.2vw, 32px);
   font-weight: 800;
   margin: 0;
-  background: linear-gradient(135deg, #1a1a2e 0%, #4a4a6a 100%);
+  background: linear-gradient(135deg, var(--text-secondary) 0%, var(--text-primary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
