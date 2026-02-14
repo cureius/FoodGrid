@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import styles from "./NewOrder.module.css";
 import { cn } from "@/lib/utils";
 import {
@@ -102,6 +102,18 @@ export default function NewOrderPage({
   
   // Quick add mode - add item directly without modal
   const [quickAddMode, setQuickAddMode] = useState(true);
+
+  // Mobile state
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileCartOpen, setMobileCartOpen] = useState(false);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const searchParams = useSearchParams();
   const orderIdParam = searchParams.get("orderId");
@@ -535,19 +547,19 @@ export default function NewOrderPage({
 
       {/* Step 1: Customer Information */}
       {step === 1 && (
-        <div className={styles.centerStage} style={{ display: "flex", justifyContent: "center", padding: "40px 20px" }}>
+        <div className={styles.centerStage} style={{ display: "flex", justifyContent: "center", ...(!isMobile ? { padding: "40px 20px" } : {}) }}>
           <div className={styles.orderInfoCard} style={{
-            width: "min(600px, 95vw)",
+            width: isMobile ? "100%" : "min(600px, 95vw)",
             background: "var(--bg-surface)",
             border: "1px solid rgba(0,0,0,0.08)",
-            borderRadius: 24,
-            padding: 32,
+            borderRadius: isMobile ? 18 : 24,
+            padding: isMobile ? "20px 16px" : 32,
             boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
           }}>
-            <div style={{ textAlign: "center", fontSize: 26, fontWeight: 800, marginBottom: 28, color: "var(--text-primary)" }}>Order Information</div>
+            <div style={{ textAlign: "center", fontSize: isMobile ? 22 : 26, fontWeight: 800, marginBottom: isMobile ? 20 : 28, color: "var(--text-primary)" }}>Order Information</div>
 
             <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 12 }}>Order Type</div>
-            <div className={styles.typeGrid} style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
+            <div className={styles.typeGrid} style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: isMobile ? 10 : 16, marginBottom: isMobile ? 16 : 24 }}>
               {[
                 { value: "DINE_IN", label: "Dine In", icon: "🍽️" },
                 { value: "TAKEAWAY", label: "Take Away", icon: "🥡" },
@@ -557,12 +569,12 @@ export default function NewOrderPage({
                   key={type.value}
                   onClick={() => setOrderType(type.value as OrderType)}
                   style={{
-                    borderRadius: 16,
+                    borderRadius: isMobile ? 14 : 16,
                     border: `2px solid ${orderType === type.value ? "var(--primary)" : "var(--component-border)"}`,
                     background: orderType === type.value ? "rgba(139, 92, 246, 0.05)" : "white",
-                    padding: "20px 16px",
+                    padding: isMobile ? "14px 12px" : "20px 16px",
                     display: "flex",
-                    flexDirection: "column",
+                    flexDirection: isMobile ? "row" as const : "column" as const,
                     alignItems: "center",
                     gap: 8,
                     fontWeight: 700,
@@ -585,7 +597,7 @@ export default function NewOrderPage({
                     }
                   }}
                 >
-                  <span style={{ fontSize: 32 }}>{type.icon}</span>
+                  <span style={{ fontSize: isMobile ? 24 : 32 }}>{type.icon}</span>
                   <span>{type.label}</span>
                 </button>
               ))}
@@ -697,7 +709,7 @@ export default function NewOrderPage({
               }}
             />
 
-            <div style={{ display: "flex", justifyContent: "flex-start", marginTop: 28 }}>
+            <div style={{ display: "flex", justifyContent: isMobile ? "stretch" : "flex-start", marginTop: isMobile ? 20 : 28 }}>
               <button
                 disabled={!canContinueFromStep1 || creatingOrder}
                 onClick={() => handleCreateOrder()}
@@ -713,6 +725,7 @@ export default function NewOrderPage({
                   fontSize: 15,
                   display: "inline-flex",
                   alignItems: "center",
+                  justifyContent: "center",
                   gap: 10,
                   boxShadow: !canContinueFromStep1 || creatingOrder
                     ? "none"
@@ -720,6 +733,7 @@ export default function NewOrderPage({
                   border: "none",
                   cursor: !canContinueFromStep1 || creatingOrder ? "not-allowed" : "pointer",
                   transition: "all 0.2s ease",
+                  width: isMobile ? "100%" : "auto",
                 }}
                 onMouseEnter={(e) => {
                   if (canContinueFromStep1 && !creatingOrder) {
@@ -747,13 +761,9 @@ export default function NewOrderPage({
 
       {/* Step 2: Select Menu */}
       {step === 2 && (
-        <div className={styles.twoCol} style={{ marginTop: 20 }}>
+        <div className={styles.twoCol} style={{ marginTop: isMobile ? 12 : 20 }}>
           <div className={styles.leftPanel}>
             <div className={styles.categorySearchRow} style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 16,
               paddingBottom: 16,
               borderBottom: "1px solid var(--bg-tertiary)",
               marginBottom: 16,
@@ -775,8 +785,7 @@ export default function NewOrderPage({
                 <div className={styles.panelSearch} style={{
                   position: "relative",
                   flex: 1,
-                  minWidth: 280,
-                  maxWidth: 400,
+                  ...(isMobile ? { minWidth: 0, width: "100%" } : { minWidth: 280, maxWidth: 400 }),
                 }}>
                   <Search size={18} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
                   <input
@@ -902,7 +911,7 @@ export default function NewOrderPage({
                 <Loader2 size={32} className="animate-spin" />
               </div>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16 }}>
+              <div className={styles.mobileMenuGrid}>
                 {filteredMenu.map((item) => (
                   <div
                     key={item.id}
@@ -922,7 +931,7 @@ export default function NewOrderPage({
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   >
-                    <div style={{ position: "relative", height: 180 }}>
+                    <div style={{ position: "relative", height: isMobile ? 120 : 180 }}>
                       {item.images && item.images.length > 0 ? (
                         <Image
                           src={getImageUrl(item.images[0].imageUrl) || ""}
@@ -971,30 +980,32 @@ export default function NewOrderPage({
                       </div>
                     </div>
 
-                    <div style={{ padding: 16 }}>
-                      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)" }}>{item.name}</div>
-                      <div style={{ fontSize: 12, color: "var(--text-secondary)", minHeight: 32, marginBottom: 12 }}>
+                    <div style={{ padding: isMobile ? 10 : 16 }}>
+                      <div style={{ fontSize: isMobile ? 13 : 16, fontWeight: 700, marginBottom: isMobile ? 4 : 6, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: isMobile ? "nowrap" : "normal" }}>{item.name}</div>
+                      {!isMobile && <div style={{ fontSize: 12, color: "var(--text-secondary)", minHeight: 32, marginBottom: 12 }}>
                         {item.description || "No description"}
-                      </div>
+                      </div>}
 
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                        <div style={{ fontSize: 18, fontWeight: 800, color: "var(--primary)" }}>₹{Number(item.basePrice).toFixed(2)}</div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: isMobile ? 6 : 10, marginTop: isMobile ? 6 : 0 }}>
+                        <div style={{ fontSize: isMobile ? 14 : 18, fontWeight: 800, color: "var(--primary)" }}>₹{Number(item.basePrice).toFixed(2)}</div>
                         {quickAddMode ? (
-                          <div style={{ display: "flex", gap: 6 }}>
+                          <div style={{ display: "flex", gap: isMobile ? 4 : 6 }}>
                             <button
                               onClick={() => quickAddWithQty(item, 1)}
                               disabled={item.status !== "ACTIVE"}
                               style={{
-                                padding: "8px 12px",
-                                borderRadius: 10,
+                                padding: isMobile ? "6px 10px" : "8px 12px",
+                                borderRadius: isMobile ? 8 : 10,
                                 border: "none",
                                 background: item.status === "ACTIVE" ? "linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)" : "var(--component-border)",
                                 color: item.status === "ACTIVE" ? "white" : "var(--text-tertiary)",
-                                fontSize: 12,
+                                fontSize: isMobile ? 11 : 12,
                                 fontWeight: 700,
                                 cursor: item.status === "ACTIVE" ? "pointer" : "not-allowed",
                                 transition: "all 0.2s ease",
                                 boxShadow: item.status === "ACTIVE" ? "0 2px 8px rgba(139, 92, 246, 0.3)" : "none",
+                                minWidth: isMobile ? 36 : "auto",
+                                minHeight: isMobile ? 36 : "auto",
                               }}
                               onMouseEnter={(e) => {
                                 if (item.status === "ACTIVE") {
@@ -1011,16 +1022,18 @@ export default function NewOrderPage({
                               onClick={() => quickAddWithQty(item, 2)}
                               disabled={item.status !== "ACTIVE"}
                               style={{
-                                padding: "8px 12px",
-                                borderRadius: 10,
+                                padding: isMobile ? "6px 10px" : "8px 12px",
+                                borderRadius: isMobile ? 8 : 10,
                                 border: "none",
                                 background: item.status === "ACTIVE" ? "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)" : "var(--component-border)",
                                 color: item.status === "ACTIVE" ? "white" : "var(--text-tertiary)",
-                                fontSize: 12,
+                                fontSize: isMobile ? 11 : 12,
                                 fontWeight: 700,
                                 cursor: item.status === "ACTIVE" ? "pointer" : "not-allowed",
                                 transition: "all 0.2s ease",
                                 boxShadow: item.status === "ACTIVE" ? "0 2px 8px rgba(99, 102, 241, 0.3)" : "none",
+                                minWidth: isMobile ? 36 : "auto",
+                                minHeight: isMobile ? 36 : "auto",
                               }}
                               onMouseEnter={(e) => {
                                 if (item.status === "ACTIVE") {
@@ -1037,8 +1050,8 @@ export default function NewOrderPage({
                               onClick={() => openAddModal(item)}
                               disabled={item.status !== "ACTIVE"}
                               style={{
-                                padding: "8px 10px",
-                                borderRadius: 10,
+                                padding: isMobile ? "6px 8px" : "8px 10px",
+                                borderRadius: isMobile ? 8 : 10,
                                 border: "1px solid var(--component-border)",
                                 background: item.status === "ACTIVE" ? "white" : "var(--bg-tertiary)",
                                 color: item.status === "ACTIVE" ? "var(--text-secondary)" : "var(--text-tertiary)",
@@ -1046,6 +1059,8 @@ export default function NewOrderPage({
                                 fontWeight: 700,
                                 cursor: item.status === "ACTIVE" ? "pointer" : "not-allowed",
                                 transition: "all 0.2s ease",
+                                minWidth: isMobile ? 36 : "auto",
+                                minHeight: isMobile ? 36 : "auto",
                               }}
                               onMouseEnter={(e) => {
                                 if (item.status === "ACTIVE") {
@@ -1098,7 +1113,7 @@ export default function NewOrderPage({
             )}
           </div>
 
-          <div className={styles.rightPanel} style={{ position: "sticky", top: 20, maxHeight: "calc(100vh - 40px)", display: "flex", flexDirection: "column" }}>
+          <div className={cn(styles.rightPanel, isMobile && styles.rightPanelMobileHidden)} style={{ position: "sticky", top: 20, maxHeight: "calc(100vh - 40px)", display: "flex", flexDirection: "column" }}>
             <div style={{
               display: "flex",
               alignItems: "center",
@@ -1460,21 +1475,255 @@ export default function NewOrderPage({
               )}
             </button>
           </div>
+
+          {/* ---- Mobile Floating Cart FAB ---- */}
+          {isMobile && step === 2 && (
+            <button
+              className={styles.floatingCartFab}
+              onClick={() => setMobileCartOpen(true)}
+              aria-label={`View cart with ${cart.length} items`}
+            >
+              <div className={styles.floatingCartFabLeft}>
+                <ShoppingCart size={20} />
+                <span>View Cart</span>
+                {cart.length > 0 && (
+                  <span className={styles.floatingCartFabBadge}>{cart.length}</span>
+                )}
+              </div>
+              <span className={styles.floatingCartFabPrice}>₹{total.toFixed(2)}</span>
+            </button>
+          )}
+
+          {/* ---- Mobile Cart Bottom Sheet ---- */}
+          {isMobile && mobileCartOpen && step === 2 && (
+            <>
+              <div
+                className={styles.mobileCartOverlay}
+                onClick={() => setMobileCartOpen(false)}
+                aria-hidden="true"
+              />
+              <div
+                className={styles.mobileCartSheet}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Order cart"
+              >
+                <div className={styles.mobileCartSheetHandle} />
+                <div className={styles.mobileCartSheetHeader}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, fontWeight: 700, fontSize: 16 }}>
+                    <ShoppingCart size={20} style={{ color: "var(--primary)" }} />
+                    <span>Order Details</span>
+                    {cart.length > 0 && (
+                      <span style={{
+                        background: "rgba(139, 92, 246, 0.12)",
+                        color: "var(--primary)",
+                        borderRadius: 12,
+                        padding: "2px 10px",
+                        fontSize: 13,
+                        fontWeight: 800,
+                      }}>{cart.length} items</span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setMobileCartOpen(false)}
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 10,
+                      background: "#111827",
+                      color: "white",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                    aria-label="Close cart"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                <div className={styles.mobileCartSheetBody}>
+                  {cart.length === 0 && (!currentOrder || currentOrder.items.length === 0) ? (
+                    <div style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "32px 20px",
+                      textAlign: "center",
+                      color: "var(--text-secondary)",
+                    }}>
+                      <div style={{
+                        width: 56, height: 56, borderRadius: 14,
+                        border: "1px solid var(--component-border)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        marginBottom: 14, background: "var(--bg-surface)",
+                      }}>
+                        <ShoppingCart size={28} style={{ color: "var(--component-border-hover, #94a3b8)" }} />
+                      </div>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 6 }}>No items yet</div>
+                      <div style={{ fontSize: 13 }}>Add items from the menu to get started</div>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {/* Existing order items */}
+                      {currentOrder && currentOrder.items.length > 0 && (
+                        <div style={{ marginBottom: 6 }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-tertiary)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Existing Items</div>
+                          {currentOrder.items.map((item) => (
+                            <div key={item.id} style={{
+                              padding: 10, background: "var(--bg-surface)", borderRadius: 12,
+                              border: "1px solid var(--component-border)",
+                              display: "flex", justifyContent: "space-between", alignItems: "center",
+                              marginBottom: 6,
+                            }}>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{item.itemName}</div>
+                                <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>Qty: {Number(item.qty)}</div>
+                              </div>
+                              <div style={{ fontSize: 13, fontWeight: 800 }}>₹{Number(item.lineTotal).toFixed(2)}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Cart items */}
+                      {cart.map((line, idx) => (
+                        <div
+                          key={`${line.menuItem.id}-${idx}`}
+                          style={{
+                            borderRadius: 12, border: "1px solid var(--component-border)",
+                            background: "var(--bg-surface)", padding: 12,
+                          }}
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 10 }}>
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div style={{ fontSize: 14, fontWeight: 700 }}>{line.menuItem.name}</div>
+                              {line.note && <div style={{ fontSize: 11, color: "var(--text-secondary)", fontStyle: "italic", marginTop: 2 }}>Note: {line.note}</div>}
+                            </div>
+                            <button
+                              onClick={() => removeLine(idx)}
+                              aria-label="Remove item"
+                              style={{
+                                width: 30, height: 30, borderRadius: 8,
+                                background: "rgba(239,68,68,0.1)", color: "var(--danger)",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                border: "none", cursor: "pointer", flexShrink: 0, marginLeft: 8,
+                              }}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 10, borderTop: "1px solid var(--bg-tertiary, #f1f5f9)" }}>
+                            <div style={{ fontSize: 15, fontWeight: 800, color: "var(--primary)" }}>₹{Number(line.menuItem.basePrice).toFixed(2)}</div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <button
+                                onClick={() => updateLineQty(idx, -1)}
+                                style={{
+                                  width: 34, height: 34, borderRadius: 10,
+                                  background: "var(--bg-tertiary, #f1f5f9)", display: "flex",
+                                  alignItems: "center", justifyContent: "center",
+                                  border: "none", cursor: "pointer",
+                                }}
+                                aria-label="Decrease quantity"
+                              >
+                                <Minus size={14} />
+                              </button>
+                              <span style={{ width: 30, textAlign: "center", fontSize: 15, fontWeight: 800 }}>{line.qty}</span>
+                              <button
+                                onClick={() => updateLineQty(idx, 1)}
+                                style={{
+                                  width: 34, height: 34, borderRadius: 10,
+                                  background: "var(--bg-tertiary, #f1f5f9)", display: "flex",
+                                  alignItems: "center", justifyContent: "center",
+                                  border: "none", cursor: "pointer",
+                                }}
+                                aria-label="Increase quantity"
+                              >
+                                <Plus size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.mobileCartSheetFooter}>
+                  {/* Summary */}
+                  <div style={{
+                    borderRadius: 14, border: "1px solid var(--component-border)",
+                    background: "var(--bg-surface)", padding: 12, marginBottom: 12,
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--text-secondary)", fontWeight: 600, marginBottom: 6 }}>
+                      <span>Sub Total</span><span>₹{subTotal.toFixed(2)}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--text-secondary)", fontWeight: 600, marginBottom: 8 }}>
+                      <span>Tax (Est.)</span><span>₹{tax.toFixed(2)}</span>
+                    </div>
+                    <div style={{ height: 1, background: "var(--component-border)", marginBottom: 8 }} />
+                    <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 18 }}>
+                      <span>Total</span>
+                      <span style={{ color: "var(--primary)", fontSize: 20 }}>₹{total.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  {/* Continue CTA */}
+                  <button
+                    disabled={!canContinueFromStep2 || creatingOrder || addingItems}
+                    onClick={() => {
+                      setMobileCartOpen(false);
+                      handleProceedToSummary();
+                    }}
+                    style={{
+                      width: "100%",
+                      height: 52,
+                      borderRadius: 14,
+                      background: !canContinueFromStep2 || creatingOrder || addingItems
+                        ? "var(--component-border)"
+                        : "linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%)",
+                      color: !canContinueFromStep2 || creatingOrder || addingItems ? "var(--text-tertiary)" : "white",
+                      fontWeight: 700,
+                      fontSize: 15,
+                      boxShadow: !canContinueFromStep2 || creatingOrder || addingItems
+                        ? "none"
+                        : "0 4px 14px rgba(139, 92, 246, 0.35)",
+                      border: "none",
+                      cursor: !canContinueFromStep2 || creatingOrder || addingItems ? "not-allowed" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                    }}
+                  >
+                    {creatingOrder || addingItems ? (
+                      <><Loader2 size={18} className="animate-spin" /> Processing...</>
+                    ) : (
+                      <>Continue to Summary <ArrowRight size={18} /></>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
       {/* Step 3: Order Summary */}
       {step === 3 && currentOrder && (
-        <div style={{ display: "flex", justifyContent: "center"}}>
+        <div style={{ display: "flex", justifyContent: "center", padding: isMobile ? "12px 0" : undefined }}>
           <div style={{
-            width: "min(600px, 95vw)",
+            width: isMobile ? "100%" : "min(600px, 95vw)",
             background: "var(--bg-surface)",
             border: "1px solid rgba(0,0,0,0.08)",
-            borderRadius: 24,
-            padding: 32,
+            borderRadius: isMobile ? 18 : 24,
+            padding: isMobile ? "20px 14px" : 32,
             boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
           }}>
-            <div style={{ textAlign: "center", fontSize: 26, fontWeight: 800, marginBottom: 28, color: "var(--text-primary)" }}>Order Summary</div>
+            <div style={{ textAlign: "center", fontSize: isMobile ? 22 : 26, fontWeight: 800, marginBottom: isMobile ? 20 : 28, color: "var(--text-primary)" }}>Order Summary</div>
 
             <div style={{ marginBottom: 24, padding: 20, background: "var(--component-bg)", borderRadius: 16, border: "1px solid var(--component-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 6, fontWeight: 600 }}>Order ID</div>
@@ -1549,7 +1798,7 @@ export default function NewOrderPage({
               </div>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-start" }}>
+            <div style={{ display: "flex", justifyContent: isMobile ? "stretch" : "flex-start" }}>
               <button
                 disabled={billingOrder}
                 onClick={handleProceedToPayment}
@@ -1565,6 +1814,7 @@ export default function NewOrderPage({
                   fontSize: 15,
                   display: "inline-flex",
                   alignItems: "center",
+                  justifyContent: "center",
                   gap: 10,
                   boxShadow: billingOrder
                     ? "none"
@@ -1572,6 +1822,7 @@ export default function NewOrderPage({
                   border: "none",
                   cursor: billingOrder ? "not-allowed" : "pointer",
                   transition: "all 0.2s ease",
+                  width: isMobile ? "100%" : "auto",
                 }}
                 onMouseEnter={(e) => {
                   if (!billingOrder) {
@@ -1603,7 +1854,7 @@ export default function NewOrderPage({
 
       {/* Step 4: Payment */}
       {step === 4 && currentOrder && (
-        <div style={{ display: "flex", justifyContent: "center", padding: "40px 20px" }}>
+        <div style={{ display: "flex", justifyContent: "center", padding: isMobile ? "12px 0" : "40px 20px" }}>
           {showPaymentIframe && paymentLink ? (
             // Payment iframe view
             <div style={{
@@ -1727,11 +1978,11 @@ export default function NewOrderPage({
           ) : (
             // Payment method selection view
             <div style={{
-              width: "min(600px, 95vw)",
+              width: isMobile ? "100%" : "min(600px, 95vw)",
               background: "var(--bg-surface)",
               border: "1px solid rgba(0,0,0,0.08)",
-              borderRadius: 24,
-              padding: 32,
+              borderRadius: isMobile ? 18 : 24,
+              padding: isMobile ? "20px 14px" : 32,
               boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
             }}>
               <div style={{ textAlign: "center", fontSize: 26, fontWeight: 800, marginBottom: 28, color: "var(--text-primary)" }}>Payment</div>
@@ -1777,7 +2028,7 @@ export default function NewOrderPage({
               </div>
 
               <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 16 }}>Payment Method</div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, marginBottom: 32 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: isMobile ? 10 : 16, marginBottom: isMobile ? 24 : 32 }}>
                 {[
                   { value: "CASH", label: "Cash", icon: Banknote, color: "var(--success)" },
                   { value: "CARD", label: "Card", icon: CreditCard, color: "var(--info)" },
@@ -1794,7 +2045,7 @@ export default function NewOrderPage({
                         borderRadius: 16,
                         border: `2px solid ${selectedPaymentMethod === method.value ? method.color : "var(--component-border)"}`,
                         background: selectedPaymentMethod === method.value ? `${method.color}15` : "white",
-                        padding: "24px 20px",
+                        padding: isMobile ? "16px 12px" : "24px 20px",
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
@@ -1826,7 +2077,7 @@ export default function NewOrderPage({
                 })}
               </div>
 
-              <div style={{ display: "flex", justifyContent: "flex-start" }}>
+              <div style={{ display: "flex", justifyContent: isMobile ? "stretch" : "flex-start" }}>
                 <button
                   disabled={processingPayment}
                   onClick={handleProcessPayment}
@@ -1842,6 +2093,7 @@ export default function NewOrderPage({
                     fontSize: 15,
                     display: "inline-flex",
                     alignItems: "center",
+                    justifyContent: "center",
                     gap: 10,
                     boxShadow: processingPayment
                       ? "none"
@@ -1849,6 +2101,7 @@ export default function NewOrderPage({
                     border: "none",
                     cursor: processingPayment ? "not-allowed" : "pointer",
                     transition: "all 0.2s ease",
+                    width: isMobile ? "100%" : "auto",
                   }}
                   onMouseEnter={(e) => {
                     if (!processingPayment) {
