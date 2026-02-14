@@ -821,7 +821,6 @@
 
 @media (max-width: 768px) {
   .topHeader {
-    flex-direction: column;
     align-items: stretch;
     padding: 12px;
     gap: 12px;
