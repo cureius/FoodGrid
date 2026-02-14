@@ -822,7 +822,7 @@ export default function OrdersPage({
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = "var(--primary)";
-                  e.currentTarget.style.background = "white";
+                  e.currentTarget.style.background = "var(--bg-surface)";
                   e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                 }}
                 onBlur={(e) => {
@@ -853,7 +853,7 @@ export default function OrdersPage({
                   }}
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = "var(--primary)";
-                    e.currentTarget.style.background = "white";
+                    e.currentTarget.style.background = "var(--bg-surface)";
                     e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                   }}
                   onBlur={(e) => {
@@ -930,7 +930,7 @@ export default function OrdersPage({
                   }}
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = "var(--primary)";
-                    e.currentTarget.style.background = "white";
+                    e.currentTarget.style.background = "var(--bg-surface)";
                     e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)";
                   }}
                   onBlur={(e) => {
@@ -995,7 +995,7 @@ export default function OrdersPage({
                   padding: "12px 18px",
                   borderRadius: 14,
                   border: `1px solid ${isActive ? colors.border : "rgba(0,0,0,0.08)"}`,
-                  background: isActive ? colors.bg : "white",
+                  background: isActive ? colors.bg : "var(--bg-surface)",
                   color: isActive ? colors.color : "var(--text-secondary)",
                   fontSize: 14,
                   fontWeight: 700,
@@ -1011,7 +1011,7 @@ export default function OrdersPage({
                 }}
                 onMouseLeave={(e) => {
                   if (!isActive) {
-                    e.currentTarget.style.background = "white";
+                    e.currentTarget.style.background = "var(--bg-surface)";
                     e.currentTarget.style.transform = "translateY(0)";
                   }
                 }}
@@ -1058,7 +1058,7 @@ export default function OrdersPage({
                   padding: "8px 14px",
                   borderRadius: 12,
                   border: `1px solid ${isActive ? colors.color : "rgba(0,0,0,0.05)"}`,
-                  background: isActive ? colors.bg : "white",
+                  background: isActive ? colors.bg : "var(--bg-surface)",
                   color: colors.color,
                   fontSize: 13,
                   fontWeight: 800,
@@ -1133,7 +1133,7 @@ export default function OrdersPage({
                         e.currentTarget.style.borderColor = "var(--primary)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "white";
+                        e.currentTarget.style.background = "var(--bg-surface)";
                         e.currentTarget.style.borderColor = "var(--component-border)";
                       }}
                     >
@@ -1185,7 +1185,7 @@ export default function OrdersPage({
                         <div
                           key={order.id}
                           style={{
-                            background: isSelected ? "#fef2f2" : "white",
+                            background: isSelected ? "#fef2f2" : "var(--bg-surface)",
                             borderRadius: 20,
                             padding: 24,
                             boxShadow: isSelected ? "0 4px 12px rgba(239, 68, 68, 0.15), 0 8px 20px rgba(0,0,0,0.08)" : "0 1px 3px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.04)",
@@ -1216,7 +1216,7 @@ export default function OrdersPage({
                                 height: 24,
                                 borderRadius: 6,
                                 border: isSelected ? "2px solid var(--danger)" : "2px solid var(--component-border-hover)",
-                                background: isSelected ? "var(--danger)" : "white",
+                                background: isSelected ? "var(--danger)" : "var(--bg-surface)",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -1536,7 +1536,7 @@ export default function OrdersPage({
                     }
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "white";
+                    e.currentTarget.style.background = "var(--bg-surface)";
                   }}
                 >
                   Cancel
